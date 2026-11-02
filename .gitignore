@@ -112,3 +112,10 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Unity Version Control workspace metadata (UVCS runs in tandem with git)
+/.plastic/
+
+# ithappy packs: 2.1 GB of licensed assets, carried by UVCS, re-copyable from Toy Land; not in git
+/[Aa]ssets/ithappy/
+/[Aa]ssets/ithappy.meta

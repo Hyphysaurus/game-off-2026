@@ -115,7 +115,16 @@ InitTestScene*.unity*
 
 # Unity Version Control workspace metadata (UVCS runs in tandem with git)
 /.plastic/
-
-# ithappy packs: 2.1 GB of licensed assets, carried by UVCS, re-copyable from Toy Land; not in git
-/[Aa]ssets/ithappy/
-/[Aa]ssets/ithappy.meta
+# Licensed packs and Asset Store tools: OUT of git wherever they sit in the tree (they moved twice on 2 Nov).
+# ithappy agreement, Asset Store EULA, Feel and Shapes licences all forbid redistribution; UVCS carries them.
+**/ithappy/
+**/ithappy.meta
+**/_Imports/
+**/_Imports.meta
+**/Feel/
+**/Feel.meta
+**/Shapes/
+**/Shapes.meta
+**/FastScriptReload/
+**/FastScriptReload.meta
+/Packages/dev.ameye.linework-lite/

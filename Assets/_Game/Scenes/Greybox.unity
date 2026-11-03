@@ -7582,9 +7582,13 @@ MonoBehaviour:
     m_RotationOrder: 4
   fovPunch: -14
   growMasks:
-  - {fileID: 2800000, guid: 866d6d7d532d2ea49a893b6f7bd3e5ab, type: 3}
+  - {fileID: 2800000, guid: 40399d58a39b406b9d8c1e2245d3e0a2, type: 3}
   shrinkMasks:
-  - {fileID: 2800000, guid: 866d6d7d532d2ea49a893b6f7bd3e5ab, type: 3}
+  - {fileID: 2800000, guid: 40399d58a39b406b9d8c1e2245d3e0a2, type: 3}
+  growArts:
+  - {fileID: 2800000, guid: 13e8475ce0b14307a9cfe6bbf06d42d8, type: 3}
+  shrinkArts:
+  - {fileID: 2800000, guid: ecc0dae526c64136bbdb4b90d0cf44c7, type: 3}
 --- !u!114 &882868794
 MonoBehaviour:
   m_ObjectHideFlags: 0

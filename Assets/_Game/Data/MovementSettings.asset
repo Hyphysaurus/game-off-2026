@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc5f4dbcbbdb61243b1e688651cc9682, type: 3}
   m_Name: MovementSettings
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.MovementSettings
-  walkSpeed: 4
-  sprintSpeed: 7
-  acceleration: 40
+  walkSpeed: 5.5
+  sprintSpeed: 10
+  acceleration: 60
   deceleration: 50
   turnSpeed: 720
   jumpHeight: 1.6

@@ -66,3 +66,15 @@
   own scale (D-0008): a 1.7 × 3.6 toy door is a 3.4 × 7 cm mouse hole in a 2.6 m room. The ceiling went in
   (nine tiles) so the kid-size camera no longer shows sky over a bedroom; the room is lit by a warm point
   light under the planet lamp plus the 0.2 sun as fill.
+- **D-0012 (3 Nov, 11:1x) His drawings go in as drawn; a script does the conversion, the shader shows colour.**
+  He draws on white in Procreate; the warp wants white-on-black for the mask and transparency for colour.
+  So a conversion script (alpha = distance from white, gain 1.25; mask = the same as grey, 1024; art kept at
+  2048 RGBA) writes `Art/Portals/` from his originals, and he never redraws for a format. The shader gained a
+  colour overlay (`_Art`, strength, size vs ring, spin shared with the mask) composited by lerp, so a drawn
+  dark disc becomes the void between sizes for a tenth of a second mid-shift (strength 0.85 leaves a ghost
+  of the room). ShiftWarp picks one art per direction like the masks. The ring-and-bolt drawing replaced the
+  orb glow sprite directly (black adds nothing under additive blending). Speed, same session: walk 5.5,
+  sprint 10, acceleration 60 (toy crosses the floor in ~20 s at a sprint, was 28), Run Boost (0.50 s stride)
+  as the sprint pose at Speed 1 with Run at 0.75 and Walk at 1.15, since every clip is in place and the old
+  Run drifted under 7 u/s. The room/camera change (4×4 tiles + kid camera multiplier) and the flashlight
+  puzzle stay proposed.

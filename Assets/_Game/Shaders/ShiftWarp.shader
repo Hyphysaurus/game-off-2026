@@ -1,7 +1,8 @@
 // Fullscreen warp for a shift, drawn by URP's Full Screen Pass Renderer Feature after post-processing.
 // A ring grows from the screen centre (or collapses into it); inside the ring the picture is pushed
 // radially with the red and blue channels fringed apart, and the ring itself flashes. An optional
-// drawn mask (white = tear) replaces the plain ring with your own shape, expanding with it.
+// drawn mask (white = tear) replaces the plain ring with your own shape, expanding with it, and an
+// optional colour drawing (RGBA, the rift art) is laid over the ring in the same square, spinning slowly.
 Shader "ShiftJam/ShiftWarp"
 {
     Properties
@@ -16,6 +17,10 @@ Shader "ShiftJam/ShiftWarp"
         _Centre ("Centre (screen 0..1)", Vector) = (0.5, 0.5, 0, 0)
         _Mask ("Rift mask (white = tear), optional", 2D) = "white" {}
         _MaskStrength ("Mask strength", Range(0, 1)) = 0
+        _Art ("Rift art (colour over the ring), optional", 2D) = "black" {}
+        _ArtStrength ("Art strength", Range(0, 1)) = 0
+        _ArtScale ("Art size vs ring", Range(0.5, 3)) = 1.4
+        _Spin ("Spin (degrees over a shift)", Range(-360, 360)) = 60
     }
     SubShader
     {
@@ -34,6 +39,8 @@ Shader "ShiftJam/ShiftWarp"
 
             TEXTURE2D(_Mask);
             SAMPLER(sampler_Mask);
+            TEXTURE2D(_Art);
+            SAMPLER(sampler_Art);
 
             CBUFFER_START(UnityPerMaterial)
             float _Progress;
@@ -43,10 +50,24 @@ Shader "ShiftJam/ShiftWarp"
             float _Fringe;
             float _Flash;
             float _MaskStrength;
+            float _ArtStrength;
+            float _ArtScale;
+            float _Spin;
             float4 _FlashColor;
             float4 _Centre;
             float4 _Mask_ST;
+            float4 _Art_ST;
             CBUFFER_END
+
+            // Square UV around the centre for a drawing that spans `extent` in ring units, turned by `angle`.
+            float2 DrawUv(float2 d, float extent, float angle, out float inside)
+            {
+                float c = cos(angle), s = sin(angle);
+                float2 rd = float2(d.x * c - d.y * s, d.x * s + d.y * c);
+                float2 uv = rd / max(extent, 0.08) * 0.5 + 0.5;
+                inside = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+                return uv;
+            }
 
             half3 Tap(float2 uv)
             {
@@ -72,11 +93,18 @@ Shader "ShiftJam/ShiftWarp"
                 float R = p * 1.7;
                 float band = exp(-pow((r - R) / _RingWidth, 2.0));
 
-                // The drawn rift, if any: a square the size of the ring, so the drawing expands with it.
-                float2 muv = d / max(R + _RingWidth, 0.08) * 0.5 + 0.5;
-                float inside = step(0.0, muv.x) * step(muv.x, 1.0) * step(0.0, muv.y) * step(muv.y, 1.0);
+                // The drawn rift, if any: a square the size of the ring, so the drawing expands with it,
+                // turning as the shift runs. Both drawings share the spin so mask and art agree.
+                float angle = radians(_Spin) * _Progress * _Direction;
+                float inside;
+                float2 muv = DrawUv(d, R + _RingWidth, angle, inside);
                 float drawn = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, muv).r * inside;
                 float shape = lerp(band, drawn * saturate(band + 0.35), _MaskStrength);
+
+                float insideArt;
+                float2 auv = DrawUv(d, (R + _RingWidth) * _ArtScale, angle, insideArt);
+                half4 art = SAMPLE_TEXTURE2D(_Art, sampler_Art, auv) * insideArt;
+                float artA = saturate(art.a * _ArtStrength * env);
 
                 float push = shape * env * _Strength * _Direction;
                 float2 off = dir * push;
@@ -87,6 +115,7 @@ Shader "ShiftJam/ShiftWarp"
                 col.g = Tap(uv - off).g;
                 col.b = Tap(uv - off / fr).b;
                 col += _FlashColor.rgb * (shape * env * _Flash);
+                col = lerp(col, art.rgb, artA);
                 return half4(col, 1.0);
             }
             ENDHLSL

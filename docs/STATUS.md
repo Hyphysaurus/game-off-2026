@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 11:1x — his portal drawings in, warp shows colour, speeds raised (his "proceed"; he out of Play), UNPLAYED
+**His four drawings** converted by script into `Art/Portals/`: `warp_mask_swirl.png` (ring-only drawing → white on
+black, 1024, sRGB off), `warp_art_grow.png` (purple void) + `warp_art_shrink.png` (dark disc + swirl) as 2048 RGBA
+overlays (alpha from white), `orb_glow.png` (ring + bolt, as drawn). Mockups kept beside them. **Shader v2:**
+`_Art/_ArtStrength 0.85/_ArtScale 1.4/_Spin 60`, mask spins with the art; `ShiftWarp.cs` growArts/shrinkArts lists.
+Warp lists and ShiftWarp.mat point at the new files; OrbGlow.mat uses orb_glow. **Speed:** MovementSettings walk
+5.5 / sprint 10 / acceleration 60; controller v7 = blend tree Idle 0, Walk 0.5 ×1.15, Run 0.75, Run Boost 1
+(gen_controller_v7.py; v6 backed up). Editor compiled clean, shader HasError false. D-0012.
+**His checks:** sprint feel (Shift held); the run pose at full sprint = Run Boost; a shift shows the swirl tear
+in colour with a brief void at mid-shift (Art Strength on ShiftWarp.mat: 1 = solid void, 0 = off); the orb glow
+is his ring. **Still proposed, his word:** bedroom 4×4 tiles + kid camera distance ×0.5 / FOV 70; flashlight
+puzzle (cores drink light). `Assets/ERP` still untracked (his call).
+
 ## 3 Nov 2026 10:4x — Room 2 built through the bridge (his "proceed on room 2"; he drawing), saved, UNPLAYED
 **Landed + compiled (outside csc 0 errors, then his editor):** `Scripts/FX/Billboard.cs`, `Scripts/Camera/ShadowReach.cs`,
 `Scripts/Room/Locked.cs`, `ShiftWarp.cs` (growMasks/shrinkMasks lists), `ShiftSource.cs` (wrongSizePrompt).

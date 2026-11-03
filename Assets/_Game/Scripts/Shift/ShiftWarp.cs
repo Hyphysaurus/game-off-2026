@@ -15,6 +15,7 @@ namespace ShiftJam
         private static readonly int ProgressId = Shader.PropertyToID("_Progress");
         private static readonly int DirectionId = Shader.PropertyToID("_Direction");
         private static readonly int MaskId = Shader.PropertyToID("_Mask");
+        private static readonly int ArtId = Shader.PropertyToID("_Art");
 
         [SerializeField, Tooltip("The ShiftWarp material the Full Screen Pass feature draws with.")] private Material material;
         [SerializeField, Tooltip("The Full Screen Pass Renderer Feature on the renderer. Switched on only during a shift.")] private ScriptableRendererFeature feature;
@@ -27,6 +28,10 @@ namespace ShiftJam
         private Texture2D[] growMasks;
         [SerializeField, Tooltip("Rift drawings used when shrinking; one is picked at random per shift. Empty = keep the material's own mask.")]
         private Texture2D[] shrinkMasks;
+        [SerializeField, Tooltip("Colour rift drawings (RGBA) laid over the ring when growing; one picked at random per shift. Empty = keep the material's own art.")]
+        private Texture2D[] growArts;
+        [SerializeField, Tooltip("Colour rift drawings (RGBA) laid over the ring when shrinking; one picked at random per shift. Empty = keep the material's own art.")]
+        private Texture2D[] shrinkArts;
 
         private bool _active;
 
@@ -53,14 +58,18 @@ namespace ShiftJam
             if (material == null) return;
             material.SetFloat(DirectionId, size == ShiftSize.Kid ? 1f : -1f);
             material.SetFloat(ProgressId, 0f);
-            Texture2D[] masks = size == ShiftSize.Kid ? growMasks : shrinkMasks;
-            if (masks != null && masks.Length > 0)
-            {
-                Texture2D pick = masks[Random.Range(0, masks.Length)];
-                if (pick != null) material.SetTexture(MaskId, pick);
-            }
+            Pick(size == ShiftSize.Kid ? growMasks : shrinkMasks, MaskId);
+            Pick(size == ShiftSize.Kid ? growArts : shrinkArts, ArtId);
             if (feature != null) feature.SetActive(true);
             _active = true;
+        }
+
+        /// <summary>One random drawing from the list onto the material slot; an empty list leaves the slot alone.</summary>
+        private void Pick(Texture2D[] list, int slot)
+        {
+            if (list == null || list.Length == 0) return;
+            Texture2D pick = list[Random.Range(0, list.Length)];
+            if (pick != null) material.SetTexture(slot, pick);
         }
 
         private void Update()

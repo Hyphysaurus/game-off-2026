@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86b2ea5d1434c32418e7656dd20cb63c, type: 3}
   m_Name: CameraSettings
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.CameraSettings
-  distance: 4.5
-  pivotHeight: 1.3
-  shoulderOffset: 0.4
+  distance: 6
+  pivotHeight: 1.4
+  shoulderOffset: 0.3
   fieldOfView: 60
   nearClip: 0.08
   minPitch: -25

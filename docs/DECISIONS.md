@@ -33,3 +33,14 @@
   run middle; the idle states stay in the controller unused, two transitions away from coming back. Fingers for
   later (D-00xx when weapons land): the rig has 2-joint fingers on both hands; grip = one-frame pose clip on a
   hand-masked layer + a Grip socket per weapon + left-hand IK for two-handers.
+- **D-0008 (2 Nov, 23:0x) Toy = 1, kid = 35, the pack's native scale.** Measured headless in Blender: floor
+  tiles 65, walls 130 high, bed 40, book 2 thick, ball 16.5; the pack's own character 1.99 and ours 1.85
+  tall. So scale 1 is the pack's toy (≈4 cm real) and 35 is a 1.3 m child. 1:8 (D-0003) would have needed
+  the room scaled by 0.02 and turned every toy-landscape prop into a pebble. He built on it without
+  objection; the Step C checkpoint (book hop, bed cliff) confirms or breaks it.
+- **D-0009 (2 Nov, 23:3x) Room 1 is the toy box awakening.** His call: "Room of Awakening in TotK style"
+  with elements of a portal room. The box is the tutorial chamber and the shift is the door: BoxBurst
+  tumbles the panels on ShiftStarted so the kid grows into open air; WakeUp plays Death_1_(idle)
+  backwards from 0.55 as a get-up (the pack has no get-up clip; the clip's root Y/XZ were set to bake into
+  pose, in `_Imports`, git-ignored, so the body rises from the floor instead of hovering). The bedroom
+  becomes room 2, its beats re-ordered later. Goal and Respawn landed with them.

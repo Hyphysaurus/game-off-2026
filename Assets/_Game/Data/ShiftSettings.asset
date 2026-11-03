@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4046aac636f78864eb819c4772217ce3, type: 3}
   m_Name: ShiftSettings
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ShiftSettings
-  toyScale: 0.125
-  kidScale: 1
+  toyScale: 1
+  kidScale: 35
   duration: 0.35
   ease:
     serializedVersion: 2

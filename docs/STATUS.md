@@ -2,6 +2,48 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 00:2x — bedroom shell placed by code, build settings, commit (he AFK)
+**Done (RunCommand, saved):** `Room/Bedroom`: nine Floor_01 tiles (centres -65/0/65), walls 130+65 per side centred
+at ±100 (inner faces at ±97.5 = the floor edge), four Wall_05 corner pillars; every piece slid by its renderer
+bounds, so the edges meet exactly (bedroom bounds ±102.5, height 130). No window, no ceiling yet (Wall_02/03/04
+may carry different cut-outs: his eye picks which goes where). Build Settings = Greybox only. Committed.
+**Next:** his Play of the box; window + ceiling + bedroom beats (room 2 design); the Rift Apart warp.
+
+## 3 Nov 2026 00:1x — toy box dressed through the bridge (his ask, he AFK with remote control), saved, UNPLAYED
+**Done in his open editor (out of Play, RunCommand):** Flashlight_01 (-9, 3.3, 3) rot Y 330 bell toward the back-right,
+FlashlightBeam point light (-5.5, 3.5, -3) range 40 int 2 warm soft shadows; Constructor_01 (0,1,0) and _02 (4,1,-4)
+resting on the floor; ShiftCore = Wooden_Sphere_01 at (10, 3.5, -8) (Ø5, rests on the floor) with new emissive
+`_Game/Data/ShiftCore.mat` (URP Lit, cyan ×3) + ShiftSource Toggle; BoxBurst on ToyBox (5 panels + Lid wired);
+Player: WakeUp + Respawn added, Shifter devToggleKey None, startSize Toy, world (0, 1.5, -12) rot Y 180;
+Directional Light 0.2; HUD canvas (ScaleWithScreenSize 1920×1080) with PromptText (bottom) + GoalText (centre),
+InteractPrompt wired, EventSystem (Input System module). `MovementSettings.jumpHeight` 1.2 → 1.6: the Constructor
+brick is 1.28 high. Scene + assets saved. Console: only Fast Script Reload's own welcome-dialog exception
+(button text > 64 chars, fires on every domain reload, not ours). **Open:** books are 2.0 thick vs a 1.6 jump, so
+"one book = one toy jump" (D-0008) needs jumpHeight ≈ 2.2 or the books half-sunk; his feel call. Bedroom floor
+tiles still not placed (nothing outside the box to land on after the burst: Respawn catches it at y -20).
+**Next:** his Play of the box (get-up, hop, E, burst), then the nine Floor_01 tiles + walls, then the Rift Apart warp.
+
+## 2 Nov 2026 23:3x — D-0009 toy box awakening: four scripts + Wake state landed (he in the editor, out of Play)
+**Landed, compiled outside (0 errors), not yet seen in his editor:** `Scripts/Room/BoxBurst.cs`, `Scripts/Room/Goal.cs`,
+`Scripts/Player/Respawn.cs`, `Scripts/Player/WakeUp.cs`; `PlayerAnimator.controller` v6 = v5 + a `Wake` state
+(Death_1_(idle) at speed -1.5, no transitions, reached by WakeUp.Begin). The pack's Death_1_(idle).anim got
+Bake Into Pose Y + XZ (backup in the scratchpad). **His editor side next:** ToyBox empty + six cube panels
+(BoxBurst on the empty: Panels = the five + Lid slot), flashlight + point light, two bricks, the shift core
+with ShiftSource; Player gets WakeUp + Respawn. Then Play: get up, walk, hop, E, the box bursts.
+**Design:** DESIGN.md now has Room 1 (box) and Room 2 (bedroom, beats pending). D-0008 scale 1:35 recorded.
+
+## 2 Nov 2026 23:0x — committed `0cc03df`; room measured; STEP 3 walkthrough given (he builds in the editor)
+**Measured (headless Blender on the FBXs + the pack's Demonstration scene):** Playroom is built at 1 unit ≈ 2 cm:
+floor tile 65×65, wall modules 65 / 130 long × 130 high × 5 thick (Wall_05 = 5×5 corner pillar), ceiling y 130,
+Bed_01 62×109×40 high, Shelf_01 62 wide × 47.5 high, Book 12×17×2 thick, Ball_01 Ø16.5, Castle_Wall 17×9 high,
+Cardboard_Box 21×19×24, Door_01 42×100 (pivot mid-height), Doorway 49×104. The pack's own Character_01 has a
+1.99 u controller; Funny Characters Basic_Character is 1.85 u tall = his Player at scale 1 IS the pack's toy
+(≈4 cm real, a minifig). **Proposed D-0008 (his call, pending):** toy = 1, kid = 35 (a 1.3 m child), not 1:8 with the
+room scaled down: at 1:35 one book = one toy jump, the bed (40 u) = one kid jump and 33 toy jumps, the shelf top
+(47.5) = kid chest, the castle walls (9 u) = 5 toy heights of landscape and a kid's step-over (stepOffset 0.3×35).
+At 1:8 every toy-landscape prop becomes a pebble. Goal.cs staged in the scratchpad (compiled), lands on his "out".
+Rift Apart shift look planned (Feel URP feedbacks + a fullscreen ripple shader of mine), after the room.
+
 ## 2 Nov 2026 21:5x — his play: "looks decent", idle jump "still awkward, a pose thing" (Unity OPEN on Shift Jam, in Play: nothing landed)
 **Read from the clips (humanoid muscle curves):** the Jump idle start clip squats to its deepest at 0.46–0.54 s (my
 offset 0.3 entered it exactly there, so the figure squats in mid-air), launches at ~0.71–0.79 s, and ends in a

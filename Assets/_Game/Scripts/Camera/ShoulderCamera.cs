@@ -63,6 +63,15 @@ namespace ShiftJam
             if (target == null || settings == null) return;
             float scale = shifter != null ? shifter.Scale : 1f;
             float dt = Time.unscaledDeltaTime;
+            // 0 at toy size, 1 at kid size, in between while shifting (on the same geometric curve as the scale).
+            float kid = 0f;
+            if (shifter != null)
+            {
+                float toyScale = shifter.ScaleOf(ShiftSize.Toy), kidScale = shifter.ScaleOf(ShiftSize.Kid);
+                if (kidScale > toyScale) kid = Mathf.InverseLerp(Mathf.Log(toyScale), Mathf.Log(kidScale), Mathf.Log(Mathf.Max(scale, 1e-4f)));
+            }
+            float distanceMul = Mathf.Lerp(1f, settings.kidDistanceMultiplier, kid);
+            float fov = Mathf.Lerp(settings.fieldOfView, settings.kidFieldOfView, kid);
 
             Vector2 look = input != null ? input.ConsumeLook(settings.mouseSensitivity, settings.padSensitivity, dt) : Vector2.zero;
             if (_cursorLocked && Time.timeScale > 0f)
@@ -78,7 +87,7 @@ namespace ShiftJam
             Vector3 back = rotation * Vector3.back;
 
             // Keep the camera out of walls: the nearest thing between the pivot and the wanted spot wins.
-            float wanted = settings.distance * scale;
+            float wanted = settings.distance * scale * distanceMul;
             float distance = wanted;
             int count = Physics.SphereCastNonAlloc(pivot, settings.collisionRadius * scale, back, _hits, wanted, collisionMask, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
@@ -88,7 +97,7 @@ namespace ShiftJam
             }
 
             transform.SetPositionAndRotation(pivot + back * distance, rotation);
-            _camera.fieldOfView = settings.fieldOfView + FovOffset;
+            _camera.fieldOfView = fov + FovOffset;
             _camera.nearClipPlane = Mathf.Max(0.001f, settings.nearClip * scale);
         }
 

@@ -2,6 +2,21 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 12:5x — bedroom 4×4 + kid camera + hold pose (his "proceed"; he in AoE4), saved, UNPLAYED
+**Room:** shell rebuilt by RunCommand: 16 Floor_01, 16 Ceiling_01 (y 130), 16 Wall_01 (inner faces ±130; the first pass
+used Wall_02 and gave eight doorway holes, replaced), 4 Wall_05 pillars at ±132.5. Bed/table/lamp/StepBox/books/
+ShiftCore2 +32.5 x; Shelf/Switch -32.5 x; Window +32.5 z; doors, DoorGlow, DoorLight, Goal -32.5 z; RoomLight range 440.
+Four-angle capture checked (solid walls, bed east, shelf west, window north, doors south). Toy walk books → toy door
+now ≈ 150 units (15 s sprint). **Camera:** `CameraSettings.kidDistanceMultiplier` 0.5, `kidFieldOfView` 70, blended by
+log-scale in ShoulderCamera. **Hold:** `Animation/HoldPose.anim` + `RightArmMask.mask` + `Arms` layer (weight 0,
+Override) on PlayerAnimator (added via the API: the controller generator does NOT know this layer, regenerate = re-add);
+Carrier fades the layer, holds from the RightHand bone with Carryable grip offsets (palm (0, 0.08, 0), slide (0,0,-1.5),
+turn 0): fit is by eye in Play (his), the thumb side of the fist = the flashlight's head. D-0015.
+**His checks:** kid size: camera about 2 m behind, 70° view, not in the walls; toy: the floor crossing; pick up the
+flashlight as the kid: arm out, fingers closed on the barrel, head forward (nudge Grip values on the Flashlight_01
+Carryable if the barrel sits off the palm). **Note:** Fast Script Reload logs one error when a .cs lands mid-Play
+(it cannot add fields); harmless.
+
 ## 3 Nov 2026 12:2x — PARKED: flashlight puzzle + marble (his call: "messy"); back to the plain glowing orb
 Scene reverted to the simple read: both cores awake from the start (glow + sparks, no marble, no ember), ShiftCore back
 on the box floor at (10, 3.5, -28), unlimited uses; flashlight a lit prop at (-9, 3.3, -17) yaw 60 with the beam out

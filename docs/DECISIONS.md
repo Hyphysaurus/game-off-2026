@@ -96,3 +96,14 @@
   and the flashlight-as-key added steps before the first shift. Kept: both cores glow from the start and invite
   the press; the flashlight lights the box; the code for carrying, sensing and dormancy stays in the tree,
   switched off, so the puzzle can return as a later room's idea (D-0013) without a rewrite.
+- **D-0015 (3 Nov, 12:5x) Bedroom 4×4 tiles; the kid camera sits closer and sees wider; the carried thing rides the
+  hand with a posed arm.** His play: "cramped". Cause: at kid size the camera wanted 210 units behind a 65-unit kid
+  in a 195-unit room, so the probe pinned it to the walls at 60° FOV. Fix in two halves: the room grows to 4×4
+  tiles (260 across, walls at ±130, sixteen plain Wall_01 per shell since Wall_02/03/04 carry openings) with every
+  wall-bound prop slid 32.5 to its wall; and CameraSettings gains kidDistanceMultiplier (0.5) + kidFieldOfView (70),
+  blended by the shifter's log-scale so the shift itself eases the framing. The hold: the pack has no carry clip,
+  so `HoldPose.anim` is a 29-muscle one-key clip (authored by code, measured by sampling: on this rig muscle zero
+  already points the arm forward, so the pose is zero + Forearm Stretch -0.35, Front-Back 0.15, fingers -0.85) on
+  an `Arms` override layer with a right-arm mask; Carrier fades the layer and places the thing from the hand bone
+  with the Carryable's grip offsets (palm point in hand space, slide along the thing, extra turn), never parenting.
+  Carrying is still parked as a puzzle (D-0014), the grip exists so it never looks wrong when it is used.

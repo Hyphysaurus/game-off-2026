@@ -11,12 +11,22 @@ namespace ShiftJam
     /// </summary>
     public sealed class Carryable : MonoBehaviour
     {
-        [SerializeField, Tooltip("Rotation applied in the hand so the thing's business end points where the player looks. The flashlight's lens is on its local -Z, so (0, 180, 0).")]
+        [SerializeField, Tooltip("Yaw-only rotation used when the thing is put down, so its front faces the way the player faces.")]
         private Vector3 holdRotation = Vector3.zero;
+        [Header("Grip (in the right hand)")]
+        [SerializeField, Tooltip("Where the palm centre is, in the hand bone's own space (rig metres): the fingers run along the hand's +Y.")]
+        private Vector3 gripPalm = new Vector3(0f, 0.08f, 0f);
+        [SerializeField, Tooltip("Slide of the thing along its own axes from the palm, world units: the flashlight's barrel sits 1.5 behind its head so the fist closes on the barrel.")]
+        private Vector3 gripOffset = new Vector3(0f, 0f, -1.5f);
+        [SerializeField, Tooltip("Extra turn of the thing in the hand. Zero = the thing's +Z follows the hand's +Z (the thumb side).")]
+        private Vector3 gripRotation = Vector3.zero;
         [SerializeField] private UnityEvent onPickedUp;
         [SerializeField] private UnityEvent onPutDown;
 
         public Quaternion HoldRotation => Quaternion.Euler(holdRotation);
+        public Vector3 GripPalm => gripPalm;
+        public Vector3 GripOffset => gripOffset;
+        public Quaternion GripRotation => Quaternion.Euler(gripRotation);
         public bool IsCarried { get; private set; }
         /// <summary>Raised when the Attack button is pressed while this is held. The flashlight toggles on it.</summary>
         public event Action Used;

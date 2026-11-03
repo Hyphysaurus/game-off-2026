@@ -3,18 +3,24 @@ using UnityEngine;
 namespace ShiftJam
 {
     /// <summary>
-    /// The player's hands. Holds one Carryable at a hold point, aims it where the camera looks (so you aim a
-    /// flashlight by looking), passes the Attack button to it, and puts it down on whatever is under the hand
-    /// when Crouch is pressed. Never parents the thing, so the player's 35x scale does not touch it.
+    /// The player's hands. Holds one Carryable in the right hand (the Humanoid hand bone, with the thing's own
+    /// grip offsets), fades the animator's Arms layer in so the arm reaches out and the fingers close, passes
+    /// the Attack button to it, and puts it down on whatever is under the hand when Crouch is pressed.
+    /// Never parents the thing, so the player's 35x scale does not touch it.
     /// </summary>
     public sealed class Carrier : MonoBehaviour
     {
         [SerializeField, Tooltip("Found on this object if empty.")] private PlayerInput input;
-        [SerializeField, Tooltip("Where the held thing sits: a child of the Player at kid-size hand height.")] private Transform holdPoint;
-        [SerializeField, Tooltip("What the held thing points along. The main camera if empty.")] private Transform aim;
+        [SerializeField, Tooltip("Fallback hold point if the rig has no right hand bone.")] private Transform holdPoint;
+        [SerializeField, Tooltip("Found in children if empty.")] private Animator animator;
+        [SerializeField, Tooltip("Animator layer that poses the arm while holding; faded in and out.")] private string armsLayer = "Arms";
+        [SerializeField, Tooltip("Seconds to fade the arm pose in or out.")] private float armFade = 0.15f;
         [SerializeField, Tooltip("What a put-down thing may rest on.")] private LayerMask groundMask = ~0;
 
         private readonly RaycastHit[] _hits = new RaycastHit[16];
+        private Transform _hand;
+        private int _layer = -1;
+        private float _armWeight;
 
         public Carryable Held { get; private set; }
 
@@ -22,6 +28,12 @@ namespace ShiftJam
         {
             if (input == null) input = GetComponent<PlayerInput>();
             if (holdPoint == null) holdPoint = transform;
+            if (animator == null) animator = GetComponentInChildren<Animator>();
+            if (animator != null)
+            {
+                if (animator.isHuman) _hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+                _layer = animator.GetLayerIndex(armsLayer);
+            }
         }
 
         private void OnEnable()
@@ -51,7 +63,7 @@ namespace ShiftJam
             Held = null;
             foreach (var col in thing.GetComponentsInChildren<Collider>()) col.enabled = true;
 
-            Vector3 from = holdPoint.position;
+            Vector3 from = _hand != null ? _hand.position : holdPoint.position;
             float yaw = transform.eulerAngles.y;
             thing.transform.rotation = Quaternion.Euler(0f, yaw, 0f) * thing.HoldRotation;
 
@@ -81,6 +93,15 @@ namespace ShiftJam
             if (Held != null) Held.Use();
         }
 
+        private void Update()
+        {
+            // The arm pose fades with the hold; Update so it is in before the animator evaluates this frame.
+            if (animator == null || _layer < 0) return;
+            float target = Held != null ? 1f : 0f;
+            _armWeight = Mathf.MoveTowards(_armWeight, target, Time.deltaTime / Mathf.Max(0.01f, armFade));
+            animator.SetLayerWeight(_layer, _armWeight);
+        }
+
         private void LateUpdate()
         {
             if (Held != null) Follow();
@@ -88,8 +109,16 @@ namespace ShiftJam
 
         private void Follow()
         {
-            Transform a = aim != null ? aim : (Camera.main != null ? Camera.main.transform : transform);
-            Held.transform.SetPositionAndRotation(holdPoint.position, Quaternion.LookRotation(a.forward, Vector3.up) * Held.HoldRotation);
+            if (_hand != null)
+            {
+                Quaternion rot = _hand.rotation * Held.GripRotation;
+                Vector3 pos = _hand.TransformPoint(Held.GripPalm) + rot * Held.GripOffset;
+                Held.transform.SetPositionAndRotation(pos, rot);
+            }
+            else
+            {
+                Held.transform.SetPositionAndRotation(holdPoint.position, Quaternion.Euler(0f, transform.eulerAngles.y, 0f) * Held.HoldRotation);
+            }
         }
     }
 }

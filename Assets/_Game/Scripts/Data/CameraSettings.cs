@@ -13,6 +13,12 @@ namespace ShiftJam
         [Tooltip("Sideways offset of the pivot, positive = player sits left of centre.")]
         public float shoulderOffset = 0.4f;
         public float fieldOfView = 60f;
+
+        [Header("Kid size")]
+        [Tooltip("Distance at kid size as a share of the scaled toy distance. 1 = same framing scaled up (the camera lives in the walls); 0.5 = half as far back.")]
+        [Range(0.2f, 1f)] public float kidDistanceMultiplier = 0.5f;
+        [Tooltip("Field of view at kid size. Blends from Field Of View during a shift.")]
+        public float kidFieldOfView = 70f;
         [Tooltip("Near clip plane at kid size; it shrinks with the player so toy-size views do not clip.")]
         public float nearClip = 0.08f;
 

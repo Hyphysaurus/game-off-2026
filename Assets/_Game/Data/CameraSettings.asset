@@ -16,6 +16,8 @@ MonoBehaviour:
   pivotHeight: 1.4
   shoulderOffset: 0.3
   fieldOfView: 60
+  kidDistanceMultiplier: 0.5
+  kidFieldOfView: 70
   nearClip: 0.08
   minPitch: -25
   maxPitch: 70

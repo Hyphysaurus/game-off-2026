@@ -55,3 +55,14 @@
   aberration, vignette, timescale, shake) stay his layer on top. ShiftSettings.duration 0.35 → 0.6 so the
   warp is more than a blink. Why own shader: the Rift Apart tear is a radial displacement with a moving
   front, which no stock post-process override does; 80 lines of HLSL, one material slider set to tune.
+- **D-0011 (3 Nov, 10:4x) Room 2 built to the proposed beats; the room gates by reach and size, not by script.**
+  The kid cannot leave by the real door (a `Locked` interactable: one line, one event, no door logic), can
+  reach the wall switch (Switch requires Kid; the toy gets "Too small to reach"), cannot reuse the box core
+  (ShiftSource GrowOnly + new `wrongSizePrompt` "Too big to hold"), and finds the second core on the bed,
+  ShrinkOnly. The toy door's Goal requires Toy and sits behind the door's collider, so the door itself is the
+  gate. The descent (box + books on the bed's west side) is a suggestion, not a requirement: no fall damage,
+  so a toy may simply drop 20 units. Why: every rule lives on the thing it concerns (the door, the switch,
+  the core), none in a room manager, so moving a prop moves its rule with it. Dressing picked for the pack's
+  own scale (D-0008): a 1.7 × 3.6 toy door is a 3.4 × 7 cm mouse hole in a 2.6 m room. The ceiling went in
+  (nine tiles) so the kid-size camera no longer shows sky over a bedroom; the room is lit by a warm point
+  light under the planet lamp plus the 0.2 sun as fill.

@@ -9,6 +9,8 @@ namespace ShiftJam
         public enum Mode { Toggle, GrowOnly, ShrinkOnly }
 
         [SerializeField] private Mode mode = Mode.Toggle;
+        [SerializeField, Tooltip("Shown when the player is the wrong size for this source (\"Too big to hold\"). Empty hides the prompt.")]
+        private string wrongSizePrompt = "";
         [SerializeField, Tooltip("Hook Feel feedbacks here: the flash, the punch, the sound.")]
         private UnityEvent onUsed;
 
@@ -20,8 +22,8 @@ namespace ShiftJam
             bool toy = shifter.Size == ShiftSize.Toy;
             switch (mode)
             {
-                case Mode.GrowOnly: return toy ? "Shift: grow" : "";
-                case Mode.ShrinkOnly: return toy ? "" : "Shift: shrink";
+                case Mode.GrowOnly: return toy ? "Shift: grow" : wrongSizePrompt;
+                case Mode.ShrinkOnly: return toy ? wrongSizePrompt : "Shift: shrink";
                 default: return toy ? "Shift: grow" : "Shift: shrink";
             }
         }

@@ -14,6 +14,7 @@ namespace ShiftJam
     {
         private static readonly int ProgressId = Shader.PropertyToID("_Progress");
         private static readonly int DirectionId = Shader.PropertyToID("_Direction");
+        private static readonly int MaskId = Shader.PropertyToID("_Mask");
 
         [SerializeField, Tooltip("The ShiftWarp material the Full Screen Pass feature draws with.")] private Material material;
         [SerializeField, Tooltip("The Full Screen Pass Renderer Feature on the renderer. Switched on only during a shift.")] private ScriptableRendererFeature feature;
@@ -22,6 +23,10 @@ namespace ShiftJam
         [SerializeField, Tooltip("Shift progress (0..1) to warp progress (0..1). Steeper early = the tear opens fast.")]
         private AnimationCurve progress = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
         [SerializeField, Tooltip("Degrees of field of view added at the peak of the shift; negative zooms in.")] private float fovPunch = -14f;
+        [SerializeField, Tooltip("Rift drawings used when growing; one is picked at random per shift. Empty = keep the material's own mask.")]
+        private Texture2D[] growMasks;
+        [SerializeField, Tooltip("Rift drawings used when shrinking; one is picked at random per shift. Empty = keep the material's own mask.")]
+        private Texture2D[] shrinkMasks;
 
         private bool _active;
 
@@ -48,6 +53,12 @@ namespace ShiftJam
             if (material == null) return;
             material.SetFloat(DirectionId, size == ShiftSize.Kid ? 1f : -1f);
             material.SetFloat(ProgressId, 0f);
+            Texture2D[] masks = size == ShiftSize.Kid ? growMasks : shrinkMasks;
+            if (masks != null && masks.Length > 0)
+            {
+                Texture2D pick = masks[Random.Range(0, masks.Length)];
+                if (pick != null) material.SetTexture(MaskId, pick);
+            }
             if (feature != null) feature.SetActive(true);
             _active = true;
         }

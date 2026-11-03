@@ -2,6 +2,28 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 10:4x — Room 2 built through the bridge (his "proceed on room 2"; he drawing), saved, UNPLAYED
+**Landed + compiled (outside csc 0 errors, then his editor):** `Scripts/FX/Billboard.cs`, `Scripts/Camera/ShadowReach.cs`,
+`Scripts/Room/Locked.cs`, `ShiftWarp.cs` (growMasks/shrinkMasks lists), `ShiftSource.cs` (wrongSizePrompt).
+**Placed by RunCommand (renderer bounds, saved):** bed (east wall, z 0), bedside table + night lamp (south end),
+StepBox + three books on the bed's west side at z 12, ShiftCore2 on the mattress (47, 22, -39) ShrinkOnly;
+shelf (west wall, z -40) + Switch_01 above it (y 56, Kid only, opens the toy door); Window_01 (north, y 55);
+nine Ceiling_01 at y 130; Planet_Lamp_01 + RoomLight point (y 78, range 340, int 3.5, soft shadows);
+RealDoorway + RealDoor (south, x -55, Locked); ToyDoorway + ToyDoor at 0.035 (south, x -15, Door openAngle
+-100 into the room, 0.8 s), DoorGlow quad (URP Unlit HDR warm) behind it, DoorLight (off, on at Door.onOpened
+via a persistent listener), Goal trigger in the frame (Toy, label = GoalText). Both cores got a Glow quad
+(OrbGlow.mat = Particles/Unlit additive + orb_glow_mockup, Billboard) and a Sparks particle system (Spark.mat
++ spark_mockup). Player: ShadowReach; ShiftWarp mask lists = warp_mask_mockup. Box core = GrowOnly,
+"Too big to hold". Verified by a 4-angle scene capture (layout right) and raycast probes (mattress ~20, box 19.2).
+**His six checks in Play:** (1) wake, hop, E in the box → burst; (2) kid: "Too big to hold" on the box core,
+"Locked" on the real door; (3) switch "Press" → toy door swings open, light comes on; (4) jump onto the bed,
+E on the second core → shrink, ShiftWarp with the mask; (5) hop box → books → floor → walk into the toy door
+→ GoalText; (6) shadows still drawn at kid size (ShadowReach). **Open:** mattress edge overhangs the box by
+~2 u (a toy walking off lands on the bed rail, then the floor; a hop clears it); window/doorway fronts are a
+guess (modules face +z; rotate 180 if the frame trim is on the wrong side); glow sprites are mockups until his
+drawings replace the three PNGs; Feel layer still his. `Assets/ERP` + `.erp` (Editor Rich Presence, MIT,
+his install) left uncommitted: say if it should be tracked or ignored.
+
 ## 3 Nov 2026 07:0x — Rift Apart warp built and wired (his "proceed"; he AFK), UNPLAYED
 **Landed + compiled (outside csc, then his editor: ShiftWarp in Library dll, shader HasError=false):**
 `Shaders/ShiftWarp.shader`, `Scripts/Shift/ShiftWarp.cs`, `ShoulderCamera.FovOffset`, `Shifter.Progress`.

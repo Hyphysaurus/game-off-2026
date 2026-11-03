@@ -2,6 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 13:1x — his play notes fixed live: grip along the forearm, clip speeds vs foot slide, kid camera 0.7
+"Holding it like a microphone": Carrier now aims the carried thing along the forearm (elbow → hand) instead of the
+hand's thumb axis. "Run looks like a moonslide": measured on a rig copy (planted-foot speed) Walk 1.1 / Run 1.6 /
+Run Boost 3.7 u/s against body 5.5 / 7.75 / 10 → blend tree clip speeds Walk ×3, Run ×2.5, Run Boost ×2.5 (sprint feet
+9.2 u/s; walk still slides ~40%, the clip is a stroll; alternative = lower walk/sprint toward 4/8). gen_controller_v8.py
+carries the timescales. "Camera on top of the arms": kidDistanceMultiplier 0.5 → 0.7 (2.9 m back). Committed.
+
 ## 3 Nov 2026 12:5x — bedroom 4×4 + kid camera + hold pose (his "proceed"; he in AoE4), saved, UNPLAYED
 **Room:** shell rebuilt by RunCommand: 16 Floor_01, 16 Ceiling_01 (y 130), 16 Wall_01 (inner faces ±130; the first pass
 used Wall_02 and gave eight doorway holes, replaced), 4 Wall_05 pillars at ±132.5. Bed/table/lamp/StepBox/books/

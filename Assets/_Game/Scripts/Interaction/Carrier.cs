@@ -18,7 +18,7 @@ namespace ShiftJam
         [SerializeField, Tooltip("What a put-down thing may rest on.")] private LayerMask groundMask = ~0;
 
         private readonly RaycastHit[] _hits = new RaycastHit[16];
-        private Transform _hand;
+        private Transform _hand, _forearm;
         private int _layer = -1;
         private float _armWeight;
 
@@ -31,7 +31,11 @@ namespace ShiftJam
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (animator != null)
             {
-                if (animator.isHuman) _hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+                if (animator.isHuman)
+                {
+                    _hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+                    _forearm = animator.GetBoneTransform(HumanBodyBones.RightLowerArm);
+                }
                 _layer = animator.GetLayerIndex(armsLayer);
             }
         }
@@ -111,7 +115,11 @@ namespace ShiftJam
         {
             if (_hand != null)
             {
-                Quaternion rot = _hand.rotation * Held.GripRotation;
+                // The thing points where the forearm points (elbow -> hand), whatever the wrist is doing,
+                // so a torch reads as aimed by the arm rather than held like a microphone.
+                Vector3 forward = _forearm != null ? (_hand.position - _forearm.position) : _hand.up;
+                if (forward.sqrMagnitude < 1e-6f) forward = transform.forward;
+                Quaternion rot = Quaternion.LookRotation(forward.normalized, Vector3.up) * Held.GripRotation;
                 Vector3 pos = _hand.TransformPoint(Held.GripPalm) + rot * Held.GripOffset;
                 Held.transform.SetPositionAndRotation(pos, rot);
             }

@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 12:2x — PARKED: flashlight puzzle + marble (his call: "messy"); back to the plain glowing orb
+Scene reverted to the simple read: both cores awake from the start (glow + sparks, no marble, no ember), ShiftCore back
+on the box floor at (10, 3.5, -28), unlimited uses; flashlight a lit prop at (-9, 3.3, -17) yaw 60 with the beam out
+of its wide head (+Z: the vertex profile shows the bell there, my earlier "-Z lens" note was wrong), ambient back to
+1. Scripts stay in the tree, unused for now: Flashlight (E still toggles it; a kid can still pick it up and carry it),
+Carryable/Carrier, LightSensor (disabled on ShiftCore2), ShiftSource dormant/uses/marble fields (all off).
+`PushSwitch.cs` + the toy-E gate were staged and compiled but never landed (scratchpad stage9). D-0013 stands as a
+design we can return to; D-0014 records the park. **Open from his play:** the room feels cramped (proposal: 4×4 tiles +
+kid camera ×0.5 / FOV 70, awaiting his word).
+
 ## 3 Nov 2026 12:0x — his orb mote in, glossy marble inside the halo, flashlight re-aimed (his play notes), saved, UNPLAYED
 His orb drawing → `Art/Portals/orb_mote.png` on OrbGlow.mat (tint white). His note "a bit flat, needs depth and gloss":
 the hidden Wooden_Sphere is back as a glossy marble (scale 0.8) inside the halo: `ShiftCoreMarbleDark.mat` while

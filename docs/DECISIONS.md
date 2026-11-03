@@ -91,3 +91,8 @@
   is empty, so a spent core never takes E from the body beside it. Box starts dark (ambient 0.3, lid on,
   flashlight off) with a dim ember at the tail: light is the awakening. Dark-room navigation is his later
   idea; the on/off switch already supports it.
+- **D-0014 (3 Nov, 12:2x) The flashlight puzzle and the marble are parked; the core is a plain glowing orb.**
+  His call after playing it: "messy". The glossy sphere inside the halo read as a lump, the dormant/ember state
+  and the flashlight-as-key added steps before the first shift. Kept: both cores glow from the start and invite
+  the press; the flashlight lights the box; the code for carrying, sensing and dormancy stays in the tree,
+  switched off, so the puzzle can return as a later room's idea (D-0013) without a rewrite.

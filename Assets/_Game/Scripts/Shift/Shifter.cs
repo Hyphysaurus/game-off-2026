@@ -1,0 +1,78 @@
+using System;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+namespace ShiftJam
+{
+    public enum ShiftSize { Toy, Kid }
+
+    /// <summary>
+    /// Owns the player's size. One number, Scale, that the motor, the camera and the interactor all read,
+    /// so a shift is a single change in one place. The change is eased over time and moves through
+    /// the sizes geometrically (each step the same proportion), which reads right to the eye.
+    /// </summary>
+    public sealed class Shifter : MonoBehaviour
+    {
+        [SerializeField] private ShiftSettings settings;
+        [SerializeField] private ShiftSize startSize = ShiftSize.Toy;
+        [SerializeField, Tooltip("Editor convenience while the room has no shift source yet: this key toggles the size. None to disable.")]
+        private Key devToggleKey = Key.T;
+
+        private float _from, _to;
+        private float _progress = 1f;
+
+        public ShiftSize Size { get; private set; }
+        /// <summary>The player's scale right now: 1 at kid size, settings.toyScale at toy size, in between while shifting.</summary>
+        public float Scale { get; private set; } = 1f;
+        public bool Shifting => _progress < 1f;
+        /// <summary>Raised on this player when a shift begins.</summary>
+        public event Action<ShiftSize> ShiftStarted;
+        /// <summary>Raised on this player when a shift ends.</summary>
+        public event Action<ShiftSize> Shifted;
+
+        public float ScaleOf(ShiftSize size) => size == ShiftSize.Kid ? settings.kidScale : settings.toyScale;
+
+        private void Awake()
+        {
+            Size = startSize;
+            Scale = ScaleOf(Size);
+            Apply(Scale);
+        }
+
+        /// <summary>Begins growing or shrinking to the given size. Nothing happens if already that size or mid-shift.</summary>
+        public void ShiftTo(ShiftSize size)
+        {
+            if (Shifting || size == Size) return;
+            Size = size;
+            _from = Scale;
+            _to = ScaleOf(size);
+            _progress = 0f;
+            ShiftStarted?.Invoke(size);
+            GameEvents.RaiseShiftStarted(this, size);
+        }
+
+        public void Toggle() => ShiftTo(Size == ShiftSize.Toy ? ShiftSize.Kid : ShiftSize.Toy);
+
+        private void Update()
+        {
+#if UNITY_EDITOR
+            if (devToggleKey != Key.None && Keyboard.current != null && Keyboard.current[devToggleKey].wasPressedThisFrame) Toggle();
+#endif
+            if (!Shifting) return;
+            _progress = Mathf.Min(1f, _progress + Time.deltaTime / Mathf.Max(0.01f, settings.duration));
+            float k = settings.ease.Evaluate(_progress);
+            // Geometric blend: halfway between 0.125 and 1 is 0.35, not 0.56. Growth looks even that way.
+            Scale = _from * Mathf.Pow(_to / _from, k);
+            Apply(Scale);
+            if (!Shifting)
+            {
+                Scale = _to;
+                Apply(Scale);
+                Shifted?.Invoke(Size);
+                GameEvents.RaiseShifted(this, Size);
+            }
+        }
+
+        private void Apply(float scale) => transform.localScale = Vector3.one * scale;
+    }
+}

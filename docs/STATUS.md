@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 15:1x — THE GLIDE FOUND: the pack's Run Boost clip did not loop (fixed on the clip; git-ignored path)
+Live MotionProbe (editor-only, `Scripts/Debug/MotionProbe.cs`, attached by RunCommand in Play, summary in Editor.log):
+at sprint the body moved 10 u/s and the planted foot ALSO moved 10 u/s = legs frozen; Speed 1, Run Boost weight 1.
+Cause: `_Imports/.../Run Boost.anim` had Loop Time OFF (Walk/Run/Idle/Jump loops on), so the blend tree played its
+0.5 s once and held the last frame. Set loopTime + loopBlend true on the clip (pack file, not in git: REDO after any
+re-import of Funny Characters). Walk-speed skate measured 3.5 u/s against the predicted 2.2 (Walk ×3). Clip speeds from
+13:1x stand. **Bridge lesson:** Unity_ReadConsole never returned runtime Debug.Log lines; read
+`%LOCALAPPDATA%/Unity/Editor/Editor.log` from WSL instead. His earlier "run is slow" + "moonslide" + "same after relaunch"
+were all this one flag.
+
 ## 3 Nov 2026 13:1x — his play notes fixed live: grip along the forearm, clip speeds vs foot slide, kid camera 0.7
 "Holding it like a microphone": Carrier now aims the carried thing along the forearm (elbow → hand) instead of the
 hand's thumb axis. "Run looks like a moonslide": measured on a rig copy (planted-foot speed) Walk 1.1 / Run 1.6 /

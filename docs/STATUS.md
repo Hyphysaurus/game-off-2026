@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 15:5x — COURSE DESIGNED (his "help me design a course and layout", he AFK): docs/COURSE.md + map
+Rooms 3–6 proposed with beats, top-down maps, exact pack props and the numbers (toy/kid jump, reach, step; table
+36 / chair 22 / boxes 12-18-28 measured): R3 skirting run (toy lane: pencil bridge, gaps 3.5 and 4.5, book stairs,
+pins, checkpoints), R4 playroom (kid carries the Safe off the exit hole and lays Ruler_Big as a table→chair ramp, then
+shrinks on the table; three cores), R5 wardrobe climb (dark, PushSwitch + LightSensor from D-0013 earn their place),
+R6 window payoff. Proposed rules: toy falls > 12 u respawn at a checkpoint (Checkpoint.cs), rooms as additive scenes.
+Build order in the doc. Nothing built. **Also this session:** Jump run middle ×0.3 at offset 0.33 (his "legs pedal"),
+committed. **Open for him:** fall rule yes/no; toy-only lanes vs both-size rooms for R3/R5; Run Boost ×2.5 vs ×3.2.
+
 ## 3 Nov 2026 15:1x — THE GLIDE FOUND: the pack's Run Boost clip did not loop (fixed on the clip; git-ignored path)
 Live MotionProbe (editor-only, `Scripts/Debug/MotionProbe.cs`, attached by RunCommand in Play, summary in Editor.log):
 at sprint the body moved 10 u/s and the planted foot ALSO moved 10 u/s = legs frozen; Speed 1, Run Boost weight 1.

@@ -69,6 +69,11 @@ ithappy Playroom (room, furniture, toys), Funny Characters (the figure, modular;
 the rig), Feel for juice, Shapes for UI lines, TextMesh Pro. Battle Stadium and Cyber Racing Cars held for
 later worlds.
 
+## The course after Room 2
+See `docs/COURSE.md` (3 Nov): R3 skirting run (toy lane), R4 playroom (kid arranges, toy traverses, three cores),
+R5 wardrobe climb (dark, the flashlight returns), R6 window (payoff); the toy fall rule (12 u) and Checkpoint are
+proposed with it. Map: `docs/maps/course_overview.png`.
+
 ## Parking lot
 - World 2 and beyond: what the toy door leads to (Battle Stadium arena? the attic?).
 - Costume shift (Full_Body swaps) as a cosmetic.

@@ -15,7 +15,7 @@ namespace ShiftJam
 
         private InputActionAsset _instance;
         private InputActionMap _player;
-        private InputAction _move, _look, _jump, _sprint, _interact;
+        private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop;
         private Vector2 _mouseLook;   // pixels moved since the last read
         private Vector2 _stickLook;   // current right-stick value, -1..1
 
@@ -28,6 +28,10 @@ namespace ShiftJam
         public event Action Jump;
         /// <summary>Raised once per press of the Interact action (on the press, not after the asset's Hold).</summary>
         public event Action Interact;
+        /// <summary>Raised once per press of the Attack action: use whatever is carried (the flashlight's switch).</summary>
+        public event Action UseHeld;
+        /// <summary>Raised once per press of the Crouch action: put the carried thing down.</summary>
+        public event Action Drop;
 
         private void Awake()
         {
@@ -38,12 +42,16 @@ namespace ShiftJam
             _jump = _player.FindAction("Jump", true);
             _sprint = _player.FindAction("Sprint", true);
             _interact = _player.FindAction("Interact", true);
+            _use = _player.FindAction("Attack", true);
+            _drop = _player.FindAction("Crouch", true);
         }
 
         private void OnEnable()
         {
             _jump.performed += OnJump;
             _interact.started += OnInteract;
+            _use.performed += OnUse;
+            _drop.performed += OnDrop;
             _look.performed += OnLook;
             _look.canceled += OnLook;
             _player.Enable();
@@ -54,6 +62,8 @@ namespace ShiftJam
             _player.Disable();
             _jump.performed -= OnJump;
             _interact.started -= OnInteract;
+            _use.performed -= OnUse;
+            _drop.performed -= OnDrop;
             _look.performed -= OnLook;
             _look.canceled -= OnLook;
             _mouseLook = _stickLook = Vector2.zero;
@@ -66,6 +76,8 @@ namespace ShiftJam
 
         private void OnJump(InputAction.CallbackContext _) => Jump?.Invoke();
         private void OnInteract(InputAction.CallbackContext _) => Interact?.Invoke();
+        private void OnUse(InputAction.CallbackContext _) => UseHeld?.Invoke();
+        private void OnDrop(InputAction.CallbackContext _) => Drop?.Invoke();
 
         private void OnLook(InputAction.CallbackContext ctx)
         {

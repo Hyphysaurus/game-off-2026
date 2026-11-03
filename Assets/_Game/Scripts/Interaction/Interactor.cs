@@ -11,6 +11,7 @@ namespace ShiftJam
     {
         [SerializeField] private PlayerInput input;
         [SerializeField, Tooltip("Optional. Found on this object if empty.")] private Shifter shifter;
+        [SerializeField, Tooltip("Optional. Found on this object if empty. Whatever it holds is never a target.")] private Carrier carrier;
         [SerializeField, Tooltip("How far in front of the feet the search reaches, at kid size.")] private float reach = 1.6f;
         [SerializeField, Tooltip("Height of the search centre above the feet, at kid size.")] private float height = 0.9f;
         [SerializeField] private LayerMask mask = ~0;
@@ -25,6 +26,7 @@ namespace ShiftJam
         private void Awake()
         {
             if (shifter == null) shifter = GetComponent<Shifter>();
+            if (carrier == null) carrier = GetComponent<Carrier>();
         }
 
         private void OnEnable() { input.Interact += OnInteract; }
@@ -42,8 +44,10 @@ namespace ShiftJam
             for (int i = 0; i < count; i++)
             {
                 if (_hits[i].transform.IsChildOf(transform)) continue;
+                if (carrier != null && carrier.Held != null && _hits[i].transform.IsChildOf(carrier.Held.transform)) continue;
                 var candidate = _hits[i].GetComponentInParent<IInteractable>();
                 if (candidate == null) continue;
+                if (string.IsNullOrEmpty(candidate.PromptFor(this))) continue;   // nothing to say = not a target
                 float distance = (_hits[i].ClosestPoint(centre) - centre).sqrMagnitude;
                 if (distance < bestDistance) { bestDistance = distance; best = candidate; }
             }

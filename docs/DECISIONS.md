@@ -78,3 +78,16 @@
   as the sprint pose at Speed 1 with Run at 0.75 and Walk at 1.15, since every clip is in place and the old
   Run drifted under 7 u/s. The room/camera change (4×4 tiles + kid camera multiplier) and the flashlight
   puzzle stay proposed.
+- **D-0013 (3 Nov, 11:4x) Shift cores are batteries; the flashlight is the device.** His idea, resolved: cores
+  sit inside powered things and are dormant until the thing is on; the flashlight holds one (spent after
+  its single grow) and is the one core you can carry. Any size presses its switch (E on the body); a kid
+  picks it up (E), aims it by looking, toggles it (Attack: LMB / X / Enter) and puts it down (Crouch: C / B),
+  resting it on whatever is under the hand, pointing where the kid faced. A lit beam wakes a dormant core
+  it rests on for 0.4 s (LightSensor: cone, range, line of sight), and the core stays awake. No collector
+  that stores charges: fixed cores are the level design (reach it as a kid, reach it as a toy); the carried
+  light keeps the "collect and harness" feel without free shifting. Rules live on the things: `Flashlight`
+  (switch + static list of lit lights), `Carryable`/`Carrier` (hands, never parenting so the 35x scale stays
+  off the thing), `LightSensor`, `ShiftSource` dormant/uses/looks. The Interactor skips targets whose prompt
+  is empty, so a spent core never takes E from the body beside it. Box starts dark (ambient 0.3, lid on,
+  flashlight off) with a dim ember at the tail: light is the awakening. Dark-room navigation is his later
+  idea; the on/off switch already supports it.

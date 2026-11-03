@@ -11,6 +11,10 @@ Chosen 2 Nov over a day/night world shift (every space built twice) and a kid-to
 (two motors, Voltane's territory). Voltane has scale shift as a single gag; nobody owns it as a core.
 
 ## Room 1: the toy box (the awakening; 2 Nov, replaces the bedroom as the first room)
+Cores are batteries (D-0013, 3 Nov): the box starts dark, the flashlight is off with a dim ember at its tail.
+E on the flashlight switches it on (the beam floods the box, its core wakes); E on the tail shifts you up and spends
+that core. The flashlight stays yours: a kid picks it up, aims it by looking, LMB toggles, C puts it down; its beam
+wakes the dormant core on the bed. Dark-room navigation with it is a later room.
 Room of Awakening in the TotK sense: wake somewhere small and dark, find the one glowing thing, and the
 shift itself is the exit. The toy wakes inside a closed cardboard box on the bedroom floor; a flashlight
 left on inside is the only light. Four beats, about thirty seconds: get up (WakeUp plays the idle death

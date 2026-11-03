@@ -2,6 +2,23 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 11:4x — flashlight puzzle built (his "fully functional light"; out of Play), saved, UNPLAYED
+**Landed + compiled (outside csc, then his editor, 0 errors):** `Interaction/Carryable.cs`, `Interaction/Carrier.cs`,
+`Room/Flashlight.cs`, `Room/LightSensor.cs`; edits: `PlayerInput` (UseHeld = Attack, Drop = Crouch), `Interactor`
+(skips the carried thing and empty-prompt targets), `InteractPrompt` (held hint "LMB Light / C Put down"),
+`ShiftSource` (startDormant, dormantPrompt "Dark", uses, spentPrompt, awakeOnly/dormantOnly lists, onAwaken/onSleep/
+onSpent). **Wired (RunCommand, saved):** ShiftCore moved into Flashlight_01's tail (local z 6), its sphere hidden,
+GrowOnly, dormant, 1 use; FlashlightBeam → `Beam` spot at the lens (50°, range 90, int 5, soft, off); Flashlight +
+Carryable (hold rotation 0/180/0) on Flashlight_01; both cores: Ember quad (OrbGlow ×5) + EmberLight while dormant,
+Glow + Sparks while awake; ShiftCore2 dormant + LightSensor; Player: `Hold` child (0.3, 0.95, 0.5) + Carrier;
+InteractPrompt.carrier; ambient intensity 1 → 0.3. D-0013. **Note:** the core sphere's collider in the tail touches
+the box's left wall by ~0.5 (reachable from the room side).
+**His checks:** (1) box is dark, a cyan ember at the flashlight's tail; E on the body "Switch on" → beam + the core
+glows; E on the tail "Shift: grow" → burst, core goes dark (spent); (2) kid: E on the flashlight "Pick up", it sits in
+the right hand and points where you look; LMB toggles it; (3) aim at the bed core ("Dark") for half a second → it
+wakes (glow + sparks); (4) C puts it down facing your way; jump on the bed, E → shrink; (5) toy: E on the flashlight
+body still toggles it. **Still proposed:** bedroom 4×4 + kid camera; dark-room navigation later (his idea).
+
 ## 3 Nov 2026 11:1x — his portal drawings in, warp shows colour, speeds raised (his "proceed"; he out of Play), UNPLAYED
 **His four drawings** converted by script into `Art/Portals/`: `warp_mask_swirl.png` (ring-only drawing → white on
 black, 1024, sRGB off), `warp_art_grow.png` (purple void) + `warp_art_shrink.png` (dark disc + swirl) as 2048 RGBA

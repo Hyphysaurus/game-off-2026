@@ -2,6 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 12:0x — his orb mote in, glossy marble inside the halo, flashlight re-aimed (his play notes), saved, UNPLAYED
+His orb drawing → `Art/Portals/orb_mote.png` on OrbGlow.mat (tint white). His note "a bit flat, needs depth and gloss":
+the hidden Wooden_Sphere is back as a glossy marble (scale 0.8) inside the halo: `ShiftCoreMarbleDark.mat` while
+dormant, `ShiftCoreMarble.mat` (emissive cyan, smoothness 0.96) once awake, swapped by ShiftSource (new `marble`,
+`marbleAwake`, `marbleDark` fields in ApplyLooks). Flashlight moved to (-5, 3.3, -16) yaw 290 so the lens points across
+the box centre; its core tail at (-10.7, 3.3, -13.9), clear of the walls. Committed. **Open from his play:** none new.
+
 ## 3 Nov 2026 11:4x — flashlight puzzle built (his "fully functional light"; out of Play), saved, UNPLAYED
 **Landed + compiled (outside csc, then his editor, 0 errors):** `Interaction/Carryable.cs`, `Interaction/Carrier.cs`,
 `Room/Flashlight.cs`, `Room/LightSensor.cs`; edits: `PlayerInput` (UseHeld = Attack, Drop = Crouch), `Interactor`

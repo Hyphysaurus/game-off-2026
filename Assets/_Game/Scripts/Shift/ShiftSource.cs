@@ -24,6 +24,9 @@ namespace ShiftJam
         [Header("Looks")]
         [SerializeField, Tooltip("Active only while awake and not spent: the glow, the sparks.")] private GameObject[] awakeOnly;
         [SerializeField, Tooltip("Active only while dormant: a dim ember so the player can find it in the dark.")] private GameObject[] dormantOnly;
+        [SerializeField, Tooltip("Optional. The core's solid body: gets the lit material when awake, the dark one otherwise.")] private Renderer marble;
+        [SerializeField] private Material marbleAwake;
+        [SerializeField] private Material marbleDark;
         [Header("Events")]
         [SerializeField, Tooltip("Hook Feel feedbacks here: the flash, the punch, the sound.")] private UnityEvent onUsed;
         [SerializeField] private UnityEvent onAwaken;
@@ -66,6 +69,11 @@ namespace ShiftJam
             bool ember = Dormant && !Spent;
             if (awakeOnly != null) foreach (var go in awakeOnly) if (go != null) go.SetActive(awake);
             if (dormantOnly != null) foreach (var go in dormantOnly) if (go != null) go.SetActive(ember);
+            if (marble != null)
+            {
+                Material want = awake ? marbleAwake : marbleDark;
+                if (want != null) marble.sharedMaterial = want;
+            }
         }
 
         public string PromptFor(Interactor who)

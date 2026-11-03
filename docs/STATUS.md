@@ -2,6 +2,18 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 07:0x — Rift Apart warp built and wired (his "proceed"; he AFK), UNPLAYED
+**Landed + compiled (outside csc, then his editor: ShiftWarp in Library dll, shader HasError=false):**
+`Shaders/ShiftWarp.shader`, `Scripts/Shift/ShiftWarp.cs`, `ShoulderCamera.FovOffset`, `Shifter.Progress`.
+**Wired by RunCommand (saved):** `_Game/Data/ShiftWarp.mat`; Full Screen Pass Renderer Feature "ShiftWarp" on
+`Assets/Settings/PC_Renderer.asset` (the live renderer; injection After Rendering Post Processing, fetch colour,
+inactive until a shift; Mobile_Renderer has none); ShiftWarp on the Player with material + feature;
+ShiftSettings.duration 0.6. Material defaults: push 0.12, ring 0.22, fringe 1, flash 0.8 cyan-white, mask off.
+**His drawing hook:** a square greyscale PNG (1024², black background, the tear in white, centred) → import
+(sRGB off, Alpha none) → ShiftWarp.mat Rift Mask + Mask Strength 1. The drawing is sampled in a square the
+size of the ring, so it expands with it. **Still his:** the Feel layer (Timescale, Camera Shake, URP Lens
+Distortion / Chromatic Aberration / Vignette on a Global Volume, fired from ShiftSource.On Used). D-0010.
+
 ## 3 Nov 2026 00:2x — bedroom shell placed by code, build settings, commit (he AFK)
 **Done (RunCommand, saved):** `Room/Bedroom`: nine Floor_01 tiles (centres -65/0/65), walls 130+65 per side centred
 at ±100 (inner faces at ±97.5 = the floor edge), four Wall_05 corner pillars; every piece slid by its renderer

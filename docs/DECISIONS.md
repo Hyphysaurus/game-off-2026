@@ -44,3 +44,14 @@
   backwards from 0.55 as a get-up (the pack has no get-up clip; the clip's root Y/XZ were set to bake into
   pose, in `_Imports`, git-ignored, so the body rises from the floor instead of hovering). The bedroom
   becomes room 2, its beats re-ordered later. Goal and Respawn landed with them.
+- **D-0010 (3 Nov, 07:0x) The shift's look is a fullscreen warp of our own, driven by the Shifter's progress.**
+  `Shaders/ShiftWarp.shader` (HLSL, URP Full Screen Pass after post-processing): a ring grows from the
+  screen centre (grow) or collapses into it (shrink); inside it the picture is pushed radially with the red
+  and blue channels fringed apart, and the ring flashes. An optional drawn mask (white = tear) replaces
+  the plain ring with his own shape, expanding with it: his drawing is the art hook. `ShiftWarp.cs` on the
+  Player follows `Shifter.Progress` (not the clock, so Feel's time dip stretches the warp with the growth),
+  switches the renderer feature on only during a shift (no idle blit cost), and punches the camera FOV
+  through `ShoulderCamera.FovOffset`. Feel's URP post-processing feedbacks (lens distortion, chromatic
+  aberration, vignette, timescale, shake) stay his layer on top. ShiftSettings.duration 0.35 → 0.6 so the
+  warp is more than a blink. Why own shader: the Rift Apart tear is a radial displacement with a moving
+  front, which no stock post-process override does; 80 lines of HLSL, one material slider set to tune.

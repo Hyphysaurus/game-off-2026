@@ -25,6 +25,8 @@ namespace ShiftJam
         /// <summary>The player's scale right now: 1 at kid size, settings.toyScale at toy size, in between while shifting.</summary>
         public float Scale { get; private set; } = 1f;
         public bool Shifting => _progress < 1f;
+        /// <summary>How far the current shift has run, 0 to 1 (1 when not shifting). ShiftWarp follows this, not the clock.</summary>
+        public float Progress => _progress;
         /// <summary>Raised on this player when a shift begins.</summary>
         public event Action<ShiftSize> ShiftStarted;
         /// <summary>Raised on this player when a shift ends.</summary>

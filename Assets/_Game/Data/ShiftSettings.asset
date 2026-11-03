@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ShiftSettings
   toyScale: 1
   kidScale: 35
-  duration: 0.35
+  duration: 0.6
   ease:
     serializedVersion: 2
     m_Curve:

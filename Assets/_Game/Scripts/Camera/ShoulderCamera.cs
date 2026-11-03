@@ -26,6 +26,8 @@ namespace ShiftJam
 
         public float Yaw => _yaw;
         public float Pitch => _pitch;
+        /// <summary>Degrees added to the settings' field of view this frame. ShiftWarp punches it during a shift; 0 otherwise.</summary>
+        public float FovOffset { get; set; }
 
         private void Awake()
         {
@@ -86,7 +88,7 @@ namespace ShiftJam
             }
 
             transform.SetPositionAndRotation(pivot + back * distance, rotation);
-            _camera.fieldOfView = settings.fieldOfView;
+            _camera.fieldOfView = settings.fieldOfView + FovOffset;
             _camera.nearClipPlane = Mathf.Max(0.001f, settings.nearClip * scale);
         }
 

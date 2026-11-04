@@ -135,3 +135,12 @@
   tanks went), and the showroom's 28 lights did not travel (they are not under its root) so lighting is ours.
   Stills: `docs/stills/r4_*.png`, rendered headless by `CourseBuilder.Stills` (menu Shift Jam / Render R4 Stills;
   batch `-executeMethod ShiftJam.CourseBuilder.BuildAndRender`, no -nographics). Unplayed.
+- **D-0019 (4 Nov, 12:1x) No showroom copies: the pack's props are ours to place, its demo composition is not.** His
+  word on D-0018 within the hour: "i dont want to copy demo room and call it mine." D-0018 is reverted: R4 is our
+  6×5 room and our layout again (COURSE.md), now dressed by the builder in our own composition from the pack's
+  prefabs: desk clutter, a book shelf by the hoop, cars and ramps at the track, a camp around the maze, towers and
+  skittles at the castle, a bear and the chessboard on the couch, a shelf and clock at the wardrobe, wooden toys and
+  blocks in the SW corner, mats in 2×2 clusters, posters and drawings on all four walls, a ceiling fan, and seeded
+  floor clutter that skips the reserved beat volumes (maze, the way down, the safe, the entry). Kept from D-0018: the
+  headless still renderer and the closed-box descent (two Cardboard_Box_05 stacked, then a Box_06). Rule from here:
+  a bought pack's demo scene is reference for how its pieces fit, never a source to transplant.

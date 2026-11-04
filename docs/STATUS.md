@@ -2,17 +2,24 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 4 Nov 2026 11:5x — R4 IS THE PACK'S SHOWROOM (D-0018), built + rendered headless three times, COMMITTED, UNPLAYED
-His "begin dressing the larger room with the selected beats" (he is drawing the title card; Unity closed). `CourseBuilder`
-now moves the Playroom pack's dressed `Demonstration` room (1246 instances) into Greybox at C4, turned 180° (windows
-north, garden side), and seats the COURSE.md beats on its furniture by prefab name: core B on the desk's clear front
-corner, the way down = two closed Cardboard_Box_05 stacked (24) then a Box_06 (12) (the look-book showed every taller
-box has open flaps), the sandbag maze + core A over the army camp (84×84 cleared), the exit hole on the wardrobe's room
-side with the showroom's Safe moved in front (Carryable), entry = a mouse hole in the east wall south of the real door
-(CP_entry), R6 on the west window (sill 41). New: `CourseBuilder.Stills` (menu Shift Jam / Render R4 Stills; batch
-`BuildAndRender`, needs a GPU) → `docs/stills/r4_*.png` (git-ignored). Room is 4×5 now. PLAYTEST.md steps 15–21
-rewritten. Open: the bare patch around the maze, lighting (the showroom's 28 lights are not under its root: ours only),
-the ruler is optional now. Title card mockup + run cadence A/B still waiting on him.
+## 4 Nov 2026 13:1x — R4 DRESSED in our own composition from the pack's props (D-0019), headless, COMMITTED, UNPLAYED
+His "begin dressing the larger room with the selected beats" (he draws the title card; Unity closed all day). First
+answer (D-0018, 11:5x) moved the Playroom pack's whole showroom scene in and seated the beats on it; his "i dont want
+to copy demo room and call it mine" reverted it within the hour. Now: our 6×5 room and COURSE.md layout, dressed by
+`CourseBuilder` zone by zone: desk clutter (lamp, mouse, mug, markers, calculator), shelf + books + rabbit by the hoop,
+skateboard/ball/dumbbell, cars + ramp + road loop + station at the track, a camp around the maze (truck, helicopter,
+flag, ladder, wire, loose sandbags, soldiers on stands), two more towers + skittles + ball at the castle, pillows +
+bear + chessboard with pieces on the sofa, a cat, shelf + book stack by the wardrobe, wooden toys + blocks + puzzle
+pieces in the SW corner, six 2×2 mat clusters, posters/paintings/clock/sockets on all four walls, a ceiling fan, book
+stacks, open boxes in corners, and ~230 seeded clutter props that skip the reserved beat volumes (maze, the way down,
+the safe, the entry). Shell: the north-wall cube bay is now the pack's Wall_03 window piece (130 wide) with Window_01
+in its opening, sill 41 (one kid jump), wood sill. Lights: RoomLight 4.5 + two warm fills. Descent from the desk:
+two closed Cardboard_Box_05 stacked (24) then a Box_06 (12): the look-book showed every taller box has open flaps.
+🔑 Drawing_xx prefabs are loose paper, not wall art (they floated on the walls): posters/paintings on walls only.
+New tool: `CourseBuilder.Stills` (menu Shift Jam / Render R4 Stills; batch `BuildAndRender`, needs a GPU) →
+`docs/stills/r4_*.png` + a look-book shot, git-ignored; six passes today at ~1 min each. PLAYTEST.md 15–21 updated.
+Open for his walk: density/taste, the stool's 14 drop, lighting, the ruler (optional now). Title card mockup + run
+cadence A/B still waiting on him.
 
 ## 4 Nov 2026 10:1x — design pass written while he draws the title card (PROPOSED, nothing built)
 `docs/DESIGN.md` "Design pass, 4 Nov": (1) story frame = moving day, working title **Outgrown**, page hook, card

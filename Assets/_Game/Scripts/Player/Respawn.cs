@@ -41,6 +41,9 @@ namespace ShiftJam
             onFell?.Invoke();
         }
 
+        /// <summary>Back to the checkpoint right now: hazards call this.</summary>
+        public void Reset() => _motor.Warp(_point, _facing);
+
         /// <summary>Where the next respawn lands. Checkpoints call this.</summary>
         public void SetPoint(Vector3 position, Quaternion rotation)
         {

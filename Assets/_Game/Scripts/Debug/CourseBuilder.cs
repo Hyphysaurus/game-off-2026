@@ -117,7 +117,11 @@ namespace ShiftJam
             BookStairs(r3, new Vector3(128f, 0f, z), Vector3.right, 0f, boxTop, "UpStairs");
             BookStairs(r3, new Vector3(B(box).max.x + 1f, 0f, z), Vector3.right, boxTop, 0f, "DownStairs");
             // 4. three pins standing in the lane, walk between them (no hazard yet: dressing + a squeeze)
-            foreach (float px in new[] { 180f, 190f, 200f }) Rest(Spawn("Pin_01", "Pin", r3, new Vector3(px, 0f, z + ((px / 10f) % 2 == 0 ? 3f : -3f)), new Vector3(-90, 0, 0), 1f), 0f, null);
+            foreach (float px in new[] { 180f, 190f, 200f })
+            {
+                var pin = Rest(Spawn("Pin_01", "Pin", r3, new Vector3(px, 0f, z + ((px / 10f) % 2 == 0 ? 3f : -3f)), new Vector3(-90, 0, 0), 1f), 0f, null);
+                var hz = Trigger("Hazard", pin.transform, B(pin).center, new Vector3(1.6f, B(pin).size.y, 1.6f)); hz.AddComponent<Hazard>();
+            }
             // 5. sprint gap 230..234.5 with a checkpoint before and after
             Checkpoint("CP_beforeSprint", r3, new Vector3(222f, 2f, z), new Vector3(6f, 4f, w));
             Checkpoint("CP_afterSprint", r3, new Vector3(244f, 2f, z), new Vector3(6f, 4f, w));

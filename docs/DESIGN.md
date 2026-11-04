@@ -77,3 +77,64 @@ proposed with it. Map: `docs/maps/course_overview.png`.
 ## Parking lot
 - World 2 and beyond: what the toy door leads to (Battle Stadium arena? the attic?).
 - Costume shift (Full_Body swaps) as a cosmetic.
+
+## Design pass, 4 Nov 2026 10:1x (PROPOSED while he draws the title card; nothing here is built; his picks)
+Six rooms exist and the loop runs end to end. What the entry lacks as a jam game: a reason for the route, a
+second thing the shift does, something that moves, and a reason to look around. Four proposals, cheapest first.
+
+### 1. The story frame: moving day. Working title "Outgrown".
+Everything already in the scene gets a reason without a line of code. The toy wakes inside a sealed cardboard
+box because it was PACKED. The bedroom is half packed (more Cardboard_Box_01..06, TapeRoll, Tape_01, Note_Paper
+labels, bare walls where the drawings were). The real door is locked because the movers come in the morning. The
+window sill is where the toy always sat, and the game ends with it back on the sill at dawn, looking at the
+garden it will never see again. "Shift" reads twice: the size shift, and the house shifting. The kid-size shift
+is never explained; it is the one magic thing.
+- Title: **Outgrown** (the kid outgrew the toy, so it was packed; the toy outgrows its box). Alternatives: Small
+  Hours, Packed.
+- Page hook: *A toy packed away on moving day shifts between toy size and kid size to get back to its place on
+  the window sill before morning.*
+- Start card: the SHIFT lettering + "press any key". End card: "Back on the sill." + the piece count (see 3).
+- Cost: dressing by the builder (boxes, tape, labels), two text lines. Half a day.
+
+### 2. Escalation: one new wrinkle per room (audit of what is there)
+| room | what the shift does here | state |
+|---|---|---|
+| R1 box | learn E, grow | built |
+| R2 bedroom | reach: each core where only one size can get to it | built |
+| R3 lane | nothing: two minutes with the theme switched off | gap |
+| R4 playroom | kid arranges, toy traverses (carry + place) | built, unplayed |
+| R5 wardrobe | dark, the light is the key | built, flashlight half parked |
+| R6 window | the last shift, the payoff | built |
+Two fixes:
+- **R3**: one grow core mid-lane the player cannot use. E → "Too tight in here" (ShiftSource.wrongSizePrompt
+  already exists). A joke that keeps the theme in the room and teaches "wrong size is a thing" before R4 needs it.
+  Cost: one core and one string.
+- **Something moves**: the house is static. The pack has a train (Train_Locomotive_01, Train_Carriage_01/02,
+  Train_Logs_01, Railway_01..03) and Splines 2.8.3 is installed: a SplineAnimate loop needs no code. In R4 the
+  track crosses the toy's floor route: at toy size the locomotive is a moving wall (Hazard on its nose) and the
+  log carriage is a moving platform you can ride; at kid size you step over it. One prop, two meanings, in
+  motion. If the ruler ramp fails his feel test, the train becomes the way up to the table instead (ride the
+  logs, hop onto the chair). Cost: one day with the builder.
+
+### 3. Lost puzzle pieces (the reason to look around)
+The kid's jigsaw (Puzzle_01..20 props) is missing six pieces, scattered where only one size can see or reach
+them: under the bed (toy), on top of the wardrobe (kid), behind the sofa (toy), in the matchbox in the lane
+(toy), on the desk shelf (kid), inside the castle (toy). Each one is visible from somewhere the player already
+stands (the interactables rule), none is required. End card: "4 of 6 pieces found." Judges replay for the
+last two; the two sizes pay off in exploration, not only in traversal.
+Cost: `Collectible.cs` (trigger, optional size gate, chime, count) + a counter in GameFlow, half a day; his
+placement pass after.
+
+### 4. The ending, made of what exists
+R6 as designed, plus: on the last shrink the camera pulls back through the glass over three seconds, the
+RoomLight warms and a sun comes in from the window (dawn), the end card fades up over the garden with the
+piece count, and the last image is his SHIFT / Outgrown lettering. Cost: a camera rail + a light lerp in
+GameFlow.End, half a day.
+
+### Feel (his layer, after the art): the shift's timescale dip and lens punch, landing squash, footstep SFX
+per surface (the toy hears everything louder), the box burst thump, the train's clack as it passes.
+
+### Order I would pick
+1 (frame + dressing) → 3 (pieces) → 2 (R3 core, then the train) → 4 (ending). All four fit before the week-2
+art items in BACKLOG.md. Parked: Cat_01 as a roaming pet (a monster at toy size, a cat at kid size) is the
+best idea in the pack and the most expensive; after the jam.

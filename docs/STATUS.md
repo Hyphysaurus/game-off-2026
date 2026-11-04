@@ -2,6 +2,17 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 4 Nov 2026 10:1x — design pass written while he draws the title card (PROPOSED, nothing built)
+`docs/DESIGN.md` "Design pass, 4 Nov": (1) story frame = moving day, working title **Outgrown**, page hook, card
+lines; (2) escalation audit: R3 has no shift (fix: one "Too tight" grow core) and nothing in the house moves (fix:
+the pack's train on a Spline across R4, hazard + ride at toy size, a step at kid size); (3) six lost puzzle pieces as
+size-gated collectibles with a count on the end card; (4) the dawn ending (camera through the glass, light warms).
+Title card: `Art/Mockups/title_card_mockup.png` + `title_card_canvas_guide.png` (growing SHIFT lettering, toy and
+kid figures at the ends); his PNG lands as `Art/UI/title_shift.png` → StartCard title becomes an Image.
+Run animation: all three locomotion clips loop cleanly (seams 0.00); the flail is cadence: Run Boost ×2.5 on a
+0.5 s clip = 5 cycles/s. Proposed A (Walk ×2 / Run ×1.6 / Boost ×1.4, keep speeds) or B (sprint 8 + Boost ×1.6,
+my pick). Awaiting his letter. Unity closed all morning.
+
 ## 4 Nov 2026 00:3x — his first walk of the course: two notes fixed live, a booster pad built (his idea)
 Walk notes so far: (1) "the shift core in the corridor won't prompt" = the checkpoint MARKER used the same orb sprite as
 a core. Fixed: markers are small amber dots (`CheckpointGlow.mat`, scale 1.4, amber light), cores stay cyan. (2) "no

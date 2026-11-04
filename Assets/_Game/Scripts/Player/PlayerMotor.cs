@@ -141,6 +141,19 @@ namespace ShiftJam
         }
 
         /// <summary>Moves the player somewhere else with no travel and no leftover momentum. Used by spawns and portals.</summary>
+        /// <summary>Throws the player straight up as if from a spring: a pad calls this. Height is in the player's own
+        /// units, so a toy and a kid get the same look. Not a jump: no jump cut, no buffer.</summary>
+        public void Launch(float height)
+        {
+            float gravity = settings.gravity * Scale;
+            _vertical = Mathf.Sqrt(2f * gravity * Mathf.Max(0.01f, height) * Scale);
+            _jumping = false;
+            _jumpCut = true;
+            Grounded = false;
+            _lastGroundedTime = -10f;   // no coyote jump on top of a launch
+            _peakFall = 0f;
+        }
+
         public void Warp(Vector3 position, Quaternion rotation)
         {
             bool wasEnabled = _controller.enabled;

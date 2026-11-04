@@ -282,18 +282,24 @@ namespace ShiftJam
             Cube("WallR", r5, c + new Vector3(hw + 0.5f, h / 2f, 0), new Vector3(1f, h, hd * 2 + 2f), wood);
             // three shelves along the back half, 40 apart; the climb zigzags up them on book stairs
             float[] shelfY = { 40f, 80f };
-            foreach (float sy in shelfY) Cube("Shelf_" + sy, r5, c + new Vector3(0, sy - 1f, hd / 2f), new Vector3(hw * 2, 2f, hd), wood);
+            Cube("Shelf_" + shelfY[0], r5, c + new Vector3(0, shelfY[0] - 1f, hd / 2f), new Vector3(hw * 2, 2f, hd), wood);               // full depth
+            Cube("Shelf_" + shelfY[1], r5, c + new Vector3(0, shelfY[1] - 1f, hd * 0.75f), new Vector3(hw * 2, 2f, hd / 2f), wood);         // back half only: open air above shelf 1's front
             // flight 0: floor -> shelf 1, running +x along the back wall from the left
             BookStairs(r5, c + new Vector3(-hw + 6f, 0, hd * 0.5f), Vector3.right, 0f, shelfY[0], "Flight0");
-            BookStairs(r5, c + new Vector3(hw - 6f, 0, hd * 0.7f), Vector3.left, shelfY[0], shelfY[1], "Flight1");
-            foreach (float sy in shelfY) Checkpoint("CP_shelf" + sy, r5, c + new Vector3(0, sy + 2f, hd * 0.5f), new Vector3(hw * 2 - 10f, 4f, hd - 4f), ShiftSize.Toy);
+            // flight 1 is a trampoline: a pillow on shelf 1's open front, under the lip of shelf 2; drift back in the air to land on it
+            var pillow = Rest(Spawn("Pillow_01", "Trampoline", r5, c + new Vector3(hw - 30f, 0, hd * 0.2f), new Vector3(0, 10, 0), 1f), shelfY[0], null);
+            var pb = B(pillow);
+            var padTrig = Trigger("Pad", pillow.transform, new Vector3(pb.center.x, pb.max.y + 0.6f, pb.center.z), new Vector3(pb.size.x * 0.8f, 1.6f, pb.size.z * 0.8f));
+            var pad = padTrig.AddComponent<LaunchPad>(); Set(pad, "height", (shelfY[1] - pb.max.y) + 10f); Set(pad, "visual", pillow.transform);
+            Quad("PadGlow", pillow.transform, new Vector3(pb.center.x, pb.max.y + 0.3f, pb.center.z), new Vector3(90, 0, 0), Vector3.one * (pb.size.x * 0.9f), glow);
+            Checkpoint("CP_shelf" + shelfY[0], r5, c + new Vector3(0, shelfY[0] + 2f, hd * 0.5f), new Vector3(hw * 2 - 10f, 4f, hd - 4f), ShiftSize.Toy);
+            Checkpoint("CP_shelf" + shelfY[1], r5, c + new Vector3(0, shelfY[1] + 2f, hd * 0.75f), new Vector3(hw * 2 - 10f, 4f, hd / 2f - 4f), ShiftSize.Toy);
             // dressing: boxes and a pillow on the shelves, costumes hanging in the front half (static)
             Rest(Spawn("Cardboard_Box_02", "Box18", r5, c + new Vector3(30f, 0, hd * 0.5f), new Vector3(0, 15, 0), 1f), shelfY[0], null);
-            Rest(Spawn("Cardboard_Box_06", "Box12", r5, c + new Vector3(-40f, 0, hd * 0.5f), new Vector3(0, -20, 0), 1f), shelfY[1], null);
-            Rest(Spawn("Pillow_01", "Pillow", r5, c + new Vector3(-80f, 0, hd * 0.55f), Vector3.zero, 1f), shelfY[1], null);
+            Rest(Spawn("Cardboard_Box_06", "Box12", r5, c + new Vector3(-40f, 0, hd * 0.75f), new Vector3(0, -20, 0), 1f), shelfY[1], null);
             PointLight("DimLamp", r5, c + new Vector3(0, shelfY[1] + 10f, hd * 0.3f), 60f, 0.5f, new Color(1f, 0.8f, 0.55f));
             // the flashlight on shelf 2, lying on its side with the head pointing up at the top shelf's core, switch to the front
-            var torch = Spawn("Flashlight_01", "WardrobeTorch", r5, c + new Vector3(-20f, 0, hd * 0.45f), Vector3.zero, 1f);
+            var torch = Spawn("Flashlight_01", "WardrobeTorch", r5, c + new Vector3(-20f, 0, hd * 0.72f), Vector3.zero, 1f);
             // lying on shelf 2 with the head (+Z) along +x toward core C and the switch (+Y) rolled to face the front (-z)
             torch.transform.rotation = Quaternion.AngleAxis(90f, Vector3.up) * Quaternion.AngleAxis(-90f, Vector3.forward);
             Rest(torch, shelfY[1], null);
@@ -310,7 +316,7 @@ namespace ShiftJam
             var ps = sw.AddComponent<PushSwitch>(); Set(ps, "cap", cap.transform); Set(ps, "travel", 0.25f);
             { var so = new SerializedObject(ps); var calls = so.FindProperty("onPressed.m_PersistentCalls.m_Calls"); calls.arraySize = 1; Listener(calls.GetArrayElementAtIndex(0), fl, typeof(Flashlight).AssemblyQualifiedName, "Toggle"); so.ApplyModifiedPropertiesWithoutUndo(); }
             // core C on the top shelf, dormant until lit
-            var coreC = Core("CoreC_Grow", r5, c + new Vector3(80f, shelfY[1] + 2.5f, hd * 0.45f), ShiftSource.Mode.GrowOnly, coreMat, true);
+            var coreC = Core("CoreC_Grow", r5, c + new Vector3(80f, shelfY[1] + 2.5f, hd * 0.72f), ShiftSource.Mode.GrowOnly, coreMat, true);
             coreC.AddComponent<LightSensor>();
             // the way out once you are a kid: a portal at the top (kid size) back to the playroom, in front of the wardrobe
             var topTrig = Trigger("TopPortal", r5, c + new Vector3(0, shelfY[1] + 40f, 0), new Vector3(hw * 2, 60f, hd * 2));
@@ -373,11 +379,12 @@ namespace ShiftJam
         {
             var t = Trigger(name, parent, centre, size); var cp = t.AddComponent<Checkpoint>();
             if (size1.HasValue) { Set(cp, "anySize", false); Set(cp, "requiredSize", (int)size1.Value); }
-            // a small glow at the trigger's floor that lights when claimed
-            var glowMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/OrbGlow.mat");
-            var marker = Quad("Marker", t.transform, centre + Vector3.up * (1.2f - size.y * 0.5f), Vector3.zero, Vector3.one * 2.4f, glowMat);
+            // a small AMBER dot at the trigger's floor that lights when claimed (cores are cyan: never the same look)
+            var glowMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/CheckpointGlow.mat");
+            if (glowMat == null) { glowMat = new Material(AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/OrbGlow.mat")); glowMat.SetColor("_BaseColor", new Color(1f, 0.72f, 0.25f, 0.9f)); AssetDatabase.CreateAsset(glowMat, "Assets/_Game/Data/CheckpointGlow.mat"); }
+            var marker = Quad("Marker", t.transform, centre + Vector3.up * (0.8f - size.y * 0.5f), Vector3.zero, Vector3.one * 1.4f, glowMat);
             marker.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; marker.AddComponent<Billboard>();
-            PointLight("MarkerLight", marker.transform, marker.transform.position, 6f, 0.6f, new Color(0.5f, 0.9f, 1f));
+            PointLight("MarkerLight", marker.transform, marker.transform.position, 4f, 0.5f, new Color(1f, 0.75f, 0.3f));
             marker.SetActive(false);
             Set(cp, "litWhenClaimed", marker);
         }
@@ -437,10 +444,10 @@ namespace ShiftJam
             glow.SetActive(!dormant); sparksGo.SetActive(!dormant); ember.SetActive(dormant);
             return core;
         }
-        /// <summary>A staircase of books from the floor (y0) up to y1 along dir, each step 1.6 up and 1.5 along, each book overlapping the last.</summary>
+        /// <summary>A staircase of books from the floor (y0) up to y1 along dir: risers of at most 1.3 (a 2.0 hop with margin), 1.5 along, each book overlapping the last.</summary>
         static void BookStairs(Transform parent, Vector3 from, Vector3 dir, float y0, float y1, string name)
         {
-            var holder = Child(parent, name); int n = Mathf.CeilToInt(Mathf.Abs(y1 - y0) / 1.6f); float step = (y1 - y0) / Mathf.Max(1, n);
+            var holder = Child(parent, name); int n = Mathf.CeilToInt(Mathf.Abs(y1 - y0) / 1.3f); float step = (y1 - y0) / Mathf.Max(1, n);
             string[] books = { "Book_01", "Book_02", "Book_03", "Book_04", "Book_06", "Book_07", "Book_08", "Book_09", "Book_10", "Book_11", "Book_12" };
             float yaw = Quaternion.LookRotation(dir).eulerAngles.y;
             for (int i = 0; i <= n; i++)

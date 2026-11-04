@@ -17,7 +17,7 @@ MonoBehaviour:
   acceleration: 60
   deceleration: 50
   turnSpeed: 720
-  jumpHeight: 1.6
+  jumpHeight: 2
   gravity: 25
   airControl: 0.5
   coyoteTime: 0.12

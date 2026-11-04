@@ -2,6 +2,17 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 4 Nov 2026 00:3x — his first walk of the course: two notes fixed live, a booster pad built (his idea)
+Walk notes so far: (1) "the shift core in the corridor won't prompt" = the checkpoint MARKER used the same orb sprite as
+a core. Fixed: markers are small amber dots (`CheckpointGlow.mat`, scale 1.4, amber light), cores stay cyan. (2) "no
+mantle or double jump, can't climb the book ladder" = risers 1.6 against a 1.6 jump apex. Fixed: jumpHeight 1.6 → 2.0
+(MovementSettings, live) and book risers 1.3 in the builder. (3) His idea "a booster pad": `PlayerMotor.Launch(height)`
+(no jump cut, no coyote re-jump) + `Room/LaunchPad.cs` (trigger, size-gated, cooldown, squash on the visual, onLaunch).
+Builder: the wardrobe's second flight is now a Pillow_01 trampoline on shelf 1's open front (shelf 2 is back-half only
+so the launch clears its lip; height = the gap + 10; a glow disc marks the pad). Course rebuilt from inside the editor
+(out of Play) and saved: 1 pad, 32 stair books. Committed. Still to see: the pad feel (height, squash), the lane's
+pins, the ruler ramp.
+
 ## 3 Nov 2026 21:1x — backlog week 1, mine: fade, start/end cards, checkpoint markers, pin hazards (headless, UNSEEN)
 Editor was closed again after his short launch (log ends 20:58, no crash marker). Landed + compiled: `UI/ScreenFade.cs`
 (black cut, unscaled time), `UI/GameFlow.cs` (start card gone on first press, End() from the last Goal → fade + end

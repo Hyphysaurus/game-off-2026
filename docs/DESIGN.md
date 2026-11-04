@@ -70,7 +70,7 @@ the rig), Feel for juice, Shapes for UI lines, TextMesh Pro. Battle Stadium and 
 later worlds.
 
 ## The course after Room 2
-See `docs/COURSE.md` (3 Nov): R3 skirting run (toy lane), R4 playroom (kid arranges, toy traverses, three cores),
+BUILT 3 Nov 20:1x by CourseBuilder (D-0017), unplayed. See `docs/COURSE.md` (3 Nov): R3 skirting run (toy lane), R4 playroom (kid arranges, toy traverses, three cores),
 R5 wardrobe climb (dark, the flashlight returns), R6 window (payoff); the toy fall rule (12 u) and Checkpoint are
 proposed with it. Map: `docs/maps/course_overview.png`.
 

@@ -2,6 +2,25 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 20:1x — ROOMS 3–6 BUILT headless (his "proceed", he in AoE4, editor closed), saved, UNPLAYED, UNSEEN
+Editor was closed (log: graceful shutdown 19:51), so the course went in as `Scripts/Debug/CourseBuilder.cs` (editor-only)
+run by Unity batch mode (-nographics, 35 s, 0 errors, no missing prefabs): `Room/Course/{R3_SkirtingRun, R4_Playroom,
+R5_Wardrobe, R6_Window}` in Greybox.unity. Landed + compiled: Checkpoint, Portal, Respawn fall rule (fatalFallHeight 14),
+PushSwitch, Flashlight toyUsesE, Carried, Carryable.plank + Carrier.LayAlongGround. **Layout:** R3 lane x −20..281 at
+z −150 (south of the bedroom; pits at 38–72 pencil bridge, 100–103.5 hop, 230–234.5 sprint; book stairs over a 12-box at
+142; three pins; 4 checkpoints; exit portal → R4). R4 centre (480, 0, −140), walls x 285..675 / z −302.5..22.5: desk+table
+NW (core B shrink on it, table checkpoint, ruler plank + Box28 + chair + Box12 as the way down), sandbag maze NE (core A
+grow), race track centre, castle S, sofa E, hoop W by the entry, wardrobe SE with the Safe (carryable) in front of the toy
+hole (portal → R5), planet lamp, mats/blocks/drawings. R6 = north-wall window bay (cube wall with a 47×64 hole), sill,
+core D (toggle), Goal (toy) → GoalText; garden outside: grass ground + 24 Toy_Tree ×35, a sun light. R5 interior at
+(480, 0, −700): 195×120×170 wood box, shelves 40/80, two book-stair flights (each riser 1.6), checkpoints per shelf,
+torch lying on shelf 2 (head → core C 0° off axis; PushSwitch cap on its bump → Flashlight.Toggle), core C dormant +
+LightSensor, TopPortal (kid) → WardrobeFront in R4, opening the two wardrobe doors (Door on the prefab's door children).
+Bedroom toy-door Goal replaced by a Portal → R3 start. **Not verified by eye** (no GPU while he games): his open + walk is
+the test. **Likely rough edges:** pin orientation, torch roll, sandbag ring gaps, book-stair overlap look, R6 wall seams.
+**Re-run after any tweak to the builder:** menu Shift Jam / Build Course (replaces Room/Course), or the batch line in
+the session notes. D-0016, D-0017.
+
 ## 3 Nov 2026 15:5x — COURSE DESIGNED (his "help me design a course and layout", he AFK): docs/COURSE.md + map
 Rooms 3–6 proposed with beats, top-down maps, exact pack props and the numbers (toy/kid jump, reach, step; table
 36 / chair 22 / boxes 12-18-28 measured): R3 skirting run (toy lane: pencil bridge, gaps 3.5 and 4.5, book stairs,

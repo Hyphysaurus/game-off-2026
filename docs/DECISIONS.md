@@ -107,3 +107,16 @@
   an `Arms` override layer with a right-arm mask; Carrier fades the layer and places the thing from the hand bone
   with the Carryable's grip offsets (palm point in hand space, slide along the thing, extra turn), never parenting.
   Carrying is still parked as a puzzle (D-0014), the grip exists so it never looks wrong when it is used.
+- **D-0016 (3 Nov, 20:1x) The fall rule: a toy that lands from more than 14 units goes back to its checkpoint; the
+  kid never does.** Height is the toy's enemy and the kid's non-issue, which is the whole size idea; without the rule
+  every cliff is a free drop and the "kid builds the way down" verb has nothing to bite. Implemented in Respawn from the
+  motor's landing speed (height = v²/2g, gravity 25 to match MovementSettings), with `Checkpoint` triggers (size-gated)
+  and `Portal` triggers (room-to-room warps that also set the checkpoint and turn the camera). 14 not 12 because the
+  chair-to-box drop in R4 is 10 and the box-to-floor drop is 12.
+- **D-0017 (3 Nov, 20:1x) Rooms 3–6 live in the one Greybox scene, built by `CourseBuilder` (editor-only, idempotent),
+  joined by portals.** Reason: one scene is what he can open, walk and tweak in the editor today; additive scenes come
+  when lighting or load time demands them. The builder is a menu item (Shift Jam / Build Course) and runs headless
+  (-executeMethod ShiftJam.CourseBuilder.BuildAll), so a layout change is a code edit and a re-run, not a hand rebuild;
+  props are placed by renderer bounds, cores/portals/checkpoints wired by SerializedObject, and the Course container is
+  replaced whole on each run. Carrying grew two rules for the course: `Carried` (kid-only "Pick up" prompt on plain
+  carryables) and the plank put-down (a ruler laid from a table edge finds its far support and tilts into a ramp).

@@ -18,6 +18,7 @@ namespace ShiftJam
         [SerializeField, Tooltip("The spot light at the lens.")] private Light beam;
         [SerializeField, Tooltip("Optional. The core inside: woken when the light goes on, asleep when off.")] private ShiftSource core;
         [SerializeField] private bool startOn;
+        [SerializeField, Tooltip("Off = the toy must push the physical switch; E does nothing and shows no prompt at toy size.")] private bool toyUsesE = false;
         [SerializeField] private UnityEvent onTurnedOn;
         [SerializeField] private UnityEvent onTurnedOff;
 
@@ -61,6 +62,7 @@ namespace ShiftJam
         public string PromptFor(Interactor who)
         {
             if (IsKid(who)) return "Pick up";
+            if (!toyUsesE) return "";
             return IsOn ? "Switch off" : "Switch on";
         }
 
@@ -71,7 +73,7 @@ namespace ShiftJam
                 Carrier hands = who.GetComponent<Carrier>();
                 if (hands != null && hands.Held == null) { hands.PickUp(_carryable); return; }
             }
-            Toggle();
+            if (toyUsesE) Toggle();
         }
     }
 }

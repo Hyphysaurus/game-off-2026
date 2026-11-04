@@ -20,6 +20,8 @@ namespace ShiftJam
         private Vector3 gripOffset = new Vector3(0f, 0f, -1.5f);
         [SerializeField, Tooltip("Extra turn of the thing in the hand. Zero = the thing's +Z follows the hand's +Z (the thumb side).")]
         private Vector3 gripRotation = Vector3.zero;
+        [SerializeField, Tooltip("When put down, lie along the ground: the far end finds its own support, so a ruler laid from a table edge toward a box becomes a ramp.")]
+        private bool plank;
         [SerializeField] private UnityEvent onPickedUp;
         [SerializeField] private UnityEvent onPutDown;
 
@@ -27,6 +29,7 @@ namespace ShiftJam
         public Vector3 GripPalm => gripPalm;
         public Vector3 GripOffset => gripOffset;
         public Quaternion GripRotation => Quaternion.Euler(gripRotation);
+        public bool Plank => plank;
         public bool IsCarried { get; private set; }
         /// <summary>Raised when the Attack button is pressed while this is held. The flashlight toggles on it.</summary>
         public event Action Used;

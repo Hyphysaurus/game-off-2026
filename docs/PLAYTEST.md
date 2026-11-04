@@ -29,16 +29,21 @@ Space = jump, C = put down, LMB = toggle the carried light.
 13. Sprint gap (4.5): hold Shift, jump at the edge. Checkpoints before and after.
 14. Glowing exit at the east end: walk in → you appear in the playroom's west side by the hoop.
 
-## R4 Playroom (toy, then kid, then toy)
-15. Look around: desk and table NW with a glow on top (core B), a sandbag maze NE with a glow inside (core A),
-    race track centre, castle south, sofa east, wardrobe SE with a safe in front of it and a glowing hole behind.
-16. Walk the maze to core A: E → "Shift: grow". (Sandbag walls are 2 high: a toy cannot hop them.)
-17. Kid: the safe. E → "Pick up". Carry it a few steps and C to put it down. The hole behind it is now clear.
-18. The ruler lies near the table. E → "Pick up". Stand at the table's south edge facing the chair and the 28-box,
-    C: the ruler should lie from the table edge down onto the box as a ramp. Note where it actually landed.
-19. Core B on the table: E → "Shift: shrink". You are a toy on the table (a checkpoint covers the table top).
-20. Down the ruler, onto the box (28), the chair (22), the small box (12), the floor. Each drop under 14.
-21. Cross the floor to the hole under the wardrobe: walk in → inside the wardrobe.
+## R4 Playroom (toy, then kid, then toy) — the pack's showroom since 4 Nov (D-0018)
+15. You arrive by a mouse hole in the east wall, south of the real door, by the sofa's end. Look around: the desk NE by
+    the windows with a glow on its front corner (core B), a small square sandbag maze in the open floor right of centre
+    with a glow inside (core A), the race track and castle west of it, the bed NW, the wardrobe SW with a safe in
+    front of it. Note anything you clip through or that blocks the lane along the south wall.
+16. Walk to the maze (sandbag walls 2 high: a toy cannot hop them), find the gap on its south side, then the inner gap
+    on the north side, E on core A → "Shift: grow".
+17. Kid: cross to the wardrobe SW. The safe: E → "Pick up". Carry it a few steps and C to put it down. The glowing
+    hole at the wardrobe's foot is now clear.
+18. The ruler lies on the floor west of the desk. E → "Pick up", carry it to the desk, C to put it down. (Optional: the
+    way down exists without it; note where it lands anyway.)
+19. Core B on the desk's front corner: E → "Shift: shrink". You are a toy on the desk (the desk top is a checkpoint).
+20. Down: hop from the desk edge onto the two-box stack beside it (24), then the single box (12), then the floor. Each
+    drop is 12; none should respawn you. Note if the stool beside the desk tempts a 14 drop.
+21. Cross the floor SW to the hole behind where the safe was: walk in → inside the wardrobe.
 
 ## R5 Wardrobe (toy, then kid)
 22. Dark wood box, dim lamp. Book stairs along the back wall up to shelf 1 (40), then back along to shelf 2 (80).

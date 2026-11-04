@@ -63,7 +63,7 @@ CD_01 leaning (dressing), Clip_01 ×n (dressing). **Scripts:** Checkpoint.cs (ne
 **Build:** half a day by bridge.
 
 ---
-## R4 — The playroom (both sizes, 5 min, the big room)
+## R4 — The playroom (both sizes, 5 min, the big room) — BUILT 4 Nov as the pack's showroom (D-0018); the beats below hold, the shell and dressing are the pack's own 4×5 room
 **The idea:** the pack's showroom, used as a puzzle: the kid arranges, the toy traverses. Three cores.
 
 **Shell:** 6×5 floor tiles (390 × 325), walls at ±195 / ±162.5, ceiling 130, RoomLight + the window.

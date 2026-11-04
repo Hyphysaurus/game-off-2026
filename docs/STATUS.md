@@ -2,6 +2,18 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 4 Nov 2026 11:5x — R4 IS THE PACK'S SHOWROOM (D-0018), built + rendered headless three times, COMMITTED, UNPLAYED
+His "begin dressing the larger room with the selected beats" (he is drawing the title card; Unity closed). `CourseBuilder`
+now moves the Playroom pack's dressed `Demonstration` room (1246 instances) into Greybox at C4, turned 180° (windows
+north, garden side), and seats the COURSE.md beats on its furniture by prefab name: core B on the desk's clear front
+corner, the way down = two closed Cardboard_Box_05 stacked (24) then a Box_06 (12) (the look-book showed every taller
+box has open flaps), the sandbag maze + core A over the army camp (84×84 cleared), the exit hole on the wardrobe's room
+side with the showroom's Safe moved in front (Carryable), entry = a mouse hole in the east wall south of the real door
+(CP_entry), R6 on the west window (sill 41). New: `CourseBuilder.Stills` (menu Shift Jam / Render R4 Stills; batch
+`BuildAndRender`, needs a GPU) → `docs/stills/r4_*.png` (git-ignored). Room is 4×5 now. PLAYTEST.md steps 15–21
+rewritten. Open: the bare patch around the maze, lighting (the showroom's 28 lights are not under its root: ours only),
+the ruler is optional now. Title card mockup + run cadence A/B still waiting on him.
+
 ## 4 Nov 2026 10:1x — design pass written while he draws the title card (PROPOSED, nothing built)
 `docs/DESIGN.md` "Design pass, 4 Nov": (1) story frame = moving day, working title **Outgrown**, page hook, card
 lines; (2) escalation audit: R3 has no shift (fix: one "Too tight" grow core) and nothing in the house moves (fix:

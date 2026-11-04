@@ -120,3 +120,18 @@
   props are placed by renderer bounds, cores/portals/checkpoints wired by SerializedObject, and the Course container is
   replaced whole on each run. Carrying grew two rules for the course: `Carried` (kid-only "Pick up" prompt on plain
   carryables) and the plank put-down (a ruler laid from a table edge finds its far support and tilts into a ramp).
+- **D-0018 (4 Nov, 11:4x) Room 4 is the pack's own showroom, moved in whole; our beats sit on its furniture.** The
+  Playroom pack ships a dressed 4×5 room (URP `Demonstration.unity`, 1246 prefab instances: desk, bed, sofa, wardrobe,
+  castle, race track, army camp, posters, mats, clutter). Instead of re-dressing a 6×5 greybox by hand, `CourseBuilder`
+  opens that scene additively, moves its `Demonstration` root into Greybox under R4 at C4, turns it 180° so its window
+  wall faces the garden, closes the showroom, and seats the beats by prefab name: core B on the desk's clear front
+  corner with a closed-box stack (24, then 12) as the toy's way down (every tall box in the pack has open flaps: a
+  trap), the sandbag maze with core A over the army camp (an 84×84 clearance), the exit hole on the wardrobe's room
+  side with the showroom's own Safe moved in front, the entry mouse hole in the east wall south of the real door, R6
+  on the west window (sill 41, one kid jump). Renderers drop the showroom's lightmap indices and static flags; our
+  RoomLight (2.2) and the sun light it. The room is 4×5 now (x 347.5..612.5, z -305..25); the garden stays north.
+  Why: his rule, bought packs' own arrangements before our systems; a day of hand dressing became a 35-second run,
+  and the pack authors' composition is better than mine. Cost: a bare 84×84 patch at the maze (the camp's tents and
+  tanks went), and the showroom's 28 lights did not travel (they are not under its root) so lighting is ours.
+  Stills: `docs/stills/r4_*.png`, rendered headless by `CourseBuilder.Stills` (menu Shift Jam / Render R4 Stills;
+  batch `-executeMethod ShiftJam.CourseBuilder.BuildAndRender`, no -nographics). Unplayed.

@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 3 Nov 2026 21:1x — backlog week 1, mine: fade, start/end cards, checkpoint markers, pin hazards (headless, UNSEEN)
+Editor was closed again after his short launch (log ends 20:58, no crash marker). Landed + compiled: `UI/ScreenFade.cs`
+(black cut, unscaled time), `UI/GameFlow.cs` (start card gone on first press, End() from the last Goal → fade + end
+card, R restarts the scene), Respawn.Put() (every reset goes through the cut), Checkpoint.litWhenClaimed, Hazard (pins).
+Builder: HUD gets Fade + StartCard ("SHIFT / press any key") + EndCard ("You made it to the window. / R to play
+again") + GameFlow; every checkpoint gets a Marker glow + light that lights on claim; the R6 Goal's onReached →
+GameFlow.End. Two headless runs (33 s, 37 s, 0 errors): 8 markers, 3 hazards, cards and fade in the scene. Committed.
+**Still mine this week:** visible feedback on a portal (a flash), audio hooks. **His:** the walk (docs/PLAYTEST.md).
+
 ## 3 Nov 2026 20:1x — ROOMS 3–6 BUILT headless (his "proceed", he in AoE4, editor closed), saved, UNPLAYED, UNSEEN
 Editor was closed (log: graceful shutdown 19:51), so the course went in as `Scripts/Debug/CourseBuilder.cs` (editor-only)
 run by Unity batch mode (-nographics, 35 s, 0 errors, no missing prefabs): `Room/Course/{R3_SkirtingRun, R4_Playroom,

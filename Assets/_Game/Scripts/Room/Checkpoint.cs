@@ -15,11 +15,14 @@ namespace ShiftJam
         [SerializeField] private ShiftSize requiredSize = ShiftSize.Toy;
         [SerializeField, Tooltip("Where to put the player back: this object if empty (its forward = facing).")] private Transform point;
         [SerializeField, Tooltip("Claim again every time it is entered.")] private bool repeat;
+        [SerializeField, Tooltip("Shown once claimed: a small glow so the player knows where a reset lands.")] private GameObject litWhenClaimed;
         [SerializeField] private UnityEvent onClaimed;
 
         public bool Claimed { get; private set; }
 
         private void Reset() { GetComponent<Collider>().isTrigger = true; }
+
+        private void Awake() { if (litWhenClaimed != null) litWhenClaimed.SetActive(false); }
 
         private void OnTriggerEnter(Collider other)
         {
@@ -32,6 +35,7 @@ namespace ShiftJam
             Transform p = point != null ? point : transform;
             respawn.SetPoint(p.position, Quaternion.Euler(0f, p.eulerAngles.y, 0f));
             Claimed = true;
+            if (litWhenClaimed != null) litWhenClaimed.SetActive(true);
             onClaimed?.Invoke();
         }
     }

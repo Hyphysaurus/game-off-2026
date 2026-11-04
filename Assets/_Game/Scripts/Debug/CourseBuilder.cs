@@ -255,8 +255,9 @@ namespace ShiftJam
             var coreD = Core("CoreD_Window", r6, new Vector3(c.x - 12f, 55f + 2.5f, nz - 2.5f - 6f), ShiftSource.Mode.Toggle, coreMat, false);
             var goal = Trigger("Goal", r6, new Vector3(c.x + 8f, 57f, nz - 2.5f - 6f), new Vector3(16f, 6f, 10f));
             var gc = goal.AddComponent<Goal>(); Set(gc, "requiredSize", (int)ShiftSize.Toy);
-            var label = GameObject.Find("HUD/GoalText"); if (label != null) Set(gc, "label", label.GetComponent<TMPro.TMP_Text>());
-            Set(gc, "message", "You made it to the window. The garden is next.");
+            Set(gc, "message", "");
+            var flow = BuildHud();
+            if (flow != null) { var gso = new SerializedObject(gc); var calls = gso.FindProperty("onReached.m_PersistentCalls.m_Calls"); calls.arraySize = 1; Listener(calls.GetArrayElementAtIndex(0), flow, typeof(GameFlow).AssemblyQualifiedName, "End"); gso.ApplyModifiedPropertiesWithoutUndo(); }
             Cube("Ground", r6, new Vector3(700f, -1.5f, nz + 400f), new Vector3(1000f, 2f, 800f), grass);
             var rnd = new System.Random(7);
             for (int i = 0; i < 24; i++)
@@ -372,6 +373,43 @@ namespace ShiftJam
         {
             var t = Trigger(name, parent, centre, size); var cp = t.AddComponent<Checkpoint>();
             if (size1.HasValue) { Set(cp, "anySize", false); Set(cp, "requiredSize", (int)size1.Value); }
+            // a small glow at the trigger's floor that lights when claimed
+            var glowMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/OrbGlow.mat");
+            var marker = Quad("Marker", t.transform, centre + Vector3.up * (1.2f - size.y * 0.5f), Vector3.zero, Vector3.one * 2.4f, glowMat);
+            marker.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; marker.AddComponent<Billboard>();
+            PointLight("MarkerLight", marker.transform, marker.transform.position, 6f, 0.6f, new Color(0.5f, 0.9f, 1f));
+            marker.SetActive(false);
+            Set(cp, "litWhenClaimed", marker);
+        }
+
+        /// <summary>The HUD frame: a full-screen fade image, a start card and an end card (TMP), GameFlow to run them.</summary>
+        static GameFlow BuildHud()
+        {
+            var hud = GameObject.Find("HUD"); if (hud == null) { Log.AppendLine("no HUD canvas"); return null; }
+            foreach (var n in new[] { "Fade", "StartCard", "EndCard" }) { var o = hud.transform.Find(n); if (o != null) Object.DestroyImmediate(o.gameObject); }
+            var fadeGo = new GameObject("Fade", typeof(RectTransform)); fadeGo.transform.SetParent(hud.transform, false);
+            var frt = fadeGo.GetComponent<RectTransform>(); frt.anchorMin = Vector2.zero; frt.anchorMax = Vector2.one; frt.offsetMin = Vector2.zero; frt.offsetMax = Vector2.zero;
+            var img = fadeGo.AddComponent<UnityEngine.UI.Image>(); img.color = new Color(0, 0, 0, 0); img.raycastTarget = false;
+            var fade = fadeGo.AddComponent<ScreenFade>();
+            GameObject Card(string name, string title, string sub)
+            {
+                var card = new GameObject(name, typeof(RectTransform)); card.transform.SetParent(hud.transform, false);
+                var rt = card.GetComponent<RectTransform>(); rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+                var t1 = new GameObject("Title", typeof(RectTransform)); t1.transform.SetParent(card.transform, false);
+                var r1 = t1.GetComponent<RectTransform>(); r1.anchorMin = new Vector2(0.5f, 0.5f); r1.anchorMax = new Vector2(0.5f, 0.5f); r1.sizeDelta = new Vector2(1400f, 200f); r1.anchoredPosition = new Vector2(0, 60f);
+                var tx = t1.AddComponent<TMPro.TextMeshProUGUI>(); tx.text = title; tx.fontSize = 120f; tx.alignment = TMPro.TextAlignmentOptions.Center; tx.color = Color.white;
+                var t2 = new GameObject("Sub", typeof(RectTransform)); t2.transform.SetParent(card.transform, false);
+                var r2 = t2.GetComponent<RectTransform>(); r2.anchorMin = new Vector2(0.5f, 0.5f); r2.anchorMax = new Vector2(0.5f, 0.5f); r2.sizeDelta = new Vector2(1400f, 100f); r2.anchoredPosition = new Vector2(0, -60f);
+                var sx = t2.AddComponent<TMPro.TextMeshProUGUI>(); sx.text = sub; sx.fontSize = 40f; sx.alignment = TMPro.TextAlignmentOptions.Center; sx.color = new Color(1, 1, 1, 0.85f);
+                return card;
+            }
+            var start = Card("StartCard", "SHIFT", "press any key");
+            var end = Card("EndCard", "You made it to the window.", "R to play again");
+            end.SetActive(false);
+            var flow = hud.GetComponent<GameFlow>() ?? hud.AddComponent<GameFlow>();
+            Set(flow, "startCard", start); Set(flow, "endCard", end); Set(flow, "fade", fade);
+            Log.AppendLine("HUD: fade + cards + GameFlow");
+            return flow;
         }
         static Light PointLight(string name, Transform parent, Vector3 pos, float range, float intensity, Color colour, bool shadows = false)
         {

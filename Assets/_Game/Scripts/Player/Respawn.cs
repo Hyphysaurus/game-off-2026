@@ -15,6 +15,8 @@ namespace ShiftJam
         [SerializeField, Tooltip("Must match MovementSettings.gravity: the landing speed is turned back into a height.")] private float gravity = 25f;
         [SerializeField, Tooltip("The kid never takes fall damage.")] private bool kidImmune = true;
         [SerializeField] private UnityEngine.Events.UnityEvent onFell;
+        [SerializeField, Tooltip("Found on the HUD if empty. A short black cut covers every reset.")] private ScreenFade fade;
+        [SerializeField] private float cutOut = 0.12f, cutIn = 0.25f;
 
         private PlayerMotor _motor;
         private Shifter _shifter;
@@ -26,6 +28,13 @@ namespace ShiftJam
             _motor = GetComponent<PlayerMotor>();
             _shifter = GetComponent<Shifter>();
             SetPoint(transform.position, transform.rotation);
+            if (fade == null) fade = ScreenFade.Find();
+        }
+
+        private void Put()
+        {
+            if (fade != null) fade.Cut(cutOut, () => _motor.Warp(_point, _facing), cutIn);
+            else _motor.Warp(_point, _facing);
         }
 
         private void OnEnable() { _motor.Landed += OnLanded; }
@@ -37,12 +46,12 @@ namespace ShiftJam
             if (kidImmune && _shifter != null && _shifter.Size == ShiftSize.Kid) return;
             float height = fallSpeed * fallSpeed / (2f * Mathf.Max(0.01f, gravity));   // the drop that gives this landing speed
             if (height < fatalFallHeight) return;
-            _motor.Warp(_point, _facing);
+            Put();
             onFell?.Invoke();
         }
 
         /// <summary>Back to the checkpoint right now: hazards call this.</summary>
-        public void Reset() => _motor.Warp(_point, _facing);
+        public void Reset() => Put();
 
         /// <summary>Where the next respawn lands. Checkpoints call this.</summary>
         public void SetPoint(Vector3 position, Quaternion rotation)
@@ -53,7 +62,7 @@ namespace ShiftJam
 
         private void Update()
         {
-            if (transform.position.y < killHeight) _motor.Warp(_point, _facing);
+            if (transform.position.y < killHeight) Put();
         }
     }
 }

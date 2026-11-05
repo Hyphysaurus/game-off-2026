@@ -48,7 +48,9 @@ namespace ShiftJam
                 var candidate = _hits[i].GetComponentInParent<IInteractable>();
                 if (candidate == null) continue;
                 if (string.IsNullOrEmpty(candidate.PromptFor(this))) continue;   // nothing to say = not a target
-                float distance = (_hits[i].ClosestPoint(centre) - centre).sqrMagnitude;
+                var hit = _hits[i];
+                bool exact = hit is BoxCollider || hit is SphereCollider || hit is CapsuleCollider || (hit is MeshCollider mc && mc.convex);
+                float distance = ((exact ? hit.ClosestPoint(centre) : hit.bounds.ClosestPoint(centre)) - centre).sqrMagnitude;
                 if (distance < bestDistance) { bestDistance = distance; best = candidate; }
             }
 

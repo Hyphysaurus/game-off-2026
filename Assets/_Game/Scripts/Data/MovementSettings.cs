@@ -32,5 +32,11 @@ namespace ShiftJam
         [Header("Animation")]
         [Tooltip("Seconds the Animator keeps Grounded true after the capsule loses the floor, unless a jump started. Hides the one-frame ground flicker on steps and slopes.")]
         public float groundedGrace = 0.1f;
+
+        [Header("Props")]
+        [Tooltip("How fast a shoved loose prop is set moving, m/s at kid size; a toy shoves at toy speed.")]
+        public float pushSpeed = 3f;
+        [Tooltip("Gravity for loose props (rigidbodies), in world units per second squared. 0 leaves the project's physics alone. Also the box burst's panels.")]
+        public float propGravity = 60f;
     }
 }

@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -187,12 +188,26 @@ namespace ShiftJam
             RestOn(Spawn("Globe_01", "Globe", r4, new Vector3(tb.max.x - 14f, 0, tb.center.z + 10f), Vector3.zero, 1f), tb.max.y);
             var chair = Spawn("Chair_01", "Chair", r4, new Vector3(tb.center.x, 0, tb.min.z - 9f), new Vector3(0, 180, 0), 1f); Rest(chair, 0f, null);
             var cb = B(chair);
-            // the way down for a toy: desk (36) -> a stack of two closed boxes (24) at the desk's south edge -> one box (12) -> floor,
-            // three drops of 12 under the 14 fall rule (every taller box in the pack has open flaps: a trap, look-book 4 Nov)
-            var stackA = Rest(Spawn("Cardboard_Box_05", "Box12a", r4, new Vector3(cb.max.x + 18f, 0, tb.min.z - 9f), new Vector3(0, 8, 0), 1f), 0f, null);
-            var stackB = Rest(Spawn("Cardboard_Box_05", "Box24", r4, new Vector3(cb.max.x + 18f, 0, tb.min.z - 9f), new Vector3(0, -6, 0), 1f), B(stackA).max.y, null);
-            var box06 = Rest(Spawn("Cardboard_Box_06", "Box12", r4, new Vector3(cb.max.x + 34f, 0, tb.min.z - 20f), new Vector3(0, -15, 0), 1f), 0f, null);
-            var ruler = Rest(Spawn("Ruler_Big_01", "Ruler", r4, new Vector3(tb.max.x + 20f, 0, tb.min.z - 30f), new Vector3(0, 35, 0), 1f), 0f, null);
+            // the toy's way up AND down the desk (36): three ruler ramps zigzagging over a 12 box and a 24 stack of closed boxes
+            // (every taller box in the pack has open flaps: a trap). Rulers at 1.5x (23.4 long) climb 12 at about 30°, under the
+            // capsule's 45°; each lies with its TOP surface flush with both ends (no lip at the foot). Fixed live 5 Nov (D-0021).
+            var stackA = Rest(Spawn("Cardboard_Box_05", "Box12a", r4, new Vector3(cb.max.x + 18f, 0, tb.min.z - 20f), Vector3.zero, 1f), 0f, null);
+            var stackB = Rest(Spawn("Cardboard_Box_05", "Box24", r4, stackA.transform.position, Vector3.zero, 1f), B(stackA).max.y, null);
+            var box06 = Rest(Spawn("Cardboard_Box_06", "Box12", r4, stackA.transform.position, Vector3.zero, 1f), 0f, null);
+            {
+                var sb0 = B(stackA); float boxH = sb0.size.y, stackTop = 2f * boxH, stackX = sb0.center.x;
+                Vector3 top3 = new Vector3(stackX, tb.max.y + 0.03f, tb.min.z);   // tops sit ON the upper edge: no poke through the side
+                float run3 = Ramp("Ruler_Big_05", "Ramp3", r4, top3, Vector3.forward, tb.max.y - stackTop);
+                float stackCz = top3.z - run3 + 1.5f - sb0.extents.z;
+                foreach (var g in new[] { stackA, stackB }) g.transform.position += new Vector3(0, 0, stackCz - B(g).center.z);
+                var sb = B(stackB);
+                Vector3 top2 = new Vector3(sb.max.x, stackTop + 0.03f, stackCz);
+                float run2 = Ramp("Ruler_Big_03", "Ramp2", r4, top2, Vector3.left, stackTop - boxH);
+                var bb0 = B(box06); box06.transform.position += new Vector3(top2.x + run2 - 1.5f + bb0.extents.x - bb0.center.x, 0, stackCz - bb0.center.z);
+                var bb = B(box06);
+                Ramp("Ruler_Big_02", "Ramp1", r4, new Vector3(bb.center.x, bb.max.y + 0.03f, bb.min.z), Vector3.forward, bb.max.y);
+            }
+            var ruler = Rest(Spawn("Ruler_Big_01", "Ruler", r4, new Vector3(cb.min.x - 14f, 0, tb.min.z - 26f), new Vector3(0, 35, 0), 1f), 0f, null);   // west of the stool, clear of the ramps
             var rc = ruler.AddComponent<Carryable>(); Set(rc, "gripOffset", new Vector3(0, 0, -6f)); Set(rc, "plank", true);
             ruler.AddComponent<Carried>();   // kid-only pick-up prompt
             // core B: shrink, on the table, near the south edge
@@ -200,14 +215,14 @@ namespace ShiftJam
             Checkpoint("CP_table", r4, new Vector3(tb.center.x, tb.max.y + 3f, tb.center.z), new Vector3(tb.size.x - 4f, 6f, tb.size.z - 4f), ShiftSize.Toy);
 
             // --- Toy Army (NE): a sandbag maze with core A in the middle
-            Vector3 mz = c + new Vector3(135f, 0, 95f);
+            Vector3 mz = c + new Vector3(125f, 0, 112f);   // north of the sofa (the ring clipped its corner at z 95, scan 5 Nov)
             SandbagRing(r4, mz, 36f, 90f);      // outer ring, gap on the south side
             SandbagRing(r4, mz, 18f, 270f);     // inner ring, gap on the north side
             var coreA = Core("CoreA_Grow", r4, mz + new Vector3(0, 2.5f, 0), ShiftSource.Mode.GrowOnly, coreMat, false);
             Rest(Spawn("Army_WatchTower_01", "WatchTower", r4, mz + new Vector3(0, 0, -46f), Vector3.zero, 1f), 0f, null);
             Rest(Spawn("Army_Tent_01", "Tent", r4, mz + new Vector3(-50f, 0, 10f), new Vector3(0, 30, 0), 1f), 0f, null);
             Rest(Spawn("Army_Tent_02", "Tent2", r4, mz + new Vector3(48f, 0, -20f), new Vector3(0, -40, 0), 1f), 0f, null);
-            foreach (var (n, off) in new[] { ("Army_Soldier_01", new Vector3(-44f, 0, -30f)), ("Army_Soldier_02", new Vector3(44f, 0, 30f)), ("Army_Soldier_03", new Vector3(-30f, 0, 44f)), ("Army_Soldier_04", new Vector3(30f, 0, -44f)) })
+            foreach (var (n, off) in new[] { ("Army_Soldier_01", new Vector3(-44f, 0, -30f)), ("Army_Soldier_02", new Vector3(44f, 0, 30f)), ("Army_Soldier_03", new Vector3(-30f, 0, 44f)), ("Army_Soldier_04", new Vector3(20f, 0, 50f)) })
                 Rest(Spawn(n, n, r4, mz + off, new Vector3(0, Random.Range(0, 360), 0), 1f), 0f, null);
 
             // --- centre: the racing track
@@ -244,6 +259,21 @@ namespace ShiftJam
             // --- the entry from R3: west wall, at the lane's z
             entry = Point("Entry", r4, new Vector3(c.x - R4HalfX + 8f, 0, LaneZ), 90f);
             Quad("EntryGlow", r4, new Vector3(c.x - R4HalfX + 0.2f, 1.8f, LaneZ), new Vector3(0, -90, 0), new Vector3(1.6f, 3.6f, 1f), glow);
+            // the save point (D-0022): a night lamp beside the mouse hole that lights when you touch it; Continue starts here
+            {
+                Vector3 sp = new Vector3(c.x - R4HalfX + 16f, 0, LaneZ + 12f);
+                var lamp = Rest(Spawn("Night_Lamp_04", "SaveLamp", r4, sp, new Vector3(0, 90, 0), 1f), 0f, null); var lb = B(lamp);
+                var lampLight = PointLight("SaveLight", lamp.transform, new Vector3(lb.center.x, lb.max.y, lb.center.z), 30f, 2.5f, new Color(1f, 0.82f, 0.5f));
+                var trig = Trigger("SavePoint", r4, new Vector3(sp.x + 2f, 2f, sp.z - 6f), new Vector3(14f, 4f, 14f));
+                var cp = trig.AddComponent<Checkpoint>(); Set(cp, "savePoint", true); Set(cp, "repeat", true); Set(cp, "saveLabel", "R4_Playroom"); Set(cp, "litWhenClaimed", lampLight.gameObject);
+                var point = Point("SaveSpot", trig.transform, new Vector3(sp.x + 6f, 0.2f, sp.z - 8f), 90f); Set(cp, "point", point);
+            }
+            // a drivable toy car (D-0022): the wooden push car, big enough to sit in, parked by the entry facing into the room
+            {
+                var car = Rest(Spawn("Wooden_Car_01", "ToyCar", r4, new Vector3(c.x - R4HalfX + 34f, 0, LaneZ - 10f), new Vector3(0, 90, 0), 1f), 0f, null);
+                var tc = car.AddComponent<ToyCar>(); Set(tc, "rollLoop", Clip("Toy_Car_Roll_v1")); Set(tc, "crash", Clip("Toy_Car_Crash_v1"));
+                var bc = car.AddComponent<BoxCollider>(); bc.isTrigger = true; var cb2 = B(car); bc.center = car.transform.InverseTransformPoint(cb2.center); bc.size = new Vector3(cb2.size.x, cb2.size.y, cb2.size.z) + Vector3.one * 2f;
+            }
             // ---- dressing, our own composition with the pack's props (D-0019: no showroom copy): one zone per corner and side,
             //      wall art on all four walls, mats in 2x2 clusters, then seeded floor clutter everywhere except the reserved beats
             var reserved = new List<Bounds>
@@ -256,34 +286,75 @@ namespace ShiftJam
             bool Free(Vector3 p) { foreach (var b in reserved) if (b.Contains(p)) return false; return true; }
             var rng = new System.Random(11);
             float Rnd(float a, float b) => a + (float)rng.NextDouble() * (b - a);
-            GameObject Prop(string prefab, Vector3 pos, float yaw, float restY = 0f) { var g = Spawn(prefab, prefab, r4, pos, new Vector3(0, yaw, 0), 1f); return Rest(g, restY, null); }
-            void Scatter(string[] prefabs, Vector3 centre, float half, int count)
+            // what is already standing in the room: furniture, beats, the maze. Dressing never lands inside any of it (scan 5 Nov:
+            // 118 overlaps when it only avoided the beats). Floors, walls, ceilings, mats and glow quads do not count.
+            string[] open = { "Floor", "Ceiling", "Wall", "Pillar", "Mat", "Entry", "Hole", "Glow", "RoomLight", "Fill", "PlanetLamp", "CP_", "Showroom" };
+            var blocked = new List<Bounds>();
+            foreach (Transform t in r4) { bool skipIt = false; foreach (var o in open) if (t.name.StartsWith(o)) skipIt = true; if (skipIt || (t.TryGetComponent(out Collider col) && col.isTrigger)) continue; var bb0 = B(t.gameObject); if (bb0.size.sqrMagnitude > 0.01f) blocked.Add(bb0); }
+            // a small tolerance for touching, shrunk in x and z only, never more than a third of a thin thing (paper is 0.1 thick:
+            // shrinking every axis turned its box inside out and let everything through)
+            bool Clear(Bounds b) { foreach (var k in blocked) { var m = k; m.Expand(new Vector3(-Mathf.Min(0.4f, m.size.x * 0.3f), 0f, -Mathf.Min(0.4f, m.size.z * 0.3f))); m.Expand(new Vector3(0f, 0.02f, 0f)); if (m.Intersects(b)) return false; } return true; }
+            // a prop at pos (resting at restY), nudged outward in a small spiral until it touches nothing; skipped if it never fits
+            GameObject Prop(string prefab, Vector3 pos, float yaw, float restY = 0f, string name = null, float reach = 18f)
+            {
+                var g = Rest(Spawn(prefab, name ?? prefab, r4, pos, new Vector3(0, yaw, 0), 1f), restY, null);
+                for (int k = 0; k < 14; k++)
+                {
+                    var b = B(g);
+                    if (Clear(b)) { blocked.Add(b); return g; }
+                    float a = k * 2.4f, r = reach * (k + 1) / 14f;
+                    g.transform.position = new Vector3(pos.x + Mathf.Cos(a) * r, g.transform.position.y, pos.z + Mathf.Sin(a) * r);
+                }
+                Object.DestroyImmediate(g); return null;
+            }
+            // the top surface of a piece of furniture under (x, z): a ray onto its own colliders, not its bounding box
+            float Top(GameObject on, float x, float z)
+            {
+                Physics.SyncTransforms(); var bb = B(on);
+                foreach (var h in Physics.RaycastAll(new Vector3(x, bb.max.y + 5f, z), Vector3.down, bb.size.y + 10f, ~0, QueryTriggerInteraction.Ignore).OrderBy(h => h.distance))
+                    if (h.collider.transform.IsChildOf(on.transform)) return h.point.y;
+                return bb.max.y;
+            }
+            void Scatter(string[] prefabs, Vector3 centre, float half, int count, Pushable.Weight? push = null)
             {
                 for (int i = 0, tries = 0; i < count && tries < count * 8; tries++)
                 {
                     var p = new Vector3(centre.x + Rnd(-half, half), 0, centre.z + Rnd(-half, half));
                     if (Mathf.Abs(p.x - c.x) > R4HalfX - 6f || Mathf.Abs(p.z - c.z) > R4HalfZ - 6f || !Free(p)) continue;
-                    Prop(prefabs[rng.Next(prefabs.Length)], p, Rnd(0, 360)); i++;
+                    var g = Prop(prefabs[rng.Next(prefabs.Length)], p, Rnd(0, 360), 0f, null, 8f); if (g == null) continue; i++;
+                    if (push.HasValue) Push(g, push.Value, 0.5f);
                 }
             }
             // on the desk: lamp, mouse, mug, markers, notes (the core keeps its corner)
-            RestOn(Spawn("Lamp_01_Base", "DeskLamp", r4, new Vector3(tb.max.x - 30f, 0, tb.max.z - 8f), new Vector3(0, -140, 0), 1f), tb.max.y);
-            RestOn(Spawn("Mouse_01", "Mouse", r4, new Vector3(tb.center.x + 22f, 0, tb.center.z - 6f), new Vector3(0, 15, 0), 1f), tb.max.y);
-            RestOn(Spawn("Cup_02", "Mug", r4, new Vector3(tb.min.x + 10f, 0, tb.max.z - 10f), Vector3.zero, 1f), tb.max.y);
-            RestOn(Spawn("Marker_Red_01", "Marker", r4, new Vector3(tb.center.x - 14f, 0, tb.max.z - 6f), new Vector3(0, 70, 0), 1f), tb.max.y);
-            RestOn(Spawn("Marker_Blue_01", "Marker2", r4, new Vector3(tb.center.x - 10f, 0, tb.max.z - 9f), new Vector3(0, 40, 0), 1f), tb.max.y);
-            RestOn(Spawn("Note_Paper_03", "Note", r4, new Vector3(tb.max.x - 10f, 0, tb.min.z + 10f), new Vector3(0, 20, 0), 1f), tb.max.y);
-            RestOn(Spawn("Calculator_01", "Calc", r4, new Vector3(tb.min.x + 14f, 0, tb.center.z + 6f), new Vector3(0, -30, 0), 1f), tb.max.y);
+            var deskLamp = RestOn(Spawn("Lamp_01_Base", "DeskLamp", r4, new Vector3(tb.max.x - 30f, 0, tb.max.z - 8f), new Vector3(0, -140, 0), 1f), tb.max.y); var dlb = B(deskLamp);
+            var dlLight = PointLight("LampLight", deskLamp.transform, new Vector3(dlb.center.x, dlb.max.y - 2f, dlb.center.z), 60f, 2.5f, new Color(1f, 0.9f, 0.7f)); dlLight.enabled = false;
+            React(deskLamp, Reactor.Response.ToggleLight, "Switch on", lamp: dlLight, continuous: true);
+            var globeGo = r4.Find("Globe"); if (globeGo != null) React(globeGo.gameObject, Reactor.Response.Spin, "Spin");
+            // the keyboard is a musical floor for the toy (D-0022): keys sink and click along a pentatonic scale
+            var kbGo = r4.Find("Keyboard"); if (kbGo != null) { var kk = kbGo.gameObject.AddComponent<KeyboardKeys>(); SetArray(kk, "clicks", Clip("Keyboard_Click_v1"), Clip("Keyboard_Click_v2")); }
+            var pcGo = r4.Find("Computer"); if (pcGo != null) { var pcb = B(pcGo.gameObject); var pcLight = PointLight("ScreenLight", pcGo, new Vector3(pcb.center.x, pcb.center.y, pcb.min.z - 6f), 40f, 2f, new Color(0.5f, 0.7f, 1f)); pcLight.enabled = false; React(pcGo.gameObject, Reactor.Response.ToggleLight, "Switch on", lamp: pcLight, continuous: true); }
+            Prop("Mouse_01", new Vector3(tb.center.x + 22f, 0, tb.center.z - 6f), 15f, tb.max.y, "Mouse", 6f);
+            Prop("Cup_02", new Vector3(tb.center.x - 4f, 0, tb.max.z - 8f), 0f, tb.max.y, "Mug", 6f);
+            Prop("Marker_Red_01", new Vector3(tb.center.x - 14f, 0, tb.max.z - 6f), 70f, tb.max.y, "Marker", 6f);
+            Prop("Marker_Blue_01", new Vector3(tb.center.x - 10f, 0, tb.max.z - 11f), 40f, tb.max.y, "Marker2", 6f);
+            Prop("Note_Paper_03", new Vector3(tb.max.x - 10f, 0, tb.min.z + 10f), 20f, tb.max.y, "Note", 6f);
+            Prop("Calculator_01", new Vector3(tb.center.x - 2f, 0, tb.min.z + 9f), -30f, tb.max.y, "Calc", 6f);
             // west wall by the hoop: a floor shelf with books and a toy on top, a skateboard and a ball
             var shelf = Spawn("Shelf_01", "Shelf", r4, c + new Vector3(-R4HalfX + 12f, 0, 60f), new Vector3(0, 90, 0), 1f); Rest(shelf, 0f, null); var shb = B(shelf);
             shelf.transform.position += new Vector3((c.x - R4HalfX + 1f) - shb.min.x, 0, 0); shb = B(shelf);
-            foreach (var (n, off) in new[] { ("Book_02", -14f), ("Book_05", -8f), ("Book_09", -2f), ("Book_11", 4f) }) RestOn(Spawn(n, n, r4, new Vector3(shb.center.x, 0, shb.center.z + off), new Vector3(0, 90, 0), 1f), shb.max.y);
-            RestOn(Spawn("Toy_Rabbit_01", "Rabbit", r4, new Vector3(shb.center.x, 0, shb.max.z - 8f), new Vector3(0, 120, 0), 1f), shb.max.y);
-            Prop("Skateboard_01", c + new Vector3(-R4HalfX + 14f, 0, 10f), 80f);
-            Prop("Basketball_Ball_01", c + new Vector3(-150f, 0, -40f), 0f);
-            Prop("Dumbbell_01", c + new Vector3(-165f, 0, 100f), 30f);
+            foreach (var (pair, off) in new[] { (new[] { "Book_02", "Book_05" }, -12f), (new[] { "Book_09", "Book_11" }, 2f) })
+            {
+                float top = Top(shelf, shb.center.x, shb.center.z + off);
+                foreach (var n in pair) { var bk = Spawn(n, n, r4, new Vector3(shb.center.x, 0, shb.center.z + off), new Vector3(0, 90 + Rnd(-8, 8), 0), 1f); RestOn(bk, top); top = B(bk).max.y; }
+            }
+            React(RestOn(Spawn("Toy_Rabbit_01", "Rabbit", r4, new Vector3(shb.center.x, 0, shb.max.z - 8f), new Vector3(0, 120, 0), 1f), Top(shelf, shb.center.x, shb.max.z - 8f)), Reactor.Response.Bob, "Poke");
+            blocked.Add(B(shelf));
+            Push(Prop("Skateboard_01", c + new Vector3(-R4HalfX + 14f, 0, 10f), 80f), Pushable.Weight.Heavy, 3f);
+            Push(Prop("Basketball_Ball_01", c + new Vector3(-150f, 0, -40f), 0f), Pushable.Weight.Heavy, 2f);
+            Push(Prop("Dumbbell_01", c + new Vector3(-165f, 0, 100f), 30f), Pushable.Weight.Heavy, 6f);
+            React(Prop("Pinwheel_01", c + new Vector3(-160f, 0, 30f), 20f), Reactor.Response.Spin, "Spin");
             // the race track: cars, ramps, a road loop (the track itself is placed above)
-            Prop("Car_02", c + new Vector3(18f, 0, -12f), -120f); Prop("Car_03", c + new Vector3(-40f, 0, 8f), 200f);
+            Push(Prop("Car_02", c + new Vector3(18f, 0, -12f), -120f), Pushable.Weight.Light, 1f); Push(Prop("Car_03", c + new Vector3(-40f, 0, 8f), 200f), Pushable.Weight.Light, 1f);
             Prop("Ramp_01", c + new Vector3(40f, 0, 10f), 90f); Prop("RoadLoop_01", c + new Vector3(-60f, 0, -30f), 0f);
             Prop("Train_Station_01", c + new Vector3(-20f, 0, 36f), -90f);
             // the army camp around the maze: a truck, a helicopter, a flag, ladders, loose sandbags, wire, soldiers on stands
@@ -294,24 +365,47 @@ namespace ShiftJam
             foreach (var (n, off) in new[] { ("Army_Soldier_05_Platform", new Vector3(40f, 0, 54f)), ("Army_Soldier_06_Platform", new Vector3(-40f, 0, -54f)), ("Army_Soldier_07_Platform", new Vector3(58f, 0, -20f)) }) Prop(n, mz + off, Rnd(0, 360));
             // the castle: two more towers, skittles bowled over beside it, a soldier on the wall
             Prop("Castle_Tower_02", cz + new Vector3(-30f, 0, -6f), 0f); Prop("Castle_Tower_02", cz + new Vector3(30f, 0, 6f), 0f);
-            foreach (var (n, off) in new[] { ("Wooden_Skittle_01", new Vector3(-44f, 0, -24f)), ("Wooden_Skittle_02", new Vector3(-50f, 0, -18f)), ("Wooden_Skittle_01", new Vector3(-40f, 0, -14f)) }) Prop(n, cz + off, Rnd(0, 360));
-            Prop("Ball_01", cz + new Vector3(-62f, 0, -30f), 0f);
+            foreach (var (n, off) in new[] { ("Wooden_Skittle_01", new Vector3(-44f, 0, -24f)), ("Wooden_Skittle_02", new Vector3(-50f, 0, -18f)), ("Wooden_Skittle_01", new Vector3(-40f, 0, -14f)) }) Push(Prop(n, cz + off, Rnd(0, 360)), Pushable.Weight.Light, 0.8f);
+            Push(Prop("Ball_01", cz + new Vector3(-62f, 0, -30f), 0f), Pushable.Weight.Light, 0.6f);
             // the couch: pillows, a bear, the chessboard with a few pieces on the seat, a cat on the floor
-            var sofaB = B(sofa); float seatY = sofaB.max.y - 18f;
-            RestOn(Spawn("Pillow_01", "Pillow2", r4, new Vector3(sofaB.center.x, 0, sofaB.min.z + 16f), new Vector3(0, -20, 0), 1f), seatY);
-            RestOn(Spawn("Toy_Bear_01", "Bear", r4, new Vector3(sofaB.center.x - 2f, 0, sofaB.max.z - 14f), new Vector3(0, -110, 0), 1f), seatY);
-            var pad = RestOn(Spawn("Chesspad_01", "Chesspad", r4, new Vector3(sofaB.center.x - 1f, 0, sofaB.center.z), new Vector3(0, 10, 0), 1f), seatY); var padB = B(pad);
-            foreach (var (n, off) in new[] { ("Chess_White_King_01", new Vector3(-3f, 0, 2f)), ("Chess_Black_Queen_01", new Vector3(3f, 0, -3f)), ("Chess_White_Pawn_01", new Vector3(-5f, 0, -5f)), ("Chess_Black_Hoss_01", new Vector3(5f, 0, 4f)) }) RestOn(Spawn(n, n, r4, padB.center + off, Vector3.zero, 1f), padB.max.y);
-            Prop("Toy_Cat_01", c + new Vector3(140f, 0, 70f), -140f);
+            var sofaB = B(sofa); float seatX = sofaB.center.x - sofaB.size.x * 0.14f;   // the seat's middle, in front of the backrest
+            float SeatY(float z) => Top(sofa, seatX, z);
+            Carry(RestOn(Spawn("Pillow_01", "Pillow2", r4, new Vector3(seatX, 0, sofaB.min.z + 15f), new Vector3(0, -20, 0), 1f), SeatY(sofaB.min.z + 15f)));
+            Carry(RestOn(Spawn("Toy_Bear_01", "Bear", r4, new Vector3(seatX + 2f, 0, sofaB.center.z + 12f), new Vector3(0, -100, 0), 1f), SeatY(sofaB.center.z + 12f)));
+            var pad = RestOn(Spawn("Chesspad_01", "Chesspad", r4, new Vector3(seatX, 0, sofaB.center.z - 13f), new Vector3(0, 10, 0), 1f), SeatY(sofaB.center.z - 13f)); var padB = B(pad);
+            foreach (var (n, off) in new[] { ("Chess_White_King_01", new Vector3(-3f, 0, 2f)), ("Chess_Black_Queen_01", new Vector3(3f, 0, -3f)), ("Chess_White_Pawn_01", new Vector3(-5f, 0, -5f)), ("Chess_Black_Hoss_01", new Vector3(5f, 0, 4f)) }) RestOn(Spawn(n, n, r4, padB.center + off, Vector3.zero, 1f), Top(pad, padB.center.x + off.x, padB.center.z + off.z));
+            var firstPillow = r4.Find("Pillow"); if (firstPillow != null) { firstPillow.position = new Vector3(seatX, 0, sofaB.max.z - 15f); RestOn(firstPillow.gameObject, SeatY(sofaB.max.z - 15f)); }
+            blocked.Add(sofaB);
+            React(Prop("Toy_Cat_01", c + new Vector3(140f, 0, 70f), -140f), Reactor.Response.Squash, "Pet");
+            // a broken desk fan on its back in front of the sofa, propped up by a book so it blows up and toward the seat: a
+            // toy that walks into the wind rides it onto the cushions, a kid steps over it (D-0021)
+            var fanProp = Spawn("Fan_Base_01", "BrokenFan", r4, new Vector3(sofaB.min.x - 42f, 0, sofaB.center.z), new Vector3(-50f, 90f, 0), 1f); Rest(fanProp, 0f, null); var fpb = B(fanProp);
+            var names = new StringBuilder(); foreach (Transform ch in fanProp.GetComponentsInChildren<Transform>()) names.Append(ch.name).Append(' ');
+            Log.AppendLine("fan " + fpb.size + " children: " + names);
+            Transform fanBlades = null; foreach (Transform ch in fanProp.GetComponentsInChildren<Transform>()) if (ch != fanProp.transform && ch.name.Contains("Propeller")) { fanBlades = ch; break; }
+            Rest(Spawn("Book_09", "FanProp", r4, new Vector3(fpb.min.x - 2f, 0, fpb.center.z), new Vector3(0, 0, 0), 1f), 0f, null);
+            Vector3 wind = fanProp.transform.forward;   // the fan's face, pitched up by the tilt
+            var column = new GameObject("Column"); column.transform.SetParent(r4, false);
+            column.transform.rotation = Quaternion.FromToRotation(Vector3.up, wind);
+            column.transform.position = new Vector3(fpb.center.x, 0, fpb.center.z) + wind * 34f + Vector3.up * 2f;
+            var colBox = column.AddComponent<BoxCollider>(); colBox.isTrigger = true; colBox.size = new Vector3(14f, 70f, 14f);
+            var updraft = column.AddComponent<Updraft>(); if (fanBlades != null) Set(updraft, "blades", fanBlades);
+            reserved.Add(new Bounds(new Vector3(fpb.center.x + 20f, 10f, fpb.center.z), new Vector3(70f, 20f, 30f)));
+            Log.AppendLine("updraft at " + column.transform.position + " blowing " + wind);
             // the wardrobe corner: a shelf with a book stack and the clock above; the safe keeps its spot
             var shelf2 = Spawn("Shelf_01", "Shelf2", r4, new Vector3(wb.center.x, 0, wb.min.z - 30f), new Vector3(0, -90, 0), 1f); Rest(shelf2, 0f, null); var s2b = B(shelf2);
             shelf2.transform.position += new Vector3((c.x + R4HalfX - 1f) - s2b.max.x, 0, 0); s2b = B(shelf2);
-            foreach (var (n, off) in new[] { ("Book_01", 0f), ("Book_04", 0f), ("Book_07", 0f) }) { var bk = Spawn(n, n, r4, new Vector3(s2b.center.x, 0, s2b.center.z + off), new Vector3(0, Rnd(-10, 10), 0), 1f); RestOn(bk, B(shelf2).max.y); s2b.Encapsulate(B(bk)); }
+            { float stackTop = Top(shelf2, s2b.center.x, s2b.center.z + 4f); foreach (var n in new[] { "Book_01", "Book_04", "Book_07" }) { var bk = Spawn(n, n, r4, new Vector3(s2b.center.x, 0, s2b.center.z + 4f), new Vector3(0, Rnd(-10, 10), 0), 1f); RestOn(bk, stackTop); stackTop = B(bk).max.y; } }
+            var nightLamp = RestOn(Spawn("Night_Lamp_02", "NightLamp", r4, new Vector3(s2b.center.x, 0, s2b.min.z + 8f), new Vector3(0, -90, 0), 1f), Top(shelf2, s2b.center.x, s2b.min.z + 8f)); var nlb = B(nightLamp);
+            blocked.Add(B(shelf2));
+            var nlLight = PointLight("NightLight", nightLamp.transform, new Vector3(nlb.center.x, nlb.max.y, nlb.center.z), 80f, 2.5f, new Color(1f, 0.75f, 0.45f)); nlLight.enabled = false;
+            React(nightLamp, Reactor.Response.ToggleLight, "Switch on", lamp: nlLight, continuous: true);
             // SW corner: wooden toys and building blocks, the challenge zone
             Vector3 sw = c + new Vector3(-120f, 0, -100f);
-            Prop("Wooden_Bear_01", sw + new Vector3(0, 0, 10f), 40f); Prop("Wooden_Train_01", sw + new Vector3(30f, 0, -20f), -70f); Prop("Wooden_Wagon_01", sw + new Vector3(42f, 0, -28f), -70f);
-            Prop("Wooden_Ship_01", sw + new Vector3(-30f, 0, -30f), 20f); Prop("Wooden_Plane_01", sw + new Vector3(-40f, 0, 20f), 160f); Prop("Toy_Pyramid_01", sw + new Vector3(20f, 0, 30f), 0f);
-            Scatter(new[] { "Color_Cube_01", "Color_Cube_02", "Color_Cube_03", "Wooden_Cube_01", "Wooden_Cube_02", "Wooden_Cylinder_01", "Wooden_Pyramid_02", "Constructor_01", "Constructor_03", "Constructor_05" }, sw, 45f, 26);
+            React(Prop("Wooden_Bear_01", sw + new Vector3(0, 0, 10f), 40f), Reactor.Response.Bob, "Poke");
+            Push(Prop("Wooden_Train_01", sw + new Vector3(30f, 0, -20f), -70f), Pushable.Weight.Heavy, 2f); Push(Prop("Wooden_Wagon_01", sw + new Vector3(42f, 0, -28f), -70f), Pushable.Weight.Heavy, 2f);
+            Push(Prop("Wooden_Ship_01", sw + new Vector3(-30f, 0, -30f), 20f), Pushable.Weight.Heavy, 2f); Push(Prop("Wooden_Plane_01", sw + new Vector3(-40f, 0, 20f), 160f), Pushable.Weight.Heavy, 2f); Prop("Toy_Pyramid_01", sw + new Vector3(20f, 0, 30f), 0f);
+            Scatter(new[] { "Color_Cube_01", "Color_Cube_02", "Color_Cube_03", "Wooden_Cube_01", "Wooden_Cube_02", "Wooden_Cylinder_01", "Wooden_Pyramid_02", "Constructor_01", "Constructor_03", "Constructor_05" }, sw, 45f, 26, Pushable.Weight.Light);
             Scatter(new[] { "Puzzle_01", "Puzzle_04", "Puzzle_07", "Puzzle_12", "Puzzle_15" }, sw + new Vector3(60f, 0, 50f), 22f, 5);
             // mats: three 2x2 clusters of puzzle mats on the open floor
             var mat0 = Spawn("Mat_01", "Mat", r4, c + new Vector3(-100f, 0, 40f), Vector3.zero, 1f); Rest(mat0, 0f, null); float ms = B(mat0).size.x;
@@ -329,28 +423,35 @@ namespace ShiftJam
                 else g.transform.position += new Vector3((c.x + R4HalfX - 0.3f) - gb.max.x, 0, 0);
             }
             foreach (var (n, x, y) in new[] { ("Poster_03", -120f, 80f), ("Poster_09", 60f, 82f), ("Poster_14", 150f, 84f), ("Painting_01", -40f, 90f), ("Poster_07", 180f, 70f) }) OnWall(n, 'S', x, y, 0f);
-            foreach (var (n, x, y) in new[] { ("Poster_01", -150f, 84f), ("Poster_11", 150f, 86f), ("Poster_10", -100f, 92f), ("Painting_02", 110f, 94f) }) OnWall(n, 'N', x, y, 180f);
+            foreach (var (n, x, y) in new[] { ("Poster_01", -150f, 84f), ("Poster_11", 172f, 86f), ("Poster_10", -100f, 92f), ("Painting_02", 105f, 94f) }) OnWall(n, 'N', x, y, 180f);
             foreach (var (n, z, y) in new[] { ("Poster_06", -20f, 86f), ("Clock_01", -70f, 100f), ("Poster_13", 120f, 84f), ("Poster_15", -130f, 80f) }) OnWall(n, 'W', z, y, 90f);
             foreach (var (n, z, y) in new[] { ("Poster_12", 110f, 82f), ("Poster_05", -30f, 88f), ("Poster_02", 60f, 96f), ("Poster_08", -120f, 84f) }) OnWall(n, 'E', z, y, -90f);
             Scatter(new[] { "Drawing_02", "Drawing_05", "Drawing_12", "Drawing_17", "Drawing_21", "Drawing_33", "Drawing_40", "Drawing_48" }, c, 170f, 12);   // kids' drawings: loose paper on the floor
             foreach (var (z, wall) in new[] { (-30f, 'W'), (100f, 'E') }) OnWall("Socket_01", wall, z, 12f, wall == 'W' ? 90f : -90f);
             // the ceiling fan at the room's centre, the planet lamp moved off it
             var fan = Spawn("Fan_01", "CeilingFan", r4, c + new Vector3(0, 100f, 0), Vector3.zero, 1f); var fb = B(fan); fan.transform.position += new Vector3(0, (c.y + 129.5f) - fb.max.y, 0);
+            Transform blades = null; foreach (Transform ch in fan.GetComponentsInChildren<Transform>()) if (ch != fan.transform && ch.name.Contains("Propeller")) { blades = ch; break; }
+            var fanReactor = React(fan, Reactor.Response.Spin, "Pull", Reactor.Need.Kid, continuous: true, part: blades); Set(fanReactor, "spinSpeed", 360f);
+            var fanSwitch = Spawn("Switch_02", "FanSwitch", r4, c + new Vector3(R4HalfX, 50f, 60f), new Vector3(0, -90, 0), 1f); var fsb = B(fanSwitch); fanSwitch.transform.position += new Vector3((c.x + R4HalfX - 0.3f) - fsb.max.x, 0, 0);
+            var sw2 = fanSwitch.AddComponent<Switch>(); Set(sw2, "once", false); Set(sw2, "requiredSize", (int)ShiftSize.Kid);
+            { var sso = new SerializedObject(sw2); var calls = sso.FindProperty("onActivated.m_PersistentCalls.m_Calls"); calls.arraySize = 1; Listener(calls.GetArrayElementAtIndex(0), fanReactor, typeof(Reactor).AssemblyQualifiedName, "Use"); sso.ApplyModifiedPropertiesWithoutUndo(); }
             var planet = r4.Find("PlanetLamp"); if (planet != null) planet.position = c + new Vector3(-110f, 130f, 100f);
             // floor clutter: paper, pencils, chalk, cards, the small stuff of a lived-in floor, nowhere a beat needs clear ground
             Scatter(new[] { "Note_Paper_01", "Note_Paper_02", "Note_Paper_04", "Note_Paper_05", "Note_Paper_06", "PlayCard_01", "PlayCard_01" }, c, 175f, 60);
-            Scatter(new[] { "Pencil_01", "Pencil_02", "Chalk_01", "Chalk_03", "Chalk_05", "Eraser_01", "Clip_02", "Icecream_Stick_01", "Matchbox_01", "Bottle_Cap_01" }, c, 175f, 50);
-            Scatter(new[] { "Paper_Plane_01", "Paper_Plane_02", "CD_01", "CD_02", "Cup_03", "Paper_Glass_01", "Baloon_01", "Baloon_03", "Can_02", "Sticker_01" }, c, 165f, 26);
-            Scatter(new[] { "Cube_Alphabet_01", "Cube_Alphabet_02", "Cube_Alphabet_03", "Color_Cube_01", "Color_Cube_03", "Wooden_Cone_01", "Wooden_HalfSphere_01" }, c + new Vector3(-30f, 0, -40f), 140f, 24);
+            Scatter(new[] { "Pencil_01", "Pencil_02", "Chalk_01", "Chalk_03", "Chalk_05", "Eraser_01", "Clip_02", "Icecream_Stick_01", "Matchbox_01", "Bottle_Cap_01" }, c, 175f, 50, Pushable.Weight.Light);
+            Scatter(new[] { "Paper_Plane_01", "Paper_Plane_02", "CD_01", "CD_02", "Cup_03", "Paper_Glass_01", "Can_02" }, c, 165f, 22, Pushable.Weight.Light);
+            // no Baloon_xx (particle emitters, 900 balloons each) and no Sticker_01 (a wall decal: it stands up on a floor)
+            Scatter(new[] { "Cube_Alphabet_01", "Cube_Alphabet_02", "Cube_Alphabet_03", "Color_Cube_01", "Color_Cube_03", "Wooden_Cone_01", "Wooden_HalfSphere_01" }, c + new Vector3(-30f, 0, -40f), 140f, 24, Pushable.Weight.Light);
             Scatter(new[] { "Notebook_01", "Notebook_02", "Notebook_03", "Notebook_04", "Paper_Block_01", "Puzzle_03", "Puzzle_09", "Puzzle_18" }, c, 165f, 18);
-            Scatter(new[] { "Book_03", "Book_06", "Book_08", "Book_10", "Book_12" }, c + new Vector3(60f, 0, 60f), 120f, 10);
+            Scatter(new[] { "Book_03", "Book_06", "Book_08", "Book_10", "Book_12" }, c + new Vector3(60f, 0, 60f), 120f, 10, Pushable.Weight.Heavy);
             // a few book stacks and open boxes where a kid left them
             foreach (var (bx, bz) in new[] { (-70f, 110f), (130f, -20f), (-150f, -140f), (40f, -150f) })
             {
-                float top = 0f; var at = c + new Vector3(bx, 0, bz); if (!Free(at)) continue;
-                foreach (var n in new[] { "Book_02", "Book_07", "Book_11" }) { var bk = Spawn(n, n, r4, at, new Vector3(0, Rnd(-25, 25), 0), 1f); RestOn(bk, top); top = B(bk).max.y; }
+                var at = c + new Vector3(bx, 0, bz); if (!Free(at)) continue;
+                var first = Prop("Book_02", at, Rnd(-25, 25), 0f, null, 10f); if (first == null) continue; float top = B(first).max.y;
+                foreach (var n in new[] { "Book_07", "Book_11" }) { var bk = Spawn(n, n, r4, first.transform.position, new Vector3(0, Rnd(-25, 25), 0), 1f); RestOn(bk, top); top = B(bk).max.y; blocked.Add(B(bk)); }
             }
-            foreach (var (n, bx, bz, yaw) in new[] { ("Cardboard_Box_01", -175f, 140f, 20f), ("Cardboard_Box_03", 170f, 140f, -30f), ("Cardboard_Box_02", 175f, -140f, 100f) }) Prop(n, c + new Vector3(bx, 0, bz), yaw);
+            foreach (var (n, bx, bz, yaw) in new[] { ("Cardboard_Box_01", -175f, 140f, 20f), ("Cardboard_Box_03", 170f, 140f, -30f), ("Cardboard_Box_02", 175f, -140f, 100f) }) Carry(Prop(n, c + new Vector3(bx, 0, bz), yaw));
             Log.AppendLine("R4 dressed: our composition, pack props");
 
             // ---- R6: the window on the north wall, a sill, the last core, the goal, and the garden outside
@@ -362,12 +463,30 @@ namespace ShiftJam
             var gc = goal.AddComponent<Goal>(); Set(gc, "requiredSize", (int)ShiftSize.Toy);
             Set(gc, "message", "");
             var flow = BuildHud();
-            if (flow != null) { var gso = new SerializedObject(gc); var calls = gso.FindProperty("onReached.m_PersistentCalls.m_Calls"); calls.arraySize = 1; Listener(calls.GetArrayElementAtIndex(0), flow, typeof(GameFlow).AssemblyQualifiedName, "End"); gso.ApplyModifiedPropertiesWithoutUndo(); }
+            // the one balloon beat (D-0022): a single burst of balloons rising from the sill when the toy gets home
+            var party = Spawn("Baloon_01", "GoalBalloons", r6, new Vector3(c.x, sillY + 1f, nz - 2.5f - 6f), Vector3.zero, 1f);
+            ParticleSystem balloons = null;
+            foreach (var ps in party.GetComponentsInChildren<ParticleSystem>())
+            {
+                var main = ps.main; main.loop = false; main.playOnAwake = false; main.maxParticles = 60; main.duration = 1f;
+                var em = ps.emission; em.rateOverTime = 0f; em.SetBursts(new[] { new ParticleSystem.Burst(0f, 40) });
+                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); if (balloons == null) balloons = ps;
+            }
+            {
+                var gso = new SerializedObject(gc); var calls = gso.FindProperty("onReached.m_PersistentCalls.m_Calls");
+                calls.arraySize = (flow != null ? 1 : 0) + (balloons != null ? 1 : 0); int ci = 0;
+                if (flow != null) Listener(calls.GetArrayElementAtIndex(ci++), flow, typeof(GameFlow).AssemblyQualifiedName, "End");
+                if (balloons != null) Listener(calls.GetArrayElementAtIndex(ci++), balloons, typeof(ParticleSystem).AssemblyQualifiedName, "Play");
+                gso.ApplyModifiedPropertiesWithoutUndo();
+            }
             Cube("Ground", r6, new Vector3(700f, -1.5f, nz + 400f), new Vector3(1000f, 2f, 800f), grass);
             var rnd = new System.Random(7);
-            for (int i = 0; i < 24; i++)
+            var trees = new List<Vector2>();
+            for (int i = 0, tries = 0; i < 24 && tries < 400; tries++)
             {
                 float tx = 260f + (float)(rnd.NextDouble() * 880), tz = nz + 60f + (float)(rnd.NextDouble() * 600);
+                if (trees.Any(t => (t - new Vector2(tx, tz)).sqrMagnitude < 95f * 95f)) continue;   // a crown is ~90 across at 35x
+                trees.Add(new Vector2(tx, tz)); i++;
                 var tree = Spawn("Toy_Tree_01", "GardenTree", r6, new Vector3(tx, 0, tz), new Vector3(0, (float)(rnd.NextDouble() * 360), 0), 35f); Rest(tree, 0f, null);
             }
             PointLight("GardenSun", r6, new Vector3(c.x, 200f, nz + 250f), 900f, 2.5f, new Color(1f, 0.95f, 0.85f));
@@ -629,6 +748,115 @@ namespace ShiftJam
                 }
             }
         }
+        /// <summary>A ruler (at 1.5x) laid as a ramp whose TOP surface runs from the floor point up to <paramref name="top"/>,
+        /// climbing along <paramref name="heading"/> by <paramref name="rise"/>: flush at both ends. Returns the horizontal run.</summary>
+        static float Ramp(string prefab, string name, Transform parent, Vector3 top, Vector3 heading, float rise)
+        {
+            var go = Spawn(prefab, name, parent, Vector3.zero, Vector3.zero, 1.5f); var b = B(go);
+            bool alongX = b.size.x >= b.size.z; float length = Mathf.Max(b.size.x, b.size.z), thick = b.size.y;
+            float run = Mathf.Sqrt(Mathf.Max(1f, length * length - rise * rise));
+            Vector3 flat = new Vector3(heading.x, 0, heading.z).normalized;
+            Vector3 from = top - flat * run - Vector3.up * rise, dir = (top - from).normalized;
+            Quaternion look = Quaternion.LookRotation(dir, Vector3.up);
+            go.transform.rotation = look * (alongX ? Quaternion.Euler(0, -90f, 0) : Quaternion.identity);
+            Vector3 want = (from + top) * 0.5f - (look * Vector3.up) * (thick * 0.5f);
+            go.transform.position += want - B(go).center;
+            Log.AppendLine(name + " from " + from + " to " + top + " slope " + Mathf.Atan2(rise, run) * Mathf.Rad2Deg + " deg");
+            return run;
+        }
+
+        /// <summary>A loose prop the player shoves: convex colliders, a body, a weight class (D-0020).</summary>
+        static GameObject Push(GameObject go, Pushable.Weight weight, float mass)
+        {
+            if (go == null) return null;
+            foreach (var mc in go.GetComponentsInChildren<MeshCollider>()) mc.convex = true;
+            if (go.GetComponentInChildren<Collider>() == null) go.AddComponent<BoxCollider>();
+            if (!go.TryGetComponent(out Rigidbody _)) go.AddComponent<Rigidbody>();
+            if (!go.TryGetComponent(out Pushable p)) p = go.AddComponent<Pushable>();
+            Set(p, "weight", (int)weight); Set(p, "mass", mass);
+            return go;
+        }
+        /// <summary>A prop that answers E (D-0020).</summary>
+        static Reactor React(GameObject go, Reactor.Response response, string prompt, Reactor.Need need = Reactor.Need.Any, bool continuous = false, Transform part = null, Light lamp = null)
+        {
+            if (go == null) return null;
+            if (!go.TryGetComponent(out Reactor re)) re = go.AddComponent<Reactor>();
+            Set(re, "response", (int)response); Set(re, "prompt", prompt); Set(re, "need", (int)need); Set(re, "continuous", continuous);
+            Set(re, "wrongSizePrompt", need == Reactor.Need.Kid ? "Too small to reach" : "Too big");
+            if (part != null) Set(re, "part", part);
+            if (lamp != null) Set(re, "lamp", lamp);
+            return re;
+        }
+        static AudioClip Clip(string name)
+        {
+            foreach (var g in AssetDatabase.FindAssets(name + " t:AudioClip", new[] { Pack })) { var path = AssetDatabase.GUIDToAssetPath(g); if (System.IO.Path.GetFileNameWithoutExtension(path) == name) return AssetDatabase.LoadAssetAtPath<AudioClip>(path); }
+            Log.AppendLine("no clip " + name); return null;
+        }
+        static void SetArray(Object target, string field, params Object[] items)
+        {
+            var so = new SerializedObject(target); var p = so.FindProperty(field); if (p == null) return;
+            p.arraySize = items.Length; for (int i = 0; i < items.Length; i++) p.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>Remakes Room/ToyBox as a real cardboard box (D-0022): four walls in the pack's corrugated cardboard, two top
+        /// flaps hinged on the long walls (children of them, so they fold out with them), packing tape over the seam and down
+        /// the ends, a shipping label; BoxBurst wired with flaps, dust and sounds. Keeps the floor, flashlight, bricks and core.</summary>
+        [MenuItem("Shift Jam/Rebuild Toy Box")]
+        public static void RebuildToyBox()
+        {
+            var box = GameObject.Find("Room/ToyBox"); if (box == null) { Debug.LogError("no Room/ToyBox"); return; }
+            foreach (var n in new[] { "FrontWall", "BackWall", "LeftWall", "RightWall", "Lid" }) { var o = box.transform.Find(n); if (o != null) Object.DestroyImmediate(o.gameObject); }
+            var floor = box.transform.Find("Floor");
+            var card = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/ToyBoxCardboard.mat");
+            if (card == null) { card = new Material(AssetDatabase.LoadAssetAtPath<Material>(Pack + "/Materials/Cardboard_1.mat")); card.SetTextureScale("_BaseMap", new Vector2(2.5f, 2.3f)); AssetDatabase.CreateAsset(card, "Assets/_Game/Data/ToyBoxCardboard.mat"); }
+            var tape = Mat("Assets/_Game/Data/PackingTape.mat", new Color(0.78f, 0.62f, 0.38f)); tape.SetFloat("_Smoothness", 0.75f);
+            if (floor != null) floor.GetComponent<Renderer>().sharedMaterial = card;
+            // the box: x -15..15, z -32..-8 around (0, -20), walls 28 high and 1 thick standing on the floor
+            Vector3 c = new Vector3(box.transform.position.x, 0f, box.transform.position.z - 20f);
+            const float W = 30f, D = 24f, H = 28f, T = 1f;
+            GameObject Panel(string name, Transform parent, Vector3 centre, Vector3 size, Material m)
+            {
+                var g = GameObject.CreatePrimitive(PrimitiveType.Cube); g.name = name; g.transform.SetParent(parent, true); g.transform.position = centre; g.transform.localScale = Vector3.one;
+                g.transform.localScale = new Vector3(size.x / g.transform.lossyScale.x, size.y / g.transform.lossyScale.y, size.z / g.transform.lossyScale.z);
+                g.GetComponent<Renderer>().sharedMaterial = m; return g;
+            }
+            var front = Panel("FrontWall", box.transform, c + new Vector3(0, H / 2f, D / 2f + T / 2f), new Vector3(W + 2f * T, H, T), card);
+            var back = Panel("BackWall", box.transform, c + new Vector3(0, H / 2f, -D / 2f - T / 2f), new Vector3(W + 2f * T, H, T), card);
+            var left = Panel("LeftWall", box.transform, c + new Vector3(-W / 2f + T / 2f, H / 2f, 0), new Vector3(T, H, D), card);
+            var right = Panel("RightWall", box.transform, c + new Vector3(W / 2f - T / 2f, H / 2f, 0), new Vector3(T, H, D), card);
+            var flapF = Panel("FlapFront", front.transform, c + new Vector3(0, H + T / 2f, D / 4f + T / 2f), new Vector3(W + 2f * T, T, D / 2f + T), card);
+            var flapB = Panel("FlapBack", back.transform, c + new Vector3(0, H + T / 2f, -D / 4f - T / 2f), new Vector3(W + 2f * T, T, D / 2f + T), card);
+            // tape: across the seam (a strip on each flap) and down each end wall
+            Panel("Tape", flapF.transform, c + new Vector3(0, H + T + 0.06f, 1.5f), new Vector3(W * 0.9f, 0.12f, 3f), tape);
+            Panel("Tape", flapB.transform, c + new Vector3(0, H + T + 0.06f, -1.5f), new Vector3(W * 0.9f, 0.12f, 3f), tape);
+            Panel("Tape", front.transform, c + new Vector3(0, H - 4f, D / 2f + T + 0.06f), new Vector3(3f, 8f, 0.12f), tape);
+            Panel("Tape", back.transform, c + new Vector3(0, H - 4f, -D / 2f - T - 0.06f), new Vector3(3f, 8f, 0.12f), tape);
+            foreach (var t in box.GetComponentsInChildren<Transform>()) if (t.name == "Tape") Object.DestroyImmediate(t.GetComponent<Collider>());
+            // a shipping label on the outside of the front wall
+            var label = Spawn("Note_Paper_01", "Label", front.transform, c + new Vector3(-7f, 12f, D / 2f + T + 0.1f), new Vector3(-90, 0, 0), 1.6f);
+            var bb = box.GetComponent<BoxBurst>() ?? box.AddComponent<BoxBurst>();
+            var so = new SerializedObject(bb);
+            var pp = so.FindProperty("panels"); pp.arraySize = 4; pp.GetArrayElementAtIndex(0).objectReferenceValue = front.transform; pp.GetArrayElementAtIndex(1).objectReferenceValue = back.transform; pp.GetArrayElementAtIndex(2).objectReferenceValue = left.transform; pp.GetArrayElementAtIndex(3).objectReferenceValue = right.transform;
+            var fp = so.FindProperty("flaps"); fp.arraySize = 2; fp.GetArrayElementAtIndex(0).objectReferenceValue = flapF.transform; fp.GetArrayElementAtIndex(1).objectReferenceValue = flapB.transform;
+            so.FindProperty("lid").objectReferenceValue = null;
+            var dustGuid = AssetDatabase.FindAssets("FX_Dust t:Prefab", new[] { Pack }); if (dustGuid.Length > 0) so.FindProperty("dust").objectReferenceValue = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(dustGuid[0]));
+            so.FindProperty("popSound").objectReferenceValue = Clip("Paper_Rustle_v1");
+            so.FindProperty("landSound").objectReferenceValue = Clip("Books_Falling_v1");
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorSceneManager.MarkSceneDirty(box.scene);
+            Debug.Log("TOY BOX REBUILT: 4 walls, 2 flaps, tape, label; BoxBurst wired");
+        }
+
+        /// <summary>A kid-carryable prop with the pick-up prompt.</summary>
+        static GameObject Carry(GameObject go)
+        {
+            if (go == null) return null;
+            if (!go.TryGetComponent(out Carryable _)) go.AddComponent<Carryable>();
+            if (!go.TryGetComponent(out Carried _)) go.AddComponent<Carried>();
+            return go;
+        }
+
         static Material Mat(string path, Color c)
         {
             var m = AssetDatabase.LoadAssetAtPath<Material>(path);

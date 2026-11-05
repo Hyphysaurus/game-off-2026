@@ -16,6 +16,8 @@ namespace ShiftJam
         [SerializeField, Tooltip("Where to put the player back: this object if empty (its forward = facing).")] private Transform point;
         [SerializeField, Tooltip("Claim again every time it is entered.")] private bool repeat;
         [SerializeField, Tooltip("Shown once claimed: a small glow so the player knows where a reset lands.")] private GameObject litWhenClaimed;
+        [SerializeField, Tooltip("Also writes the active save slot: Continue starts here (SaveGame).")] private bool savePoint;
+        [SerializeField, Tooltip("The room's name shown on the slot. Parent's name if empty.")] private string saveLabel = "";
         [SerializeField] private UnityEvent onClaimed;
 
         public bool Claimed { get; private set; }
@@ -34,6 +36,7 @@ namespace ShiftJam
             if (respawn == null) return;
             Transform p = point != null ? point : transform;
             respawn.SetPoint(p.position, Quaternion.Euler(0f, p.eulerAngles.y, 0f));
+            if (savePoint) { SaveGame.Save(p.position, p.eulerAngles.y, shifter.Size, saveLabel.Length > 0 ? saveLabel : transform.parent != null ? transform.parent.name : name); Debug.Log("Saved to slot " + (SaveGame.Slot + 1) + " at " + name); }
             Claimed = true;
             if (litWhenClaimed != null) litWhenClaimed.SetActive(true);
             onClaimed?.Invoke();

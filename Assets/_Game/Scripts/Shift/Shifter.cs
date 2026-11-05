@@ -53,6 +53,12 @@ namespace ShiftJam
             GameEvents.RaiseShiftStarted(this, size);
         }
 
+        /// <summary>Becomes the size at once: no shift, no events, no warp. Loading a save uses it.</summary>
+        public void SetSizeNow(ShiftSize size)
+        {
+            Size = size; Scale = ScaleOf(size); _progress = 1f; Apply(Scale);
+        }
+
         public void Toggle() => ShiftTo(Size == ShiftSize.Toy ? ShiftSize.Kid : ShiftSize.Toy);
 
         private void Update()

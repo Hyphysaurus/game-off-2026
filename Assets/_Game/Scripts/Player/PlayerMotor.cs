@@ -33,6 +33,7 @@ namespace ShiftJam
         private float _jumpPressedTime = -10f;
         private bool _jumping;              // a jump started and has not landed yet
         private bool _jumpCut;              // this jump was already shortened by an early release
+        private Vector3 _windTarget; private float _windAccel; private int _windFrame = -10;   // this frame's wind, from an Updraft
 
         public bool Grounded { get; private set; }
         public Vector3 Velocity => _planar + Vector3.up * _vertical;
@@ -50,6 +51,23 @@ namespace ShiftJam
             if (shifter == null) shifter = GetComponent<Shifter>();
             if (cameraTransform == null && Camera.main != null) cameraTransform = Camera.main.transform;
             if (animator != null) animator.applyRootMotion = false;
+            if (settings != null && settings.propGravity > 0f) Physics.gravity = Vector3.down * settings.propGravity;
+        }
+
+        /// <summary>Walking into a loose prop shoves it: a velocity change along the way we were moving, capped at the push
+        /// speed for our size, only if the prop's weight class allows this size. Standing on it is not a push.</summary>
+        private void OnControllerColliderHit(ControllerColliderHit hit)
+        {
+            var body = hit.rigidbody;
+            if (body == null || body.isKinematic || hit.moveDirection.y < -0.3f) return;
+            if (!body.TryGetComponent(out Pushable pushable)) return;
+            if (!pushable.PushableBy(shifter != null ? shifter.Size : ShiftSize.Kid)) return;
+            Vector3 dir = new Vector3(hit.moveDirection.x, 0f, hit.moveDirection.z);
+            if (dir.sqrMagnitude < 0.001f) return;
+            dir.Normalize();
+            float want = Mathf.Min(_planar.magnitude, settings.pushSpeed * Scale);
+            float have = Vector3.Dot(body.linearVelocity, dir);
+            if (have < want) body.AddForce(dir * (want - have), ForceMode.VelocityChange);
         }
 
         private void OnEnable() { input.Jump += OnJumpPressed; }
@@ -104,6 +122,13 @@ namespace ShiftJam
             }
 
             _vertical = Mathf.Max(_vertical - gravity * dt, -settings.maxFallSpeed * scale);
+            // Wind, after gravity, so a column only lifts when it blows harder than gravity pulls.
+            if (_windFrame >= Time.frameCount - 1)
+            {
+                Vector3 v = Vector3.MoveTowards(_planar + Vector3.up * _vertical, _windTarget, _windAccel * dt);
+                _planar = new Vector3(v.x, 0f, v.z); _vertical = v.y;
+                if (_vertical > 0f) { _jumping = false; _jumpCut = true; _lastGroundedTime = -10f; _peakFall = 0f; }
+            }
             if (_vertical < 0f) _peakFall = Mathf.Max(_peakFall, -_vertical);
 
             CollisionFlags flags = _controller.Move((_planar + Vector3.up * _vertical) * dt);
@@ -152,6 +177,13 @@ namespace ShiftJam
             Grounded = false;
             _lastGroundedTime = -10f;   // no coyote jump on top of a launch
             _peakFall = 0f;
+        }
+
+        /// <summary>Wind for this frame: the velocity eases toward <paramref name="velocity"/> (world units, already scaled)
+        /// at <paramref name="acceleration"/> per second. An Updraft calls this every frame the player is inside it.</summary>
+        public void Blow(Vector3 velocity, float acceleration)
+        {
+            _windTarget = velocity; _windAccel = acceleration; _windFrame = Time.frameCount;
         }
 
         public void Warp(Vector3 position, Quaternion rotation)

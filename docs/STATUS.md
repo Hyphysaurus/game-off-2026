@@ -2,6 +2,22 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 5 Nov 2026 — live playtest session: tools, menu, saves, car, keyboard, box, clean dressing (D-0021, D-0022), COMMITTED
+His live walk with the bridge on. Fixed live then in the builder: desk ramps (were 50°, now 30° and flush), the balloon
+swarm (pack emitters), clipping rulers. Built: debug HUD + console, title menu with three save slots, a save point at the
+playroom entry, the keyboard floor, a drivable wooden car, a sofa updraft fan, a real cardboard toy box with a proper
+collapse, one balloon burst at the end. Strict prop scan + fixes: 1 intended overlap left. Toy box rebuilt and course
+rebuilt + saved by bridge. UNPLAYED since the rebuild. OPEN: his cinematic reveal for the first corridor (R3 → playroom),
+idle-jump ending, run legs angled inward, his title lettering into TitleMenu.titleArt.
+
+## 4 Nov 2026 13:3x — INTERACTABLE PROPS landed (D-0020): shove, E, carry; his re-run of the builder pending
+His first walk of the dressed R4: "looking good so far". Landed on his "stopped playing": `Room/Pushable.cs`,
+`Room/Reactor.cs`, the motor's shove hook, `MovementSettings.pushSpeed` (3) + `propGravity` (60, also the box burst),
+builder tagging (Light clutter, Heavy toys, spinning globe/pinwheel/fan, bobbing rabbit/bear, pettable cat, three
+switchable lights, carryable bear/pillow/boxes, a kid-only wall switch for the fan). Compiled outside (0 errors).
+HIS STEPS: Shift Jam > Build Course (Rooms 3-6), save, Play: shove a pencil then a box as the toy, E on globe/cat/lamp,
+pull the fan switch as the kid, bowl the ball into the skittles. Uncommitted until his run.
+
 ## 4 Nov 2026 13:1x — R4 DRESSED in our own composition from the pack's props (D-0019), headless, COMMITTED, UNPLAYED
 His "begin dressing the larger room with the selected beats" (he draws the title card; Unity closed all day). First
 answer (D-0018, 11:5x) moved the Playroom pack's whole showroom scene in and seated the beats on it; his "i dont want

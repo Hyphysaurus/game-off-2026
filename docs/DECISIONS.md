@@ -144,3 +144,37 @@
   floor clutter that skips the reserved beat volumes (maze, the way down, the safe, the entry). Kept from D-0018: the
   headless still renderer and the closed-box descent (two Cardboard_Box_05 stacked, then a Box_06). Rule from here:
   a bought pack's demo scene is reference for how its pieces fit, never a source to transplant.
+- **D-0020 (4 Nov, 13:3x) Props answer the player three ways: shove, E, carry.** His "how can we make some of the
+  items interactable" on the dressed playroom. `Room/Pushable.cs` (a rigidbody with a weight class: Light = anyone
+  shoves it, Heavy = the kid only) and a motor hook (`OnControllerColliderHit`: a velocity change along the way we
+  moved, capped at `pushSpeed` × scale, never when standing on it). `Room/Reactor.cs` (an IInteractable with one
+  response: Spin, Bob, Squash or ToggleLight; continuous ones toggle and stay; size-gated prompts; `Use()` so a
+  Switch drives it). The builder tags the dressing: light clutter, heavy toys, the globe and a pinwheel spin, rabbit
+  and wooden bear bob, the cat squashes, desk lamp / computer screen / a night lamp switch real lights, the ceiling
+  fan runs from a kid-height wall switch, the bear, pillow and corner boxes are carryables. Paper stays static
+  (flat rigidbodies jitter). `MovementSettings.propGravity` (60) sets Physics.gravity for loose props, so it also
+  governs the box-burst panels; 0 leaves physics alone. Why: the room is a landscape at toy size, and a landscape
+  that gives when you walk into it is the cheapest feel win; the three verbs already existed on the player side.
+  One IInteractable per prop (the Interactor takes the first it finds), so a thing is a reactor OR a carryable.
+- **D-0021 (4 Nov, 21:2x) The toy's way up the desk is three ruler ramps; broken fans are updrafts, pillows stay pads.**
+  His "we do need a toy way up also" and "pillow launch pad first, the fans can be updrafts". Ramps: Ruler_Big rulers
+  zigzag floor → box 12 → stack 24 → desk 36, each rising 12 over a 10.6 run (37°, under the 45° slope limit), static,
+  walkable both ways (`CourseBuilder.Ramp`). Updraft: `Room/Updraft.cs` (a trigger column; while inside, the motor's
+  velocity eases toward the column's +Y at windSpeed 14 × scale, after gravity, via `PlayerMotor.Blow`; toy only by
+  default; spins the fan's blades). First one: a Fan_Base_01 on its back in front of the sofa, propped on a book,
+  blowing up and toward the seat. Unplayed; the fan's facing (+Z assumed) is the one guess.
+- **D-0022 (5 Nov) Playtest tools, a title menu with three save slots, a save point, the keyboard floor, a drivable car,
+  a real cardboard box, one balloon beat; dressing that never clips.** All on his asks during a live playtest.
+  `Debug/DebugConsole.cs` (F1 readout, ` console, F5 respawn, F6 fly, F7 god, F8 size, PgUp/PgDn checkpoints, F12
+  note + screenshot into docs/PLAYTEST_NOTES.md; self-spawning in editor/dev builds). `UI/TitleMenu.cs` + `Core/SaveGame.cs`
+  (Continue / New Game / three slots / Quit, built at run time, PlayerPrefs; Respawn.LoadSlot / ToStart; Shifter.SetSizeNow).
+  `Checkpoint.savePoint`: the night lamp inside the playroom's mouse hole saves to the active slot. `Room/KeyboardKeys.cs`
+  (keys the toy stands on sink 0.22 and click on a pentatonic scale; rumble; onKeyDown for Feel). `Room/ToyCar.cs` (the
+  wooden push car: a hidden sliding ball does the physics, the body follows and leans; E in/out, Space hops, toy only).
+  `BoxBurst` v2 + `CourseBuilder.RebuildToyBox`: four corrugated walls, two top flaps that pop first, walls hinge on the
+  bottom OUTER edge so they land flat, bounce, dust (FX_Dust) and a thump; tape and a label. Balloons: the pack's
+  Baloon_xx are particle emitters (900 each), so one 40-balloon burst on the window Goal and none as clutter. Ramps:
+  rulers at 1.5x, 30°, top surface flush, tops seated on the upper edge. Dressing: every prop is placed through an
+  overlap check against what already stands (furniture, beats, earlier props) and rests on the real surface found by a
+  ray, not a bounding box; Sticker_01 (a wall decal) is off the floor. Strict scan 5 Nov: 118 overlaps + 19 floating →
+  1 (the book wedged under the broken fan, intended).

@@ -24,6 +24,8 @@ namespace ShiftJam
         [SerializeField, Tooltip("Burst on the first shift to kid size. Off = only BurstNow() fires it.")] private bool burstOnShift = true;
         [SerializeField, Tooltip("A dust puff spawned where each wall lands (the pack's FX_Dust).")] private GameObject dust;
         [SerializeField] private float dustScale = 0.35f;
+        [SerializeField, Tooltip("Drawn on the dust puff. The pack's FX_Dust points at a material the pack does not ship, so it renders magenta; empty = Resources/FX/BoxDust.")]
+        private Material dustMaterial;
         [SerializeField] private AudioClip popSound, landSound;
         [SerializeField, Range(0f, 1f)] private float volume = 0.9f;
         [SerializeField, Tooltip("Hook Feel feedbacks here: the crack, a camera shake.")] private UnityEvent onBurst;
@@ -159,8 +161,10 @@ namespace ShiftJam
             if (dust == null) return;
             var puff = Instantiate(dust, at, Quaternion.identity);
             puff.transform.localScale = Vector3.one * dustScale;
+            var mat = dustMaterial != null ? dustMaterial : Resources.Load<Material>("FX/BoxDust");
             foreach (var ps in puff.GetComponentsInChildren<ParticleSystem>())
             {
+                if (mat != null && ps.TryGetComponent(out ParticleSystemRenderer pr)) pr.sharedMaterial = mat;
                 var main = ps.main; main.loop = false; main.scalingMode = ParticleSystemScalingMode.Hierarchy;
                 ps.Play();
             }

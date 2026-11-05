@@ -2,6 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 5 Nov 2026 13:1x — PINK PUFFS in the toy box fixed (his screenshot), files landed while he plays, UNSEEN
+Root cause: the pack's `FX_Dust.prefab` points at a material the pack does not ship (guid 3feca5f0… found nowhere), so
+each wall-landing puff from BoxBurst drew in error magenta. Fix in OUR code, pack untouched: `Resources/FX/BoxDust.mat`
+(URP particle shader as Spark.mat, pack FX_Smoke.png, alpha blend, tan) put on every puff renderer by BoxBurst; optional
+`dustMaterial` slot overrides it. Compiled outside (0 errors). The new slot arrives on Stop (Fast Script Reload).
+Any other FX_Dust use elsewhere would show the same pink: only BoxBurst spawns it today.
+
 ## 5 Nov 2026 13:0x — HIS TITLE LETTERING IN the title menu (files only; Unity was open on NectarRush), COMMITTED, UNSEEN
 His two Procreate drawings (iCloudDrive `shift_v2_instagram.jpg` wide, `Shift_Title.png` stacked; originals untouched)
 converted for a dark menu: paper outside the letters made transparent, letter insides kept WHITE (ink-only would vanish

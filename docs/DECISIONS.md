@@ -178,3 +178,13 @@
   overlap check against what already stands (furniture, beats, earlier props) and rests on the real surface found by a
   ray, not a bounding box; Sticker_01 (a wall decal) is off the floor. Strict scan 5 Nov: 118 overlaps + 19 floating →
   1 (the book wedged under the broken fan, intended).
+- **D-0023 (5 Nov) The playroom's first look is a camera reveal, once per save slot.** His "a very cinematic type reveal"
+  for the corridor into the playroom. `Room/RoomReveal.cs`: on the lane exit's portal, the camera leaves the toy and
+  flies six keys (children of R4/Reveal: move or turn them in the editor to re-shoot): low in the mouse hole, along the
+  floor, up past the desk, over the room to the window, close over the maze, back behind the toy; letterbox bars, the
+  room's big lights rising from 15%, the pack's "A Secret Garden Of Light" swelling and fading after; a 1.1 s blend
+  into the shoulder camera (it runs after the camera each frame, so the hand-back is seamless); any key skips after 1 s.
+  `SaveGame.Seen/MarkSeen` per slot (New Game resets it); console `reveal` replays it anywhere. The lane: the room's
+  hum (Room_Ambience_Loop) plays from the exit so it is heard before it is seen; the book stairs are ten 1.2 risers on
+  2.4 treads up to the box, a 12 drop off the far side. Fixed with it: the north wall's two middle Wall_01 tiles were
+  covering the window bay (the skip test was |x| > 1 on tiles at ±32.5), and a mat cluster lay over the maze.

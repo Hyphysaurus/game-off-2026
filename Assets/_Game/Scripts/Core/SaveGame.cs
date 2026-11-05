@@ -49,6 +49,16 @@ namespace ShiftJam
             return true;
         }
 
-        public static void Clear(int slot) { PlayerPrefs.DeleteKey(Key(slot)); PlayerPrefs.Save(); }
+        /// <summary>Clears the slot, and what it has seen (reveals play again).</summary>
+        public static void Clear(int slot) { PlayerPrefs.DeleteKey(Key(slot)); PlayerPrefs.DeleteKey(SeenKey(slot)); PlayerPrefs.Save(); }
+
+        private static string SeenKey(int slot) => "ShiftJam.Seen.v1." + slot;
+        /// <summary>One-time moments (the playroom reveal) this slot has already played.</summary>
+        public static bool Seen(int slot, string id) => ("|" + PlayerPrefs.GetString(SeenKey(slot), "") + "|").Contains("|" + id + "|");
+        public static void MarkSeen(int slot, string id)
+        {
+            if (Seen(slot, id)) return;
+            string s = PlayerPrefs.GetString(SeenKey(slot), ""); PlayerPrefs.SetString(SeenKey(slot), s.Length == 0 ? id : s + "|" + id); PlayerPrefs.Save();
+        }
     }
 }

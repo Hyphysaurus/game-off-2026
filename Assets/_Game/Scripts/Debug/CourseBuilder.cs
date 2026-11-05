@@ -74,6 +74,13 @@ namespace ShiftJam
             }
             // R3 end -> R4 entry
             var laneExit = r3.Find("ExitPortal"); if (laneExit != null) Set(laneExit.GetComponent<Portal>(), "target", r4Entry);
+            // ...and the first time through, the playroom reveal plays (D-0023)
+            var reveal = r4.Find("Reveal"); if (laneExit != null && reveal != null)
+            {
+                var pso = new SerializedObject(laneExit.GetComponent<Portal>()); var calls = pso.FindProperty("onUsed.m_PersistentCalls.m_Calls");
+                calls.arraySize = 1; Listener(calls.GetArrayElementAtIndex(0), reveal.GetComponent<RoomReveal>(), typeof(RoomReveal).AssemblyQualifiedName, "Play"); pso.ApplyModifiedPropertiesWithoutUndo();
+                Log.AppendLine("lane exit -> playroom reveal");
+            }
             // R4 hole under the wardrobe -> R5 start
             var hole = r4.Find("WardrobeHole"); if (hole != null) Set(hole.GetComponent<Portal>(), "target", r5Start);
             // R5 top -> R4 in front of the wardrobe (kid), opening the wardrobe doors
@@ -113,11 +120,11 @@ namespace ShiftJam
             for (int i = 0; i < 5; i++) Rest(Spawn("Pencil_01", "Pencil_" + i, r3, new Vector3(37f + 3.5f + i * 7f, 0f, z), new Vector3(0, 90, 0), 1f), 0f, null);
             // 2. hop gap at 100..103.5, then a checkpoint
             Checkpoint("CP_afterHop", r3, new Vector3(112f, 2f, z), new Vector3(6f, 4f, w));
-            // 3. book stairs up onto a 12-high box and down the far side (each riser 1.6)
+            // 3. book stairs up onto a 12-high box (ten risers of 1.2 on 2.4-deep treads: easy hops, 5 Nov his "can't climb"),
+            //    then a 12 drop off the far side (under the 14 fall rule)
             var box = Rest(Spawn("Cardboard_Box_06", "StepBox", r3, new Vector3(142f, 0f, z), Vector3.zero, 1f), 0f, null);
             float boxTop = B(box).max.y;
-            BookStairs(r3, new Vector3(128f, 0f, z), Vector3.right, 0f, boxTop, "UpStairs");
-            BookStairs(r3, new Vector3(B(box).max.x + 1f, 0f, z), Vector3.right, boxTop, 0f, "DownStairs");
+            BookStairs(r3, new Vector3(B(box).min.x - 10f * 2.4f, 0f, z), Vector3.right, 0f, boxTop, "UpStairs");
             // 4. three pins standing in the lane, walk between them (no hazard yet: dressing + a squeeze)
             foreach (float px in new[] { 180f, 190f, 200f })
             {
@@ -137,6 +144,8 @@ namespace ShiftJam
             PointLight("ExitLight", r3, new Vector3(x1 - 6f, 4f, z), 20f, 2.5f, new Color(1f, 0.85f, 0.55f));
             var exit = Trigger("ExitPortal", r3, new Vector3(x1 - 2f, 3f, z), new Vector3(2f, 6f, 8f));
             var portal = exit.AddComponent<Portal>(); Set(portal, "requiredSize", (int)ShiftSize.Toy);
+            // the room beyond, heard before it is seen: its hum grows as you near the hole
+            var hum = exit.AddComponent<AudioSource>(); hum.clip = Clip("Room_Ambience_Loop_v1"); hum.loop = true; hum.playOnAwake = true; hum.spatialBlend = 1f; hum.rolloffMode = AudioRolloffMode.Linear; hum.minDistance = 4f; hum.maxDistance = 90f; hum.volume = 0.7f;
             // start point (where the toy door drops you), facing east
             var start = Point("Start", r3, new Vector3(x0 + 6f, 0f, z), 90f);
             Checkpoint("CP_start", r3, new Vector3(x0 + 10f, 2f, z), new Vector3(6f, 4f, w));
@@ -160,7 +169,7 @@ namespace ShiftJam
             foreach (float x in xs)
             {
                 var s = Spawn("Wall_01", "Wall_S", r4, c + new Vector3(x, 0, -R4HalfZ), Vector3.zero, 1f); var bs = B(s); s.transform.position += new Vector3(0, -bs.min.y, (c.z - R4HalfZ) - bs.max.z);
-                if (Mathf.Abs(x) > 1f)   // the north wall leaves the window bay (x -32.5 and 32.5 pieces) to the cubes below
+                if (Mathf.Abs(x) > 40f)   // the north wall leaves the window bay (the x -32.5 and 32.5 tiles) to the Wall_03 window piece
                 {
                     var n = Spawn("Wall_01", "Wall_N", r4, c + new Vector3(x, 0, R4HalfZ), new Vector3(0, 180, 0), 1f); var bn = B(n); n.transform.position += new Vector3(0, -bn.min.y, (c.z + R4HalfZ) - bn.min.z);
                 }
@@ -259,6 +268,23 @@ namespace ShiftJam
             // --- the entry from R3: west wall, at the lane's z
             entry = Point("Entry", r4, new Vector3(c.x - R4HalfX + 8f, 0, LaneZ), 90f);
             Quad("EntryGlow", r4, new Vector3(c.x - R4HalfX + 0.2f, 1.8f, LaneZ), new Vector3(0, -90, 0), new Vector3(1.6f, 3.6f, 1f), glow);
+            // the reveal (D-0023): camera keys as children (move and turn them in the editor to re-shoot it). From low behind the
+            // toy in the hole, along the floor, up past the desk, over the maze to the window, and home behind the toy.
+            {
+                var rv = Child(r4, "Reveal"); Vector3 e = new Vector3(c.x - R4HalfX + 8f, 0, LaneZ);
+                Vector3 desk = new Vector3(tb.center.x, tb.max.y, tb.center.z), window = c + new Vector3(0f, 70f, R4HalfZ);
+                void Key(string n, Vector3 at, Vector3 look) { var k = Child(rv, n); k.position = at; k.rotation = Quaternion.LookRotation(look - at, Vector3.up); }
+                Key("1_InTheHole", e + new Vector3(-6f, 2.2f, 0f), e + new Vector3(30f, 2.6f, 0f));
+                Key("2_AlongTheFloor", e + new Vector3(30f, 4.5f, 5f), c + new Vector3(-30f, 14f, 40f));
+                Key("3_UpPastTheDesk", c + new Vector3(-70f, 42f, -70f), desk);
+                Key("4_OverTheRoom", c + new Vector3(25f, 80f, -105f), window);
+                Key("5_TheMaze", mz + new Vector3(-50f, 26f, -48f), mz + Vector3.up * 3f);
+                Key("6_BackToYou", e + new Vector3(-3f, 6f, -4f), e + new Vector3(25f, 3f, 0f));
+                var rr = rv.gameObject.AddComponent<RoomReveal>();
+                var bright = new List<Light>(); foreach (var l in r4.GetComponentsInChildren<Light>()) if (l.range >= 100f) bright.Add(l);
+                SetArray(rr, "lights", bright.ToArray()); Set(rr, "music", Clip("A_Secret_Garden_Of_Light_v1"));
+                Log.AppendLine("reveal: 6 keys, " + bright.Count + " lights");
+            }
             // the save point (D-0022): a night lamp beside the mouse hole that lights when you touch it; Continue starts here
             {
                 Vector3 sp = new Vector3(c.x - R4HalfX + 16f, 0, LaneZ + 12f);
@@ -410,7 +436,7 @@ namespace ShiftJam
             // mats: three 2x2 clusters of puzzle mats on the open floor
             var mat0 = Spawn("Mat_01", "Mat", r4, c + new Vector3(-100f, 0, 40f), Vector3.zero, 1f); Rest(mat0, 0f, null); float ms = B(mat0).size.x;
             Object.DestroyImmediate(mat0);
-            foreach (var (cx, cz2) in new[] { (-100f, 40f), (90f, -110f), (-40f, -115f), (-150f, -20f), (150f, 90f), (30f, 100f) })
+            foreach (var (cx, cz2) in new[] { (-100f, 40f), (90f, -110f), (-40f, -115f), (-150f, -20f), (60f, -25f), (30f, 100f) })   // none on the maze (the (150, 90) cluster covered its walls, 5 Nov)
                 for (int i = 0; i < 4; i++) { var m = Spawn("Mat_0" + (1 + (i + (int)Mathf.Abs(cx)) % 4), "Mat", r4, c + new Vector3(cx + (i % 2 - 0.5f) * ms, 0, cz2 + (i / 2 - 0.5f) * ms), new Vector3(0, 90 * ((i * 3) % 4), 0), 1f); Rest(m, 0.05f, null); }
             // wall art: posters and drawings on all four walls, a clock, sockets; the north wall's window bay stays bare
             void OnWall(string prefab, char wall, float along, float y, float yaw)
@@ -722,12 +748,12 @@ namespace ShiftJam
         /// <summary>A staircase of books from the floor (y0) up to y1 along dir: risers of at most 1.3 (a 2.0 hop with margin), 1.5 along, each book overlapping the last.</summary>
         static void BookStairs(Transform parent, Vector3 from, Vector3 dir, float y0, float y1, string name)
         {
-            var holder = Child(parent, name); int n = Mathf.CeilToInt(Mathf.Abs(y1 - y0) / 1.3f); float step = (y1 - y0) / Mathf.Max(1, n);
+            var holder = Child(parent, name); int n = Mathf.CeilToInt(Mathf.Abs(y1 - y0) / 1.2f); float step = (y1 - y0) / Mathf.Max(1, n);
             string[] books = { "Book_01", "Book_02", "Book_03", "Book_04", "Book_06", "Book_07", "Book_08", "Book_09", "Book_10", "Book_11", "Book_12" };
             float yaw = Quaternion.LookRotation(dir).eulerAngles.y;
             for (int i = 0; i <= n; i++)
             {
-                var b = Spawn(books[i % books.Length], "Book" + i, holder, from + dir * (i * 1.5f), new Vector3(0, yaw, 0), 1f);
+                var b = Spawn(books[i % books.Length], "Book" + i, holder, from + dir * (i * 2.4f), new Vector3(0, yaw, 0), 1f);
                 var bb = B(b);
                 b.transform.position += Vector3.up * ((y0 + i * step) - bb.min.y);
             }

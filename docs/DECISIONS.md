@@ -188,3 +188,11 @@
   hum (Room_Ambience_Loop) plays from the exit so it is heard before it is seen; the book stairs are ten 1.2 risers on
   2.4 treads up to the box, a 12 drop off the far side. Fixed with it: the north wall's two middle Wall_01 tiles were
   covering the window bay (the skip test was |x| > 1 on tiles at ±32.5), and a mat cluster lay over the maze.
+- **D-0024 (5 Nov) Toy box boards are unscaled hinges; the burst measures from the walls' middle.** His "why does the
+  cardboard box have a giant green rectangle". Two causes: the "label" was the pack's green sticky note, and every flap,
+  tape strip and label hung off a stretched 32x28x1 cube, so folding them skewed them (the note grew to 154x133, a flap to
+  363 long). Now each board is an unscaled holder with a "Mesh" cube under it; the label is a plain off-white shipping label
+  with three ink lines. Found by a fold test in the editor (a copy folded the way BoxBurst does, every piece measured): the
+  burst used the ToyBox object's origin as the box's middle, 20 off, so side walls fell askew and the front wall inward;
+  BoxBurst now uses the average of the walls' centres, the rebuild stands the box on its own Floor board (core and
+  flashlight inside), and flaps hinge one thickness in so they lie flat beyond their wall. Stills: docs/stills/toybox_*.png.

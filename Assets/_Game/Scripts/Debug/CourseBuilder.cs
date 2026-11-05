@@ -839,13 +839,18 @@ namespace ShiftJam
             var tape = Mat("Assets/_Game/Data/PackingTape.mat", new Color(0.78f, 0.62f, 0.38f)); tape.SetFloat("_Smoothness", 0.75f);
             if (floor != null) floor.GetComponent<Renderer>().sharedMaterial = card;
             // the box: x -15..15, z -32..-8 around (0, -20), walls 28 high and 1 thick standing on the floor
-            Vector3 c = new Vector3(box.transform.position.x, 0f, box.transform.position.z - 20f);
+            // the box stands on its own floor board (the ToyBox object's origin is not the box's middle)
+            Vector3 c = floor != null ? new Vector3(floor.position.x, 0f, floor.position.z) : new Vector3(box.transform.position.x, 0f, box.transform.position.z);
             const float W = 30f, D = 24f, H = 28f, T = 1f;
-            GameObject Panel(string name, Transform parent, Vector3 centre, Vector3 size, Material m)
+            // A board is an UNSCALED holder with a stretched cube named "Mesh" under it: holders can parent other boards without
+            // passing their stretch on (a flap folding inside a 32x28x1 cube skewed to 363 long, 5 Nov).
+            GameObject Panel(string name, Transform parent, Vector3 centre, Vector3 size, Material m, bool solid = true)
             {
-                var g = GameObject.CreatePrimitive(PrimitiveType.Cube); g.name = name; g.transform.SetParent(parent, true); g.transform.position = centre; g.transform.localScale = Vector3.one;
-                g.transform.localScale = new Vector3(size.x / g.transform.lossyScale.x, size.y / g.transform.lossyScale.y, size.z / g.transform.lossyScale.z);
-                g.GetComponent<Renderer>().sharedMaterial = m; return g;
+                var holder = new GameObject(name); holder.transform.SetParent(parent, false); holder.transform.position = centre; holder.transform.rotation = Quaternion.identity;
+                var g = GameObject.CreatePrimitive(PrimitiveType.Cube); g.name = "Mesh"; g.transform.SetParent(holder.transform, false);
+                g.transform.localScale = size; g.GetComponent<Renderer>().sharedMaterial = m;
+                if (!solid) Object.DestroyImmediate(g.GetComponent<Collider>());
+                return holder;
             }
             var front = Panel("FrontWall", box.transform, c + new Vector3(0, H / 2f, D / 2f + T / 2f), new Vector3(W + 2f * T, H, T), card);
             var back = Panel("BackWall", box.transform, c + new Vector3(0, H / 2f, -D / 2f - T / 2f), new Vector3(W + 2f * T, H, T), card);
@@ -853,14 +858,16 @@ namespace ShiftJam
             var right = Panel("RightWall", box.transform, c + new Vector3(W / 2f - T / 2f, H / 2f, 0), new Vector3(T, H, D), card);
             var flapF = Panel("FlapFront", front.transform, c + new Vector3(0, H + T / 2f, D / 4f + T / 2f), new Vector3(W + 2f * T, T, D / 2f + T), card);
             var flapB = Panel("FlapBack", back.transform, c + new Vector3(0, H + T / 2f, -D / 4f - T / 2f), new Vector3(W + 2f * T, T, D / 2f + T), card);
-            // tape: across the seam (a strip on each flap) and down each end wall
-            Panel("Tape", flapF.transform, c + new Vector3(0, H + T + 0.06f, 1.5f), new Vector3(W * 0.9f, 0.12f, 3f), tape);
-            Panel("Tape", flapB.transform, c + new Vector3(0, H + T + 0.06f, -1.5f), new Vector3(W * 0.9f, 0.12f, 3f), tape);
-            Panel("Tape", front.transform, c + new Vector3(0, H - 4f, D / 2f + T + 0.06f), new Vector3(3f, 8f, 0.12f), tape);
-            Panel("Tape", back.transform, c + new Vector3(0, H - 4f, -D / 2f - T - 0.06f), new Vector3(3f, 8f, 0.12f), tape);
-            foreach (var t in box.GetComponentsInChildren<Transform>()) if (t.name == "Tape") Object.DestroyImmediate(t.GetComponent<Collider>());
-            // a shipping label on the outside of the front wall
-            var label = Spawn("Note_Paper_01", "Label", front.transform, c + new Vector3(-7f, 12f, D / 2f + T + 0.1f), new Vector3(-90, 0, 0), 1.6f);
+            // packing tape: a strip on each flap over the seam, and down each end wall
+            Panel("Tape", flapF.transform, c + new Vector3(0, H + T + 0.06f, 1.5f), new Vector3(W * 0.9f, 0.12f, 3f), tape, false);
+            Panel("Tape", flapB.transform, c + new Vector3(0, H + T + 0.06f, -1.5f), new Vector3(W * 0.9f, 0.12f, 3f), tape, false);
+            Panel("Tape", front.transform, c + new Vector3(0, H - 4f, D / 2f + T + 0.06f), new Vector3(3f, 8f, 0.12f), tape, false);
+            Panel("Tape", back.transform, c + new Vector3(0, H - 4f, -D / 2f - T - 0.06f), new Vector3(3f, 8f, 0.12f), tape, false);
+            // a plain shipping label on the outside of the front wall (the pack's sticky note read as a giant green square)
+            var paper = Mat("Assets/_Game/Data/ShippingLabel.mat", new Color(0.93f, 0.91f, 0.84f));
+            var ink = Mat("Assets/_Game/Data/LabelInk.mat", new Color(0.25f, 0.22f, 0.2f));
+            var label = Panel("Label", front.transform, c + new Vector3(-7f, 12f, D / 2f + T + 0.06f), new Vector3(8f, 5f, 0.1f), paper, false);
+            for (int i = 0; i < 3; i++) Panel("Line", label.transform, c + new Vector3(-7.6f + (i == 2 ? -1f : 0f), 13.2f - i * 1.2f, D / 2f + T + 0.12f), new Vector3(i == 2 ? 4f : 6f, 0.35f, 0.05f), ink, false);
             var bb = box.GetComponent<BoxBurst>() ?? box.AddComponent<BoxBurst>();
             var so = new SerializedObject(bb);
             var pp = so.FindProperty("panels"); pp.arraySize = 4; pp.GetArrayElementAtIndex(0).objectReferenceValue = front.transform; pp.GetArrayElementAtIndex(1).objectReferenceValue = back.transform; pp.GetArrayElementAtIndex(2).objectReferenceValue = left.transform; pp.GetArrayElementAtIndex(3).objectReferenceValue = right.transform;

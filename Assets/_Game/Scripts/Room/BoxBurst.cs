@@ -49,7 +49,7 @@ namespace ShiftJam
             if (Burst) return;
             Burst = true;
             _elapsed = 0f;
-            Vector3 centre = transform.position;
+            Vector3 centre = Centre();   // the middle of the walls, not this object's origin (it sat 20 off: walls fell inward / askew)
             bool anyFlap = false;
             if (flaps != null)
                 foreach (Transform flap in flaps)
@@ -61,7 +61,9 @@ namespace ShiftJam
                     _falls.Add(new Fall
                     {
                         t = flap,
-                        point = flap.position + outward * Along(e, outward) + Vector3.down * e.y,   // its outer bottom edge, on the wall's top
+                        // hinge one board-thickness in from its outer edge, on the wall's top: the flap stands up in the wall's own
+                        // plane, so when the wall lands the flap lies flat on the floor beyond it (not under it)
+                        point = flap.position + outward * (Along(e, outward) - 2f * e.y) + Vector3.down * e.y,
                         axis = Vector3.Cross(Vector3.up, outward),
                         angle = flapAngle, delay = Random.Range(0f, 0.05f), seconds = flapSeconds,
                     });
@@ -92,13 +94,29 @@ namespace ShiftJam
             onBurst?.Invoke();
         }
 
+        /// <summary>The box's middle on the floor: the average of the walls' board centres.</summary>
+        private Vector3 Centre()
+        {
+            Vector3 sum = Vector3.zero; int n = 0;
+            foreach (Transform p in panels) { if (p == null || p == lid) continue; var r = Board(p); if (r == null) continue; sum += r.bounds.center; n++; }
+            return n > 0 ? sum / n : transform.position;
+        }
+
         private static Vector3 Flat(Vector3 v) { v.y = 0f; return v.sqrMagnitude < 0.0001f ? Vector3.zero : v.normalized; }
         private static float Along(Vector3 extents, Vector3 dir) => Mathf.Abs(extents.x * dir.x) + Mathf.Abs(extents.z * dir.z);
         private static void Off(Transform t) { foreach (var c in t.GetComponentsInChildren<Collider>()) c.enabled = false; }
 
+        /// <summary>The piece's own board: its renderer, or a child named "Mesh" when the piece is an unscaled hinge
+        /// (walls are: a stretched cube must never be a parent, or folding children skew, 5 Nov).</summary>
+        private static Renderer Board(Transform t)
+        {
+            if (t.TryGetComponent(out Renderer r)) return r;
+            var mesh = t.Find("Mesh"); return mesh != null && mesh.TryGetComponent(out Renderer m) ? m : null;
+        }
+
         private static Vector3 Extents(Transform t)
         {
-            Renderer r = t.GetComponent<Renderer>();
+            Renderer r = Board(t);
             return r != null ? r.bounds.extents : t.lossyScale * 0.5f;
         }
 
@@ -134,8 +152,8 @@ namespace ShiftJam
 
         private void Landed(Transform wall)
         {
-            Vector3 at = Extents(wall) == Vector3.zero ? wall.position : wall.GetComponent<Renderer>() != null ? wall.GetComponent<Renderer>().bounds.center : wall.position;
-            at.y = transform.position.y + 0.3f;
+            Renderer board = Board(wall); Vector3 at = board != null ? board.bounds.center : wall.position;
+            at.y = Centre().y - Extents(wall).y + 0.3f;
             Play(landSound, at);
             onWallLanded?.Invoke();
             if (dust == null) return;

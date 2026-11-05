@@ -10,7 +10,8 @@ namespace ShiftJam
     /// The title screen: the name, three save slots, Continue / New Game / Quit. It builds its own canvas at run time
     /// (nothing to place; it spawns in any scene with a Player) and holds the player still until a choice is made.
     /// Continue loads the active slot through Respawn; New Game empties it and starts in the toy box. Mouse, keyboard
-    /// and gamepad all work through the scene's EventSystem. His lettering replaces the title text when it lands.
+    /// and gamepad all work through the scene's EventSystem. The title is his lettering from Resources/Titles: the wide one
+    /// on landscape screens, the stacked one beside the buttons when the window is near square or taller.
     /// </summary>
     public sealed class TitleMenu : MonoBehaviour
     {
@@ -27,7 +28,8 @@ namespace ShiftJam
             new GameObject("TitleMenu").AddComponent<TitleMenu>();
         }
 
-        [SerializeField, Tooltip("His title lettering; plain text until it lands.")] private Sprite titleArt;
+        private const string WideTitle = "Titles/title_shift_wide", StackedTitle = "Titles/title_shift_stacked";
+        private float _menuX = 0.5f;
 
         private Respawn _respawn; private PlayerInput _input; private ShoulderCamera _camera;
         private GameObject _root; private Button _continue; private readonly Button[] _slots = new Button[SaveGame.Slots];
@@ -113,9 +115,13 @@ namespace ShiftJam
             var dim = Rect("Dim", _root.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             dim.gameObject.AddComponent<Image>().color = new Color(0.03f, 0.03f, 0.06f, 0.72f);
 
+            bool stacked = Screen.width < Screen.height * 1.2f;
+            var titleArt = Resources.Load<Sprite>(stacked ? StackedTitle : WideTitle);
             if (titleArt != null)
             {
-                var art = Rect("TitleArt", _root.transform, new Vector2(0.5f, 0.68f), new Vector2(0.5f, 0.68f), Vector2.zero, new Vector2(1100, 550));
+                _menuX = stacked ? 0.64f : 0.5f;
+                var at = stacked ? new Vector2(0.24f, 0.5f) : new Vector2(0.5f, 0.75f);
+                var art = Rect("TitleArt", _root.transform, at, at, Vector2.zero, stacked ? new Vector2(420, 1000) : new Vector2(1300, 440));
                 var img = art.gameObject.AddComponent<Image>(); img.sprite = titleArt; img.preserveAspect = true; img.raycastTarget = false;
             }
             else
@@ -135,7 +141,7 @@ namespace ShiftJam
 
         private Button MenuButton(string label, float y, UnityEngine.Events.UnityAction onClick, float width = 380f, float size = 40f)
         {
-            var rt = Rect(label, _root.transform, new Vector2(0.5f, y), new Vector2(0.5f, y), Vector2.zero, new Vector2(width, size + 22f));
+            var rt = Rect(label, _root.transform, new Vector2(_menuX, y), new Vector2(_menuX, y), Vector2.zero, new Vector2(width, size + 22f));
             var img = rt.gameObject.AddComponent<Image>(); img.color = new Color(1f, 1f, 1f, 0.08f);
             var b = rt.gameObject.AddComponent<Button>(); b.targetGraphic = img; b.onClick.AddListener(onClick);
             var cb = b.colors; cb.highlightedColor = new Color(1f, 1f, 1f, 2.5f); cb.selectedColor = new Color(1f, 1f, 1f, 2.5f); cb.pressedColor = new Color(0.6f, 0.9f, 1f, 3f); b.colors = cb;

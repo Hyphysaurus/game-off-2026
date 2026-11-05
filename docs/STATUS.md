@@ -2,13 +2,22 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 5 Nov 2026 13:0x — HIS TITLE LETTERING IN the title menu (files only; Unity was open on NectarRush), COMMITTED, UNSEEN
+His two Procreate drawings (iCloudDrive `shift_v2_instagram.jpg` wide, `Shift_Title.png` stacked; originals untouched)
+converted for a dark menu: paper outside the letters made transparent, letter insides kept WHITE (ink-only would vanish
+on the dimmed screen), pen specks dropped, cropped; the stacked arrow's open tip sealed for the fill. Landed as sprites in
+`Assets/_Game/Resources/Titles/` (no mips, no NPOT scaling). `TitleMenu` loads them itself (it is spawned by code, so an
+Inspector slot could never be filled): wide above the buttons on landscape screens; stacked on the left with the buttons
+shifted right when the window is under 1.2:1. Compiled outside (0 errors). The HUD StartCard still says "SHIFT" in text
+(hidden whenever the menu runs). Not yet seen in the editor: check size/placement on first open.
+
 ## 5 Nov 2026 09:2x — docs caught up: D-0023 (playroom reveal) and D-0024 (toy box hinges) BUILT and COMMITTED (`4796de8` 00:53, `5bfc44d` 01:24), UNPLAYED
 The entry below lists the corridor reveal as open: it is built (D-0023, `Room/RoomReveal.cs`, once per save slot; the
 console's `reveal` replays it). D-0024: the toy box's boards are unscaled hinges, a plain shipping label replaces the
 green sticky note, BoxBurst measures from the walls' middle. Nothing played since the 00:36 rebuild. OPEN for him: walk
 the rebuilt course (reveal, box burst, car, keyboard floor, save point); run cadence A/B (since 4 Nov); the 4 Nov
 design-pass picks (Outgrown frame, R3 grow core, train, six puzzle pieces, dawn ending: none adopted in DECISIONS);
-idle-jump ending; run legs angled inward; his title lettering into `TitleMenu.titleArt` (no file yet); Feel on the
+idle-jump ending; run legs angled inward; Feel on the
 shift (BACKLOG 5). Untracked: `Assets/ERP` + `.erp` (Editor Rich Presence, his install).
 
 ## 5 Nov 2026 — live playtest session: tools, menu, saves, car, keyboard, box, clean dressing (D-0021, D-0022), COMMITTED

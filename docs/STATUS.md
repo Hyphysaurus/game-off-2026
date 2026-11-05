@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 5 Nov 2026 09:2x — docs caught up: D-0023 (playroom reveal) and D-0024 (toy box hinges) BUILT and COMMITTED (`4796de8` 00:53, `5bfc44d` 01:24), UNPLAYED
+The entry below lists the corridor reveal as open: it is built (D-0023, `Room/RoomReveal.cs`, once per save slot; the
+console's `reveal` replays it). D-0024: the toy box's boards are unscaled hinges, a plain shipping label replaces the
+green sticky note, BoxBurst measures from the walls' middle. Nothing played since the 00:36 rebuild. OPEN for him: walk
+the rebuilt course (reveal, box burst, car, keyboard floor, save point); run cadence A/B (since 4 Nov); the 4 Nov
+design-pass picks (Outgrown frame, R3 grow core, train, six puzzle pieces, dawn ending: none adopted in DECISIONS);
+idle-jump ending; run legs angled inward; his title lettering into `TitleMenu.titleArt` (no file yet); Feel on the
+shift (BACKLOG 5). Untracked: `Assets/ERP` + `.erp` (Editor Rich Presence, his install).
+
 ## 5 Nov 2026 — live playtest session: tools, menu, saves, car, keyboard, box, clean dressing (D-0021, D-0022), COMMITTED
 His live walk with the bridge on. Fixed live then in the builder: desk ramps (were 50°, now 30° and flush), the balloon
 swarm (pack emitters), clipping rulers. Built: debug HUD + console, title menu with three save slots, a save point at the

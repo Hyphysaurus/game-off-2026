@@ -42,7 +42,10 @@ namespace ShiftJam
                 int col = Mathf.RoundToInt(Mathf.InverseLerp(minX, maxX, _rest[i].x) * 14f);   // 15 notes across, three octaves
                 _note[i] = Pentatonic[col % 5] + 12 * (col / 5);
             }
-            _audio = gameObject.AddComponent<AudioSource>(); _audio.playOnAwake = false; _audio.spatialBlend = 0.6f; _audio.rolloffMode = AudioRolloffMode.Linear; _audio.maxDistance = 120f;
+            // the click plays from the pressed key: a child of its own, so moving it never moves the keyboard (it did, 5 Nov:
+            // every press dragged the whole keyboard so its pivot sat on the key, and it walked up off the desk)
+            var voice = new GameObject("KeyVoice"); voice.transform.SetParent(transform, false);
+            _audio = voice.AddComponent<AudioSource>(); _audio.playOnAwake = false; _audio.spatialBlend = 0.6f; _audio.rolloffMode = AudioRolloffMode.Linear; _audio.maxDistance = 120f;
         }
 
         private void Update()

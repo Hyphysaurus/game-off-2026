@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 5 Nov 2026 19:0x — PROGRESS on the work order (he AFK) — CHECKPOINT
+DONE + COMMITTED: keyboard walk-off fix `d7ee9b8`; pillow pads in the scene `bc5dfda`; CAR (D-0026) `477a37e`: body on a
+fixed offset, turns slow/stopped, air steer, toy gravity 25, chase camera (`ShoulderCamera.SetChase`), and the STUNT RUN
+in R4 (corridor x 505..535: start z -216 → 20° climb → 2x2 box deck 12.2 → 17° kicker → 20-unit gap → landing ramp to
+z -82; nothing removed, 11 small props moved aside; stills docs/stills/car_course_*.png); WORKSHOP scene (D-0027)
+`b9c18f4`: title-menu button + console `workshop`/`course`; footing HUD line `25321af` (sunk / toe gaps, written into
+every F12 note) for the sinking-feet report — HIS STEP: when feet sink, press F12 there.
+RUNNING (staged outside Assets, landed by me after review): agent A = Build Mode; agent B = first person + weapons +
+targets/soldier + arcade cars. NOT PLAYED: everything above.
+
 ## 5 Nov 2026 18:5x — WORK ORDER (his "proceed with all", he AFK, checks in by remote) — CHECKPOINT
 Fixed + committed `d7ee9b8`: the keyboard walking off the desk = KeyboardKeys' click AudioSource sat on the keyboard
 itself and each press moved it to the pressed key (measured live: 34.5 up, ~35 across; back in place after Stop).

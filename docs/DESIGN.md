@@ -173,3 +173,33 @@ so a car drives straight through. Proposal:
   into Pieces/Vehicles, catalogue rebuild, a starter pair in the Workshop. Two to three hours.
 - **His calls.** Keep speed through the portal (my pick) or stop at the exit; let the toy on foot use them too or
   cars only; where they go in the course (a shortcut off the stunt run?); the hoop or one of his drawings as the frame.
+
+### 3. Speed boosts (PROPOSED 6 Nov, his "lets design some speed boosts")
+The Cyber pack was built for boosts: its demo car has a boost multiplier that fires `Demonstration_Prefabs/BoostFX`
+(exhaust flames) and `DriftFX` (tyre smoke when the car slides sideways), and its Track Props hold six Trampoline pads
+with matching `_Arrow` decals and four flat floor Arrows. The Playroom pack has the sounds: Steam_Burst (nitro whoosh),
+Spring_Boing (jump pad), Star_Light_Activate (meter full). Options:
+- **A. Boost pads.** A floor arrow (Arrow_01..04): drive over it and the car surges along the arrow (about 1.4x top speed
+  for 1.2 s, fading), flames from the exhaust, the whoosh, the vehicle camera widens with the speed. Build Mode piece,
+  and the kid can grab and place one (kid builds the track, toy drives it). About 1.5 h.
+- **B. Jump pads.** The pack's Trampolines: up and forward, air time for the stunt run. The pillow pad idea for cars.
+  About 1 h.
+- **C. Nitro on Shift.** Left Shift (the run key, unused while driving) spends a nitro meter; drifting (handbrake
+  slides), air time and boost pads fill it. "Press SHIFT to boost" is the jam theme's own key. About 2 h with the meter.
+- **D. Pull-back launch (toy only).** Hold brake and throttle while stopped to wind the toy's spring (the car squats,
+  a creak), let go to launch, harder the longer the wind. The one boost only a toy car has. About 1.5 h.
+- My pick: **A + C** (pads fill the meter, Shift spends it), then D as the toy's signature move; B when the stunt run
+  wants more air.
+
+### 4. A basic driving HUD (PROPOSED 6 Nov)
+Shown only while driving (not in the garage menu), bottom right: the speed as a big number in **scale km/h** (the toy
+car is about a 1:64 Hot Wheels car: top speed 26 u/s is about 120 scale km/h), an arc that fills with speed and reddens
+near the top, the nitro bar under it with a Shift key icon, and a "BOOST" pop when it fires.
+Assets found (owned): **fonts** Teko (numbers) and Fredoka (labels), OFL Google fonts inside ModularUI (Asset Store
+cache, not imported; import just the two TTFs); **bars, frames, rings** in Kenney's UI Pack (CC0; ModularUI carries the
+full set in five colours) and Kenney UI Adventure (Asset Library); **key icons** Kenney Input Prompts 1.5 (Asset
+Library, CC0: the Shift key, pad buttons; also upgrades the H key list); **effects** the Cyber pack's BoostFX / DriftFX;
+**sounds** the Playroom pack's Steam_Burst, Spring_Boing, Star_Light_Activate, UI_Notification; **juice** Feel (in the
+project) for the punch, Text Animator for TMP (owned, not imported) for an animated BOOST. ModularUI's own HUD templates
+are a full framework (about 1,700 files): use as reference only. Licences: Kenney CC0 and OFL fonts can sit in the
+public repo; anything from ModularUI or the Asset Store stays git-ignored.

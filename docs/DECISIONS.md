@@ -258,3 +258,23 @@
   hubs) + ArcadeCar.Repair/RefreshParts/PlaceAt + CarSeat.Driver. Builder: all 15 cars into Pieces/Vehicles + Garage
   prefab (pack barriers + finish arch). Part swaps stay within one car (each part fits only its own body). Car portals
   (teleport car + driver) = his direction, NOT built yet. NOTHING PLAYED.
+- **D-0030 (6 Nov) Menus never switch the player's input or camera off; the Garage as landed.** A six-agent review of
+  the staged garage (three readers, each checked by a skeptic; every finding confirmed) found that disabling
+  PlayerInput + ShoulderCamera while docked fought Build Mode's record-and-restore: F3 in the bay left the player seated
+  with no input and a frozen camera, and E could not get out. Rule now: only Build Mode, first person and the console
+  switch those off; a menu that needs the mouse calls `ShoulderCamera.SetMenuHold(true/false)` (frees the cursor, stops
+  click-to-relock, look is ignored while unlocked, the camera keeps chasing the car). The parked car is kinematic
+  (`ArcadeCar.Park`, CCD speculative while parked) and its physics step returns early. Also from the review: pack wheel
+  sets turn on Z, our hubs on X, so they mount at -90/+90 like the pack's demo rig; wheel radius measured in the hub's
+  own axes (a stopped spin read up to 1.4x); Car_03.prefab is the pack's bare shell, so a wheel-less model falls back to
+  Car_XX_Body; Finish_Line_01 is a flat strip (fitting it to a height made a 500 km plane): it lies across the way out
+  under a gate of two posts and a bar; walls = straight Barrier_04 (Barrier_01 is a tyre stack); a car already on the
+  lift blocks docking; body swaps keep parent/scale/start and stay Build Mode pieces (a room's own car is hidden, as Build
+  Mode deletes); Car 09's _FL1/_FL2 steer; Car 12's roof light is its own slot; a disabled GameFlow raises no start
+  card. Enter / pad Start / the button drives out, E gets out. NOT PLAYED.
+- **D-0031 (6 Nov) RestSink: Build Mode keeps a ramp's toe sunk.** Build Mode rests and overlap-tests by what is drawn,
+  so placing or moving a ramp lifted the sunk toe lip (D-0029) back to a 0.68 step and its floor contact read as
+  blocked. `Build/RestSink` (depth in mesh units, scaled by the object's lossy y) is written by `CourseBuilder.Wedge`
+  and honoured by `BuildBounds.Rest`, `BuildBounds.Blocked`, the drag plane and Scale; ghosts keep it through the strip.
+  The placed ramps and the three ramp pieces were refit in place first (`bf7b714`: scale y + position y only) and
+  tagged.

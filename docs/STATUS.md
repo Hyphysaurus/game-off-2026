@@ -2,6 +2,29 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 6 Nov 2026 06:1x — GARAGE + RAMPS LANDED (D-0029/30/31), reviewed before landing, COMMITTED, UNPLAYED
+Last night's checkpoint list is done. Commits: `22e4dd3` (checkpoint), `bf7b714` (placed ramps refit), `6c32ccd`
+(garage + fixes). A six-agent review of the staged garage (three readers, three skeptics) confirmed 17 defects before
+anything reached his editor, all fixed in the landing (D-0030): F3 while docked froze input + camera; E could not get
+out; pack wheel sets would have mounted sideways; Car 03 had no wheels (pack's bare shell); the "arch" was a flat strip
+fitted into a 500 km plane; Build Mode would have lifted sunk ramp toes back up (D-0031); plus smaller ones. Stills
+checked: garage gate + above, a car on pack wheels (Temp/shiftjam-stage/stills1, not kept).
+- RAMPS: all seven placed ramps flush at the toe, tops unchanged (Workshop Kicker 4.0, ClimbRamp/LandingRamp 12.2;
+  stunt run climb 12.2, deck kicker 3.0, landing 12.172); RestSink keeps it in Build Mode.
+- WORKSHOP: Garage at (120, 0, -200), exit (+Z) facing the three Cyber cars; all 15 Cyber cars + Garage in the Build Mode
+  catalogue (508 entries, Vehicles 16). The stray "SHIFT / press any key" card: fixed at its cause (GameFlow).
+- HIS PLAYTEST (Workshop): (1) walk the toy up the Kicker and the climb/landing ramps (no step at the toe); (2) drive a
+  Cyber car slowly into the GARAGE gate: menu opens, car repaired; try Body < > (stays seated), Wheels, a few parts;
+  Enter drives out; dock again and press E to get out; (3) F3 while docked, then F3 back: car + controls normal;
+  (4) wreck a car (hard crashes) and wait: it is towed into the bay; (5) F3, place a ClimbRamp from the catalogue:
+  green ghost, no step at the toe; (6) no start card on entering the Workshop. Main room: drive the stunt run, the
+  landing ramp's toe should no longer bump.
+- STILL OPEN (his calls): pillows too tall for the toy to get onto: A mantle/ledge grab (works on every ledge: books,
+  boxes, desk edges; my pick), B a pack Trampoline (Cyber Track Props, six) beside each pillow, C walking into a pillow
+  bounces the toy up onto it, D the kid sets a box/book step beside it (kid arranges, toy traverses); car location portals
+  (his direction, D-0029, not built); run cadence A/B; the 4 Nov design-pass picks; idle-jump ending; run legs inward;
+  Feel on the shift; Toy Land removal; `Assets/ERP` + `.erp` (his Editor Rich Presence) untracked.
+
 ## 5 Nov 2026 21:1x — RAMP LIP + GARAGE (D-0029), staged/written, waiting for him to stop Play — CHECKPOINT
 - His playtest notes (Workshop, live): stray "SHIFT / press any key" card on screen (the HUD's StartCard came over with the
   HUD; hidden live, to switch off in Workshop.unity); can't get onto ramps (0.6 lip at the toe, fix in CourseBuilder.Wedge,

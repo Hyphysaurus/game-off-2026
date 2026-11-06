@@ -203,3 +203,22 @@ Library, CC0: the Shift key, pad buttons; also upgrades the H key list); **effec
 project) for the punch, Text Animator for TMP (owned, not imported) for an animated BOOST. ModularUI's own HUD templates
 are a full framework (about 1,700 files): use as reference only. Licences: Kenney CC0 and OFL fonts can sit in the
 public repo; anything from ModularUI or the Asset Store stays git-ignored.
+
+#### Battle Stadium adds (his "access the battlestadium as well", 6 Nov)
+Same ithappy cartoon style, so it mixes with the Cyber pack and the Playroom. Racing-ready prefabs:
+- **Gates and track:** Inflatable checkpoint_001..003 arches, arch_001..006, arc_001..004, finish_002 (Other/finish_001
+  too), ring_002 (a hoop to drive or fly through), road_001/002 (inflatable road), wall_* (soft barriers), slide_001 (a
+  soft ramp), Stadium/race_track_circle_001/002 (a ready circular track), fence_001.
+- **Launchers:** Obstacles/trampoline_1..6 and propeller_trampoline_1/2 (a fan pad), Other/cannon_001/002.
+- **Pickups:** Props/star_001/002, coin_001, diamond_001, crown_001, bomb_001, dynamite (the pack's RotationScript and
+  Oscillate* scripts spin and bob them).
+- **Cars:** Racing_Cars car_1..10 with separate wheels; **car_4 has a wind-up key** (a ready model for D, the pull-back
+  launch). Their wheels are named in lower case (car_1_wheel_001): ArcadeCar's wheel finder looks for "Wheel" and would
+  need to ignore case before they can drive.
+- **The finish:** Stadium/TV_001 (a big screen for lap times in the world), podium_001..007, Other/firework_001/002,
+  spotlights, speakers, crowd stands.
+How it shifts the boost options: **A** gains boost GATES (drive through an inflatable arch or the ring: easier to see
+than a floor arrow), **B** gets the pack's trampolines and the fan pad, **C**'s nitro refills come from star pickups,
+**D** has its car (car_4, the key turns while you wind), and a new **E: the cannon** (drive in, get fired across the
+room) is a later treat. A race loop (checkpoint arches, the finish arch, the circle track, the TV showing lap times, the
+podium and fireworks at the end) would give the boosts a reason; the HUD then adds lap and time.

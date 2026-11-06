@@ -234,13 +234,35 @@ namespace ShiftJam
         }
         private float Scale => _shifter != null ? _shifter.Scale : 1f;
 
+        private Animator _anim;
+
         private void Note(string text)
         {
             Directory.CreateDirectory(DocsDir);
             string file = System.IO.Path.Combine(DocsDir, "PLAYTEST_NOTES.md");
-            string line = $"- {DateTime.Now:MM-dd HH:mm:ss} [{Room()}] {(_shifter != null ? _shifter.Size.ToString() : "?")} at {_player.transform.position:0.0}: {text}";
+            string line = $"- {DateTime.Now:MM-dd HH:mm:ss} [{Room()}] {(_shifter != null ? _shifter.Size.ToString() : "?")} at {_player.transform.position:0.0}: {text}   ({Footing()})";
             File.AppendAllText(file, line + Environment.NewLine);
             Say("noted: " + text);
+        }
+
+        /// <summary>How the body sits on what is under it, in the player's own units (so toy and kid read alike): "sunk" is
+        /// how far the root (capsule bottom) is below the surface straight under the centre; each foot's gap is its toe height
+        /// over the surface under that foot (negative = in it). For the "feet sink into cardboard / foam mats" report.</summary>
+        private string Footing()
+        {
+            if (_player == null) return "";
+            float sc = Scale; Vector3 root = _player.transform.position;
+            string centre = "-";
+            if (Physics.Raycast(root + Vector3.up * 0.6f * sc, Vector3.down, out var h, 2f * sc, ~0, QueryTriggerInteraction.Ignore))
+                centre = $"{(h.point.y - root.y) / sc:+0.00;-0.00}";
+            if (_anim == null) _anim = _player.GetComponentInChildren<Animator>();
+            string Foot(HumanBodyBones bone)
+            {
+                var t = _anim != null && _anim.isHuman ? _anim.GetBoneTransform(bone) : null; if (t == null) return "-";
+                return Physics.Raycast(t.position + Vector3.up * 0.6f * sc, Vector3.down, out var fh, 2f * sc, ~0, QueryTriggerInteraction.Ignore)
+                    ? $"{(t.position.y - fh.point.y) / sc:+0.00;-0.00} on {fh.collider.name}" : "-";
+            }
+            return $"sunk {centre}   toe L {Foot(HumanBodyBones.LeftToes)}  R {Foot(HumanBodyBones.RightToes)}";
         }
 
         private void Shot()
@@ -284,11 +306,12 @@ namespace ShiftJam
                 $"pos {_player.transform.position:0.0}\n" +
                 $"speed {planar:0.0} u/s   vertical {vert:0.0}   {(_motor.Grounded ? "grounded" : "<color=#ffd27f>air</color>")}\n" +
                 $"ground {ground}  slope {slope:0}°{(slope > (_cc != null ? _cc.slopeLimit : 45f) ? " <color=#ff6666>TOO STEEP</color>" : "")}\n" +
+                $"{Footing()}\n" +
                 $"last drop {drop}  {(_lastDropRoom.Length > 0 ? "(" + _lastDropRoom + ")" : "")}\n" +
                 $"E: {target}\n" +
                 $"checkpoints {claimed}/{cps.Count}";
-            GUI.Box(new Rect(10, 10, 470, 168), GUIContent.none, _box);
-            GUI.Label(new Rect(18, 14, 460, 164), text, _mono);
+            GUI.Box(new Rect(10, 10, 470, 186), GUIContent.none, _box);
+            GUI.Label(new Rect(18, 14, 460, 182), text, _mono);
             GUI.Label(new Rect(18, Screen.height - 26, 900, 22), "F1 hud   ` console   F5 respawn   F6 fly   F7 god   F8 toy/kid   PgUp/PgDn checkpoints   F12 mark", _monoSmall);
         }
 

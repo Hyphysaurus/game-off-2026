@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 5 Nov 2026 18:5x — WORK ORDER (his "proceed with all", he AFK, checks in by remote) — CHECKPOINT
+Fixed + committed `d7ee9b8`: the keyboard walking off the desk = KeyboardKeys' click AudioSource sat on the keyboard
+itself and each press moved it to the pressed key (measured live: 34.5 up, ~35 across; back in place after Stop).
+Grounding report (feet sink on cardboard + foam mats): surfaces measured = colliders match the visible tops (mats flat
+0.73, box lids within 0.3); kid's feet clear (toes 1.6 above floor). Toy-size measure still to do.
+ORDER, each committed separately: (1) car fix (body follow, slow turning, chase cam, hop gravity, parking) + a CAR
+COURSE in R4 with verticality and air time; pillow pads applied to the scene; (2) Workshop scene (own scene, title
+menu button) ; (3) Build Mode (Two Point Museum / Planet Zoo: RTS camera, catalogue, ghost placement, move/rotate/
+scale/duplicate/delete, undo, shape pieces, save/load layouts, test-as toy/kid/FP) — subagent A, staged outside
+Assets; (4) First person (Half-Life 2 body + physics pickup/throw) + Toy Land ports (sword, blaster, projectiles,
+damage, targets, defender, arcade car/seat) — subagent B, staged; (5) integrate + palette pieces; (6) Toy Land
+removal = HIS call after checking. Shared contract: `Core/GameMode.cs` (Play/Build/FirstPerson; F3 build, F4 FP).
+
 ## 5 Nov 2026 18:2x — PILLOW PADS + KEYBOARD POP (D-0025), files landed, COMMITTED, UNPLAYED
 After his recorded playtest (OBS, `Videos/Shift Jam/2026-11-05 13-37-06.mp4`, 21 min): couch pillows are now carryable
 (kid) toy launch pads; keyboard keys hold while feet are on them (the pop on every key). HIS STEPS: let Unity compile,

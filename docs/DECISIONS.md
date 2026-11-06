@@ -278,3 +278,25 @@
   and honoured by `BuildBounds.Rest`, `BuildBounds.Blocked`, the drag plane and Scale; ghosts keep it through the strip.
   The placed ramps and the three ramp pieces were refit in place first (`bf7b714`: scale y + position y only) and
   tagged.
+- **D-0032 (6 Nov) Pocket Core, a dev tool (may become an item).** His ask: carry shift cores where we want, to test
+  shifting anywhere. F2 (and the console's `core`, editor and dev builds) calls one Toggle core with unlimited uses a step
+  in front of the player at either size; E shifts as at any core. One per scene, made from the Build Mode catalogue entry
+  Pieces/Interactables/PocketCore (built by Shift Jam > Dev > Build Pocket Core), so Build Mode can place more. A warm
+  amber copy of his orb mote tells it from the course's cyan cores. F8 already shifted anywhere; this tests where cores go.
+- **D-0033 (6 Nov) Skyrim-style grab in third person, sharing first person's hold.** His ask: precise item placement for
+  the pillow drop-and-bounce. One hold for both views: `Interaction/SpringHold` (lifted out of PhysicsGrabber, which keeps
+  its exact behaviour). `ThirdPersonGrab` (added to every player by the Interactor; E asks it first): aim with the camera,
+  E grabs, it floats ahead along the aim and bumps into things, wheel nearer/farther, R or right mouse + mouse turns, E or
+  C sets it down levelled onto the footprint shown under it, a click throws. Grabs loose bodies and carryables (pillows,
+  bear, boxes); the flashlight and planks stay in the hand (Carryable.KeepInHand); anything with its own E (cores,
+  switches, seats, weapons) keeps it; size limits follow the Shifter. Static props get a moving body only while held or
+  flying (`GrabSettle` restores them once still). His picks were my two defaults: E grabs, set-down is exact.
+- **D-0034 (6 Nov) The Workshop sweep's shared hooks.** `IBuildMoved` (Build Mode tells a piece after every placement,
+  move, turn, raise, scale, copy, undo, redo or load, so homes and sizes follow: soldier, cars, wooden car, pillow pad);
+  `PlayerMotor.Warped` (first person follows a respawn or teleport instead of undoing it); `DebugConsole.IsOpen` (other
+  key readers stand back while typing); `ToyCar.Eject` and Build Mode never edits the car the player sits in (eject
+  first); `PlayerTouch` (pads, fans, checkpoints, hazards accept the first-person body). 29 of 30 sweep findings fixed by
+  three fixers on separate files with my review of every diff.
+- **D-0035 (6 Nov) H shows every key.** `UI/KeyHelp` (H or the pad's View; Build Mode keeps its own H sheet): on foot,
+  grab, driving, garage, first person, Build Mode and dev keys; the player's actions are read from the project-wide input
+  actions so rebinds show; keys scripts read directly are listed by hand and must be kept in step.

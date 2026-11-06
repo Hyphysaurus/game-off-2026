@@ -2,6 +2,27 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 6 Nov 2026 08:0x — STAGED, NOT LANDED (he is gaming): sweep fixes + Pocket Core + key list — CHECKPOINT
+Everything below sits in `%TEMP%\shiftjam-stage\landing\` at its Assets/_Game/Scripts path (35 .cs: 30 changed, 5 new),
+compiled outside Unity together (0 errors). Nothing is in Assets yet.
+- SWEEP of the unplayed Workshop systems (4 agents, 30 findings, 29 confirmed): fixed by three fixers on separate files +
+  my review of every diff. Course-wide: the kill-height net now fires (Respawn guard). Build Mode: the car you sit in is
+  off-limits and undo/load/Start empty/Play-as eject you first (was a softlock), the console stops Build Mode's keys and
+  clicks, moved pieces take their new spot as home (IBuildMoved: soldier, cars, wooden car, pillow pad), the wooden car
+  moves/turns/scales in Build Mode, the pillow scales, F3 mid-shift no longer freezes the tear, re-baking keeps earlier
+  bakes. First person: warps stick (PlayerMotor.Warped), hit kick + red flash + knockback, pads/fans/checkpoints/hazards
+  work (PlayerTouch), no grabbing the kid's carried things or the wooden car's ball, SMG waits after a throw, held prop
+  drops on a shift. Combat: knife held by the handle, soldier = standing rifleman Army_Soldier_06 with a muzzle, every
+  pellet/dart counts (no i-frames on targets, soldier, cars), toppled targets lose their collider, soldier aims at the
+  kid's legs. Console: F1 readout hidden in Build, fly only on foot.
+- NEW: Pocket Core (D-0032 to write: F2 / console `core` calls a warm-glow Toggle core a step ahead; Build Mode piece);
+  KeyHelp (H or pad View: every key by situation, player actions read from the project-wide input actions).
+- LANDING STEPS (when he is back, out of Play): copy landing/ into Assets/_Game/Scripts → Refresh → Shift Jam > Workshop >
+  Build Combat & Vehicle Pieces (knife, soldier, i-frames) → Shift Jam > Dev > Build Pocket Core → Shift Jam > Workshop >
+  Build Catalog → check the Workshop soldier stands at its NE spot → save → commit.
+- NEXT (approved): Skyrim-style grab in third person (shares the first-person hold). WAITING on his word: vehicle camera
+  plan (frame the car, smooth follow, speed widening, driver hidden in every vehicle).
+
 ## 6 Nov 2026 06:1x — GARAGE + RAMPS LANDED (D-0029/30/31), reviewed before landing, COMMITTED, UNPLAYED
 Last night's checkpoint list is done. Commits: `22e4dd3` (checkpoint), `bf7b714` (placed ramps refit), `6c32ccd`
 (garage + fixes). A six-agent review of the staged garage (three readers, three skeptics) confirmed 17 defects before

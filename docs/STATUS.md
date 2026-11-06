@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 6 Nov 2026 11:3x — BOOSTS / HUD / RACE: 5 builders DONE, integrated, compiles (0/0), UNDER REVIEW — CHECKPOINT
+Workflow wf_2309ad83-1f5 done (38 min, 2.1M tokens): staged in `shiftjam-stage/race/{contract,cars,pieces,carsandcannon,
+hud,race_loop}` + my `integ/` (KeyHelp: nitro, wind-up, RACE lines; CourseBuilder: wooden ToyCars get boost parts).
+Integration edits: Driving.Quitting + CarSeat/ToyCar skip the reparent while the car is switched off; ToyCar.Gravity read by
+CarJumpPad/CarCannon (no copied 25); boost pads silent (the car's own whoosh plays once); wind sound Safe_Dial_v1 on all cars
+(his ear); menu "Build Racing Pieces" renamed "Build Boost Pieces"; WorkshopPieces "Wire Car Boost Parts (open scenes)".
+LAND ORDER (out of Play): copy all, compile; UI > Make HUD Fonts; Workshop > Build Combat & Vehicle Pieces; Build Boost
+Pieces; Build Race Pieces; Build Catalog; Wire Car Boost Parts with Greybox + Workshop open; place the race loop + boost
+lane + cannon + ToyRacer04 in the Workshop (builders' placement notes); save; stills; commit.
+
 ## 6 Nov 2026 11:0x — PAD GLOW LANDED (he stopped Play), UNSEEN by him; boosts / HUD / race still building
 Copied in, compiled in the editor, Refit Pad Glows run with Greybox open beside Workshop: Greybox 3 + Workshop 1 + the
 PillowPad piece now use PadGlow.mat (warm soft disc on the crown, 0.65 of the narrower side, no shadows), both scenes

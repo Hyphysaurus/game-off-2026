@@ -27,6 +27,8 @@ namespace ShiftJam
         [SerializeField, Tooltip("Cars faster than this (units/s at car scale 1) roll through without docking.")] private float maxEntrySpeed = 6f;
 
         private static readonly List<Garage> All = new List<Garage>();
+        /// <summary>True while any garage's menu is up (the driving HUD steps aside).</summary>
+        public static bool MenuOpen { get; private set; }
 
         private ArcadeCar _docked;
         private ArcadeCar _leaving;   // just drove out (or was towed in): ignored until it clears the bay
@@ -199,6 +201,7 @@ namespace ShiftJam
             if (_camera != null) _camera.SetMenuHold(true);   // the mouse is the menu's; the camera keeps following the car
             else { Cursor.lockState = CursorLockMode.None; Cursor.visible = true; }
 
+            MenuOpen = true;
             _menu = new GameObject("GarageMenu", typeof(RectTransform));
             var canvas = _menu.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 40;
             var scaler = _menu.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -278,6 +281,7 @@ namespace ShiftJam
         private void CloseMenu()
         {
             if (_menu != null) Destroy(_menu);
+            if (_menu != null || _rows != null) MenuOpen = false;
             _menu = null; _rows = null; _raycaster = null;
             if (_camera != null) _camera.SetMenuHold(false);   // takes the mouse back if running (Build Mode may have it off)
             _camera = null; _input = null;

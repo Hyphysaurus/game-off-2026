@@ -12,15 +12,20 @@ namespace ShiftJam
     /// the scene has one (else put back at its start).
     /// Flipped over and stuck, it rights itself. Everything is in units at car scale 1 and scales with the transform.
     /// The car knows nothing about players: a CarSeat feeds it a PlayerInput.
+    /// Boosts (D-0037, IBoostable): bursts from pads, gates and the launch raise the top speed and push along the nose;
+    /// Sprint (Shift) burns the nitro meter, which slides, air time and pickups fill; stopped, the handbrake (Jump) with
+    /// forward held winds a pull-back spring (the car squats back) and letting go of Jump launches. Nothing boosts while
+    /// the car is parked on a lift, held (the cannon) or wrecked. Flames, tyre smoke and the key: CarFx.
     /// </summary>
     [RequireComponent(typeof(Rigidbody), typeof(Damageable))]
-    public sealed class ArcadeCar : MonoBehaviour, IResettable, IBuildMoved, IChaseTarget
+    public sealed class ArcadeCar : MonoBehaviour, IResettable, IBuildMoved, IChaseTarget, IBoostable
     {
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly BoostTuning DefaultBoost = new BoostTuning();
 
         [SerializeField] private ArcadeCarSettings settings;
-        [SerializeField, Tooltip("Wheel objects (hub pivots). Found by name (Wheel_FL / FR / BL / BR / RL / RR) if empty.")] private Transform[] wheels;
-        [SerializeField, Tooltip("Which of the wheels steer. Found by name (_FL, _FR, Front) if empty.")] private bool[] steers;
+        [SerializeField, Tooltip("Wheel objects (hub pivots). Found by name (any 'wheel' that is not a steering wheel) if empty.")] private Transform[] wheels;
+        [SerializeField, Tooltip("Which of the wheels steer. Found by name (_FL, _FR, Front) if empty, else the wheels ahead of the middle.")] private bool[] steers;
         [SerializeField] private float mass = 4f;
         [SerializeField, Tooltip("Centre of mass height above the wheel hubs, units at scale 1 (low = hard to roll).")] private float centreOfMassHeight = 0f;
         [Header("Feedback (all optional)")]
@@ -28,6 +33,15 @@ namespace ShiftJam
         [SerializeField] private AudioClip crashClip;
         [SerializeField, Tooltip("Played while wrecked.")] private ParticleSystem wreckSmoke;
         [SerializeField] private Color wreckTint = new Color(0.25f, 0.22f, 0.2f);
+        [Header("Boosts (all optional)")]
+        [SerializeField, Tooltip("Exhaust flames while boosting (the Cyber pack's BoostFX), made at the rear at run time.")] private GameObject boostFxPrefab;
+        [SerializeField, Tooltip("Tyre smoke while sliding (the Cyber pack's DriftFX), made across the rear axle at run time.")] private GameObject driftFxPrefab;
+        [SerializeField, Tooltip("Smoke from the bonnet when badly hurt and while wrecked (the Playroom pack's FX_Smoke_Small), made at run time.")] private GameObject damageSmokePrefab;
+        [SerializeField, Tooltip("A wind-up key that turns while the pull-back spring winds.")] private Transform windKey;
+        [SerializeField, Tooltip("The axis the key turns about, in the key's own space.")] private Vector3 windKeyAxis = Vector3.up;
+        [SerializeField, Tooltip("Played when a burst starts and when nitro lights.")] private AudioClip boostClip;
+        [SerializeField, Tooltip("Looped while the pull-back spring winds.")] private AudioClip windClip;
+        [SerializeField, Tooltip("Played on the pull-back launch.")] private AudioClip launchClip;
 
         private Rigidbody _rb;
         private Damageable _health;
@@ -41,9 +55,16 @@ namespace ShiftJam
         private Vector3 _spawn; private Quaternion _spawnRot;
         private float _sizedAt;             // the scale the wheel radii were measured at
         private float _steerVisual, _upsideDown, _nextCrash, _wreckedAt;
+        private float _lastHurt = -99f;
         private readonly Dictionary<Damageable, float> _nextRam = new Dictionary<Damageable, float>();
         private readonly RaycastHit[] _hits = new RaycastHit[8];
         private AudioSource _oneShots;
+        private CarBoost _boost;
+        private CarFx _fx;
+        private Vector3 _rearAxle;          // car space, at hub height: where the wind presses down
+        private float _slip;                // sideways speed as a share of top speed (0 in the air)
+        private bool _heldOutside, _wasNitro;   // held: Hold(true) has it (the cannon)
+        private float _lastWhoosh = -10f;
 
         public bool Occupied => _driver != null;
         public bool Wrecked => _health != null && _health.Dead;
@@ -71,6 +92,15 @@ namespace ShiftJam
         /// <summary>Raised once when the car is wrecked; the seat throws its driver out.</summary>
         public event Action WreckedNow;
 
+        // ---------- IBoostable ----------
+        public float Nitro => _boost != null ? _boost.Nitro : 0f;
+        public bool Boosting => _boost != null && _boost.Boosting && !Parked && !Wrecked;
+        public float Wind => _boost != null ? _boost.Wind : 0f;
+        public bool Driven => Occupied;
+        private BoostTuning Tuning => settings != null && settings.boost != null ? settings.boost : DefaultBoost;
+        /// <summary>The car can drive (and so boost) right now: tuned, on wheels, free and in one piece.</summary>
+        private bool Drivable => settings != null && wheels != null && wheels.Length > 0 && _rb != null && !_rb.isKinematic && !Wrecked;
+
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
@@ -80,7 +110,7 @@ namespace ShiftJam
             _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             _rb.linearDamping = 0.05f;
             _rb.angularDamping = 1.5f;
-            _renderers = GetComponentsInChildren<Renderer>(true);   // hidden parts too: the garage can switch them on later
+            _renderers = OwnRenderers();   // hidden parts too: the garage can switch them on later
             _block = new MaterialPropertyBlock();
             _spawn = transform.position; _spawnRot = transform.rotation;
             FindWheels();
@@ -93,13 +123,23 @@ namespace ShiftJam
                 _baseRot[i] = Quaternion.Inverse(transform.rotation) * wheels[i].rotation;
                 var rs = wheels[i].GetComponentsInChildren<Renderer>();
                 float r = 0f;
-                foreach (var rr in rs) r = Mathf.Max(r, rr.bounds.extents.y);
+                foreach (var rr in rs) if (!(rr is ParticleSystemRenderer)) r = Mathf.Max(r, rr.bounds.extents.y);
                 _radius[i] = r > 1e-4f ? r : (settings != null ? settings.wheelRadius : 0.45f) * Scale;
                 hubY += _rest[i].y;
             }
             if (wheels.Length > 0) _rb.centerOfMass = new Vector3(0f, hubY / wheels.Length + centreOfMassHeight, AverageZ());
             _sizedAt = Scale;
             _oneShots = gameObject.AddComponent<AudioSource>(); _oneShots.playOnAwake = false; _oneShots.spatialBlend = 1f;
+            _boost = new CarBoost(Tuning);
+            _rearAxle = RearAxle(out _);
+        }
+
+        private void Start()
+        {
+            // After every Awake (the Damageable has listed its renderers, so a hit's flash never tints the flames).
+            _fx = new CarFx(transform, boostFxPrefab, driftFxPrefab, windKey, windKeyAxis, boostClip != null || windClip != null || launchClip != null);
+            _fx.AddSmoke(damageSmokePrefab);
+            PlaceFx();
         }
 
         private float AverageZ()
@@ -107,6 +147,45 @@ namespace ShiftJam
             float z = 0f;
             foreach (var p in _rest) z += p.z;
             return wheels.Length > 0 ? z / wheels.Length : 0f;
+        }
+
+        /// <summary>The middle of the wheels behind the car's middle, car space at hub height, and their radius (car space).
+        /// With no wheel behind the middle, a guess: the car's middle at the hubs' height.</summary>
+        private Vector3 RearAxle(out float radius)
+        {
+            float mid = AverageZ(), s = Scale;
+            Vector3 sum = Vector3.zero; float r = 0f; int n = 0;
+            for (int i = 0; i < _rest.Length; i++)
+            {
+                if (_rest[i].z >= mid - 1e-4f) continue;
+                sum += _rest[i]; r += _radius[i] / s; n++;
+            }
+            if (n > 0) { radius = r / n; return sum / n; }
+            radius = (settings != null ? settings.wheelRadius : 0.45f);
+            float y = 0f;
+            foreach (var p in _rest) y += p.y;
+            return new Vector3(0f, _rest.Length > 0 ? y / _rest.Length : radius, mid);
+        }
+
+        /// <summary>Flames at the rear end at hub height, smoke across the rear axle, sized by the car's drawn length.</summary>
+        private void PlaceFx()
+        {
+            if (_fx == null) return;
+            if (!BuildBounds.Local(transform, out Bounds b)) b = new Bounds(Vector3.zero, Vector3.one);
+            Vector3 axle = RearAxle(out float r);
+            _fx.Place(new Vector3(b.center.x, axle.y, b.min.z), new Vector3(b.center.x, axle.y - 0.5f * r, axle.z), b.size.z, Tuning.fxScale);
+            _fx.PlaceSmoke(new Vector3(b.center.x, b.center.y + b.extents.y * 0.35f, b.max.z - b.size.z * 0.2f), b.size.z, Tuning.fxScale);
+        }
+
+        /// <summary>The car's own renderers, hidden ones too: not effects (a Build Mode copy carries the original's) and not
+        /// a seated driver.</summary>
+        private Renderer[] OwnRenderers()
+        {
+            var all = GetComponentsInChildren<Renderer>(true);
+            var own = new List<Renderer>(all.Length);
+            foreach (var r in all)
+                if (!(r is ParticleSystemRenderer) && r.GetComponentInParent<PlayerMotor>(true) == null) own.Add(r);
+            return own.ToArray();
         }
 
         private void FindWheels()
@@ -125,18 +204,37 @@ namespace ShiftJam
                 wheels = found.ToArray();
             }
             steers = new bool[wheels.Length];
+            bool named = false;
             for (int i = 0; i < wheels.Length; i++)
             {
                 string n = wheels[i].name;
                 string corner = n.TrimEnd('0', '1', '2', '3', '4', '5', '6', '7', '8', '9');   // Car 09's front pairs: _FL1, _FL2
-                steers[i] = corner.EndsWith("_FL") || corner.EndsWith("_FR") || n.Contains("Front");
+                steers[i] = corner.EndsWith("_FL", StringComparison.OrdinalIgnoreCase) || corner.EndsWith("_FR", StringComparison.OrdinalIgnoreCase)
+                    || n.IndexOf("front", StringComparison.OrdinalIgnoreCase) >= 0;
+                named |= steers[i];
             }
+            if (named || wheels.Length == 0) return;
+            // No wheel says front (Battle Stadium's car_4_wheel_001): the wheels ahead of the middle steer.
+            float mid = 0f, min = float.MaxValue, max = float.MinValue;
+            var z = new float[wheels.Length];
+            for (int i = 0; i < wheels.Length; i++)
+            {
+                z[i] = transform.InverseTransformPoint(wheels[i].position).z;
+                mid += z[i]; min = Mathf.Min(min, z[i]); max = Mathf.Max(max, z[i]);
+            }
+            mid /= wheels.Length;
+            float slack = 0.01f * (max - min);
+            for (int i = 0; i < wheels.Length; i++) steers[i] = max - min < 1e-4f || z[i] > mid + slack;   // all in a line: all steer
         }
 
-        private static bool IsWheelName(string n) => n.Contains("Wheel") && !n.Contains("Steering") && !n.Contains("steering");
+        /// <summary>A wheel by name, any case (the Cyber pack's Car_01_Wheel_FL, Battle Stadium's car_4_wheel_001), never a
+        /// steering wheel.</summary>
+        private static bool IsWheelName(string n) =>
+            n.IndexOf("wheel", StringComparison.OrdinalIgnoreCase) >= 0 && n.IndexOf("steering", StringComparison.OrdinalIgnoreCase) < 0;
 
-        private void OnEnable() { _health.Died += OnDied; }
-        private void OnDisable() { _health.Died -= OnDied; }
+        private void OnEnable() { _health.Died += OnDied; _health.Damaged += OnHurt; }
+        private void OnDisable() { _health.Died -= OnDied; _health.Damaged -= OnHurt; }
+        private void OnHurt(DamageInfo _) => _lastHurt = Time.time;
 
         /// <summary>Hands the car to a driver's input, or takes it back with null.</summary>
         public void Drive(PlayerInput input)
@@ -150,17 +248,22 @@ namespace ShiftJam
             _wreckedAt = Time.time;
             if (wreckSmoke != null) wreckSmoke.Play();
             Play(crashClip, 1f, 0.8f);
+            if (_boost != null) _boost.Halt();
             WreckedNow?.Invoke();
         }
 
         public void ResetState()
         {
+            if (_heldOutside) { _heldOutside = false; Park(false); }   // a reset frees a car the cannon was holding
             if (!_rb.isKinematic) { _rb.linearVelocity = Vector3.zero; _rb.angularVelocity = Vector3.zero; }   // parked: nothing to clear
             _rb.position = _spawn; _rb.rotation = _spawnRot;
             transform.SetPositionAndRotation(_spawn, _spawnRot);
             _health.ResetState();
             _nextRam.Clear();
             _upsideDown = 0f;
+            if (_boost != null) _boost.Reset();
+            _wasNitro = false;
+            if (_fx != null) { _fx.StopAll(); _fx.ResetKey(); }
             if (wreckSmoke != null) wreckSmoke.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             foreach (var r in _renderers) if (r != null) r.SetPropertyBlock(null);
         }
@@ -177,16 +280,14 @@ namespace ShiftJam
         /// <summary>Re-reads the renderers and wheel sizes after parts were swapped or the car was rescaled (the garage).</summary>
         public void RefreshParts()
         {
-            var all = GetComponentsInChildren<Renderer>(true);
-            var own = new List<Renderer>(all.Length);
-            foreach (var r in all) if (r.GetComponentInParent<PlayerMotor>(true) == null) own.Add(r);   // not a seated driver
-            _renderers = own.ToArray();
+            _renderers = OwnRenderers();
             if (wheels == null) return;
             for (int i = 0; i < wheels.Length; i++)
             {
                 float r = RadiusOf(wheels[i]);
                 if (r > 1e-4f) _radius[i] = r;
             }
+            PlaceFx();
         }
 
         /// <summary>
@@ -221,7 +322,7 @@ namespace ShiftJam
             _upsideDown = 0f;
         }
 
-        /// <summary>True while a garage holds the car on its lift.</summary>
+        /// <summary>True while a garage holds the car on its lift (or the cannon holds it).</summary>
         public bool Parked => _rb != null && _rb.isKinematic;
 
         /// <summary>Holds the car still on a lift (kinematic: nothing pushes it and its physics step stops) or lets it go.</summary>
@@ -233,12 +334,64 @@ namespace ShiftJam
                 _rb.linearVelocity = Vector3.zero; _rb.angularVelocity = Vector3.zero;
                 _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;   // the only mode a kinematic body takes
                 _rb.isKinematic = true;
+                if (_boost != null) _boost.Halt();
             }
             else
             {
                 _rb.isKinematic = false;
                 _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             }
+        }
+
+        // ---------- boosts (IBoostable) ----------
+
+        /// <summary>A burst: up to <paramref name="topSpeedMultiplier"/> times top speed for <paramref name="seconds"/>, pushed
+        /// along the nose, fading at the end. Ignored while parked, held or wrecked.</summary>
+        public void Boost(float topSpeedMultiplier, float seconds)
+        {
+            if (_boost == null || !Drivable) return;
+            if (_boost.Burst(topSpeedMultiplier, seconds)) Whoosh();
+        }
+
+        public void AddNitro(float amount) { if (_boost != null) _boost.AddNitro(amount); }
+
+        /// <summary>Sets the car flying (jump pads, the cannon). A car the cannon holds is let go first; one parked on a
+        /// garage lift stays put.</summary>
+        public void Launch(Vector3 velocity)
+        {
+            if (_rb == null) return;
+            if (_heldOutside) Hold(false);
+            if (_rb.isKinematic) return;
+            _rb.linearVelocity = velocity;
+            _upsideDown = 0f;
+        }
+
+        /// <summary>Holds the car still where it is, driver and all (the cannon loads and aims it), or lets it go. A car a
+        /// garage has parked stays the garage's.</summary>
+        public void Hold(bool held)
+        {
+            if (_rb == null) return;
+            if (held)
+            {
+                if (_heldOutside || _rb.isKinematic) return;   // already held, or on a garage lift
+                _heldOutside = true;
+                Park(true);
+            }
+            else
+            {
+                if (!_heldOutside) return;
+                _heldOutside = false;
+                Park(false);
+            }
+            if (_boost != null) _boost.Halt();
+        }
+
+        /// <summary>The boost sound, at most four times a second (chained pads).</summary>
+        private void Whoosh()
+        {
+            if (_fx == null || Time.time - _lastWhoosh < 0.25f) return;
+            _lastWhoosh = Time.time;
+            _fx.Play(boostClip, 0.8f);
         }
 
         /// <summary>Build Mode placed, moved, turned or scaled the car (or undid or loaded it): F9 and a wreck's recovery
@@ -272,7 +425,8 @@ namespace ShiftJam
 
         private void FixedUpdate()
         {
-            if (settings == null || wheels.Length == 0 || _rb.isKinematic) return;   // parked on a lift: nothing to drive
+            if (settings == null || wheels.Length == 0) return;
+            if (_rb.isKinematic) { _boost.Halt(); _slip = 0f; return; }   // parked on a lift or held: nothing to drive
             float dt = Time.fixedDeltaTime, s = Scale;
             float g = Mathf.Max(0.01f, -Physics.gravity.y);
             int n = wheels.Length, grounded = 0;
@@ -293,6 +447,16 @@ namespace ShiftJam
                 _offset[i] = compression - travel;
                 float vUp = Vector3.Dot(_rb.GetPointVelocity(hub), up);
                 float accel = g / n * (compression / Mathf.Max(1e-4f, travel)) - settings.damping * vUp / n;
+                // Bump stop (D-0038): the end of the travel, and past it when the ground comes up faster than the spring,
+                // pushes much harder and soaks the hit, so a ramp's foot or a hard landing lifts the body instead of
+                // slamming its box into the ground.
+                float raw = length - hit.distance, stopFrom = (2f - settings.bumpZone) * travel;
+                if (raw > stopFrom)
+                {
+                    float into = Mathf.Min(3f, (raw - stopFrom) / Mathf.Max(1e-4f, settings.bumpZone * travel));
+                    accel += g / n * settings.bumpStiffness * into;
+                    if (vUp < 0f) accel -= settings.bumpDamping * vUp / n;
+                }
                 if (accel > 0f) _rb.AddForceAtPosition(up * (accel * _rb.mass), hub, ForceMode.Force);
             }
 
@@ -302,29 +466,63 @@ namespace ShiftJam
             Vector2 stick = driving ? _driver.Move : Vector2.zero;
             bool handbrake = driving && _driver.JumpHeld;
             float throttle = ForceBrake ? 0f : stick.y, steer = ForceBrake ? 0f : stick.x;
+            float top = settings.maxSpeed * s;
+            var tuning = Tuning;
+
+            Vector3 ground = grounded > 0 ? (normal / grounded).normalized : Vector3.up;
+            Vector3 fwd = Vector3.ProjectOnPlane(transform.forward, ground).normalized;
+            Vector3 right = Vector3.Cross(ground, fwd);
+            float speed = Vector3.Dot(v, fwd);
+            float lateral = Vector3.Dot(v, right);
+            _slip = grounded > 0 ? Mathf.Abs(lateral) / Mathf.Max(0.01f, top) : 0f;
+
+            // Boosts: bursts run down, nitro fills and burns, the pull-back spring winds or launches.
+            _boost.Tuning = tuning;
+            if (Wrecked) _boost.Halt();
+            else
+            {
+                var feed = new CarBoost.Feed
+                {
+                    Driven = driving && !ForceBrake && _driver.isActiveAndEnabled,
+                    Grounded = grounded > 0, Slip = _slip,
+                    Sprint = driving && _driver.Sprint, Brake = handbrake,
+                    Throttle = throttle, Speed = speed / Mathf.Max(0.01f, top),
+                };
+                if (_boost.CanWind(feed)) _boost.StartWind();
+                float launched = _boost.Step(dt, feed);
+                if (launched > 0f && _fx != null) _fx.Play(launchClip, 0.6f + 0.4f * launched);
+                if (_boost.NitroOn && !_wasNitro) Whoosh();
+            }
+            _wasNitro = _boost.NitroOn;
+            bool winding = _boost.Winding;
+            float mult = _boost.Multiplier, push = _boost.Push;
 
             if (grounded > 0)
             {
-                Vector3 ground = (normal / grounded).normalized;
-                Vector3 fwd = Vector3.ProjectOnPlane(transform.forward, ground).normalized;
-                Vector3 right = Vector3.Cross(ground, fwd);
-                float speed = Vector3.Dot(v, fwd);
-
-                // Engine and brakes: ease the forward speed toward the target.
+                // Engine and brakes: ease the forward speed toward the target (a boost raises the top speed).
                 float target, rate;
-                if (ForceBrake || (Mathf.Abs(throttle) > 0.05f && Mathf.Sign(throttle) != Mathf.Sign(speed) && Mathf.Abs(speed) > 0.5f * s))
+                if (winding)
+                { target = 0f; rate = settings.braking * s; }   // winding: held still while the spring tightens
+                else if (ForceBrake || (Mathf.Abs(throttle) > 0.05f && Mathf.Sign(throttle) != Mathf.Sign(speed) && Mathf.Abs(speed) > 0.5f * s))
                 { target = 0f; rate = settings.braking * s; }
                 else if (Mathf.Abs(throttle) > 0.05f)
-                { target = throttle > 0f ? throttle * settings.maxSpeed * s : throttle * settings.reverseSpeed * s; rate = settings.acceleration * s; }
+                { target = throttle > 0f ? throttle * top * mult : throttle * settings.reverseSpeed * s; rate = settings.acceleration * s; }
                 else
                 { target = 0f; rate = settings.coastDrag * s * (handbrake ? 3f : 1f); }
-                if (Mathf.Abs(speed) > Mathf.Abs(target) && Mathf.Sign(speed) == Mathf.Sign(target) && Mathf.Abs(throttle) > 0.05f) rate = settings.coastDrag * s;
+                if (!winding && Mathf.Abs(speed) > Mathf.Abs(target) && Mathf.Sign(speed) == Mathf.Sign(target) && Mathf.Abs(throttle) > 0.05f) rate = settings.coastDrag * s;
                 float next = Mathf.MoveTowards(speed, target, rate * dt);
                 _rb.AddForce(fwd * ((next - speed) / dt * share), ForceMode.Acceleration);
 
-                // Grip: sideways sliding dies away (much less with the handbrake: drift).
-                float lateral = Vector3.Dot(v, right);
-                float grip = handbrake ? settings.handbrakeGrip : settings.grip;
+                // Boost: a push along the nose up to the raised top speed (never against the brakes).
+                if (push > 0f && !winding && !ForceBrake && throttle > -0.05f)
+                {
+                    float cap = top * mult;
+                    float room = Mathf.Clamp01((cap - speed) / Mathf.Max(0.01f, 0.1f * cap));
+                    if (room > 0f) _rb.AddForce(fwd * (tuning.push * settings.acceleration * s * push * room * share), ForceMode.Acceleration);
+                }
+
+                // Grip: sideways sliding dies away (much less with the handbrake: drift; full grip while winding).
+                float grip = handbrake && !winding ? settings.handbrakeGrip : settings.grip;
                 _rb.AddForce(-right * (lateral * Mathf.Min(grip * dt, 1f) / dt * share), ForceMode.Acceleration);
 
                 // Steering: a yaw rate that grows with speed (and flips in reverse).
@@ -335,7 +533,11 @@ namespace ShiftJam
                 _rb.angularVelocity = av + ground * ((yawRate - current) * Mathf.Min(1f, 10f * dt) * share);
 
                 // A little downforce at speed keeps it on the track over crests.
-                _rb.AddForce(-ground * (g * settings.downforce * Mathf.Clamp01(Mathf.Abs(speed) / (settings.maxSpeed * s)) * share), ForceMode.Acceleration);
+                _rb.AddForce(-ground * (g * settings.downforce * Mathf.Clamp01(Mathf.Abs(speed) / top) * share), ForceMode.Acceleration);
+
+                // Winding: the rear is pressed down onto its springs, so the car squats back.
+                if (winding && _boost.Wind > 0f)
+                    _rb.AddForceAtPosition(-up * (settings.windSquat * g * _boost.Wind * _rb.mass), transform.TransformPoint(_rearAxle), ForceMode.Force);
             }
             else
             {
@@ -406,6 +608,32 @@ namespace ShiftJam
                     engine.volume = Mathf.Lerp(0.25f, 0.6f, t);
                 }
             }
+
+            if (_fx != null)
+            {
+                if (Parked || Wrecked) _fx.StopAll();
+                else
+                {
+                    var tuning = Tuning;
+                    bool sliding = _slip > tuning.driftMinSlip && ChaseGrounded;
+                    _fx.Tick(dt, _boost.Boosting, sliding, _boost.WindGrowing, _boost.Wind, _boost.Launching, tuning.keySpin, windClip);
+                }
+                _fx.Smoke(SmokeAmount());
+            }
+
+            // Mending while driving (D-0038): after a few seconds without a hit, health climbs back.
+            if (settings != null && _driver != null && !Wrecked && _health.Health < _health.MaxHealth && Time.time - _lastHurt >= settings.regenDelay)
+                _health.Heal(_health.MaxHealth * settings.regenPerSecond * dt);
+        }
+
+        /// <summary>Bonnet smoke: none when healthy, a wisp under settings.smokeBelow of full health that thickens as it drops,
+        /// thick while wrecked.</summary>
+        private float SmokeAmount()
+        {
+            if (_health == null || settings == null) return 0f;
+            if (Wrecked) return 1f;
+            float share = _health.Health / Mathf.Max(1f, _health.MaxHealth);
+            return share < settings.smokeBelow ? Mathf.Lerp(0.2f, 0.8f, 1f - share / Mathf.Max(0.01f, settings.smokeBelow)) : 0f;
         }
 
         private void OnCollisionEnter(Collision c)
@@ -436,12 +664,26 @@ namespace ShiftJam
                     Knockback.Apply(motor.gameObject, (away * settings.ramKnockback + Vector3.up * 3f) * s, motor.transform.position);
                 }
             }
-            if (speed > settings.crashMinSpeed && Time.time >= _nextCrash)
+            // A crash is how hard the car hit INTO the surface (the speed along the contact normal), not its whole speed:
+            // rolling onto a ramp or scraping a wall barely counts, a head-on hit or a hard flat landing does (D-0038).
+            float impact = Impact(c) / s;
+            if (impact > settings.crashMinSpeed && Time.time >= _nextCrash)
             {
                 _nextCrash = Time.time + 0.35f;
-                _health.Hit(new DamageInfo((speed - settings.crashMinSpeed) * settings.crashDamagePerSpeed, Vector3.zero, transform.position, c.transform));
-                Play(crashClip, Mathf.Clamp01(speed / (settings.crashMinSpeed * 2f)), 1.1f);
+                _health.Hit(new DamageInfo((impact - settings.crashMinSpeed) * settings.crashDamagePerSpeed, Vector3.zero, transform.position, c.transform));
+                Play(crashClip, Mathf.Clamp01(impact / (settings.crashMinSpeed * 2f)), 1.1f);
             }
+        }
+
+        /// <summary>The fastest closing speed along any contact's normal, world units per second.</summary>
+        private static float Impact(Collision c)
+        {
+            int n = c.contactCount;
+            Vector3 rv = c.relativeVelocity;
+            if (n == 0) return rv.magnitude;
+            float most = 0f;
+            for (int i = 0; i < n; i++) most = Mathf.Max(most, Mathf.Abs(Vector3.Dot(rv, c.GetContact(i).normal)));
+            return most;
         }
 
         private void Play(AudioClip clip, float volume, float pitch)

@@ -1,0 +1,14 @@
+Driving HUD fonts and icon: where they come from and their licences
+
+Teko-Bold.ttf        Copyright 2023 The Teko Project Authors (https://www.github.com/googlefonts/teko)
+                     SIL Open Font License 1.1, full text in Teko-OFL.txt.
+Fredoka-SemiBold.ttf Copyright 2016 The Fredoka Project Authors (https://github.com/hafontia/Fredoka-One)
+                     SIL Open Font License 1.1, full text in Fredoka-OFL.txt.
+
+Both are Google Fonts. They were taken out of the ModularUI Asset Store package, but the OFL lets them be shared, so
+these two TTFs, their OFL texts and the TextMeshPro font assets made from them (Resources/HUD/Teko SDF.asset and
+Fredoka SDF.asset, made by Shift Jam > UI > Make HUD Fonts) may sit in the public repo. Keep each OFL text next to its
+font. Nothing else from ModularUI is in the project; the rest of that package stays out of the repo.
+
+Resources/HUD/keyboard_shift.png  Kenney Input Prompts 1.5 (www.kenney.nl), Creative Commons Zero (CC0 1.0, public
+                                  domain). May sit in the public repo.

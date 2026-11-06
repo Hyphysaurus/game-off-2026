@@ -136,8 +136,14 @@ namespace ShiftJam
             Header(sb, "DRIVING");
             Line(sb, Kb("Move"), "Drive and steer", Pad("Move"));
             Line(sb, Kb("Jump"), "Handbrake and drift (Cyber cars), hop (wooden car)", Pad("Jump"));
+            Line(sb, Kb("Sprint"), "Nitro: drifts, air time, stars and boost pads fill it", Pad("Sprint"));
+            Line(sb, "Stopped: W, then hold " + Kb("Jump"), "Wind up; let go of " + Kb("Jump") + " to launch", "Up, then hold " + Pad("Jump"));
             Line(sb, Kb("Interact"), "Get out", Pad("Interact"));
             Line(sb, Kb("Look"), "Look around; the camera swings back behind", Pad("Look"));
+            sb.Append('\n');
+            Header(sb, "RACE");
+            Line(sb, "Drive through the finish", "Start a 3-lap race; gates count in number order");
+            Line(sb, Kb("Interact"), "Getting out ends the race", Pad("Interact"));
             sb.Append('\n');
             Header(sb, "GARAGE (roll in slowly)");
             Line(sb, "Enter", "Drive out", "Start");

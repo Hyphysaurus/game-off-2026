@@ -298,7 +298,7 @@ namespace ShiftJam
             // a drivable toy car (D-0022): the wooden push car, big enough to sit in, parked by the entry facing into the room
             {
                 var car = Rest(Spawn("Wooden_Car_01", "ToyCar", r4, new Vector3(c.x - R4HalfX + 34f, 0, LaneZ - 10f), new Vector3(0, 90, 0), 1f), 0f, null);
-                var tc = car.AddComponent<ToyCar>(); Set(tc, "rollLoop", Clip("Toy_Car_Roll_v1")); Set(tc, "crash", Clip("Toy_Car_Crash_v1"));
+                var tc = car.AddComponent<ToyCar>(); Set(tc, "rollLoop", Clip("Toy_Car_Roll_v1")); Set(tc, "crash", Clip("Toy_Car_Crash_v1")); WorkshopPieces.WireBoostParts(tc);
                 var bc = car.AddComponent<BoxCollider>(); bc.isTrigger = true; var cb2 = B(car); bc.center = car.transform.InverseTransformPoint(cb2.center); bc.size = new Vector3(cb2.size.x, cb2.size.y, cb2.size.z) + Vector3.one * 2f;
             }
             // ---- dressing, our own composition with the pack's props (D-0019: no showroom copy): one zone per corner and side,
@@ -1058,7 +1058,7 @@ namespace ShiftJam
             for (int i = 0; i < 4; i++) Rest(Spawn("Mat_0" + (1 + i), "Mat", layout, new Vector3(60f + (i % 2) * 25.5f, 0, -40f + (i / 2) * 25.5f), Vector3.zero, 1f), 0.05f, null);
             // the toy car, parked facing north by the south wall
             var car = Rest(Spawn("Wooden_Car_01", "ToyCar", layout, new Vector3(0f, 0, -200f), Vector3.zero, 1f), 0f, null);
-            var tc = car.AddComponent<ToyCar>(); Set(tc, "rollLoop", Clip("Toy_Car_Roll_v1")); Set(tc, "crash", Clip("Toy_Car_Crash_v1"));
+            var tc = car.AddComponent<ToyCar>(); Set(tc, "rollLoop", Clip("Toy_Car_Roll_v1")); Set(tc, "crash", Clip("Toy_Car_Crash_v1")); WorkshopPieces.WireBoostParts(tc);
             var tbc = car.AddComponent<BoxCollider>(); tbc.isTrigger = true; var cbb = B(car); tbc.center = car.transform.InverseTransformPoint(cbb.center); tbc.size = cbb.size + Vector3.one * 2f;
             Wedge("Kicker", layout, new Vector3(0f, 0f, -120f), Vector3.forward, 4f, 12f, 24f);
 
@@ -1159,26 +1159,12 @@ namespace ShiftJam
         /// <paramref name="length"/>, climbing along <paramref name="climb"/> with its high edge at <paramref name="high"/>
         /// (x/z), resting its base on high.y. The wedge's own slope axis and high end are read from the mesh, so the
         /// prefab's orientation does not matter.</summary>
-        static GameObject Wedge(string name, Transform parent, Vector3 high, Vector3 climb, float rise, float length, float width)
+        static GameObject Wedge(string name, Transform parent, Vector3 high, Vector3 climb, float rise, float length, float width, bool leadIn = true)
         {
             var go = Spawn("Ramp_02", name, parent, Vector3.zero, Vector3.zero, 1f);
             var mf = go.GetComponentInChildren<MeshFilter>(); var mb = mf.sharedMesh.bounds;
-            Vector3[] v = mf.sharedMesh.vertices; float xPos = 0, xNeg = 0, zPos = 0, zNeg = 0; int nxp = 0, nxn = 0, nzp = 0, nzn = 0;
-            foreach (var p in v)
-            {
-                if (p.x > mb.center.x + mb.extents.x * 0.6f) { xPos += p.y; nxp++; } else if (p.x < mb.center.x - mb.extents.x * 0.6f) { xNeg += p.y; nxn++; }
-                if (p.z > mb.center.z + mb.extents.z * 0.6f) { zPos += p.y; nzp++; } else if (p.z < mb.center.z - mb.extents.z * 0.6f) { zNeg += p.y; nzn++; }
-            }
-            float dx = (nxp > 0 ? xPos / nxp : 0) - (nxn > 0 ? xNeg / nxn : 0), dz = (nzp > 0 ? zPos / nzp : 0) - (nzn > 0 ? zNeg / nzn : 0);
-            bool alongZ = Mathf.Abs(dz) >= Mathf.Abs(dx);
-            Vector3 upLocal = alongZ ? (dz > 0 ? Vector3.forward : Vector3.back) : (dx > 0 ? Vector3.right : Vector3.left);   // the local way it climbs
+            WedgeShape(mf.sharedMesh, out Vector3 upLocal, out bool alongZ, out float lip);
             Vector3 size = mb.size;
-            // The pack ramp ends in a raised lip at its low edge. Scaled up, that lip is a wall taller than the player's
-            // step, so size the slope (not the whole mesh) to the rise and sink the lip under whatever it sits on.
-            float lowEnd = alongZ ? (upLocal.z > 0 ? mb.min.z : mb.max.z) : (upLocal.x > 0 ? mb.min.x : mb.max.x);
-            float band = (alongZ ? size.z : size.x) * 0.08f, lip = 0f;
-            foreach (var p in v) if (Mathf.Abs((alongZ ? p.z : p.x) - lowEnd) <= band) lip = Mathf.Max(lip, p.y - mb.min.y);
-            lip = Mathf.Min(lip, size.y * 0.25f);
             float sy = rise / (size.y - lip);
             go.transform.localScale = alongZ ? new Vector3(width / size.x, sy, length / size.z) : new Vector3(length / size.x, sy, width / size.z);
             Vector3 flat = new Vector3(climb.x, 0f, climb.z).normalized, cross = new Vector3(-flat.z, 0f, flat.x);
@@ -1188,7 +1174,95 @@ namespace ShiftJam
             go.transform.position += flat * Vector3.Dot(high - highEdge, flat) + cross * Vector3.Dot(high - b.center, cross) + Vector3.up * (high.y - b.min.y - lip * sy);
             go.AddComponent<RestSink>().Set(lip);   // so Build Mode keeps the toe sunk when the ramp is placed or moved
             Log.AppendLine($"{name}: rise {rise:F1} over {length:F0} = {Mathf.Atan2(rise, length) * Mathf.Rad2Deg:F0} deg, lip {lip * sy:F2} sunk");
+            if (leadIn) LeadIn(name, parent, high, climb, rise, length, width);
             return go;
+        }
+
+        /// <summary>The pack wedge's shape from its vertices: the local way it climbs and the raised lip at its low edge (mesh
+        /// units). Scaled up, that lip is a wall taller than the player's step, so Wedge sizes the slope (not the whole mesh)
+        /// to the rise and sinks the lip under whatever it sits on.</summary>
+        static void WedgeShape(Mesh mesh, out Vector3 upLocal, out bool alongZ, out float lip)
+        {
+            var mb = mesh.bounds;
+            Vector3[] v = mesh.vertices; float xPos = 0, xNeg = 0, zPos = 0, zNeg = 0; int nxp = 0, nxn = 0, nzp = 0, nzn = 0;
+            foreach (var p in v)
+            {
+                if (p.x > mb.center.x + mb.extents.x * 0.6f) { xPos += p.y; nxp++; } else if (p.x < mb.center.x - mb.extents.x * 0.6f) { xNeg += p.y; nxn++; }
+                if (p.z > mb.center.z + mb.extents.z * 0.6f) { zPos += p.y; nzp++; } else if (p.z < mb.center.z - mb.extents.z * 0.6f) { zNeg += p.y; nzn++; }
+            }
+            float dx = (nxp > 0 ? xPos / nxp : 0) - (nxn > 0 ? xNeg / nxn : 0), dz = (nzp > 0 ? zPos / nzp : 0) - (nzn > 0 ? zNeg / nzn : 0);
+            alongZ = Mathf.Abs(dz) >= Mathf.Abs(dx);
+            upLocal = alongZ ? (dz > 0 ? Vector3.forward : Vector3.back) : (dx > 0 ? Vector3.right : Vector3.left);   // the local way it climbs
+            Vector3 size = mb.size;
+            float lowEnd = alongZ ? (upLocal.z > 0 ? mb.min.z : mb.max.z) : (upLocal.x > 0 ? mb.min.x : mb.max.x);
+            float band = (alongZ ? size.z : size.x) * 0.08f;
+            lip = 0f;
+            foreach (var p in v) if (Mathf.Abs((alongZ ? p.z : p.x) - lowEnd) <= band) lip = Mathf.Max(lip, p.y - mb.min.y);
+            lip = Mathf.Min(lip, size.y * 0.25f);
+        }
+
+        /// <summary>
+        /// A gentler start for a wedge ramp (D-0038): a thin wedge at half the slope runs in from the floor and meets the slope,
+        /// so a car takes the climb in two half-bends instead of one sharp one and its springs no longer bottom out at the foot
+        /// (the same at a landing ramp's run-out). It reaches out a fifth of the ramp's length (at most 8) past the toe; its
+        /// high end hides inside the ramp.
+        /// </summary>
+        static void LeadIn(string name, Transform parent, Vector3 high, Vector3 climb, float rise, float length, float width)
+        {
+            if (rise < 0.5f || length < 2f) return;
+            float tanT = rise / length, tanH = Mathf.Tan(Mathf.Atan(tanT) * 0.5f);
+            float before = Mathf.Min(length * 0.2f, 8f);
+            float onto = before * tanH / Mathf.Max(1e-4f, tanT - tanH);   // how far up the slope the two surfaces meet
+            float h = onto * tanT;
+            Vector3 flat = new Vector3(climb.x, 0f, climb.z).normalized;
+            Vector3 toe = high - flat * length;                             // the slope's foot, at the ramp's base height
+            Wedge(name + "Toe", parent, toe + flat * onto, climb, h, before + onto, width, false);
+        }
+
+        /// <summary>Adds the gentler start (D-0038) to the wedge ramps already standing in the open scenes without one: the ones
+        /// built straight into a scene (the Workshop's kicker, Greybox's car course). Piece copies (ClimbRamp, LandingRamp,
+        /// KickerSmall) take theirs from Build Traversal Pieces. Safe to run again.</summary>
+        [MenuItem("Shift Jam/Workshop/Add Ramp Lead-ins (open scenes)")]
+        public static void AddRampLeadIns()
+        {
+            Log.Clear();
+            int added = 0;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var s = SceneManager.GetSceneAt(i); if (!s.isLoaded) continue;
+                var ramps = new List<GameObject>();
+                foreach (var root in s.GetRootGameObjects())
+                    foreach (var sink in root.GetComponentsInChildren<RestSink>(true))
+                    {
+                        var go = sink.gameObject;
+                        if (go.name.EndsWith("Toe") || go.transform.parent == null) continue;
+                        if (PrefabUtility.GetOutermostPrefabInstanceRoot(go) != go) continue;   // inside a piece copy: its prefab carries it
+                        var source = PrefabUtility.GetCorrespondingObjectFromSource(go);
+                        if (source == null || source.name != "Ramp_02") continue;
+                        if (go.transform.parent.Find(go.name + "Toe") != null) continue;
+                        ramps.Add(go);
+                    }
+                foreach (var go in ramps) { LeadInFor(go); added++; }
+                if (ramps.Count > 0) EditorSceneManager.MarkSceneDirty(s);
+            }
+            Debug.Log($"RAMP LEAD-INS: {added} added. Save the scene(s).\n{Log}");
+        }
+
+        /// <summary>A lead-in for a wedge already standing in a scene: its rise, length, width, base and high edge read back
+        /// from its mesh, scale and place (Wedge in reverse).</summary>
+        static void LeadInFor(GameObject go)
+        {
+            var mesh = go.GetComponentInChildren<MeshFilter>().sharedMesh; var mb = mesh.bounds;
+            WedgeShape(mesh, out Vector3 upLocal, out bool alongZ, out float lip);
+            Vector3 scale = go.transform.lossyScale;
+            float length = Mathf.Abs(alongZ ? mb.size.z * scale.z : mb.size.x * scale.x);
+            float width = Mathf.Abs(alongZ ? mb.size.x * scale.x : mb.size.z * scale.z);
+            float rise = (mb.size.y - lip) * Mathf.Abs(scale.y);
+            Vector3 flat = Vector3.ProjectOnPlane(go.transform.rotation * upLocal, Vector3.up).normalized;
+            var b = B(go);
+            Vector3 highEdge = b.center + flat * (Mathf.Abs(flat.x) * b.extents.x + Mathf.Abs(flat.z) * b.extents.z);
+            highEdge.y = b.min.y + lip * Mathf.Abs(scale.y);   // the slope's base: the top of the sunk lip
+            LeadIn(go.name, go.transform.parent, highEdge, flat, rise, length, width);
         }
 
         /// <summary>A kid-carryable prop with the pick-up prompt.</summary>

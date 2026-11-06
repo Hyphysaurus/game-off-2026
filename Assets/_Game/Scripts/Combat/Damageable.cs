@@ -52,6 +52,8 @@ namespace ShiftJam
         public event Action<DamageInfo> Died;
         /// <summary>Raised when health is restored by ResetState or the refill.</summary>
         public event Action Restored;
+        /// <summary>A hit turned away by protection (a car's shield bubble, the moments after a hit).</summary>
+        public event Action<DamageInfo> Blocked;
 
         private void Awake()
         {
@@ -75,7 +77,8 @@ namespace ShiftJam
         /// <summary>Takes the hit. False when it was ignored (dead, protected or nothing to take).</summary>
         public bool Hit(in DamageInfo hit)
         {
-            if (Dead || hit.Amount <= 0f || Protected) return false;
+            if (Dead || hit.Amount <= 0f) return false;
+            if (Protected) { Blocked?.Invoke(hit); return false; }
             Health = Mathf.Max(0f, Health - hit.Amount);
             _safeUntil = Time.time + invulnerability;
             Flash();

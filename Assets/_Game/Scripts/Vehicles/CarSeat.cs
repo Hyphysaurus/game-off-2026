@@ -9,6 +9,8 @@ namespace ShiftJam
     /// handbrake, and the shoulder camera chases the car. E again gets out: going fast, the car brakes first and lets you
     /// out once slow; the exit spot is checked (ground under it, room to stand) on either side, behind, in front, then the
     /// last safe ground. A wreck throws the driver out at once, with a moment of protection.
+    /// While seated, Sprint (Shift) burns the car's nitro and, stopped, Jump + forward winds its pull-back launch (ArcadeCar).
+    /// Getting in and out sets <see cref="Driving.Vehicle"/> (the driving HUD and the race read it).
     /// </summary>
     [RequireComponent(typeof(ArcadeCar))]
     public sealed class CarSeat : MonoBehaviour, IInteractable
@@ -52,7 +54,8 @@ namespace ShiftJam
         {
             var rs = GetComponentsInChildren<Renderer>();
             Bounds b = rs.Length > 0 ? rs[0].bounds : new Bounds(transform.position, Vector3.one);
-            foreach (var r in rs) if (r != null && !(_driver != null && r.transform.IsChildOf(_driver))) b.Encapsulate(r.bounds);
+            foreach (var r in rs)
+                if (r != null && !(r is ParticleSystemRenderer) && !(_driver != null && r.transform.IsChildOf(_driver))) b.Encapsulate(r.bounds);   // flames trail far behind
             return b;
         }
 
@@ -104,6 +107,7 @@ namespace ShiftJam
             _wantsOut = false;
             _camera = FindFirstObjectByType<ShoulderCamera>();
             if (_camera != null) _camera.SetChase(transform, 0f, _car.Settings != null ? _car.Settings.chaseDistance : 1.8f);
+            Driving.Set(transform);
         }
 
         private void Park(Behaviour b)
@@ -140,7 +144,8 @@ namespace ShiftJam
             Transform driver = _driver;
             _input.Interact -= OnExitPressed;
             _car.Drive(null);
-            driver.SetParent(_driverParent, true);
+            // Unity refuses a reparent while this car is being switched off (Play stopping, a scene unloading): skip it then.
+            if (!Driving.Quitting && gameObject.activeInHierarchy) driver.SetParent(_driverParent, true);
             foreach (var r in _hidden) if (r != null) r.forceRenderingOff = false;
             _hidden.Clear();
             if (_cc != null) _cc.enabled = true;
@@ -153,13 +158,15 @@ namespace ShiftJam
                 _motor.Knock(thrown ? new Vector3(momentum.x, 5f * _motor.Scale, momentum.z) : momentum * 0.5f);
             }
             else driver.SetPositionAndRotation(spot, Quaternion.Euler(0f, yaw, 0f));
-            if (thrown && driver.TryGetComponent(out Damageable health)) health.Protect(1.5f);
+            var health = thrown ? driver.GetComponent<Damageable>() : null;   // plain form: Fast Script Reload breaks `&& TryGetComponent(out ...)`
+            if (health != null) health.Protect(1.5f);
             if (_camera != null) _camera.SetChase(null);
             Clear();
         }
 
         private void Clear()
         {
+            if (Driving.Vehicle == transform) Driving.Set(null);
             _driver = null; _input = null; _motor = null; _cc = null; _anim = null; _shifter = null;
             _wantsOut = false; _car.ForceBrake = false;
         }

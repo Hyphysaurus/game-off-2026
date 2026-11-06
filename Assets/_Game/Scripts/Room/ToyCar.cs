@@ -9,9 +9,14 @@ namespace ShiftJam
     /// back, steer), Jump hops. Physics is a hidden sliding ball (one rigidbody, never tips over); the car body follows
     /// the ball, faces where it steers and leans to the ground under it. At kid size it is a toy to look at.
     /// In Build Mode it is the other way round: the body is moved by hand and the ball waits, switched off; when Build
-    /// Mode lets go, the ball goes back under the body (sized to it) and takes over again.
+    /// Mode lets go, the ball goes back under the body (sized to it) and takes over again. Hold (the cannon) parks the ball
+    /// the same way.
+    /// Boosts (D-0037, IBoostable): bursts from pads, gates and the launch raise the top speed and push along the nose;
+    /// Sprint (Shift) burns the nitro meter, which air time, slides and pickups fill; stopped with forward held, Jump winds
+    /// the pull-back spring instead of hopping (the body tips back; Jump held first winds once the car lands still) and
+    /// letting go of Jump launches.
     /// </summary>
-    public sealed class ToyCar : MonoBehaviour, IInteractable, IBuildMoved, IChaseTarget
+    public sealed class ToyCar : MonoBehaviour, IInteractable, IBuildMoved, IChaseTarget, IBoostable
     {
         public static readonly List<ToyCar> All = new List<ToyCar>();
 
@@ -36,22 +41,48 @@ namespace ShiftJam
         [SerializeField, Tooltip("Wheel objects spun with speed; found by name if empty.")] private Transform[] wheels;
         [SerializeField] private AudioClip rollLoop, crash;
         [SerializeField] private UnityEvent onEnter, onExit;
+        [Header("Boosts (D-0037)")]
+        [SerializeField, Tooltip("Bursts, nitro, the pull-back launch and the effects' size.")] private BoostTuning boost = new BoostTuning();
+        [SerializeField, Tooltip("Degrees the body tips back (nose up) at full wind.")] private float windSquat = 6f;
+        [SerializeField, Tooltip("Exhaust flames while boosting (the Cyber pack's BoostFX), made at the rear at run time.")] private GameObject boostFxPrefab;
+        [SerializeField, Tooltip("Tyre smoke while sliding (the Cyber pack's DriftFX), made across the rear axle at run time.")] private GameObject driftFxPrefab;
+        [SerializeField, Tooltip("A wind-up key that turns while the spring winds (optional).")] private Transform windKey;
+        [SerializeField, Tooltip("The axis the key turns about, in the key's own space.")] private Vector3 windKeyAxis = Vector3.up;
+        [SerializeField, Tooltip("Played when a burst starts and when nitro lights.")] private AudioClip boostClip;
+        [SerializeField, Tooltip("Looped while the spring winds.")] private AudioClip windClip;
+        [SerializeField, Tooltip("Played on the pull-back launch.")] private AudioClip launchClip;
 
         private Rigidbody _ball; private SphereCollider _sphere; private float _radius, _yaw, _flip, _scaleAt;
-        private bool _held, _ignoreDirty;   // held: Build Mode is on, the body leads; dirty: the ball must skip the body's colliders again
+        private bool _held, _ignoreDirty;   // held: the ball waits and the body leads; dirty: the ball must skip the body's colliders again
+        private bool _buildHold, _outsideHold;   // why it is held: Build Mode is on, or Hold(true) (the cannon)
         private Vector3 _startPos; private Quaternion _startRot;
         private PlayerMotor _driverMotor; private PlayerInput _input; private Interactor _interactor; private CharacterController _cc; private Animator _anim;
         private Renderer[] _body; private Vector3 _bodyOffset; private ShoulderCamera _camera;
         private Transform _driver; private float _enteredAt; private bool _grounded; private AudioSource _audio; private Vector3 _groundNormal = Vector3.up;
+        private CarBoost _boost; private CarFx _fx;
+        private float _slip, _squat, _lastWhoosh = -10f; private bool _wasNitro;
 
         /// <summary>The physics ball, or null while Build Mode holds it.</summary>
         public Transform Ball => _ball != null && !_held ? _ball.transform : null;
         public float BallRadius => _radius;
+        /// <summary>The car's own pull down, units/s² (its ball does not use Unity's gravity): jump pads and the cannon aim with it.</summary>
+        public float Gravity => gravity;
         public bool Driving => _driver != null;
         public Vector3 ChaseVelocity => _ball != null && !_held ? _ball.linearVelocity : Vector3.zero;
         public float ChaseTopSpeed => topSpeed;
         public bool ChaseGrounded => _grounded;
         private readonly List<Renderer> _hiddenDriver = new List<Renderer>();   // only the car shows while driving
+
+        // ---------- IBoostable ----------
+        public float Nitro => _boost != null ? _boost.Nitro : 0f;
+        public bool Boosting => _boost != null && _boost.Boosting && _ball != null && !_held;
+        public float Wind => _boost != null ? _boost.Wind : 0f;
+        public bool Driven => _driver != null;
+
+        private void Awake()
+        {
+            _boost = new CarBoost(boost);
+        }
 
         private void OnEnable()
         {
@@ -66,6 +97,7 @@ namespace ShiftJam
         {
             All.Remove(this);
             if (_ball != null) _ball.gameObject.SetActive(false);   // deleted or hidden in Build Mode: the ball goes too
+            SetDriving(false);
         }
 
         private void OnDestroy()
@@ -75,7 +107,7 @@ namespace ShiftJam
 
         private void Start()
         {
-            _body = GetComponentsInChildren<Renderer>();
+            _body = BodyRenderers();
             var b = Bounds();
             _radius = Mathf.Clamp(b.size.y * 0.35f, 0.5f, Mathf.Min(b.size.x, b.size.z) * 0.4f);
             if (seat == Vector3.zero) seat = transform.InverseTransformPoint(new Vector3(b.center.x, b.min.y + b.size.y * 0.3f, b.center.z));
@@ -103,7 +135,19 @@ namespace ShiftJam
             if (_audio == null) _audio = gameObject.AddComponent<AudioSource>();
             _audio.playOnAwake = false; _audio.loop = true; _audio.clip = rollLoop; _audio.spatialBlend = 0.7f; _audio.volume = 0f; _audio.maxDistance = 120f; _audio.rolloffMode = AudioRolloffMode.Linear;
             if (rollLoop != null && !_audio.isPlaying) _audio.Play();
-            if (GameMode.Current == GameMode.Mode.Build) Hold();
+            _fx = new CarFx(transform, boostFxPrefab, driftFxPrefab, windKey, windKeyAxis, boostClip != null || windClip != null || launchClip != null);
+            PlaceFx();
+            _buildHold = GameMode.Current == GameMode.Mode.Build;
+            if (_buildHold || _outsideHold) HoldBall();
+        }
+
+        /// <summary>The body's renderers: not effects (a Build Mode copy carries the original's flames).</summary>
+        private Renderer[] BodyRenderers()
+        {
+            var all = GetComponentsInChildren<Renderer>();
+            var own = new List<Renderer>(all.Length);
+            foreach (var r in all) if (!(r is ParticleSystemRenderer)) own.Add(r);
+            return own.ToArray();
         }
 
         private Bounds Bounds()
@@ -111,6 +155,31 @@ namespace ShiftJam
             var rs = _body != null && _body.Length > 0 ? _body : GetComponentsInChildren<Renderer>();
             Bounds b = rs.Length > 0 ? rs[0].bounds : new Bounds(transform.position, Vector3.one);
             foreach (var r in rs) if (r != null) b.Encapsulate(r.bounds); return b;
+        }
+
+        /// <summary>Flames at the rear end at the rear wheels' height, smoke across the rear axle, sized by the body's length.</summary>
+        private void PlaceFx()
+        {
+            if (_fx == null) return;
+            if (!BuildBounds.Local(transform, out Bounds b)) return;
+            float nose = _flip > 90f ? -1f : 1f;   // the body's +Z is its nose unless flipped
+            float mid = 0f; int count = 0;
+            foreach (var w in wheels) if (w != null) { mid += transform.InverseTransformPoint(w.position).z * nose; count++; }
+            Vector3 axle = Vector3.zero; int rear = 0;
+            if (count > 0)
+            {
+                mid /= count;
+                foreach (var w in wheels)
+                {
+                    if (w == null) continue;
+                    Vector3 p = transform.InverseTransformPoint(w.position);
+                    if (p.z * nose < mid - 1e-4f) { axle += p; rear++; }
+                }
+            }
+            if (rear > 0) axle /= rear;
+            else axle = new Vector3(b.center.x, b.min.y + b.size.y * 0.25f, nose > 0f ? b.min.z + b.size.z * 0.2f : b.max.z - b.size.z * 0.2f);
+            float r = Mathf.Max(0.01f, axle.y - b.min.y);
+            _fx.Place(new Vector3(b.center.x, axle.y, nose > 0f ? b.min.z : b.max.z), new Vector3(b.center.x, b.min.y + 0.5f * r, axle.z), b.size.z, boost.fxScale);
         }
 
         /// <summary>The ball never hits the car's own colliders (switched-off ones are skipped: Unity refuses them, and a
@@ -140,6 +209,7 @@ namespace ShiftJam
             _enteredAt = Time.time;
             _input.Interact += GetOut; _input.Jump += Hop;
             _camera = FindFirstObjectByType<ShoulderCamera>(); if (_camera != null) _camera.SetChase(transform, _flip, chaseDistance);
+            SetDriving(true);
             onEnter?.Invoke();
         }
 
@@ -158,20 +228,92 @@ namespace ShiftJam
             var b = Bounds();
             Vector3 side = transform.right * (b.extents.x + 1.5f);
             Vector3 at = new Vector3(b.center.x, b.min.y + 0.2f, b.center.z) + side;
-            _driver.SetParent(null, true);
+            // Unity refuses a reparent while this car is being switched off (Play stopping, a scene unloading): skip it then.
+            if (!global::ShiftJam.Driving.Quitting && gameObject.activeInHierarchy) _driver.SetParent(null, true);
             foreach (var r in _hiddenDriver) if (r != null) r.forceRenderingOff = false;
             _hiddenDriver.Clear();
             _cc.enabled = true; _driverMotor.enabled = true; _interactor.enabled = true;
             _driverMotor.Warp(at, Quaternion.Euler(0f, transform.eulerAngles.y - _flip, 0f));
             _driver = null;
             if (_camera != null) _camera.SetChase(null);
+            SetDriving(false);
             onExit?.Invoke();
+        }
+
+        /// <summary>Tells the static Driving record this car is driven, or no longer (only if it was this car). Named in full:
+        /// this class's own Driving property hides it.</summary>
+        private void SetDriving(bool on)
+        {
+            if (on) global::ShiftJam.Driving.Set(transform);
+            else if (global::ShiftJam.Driving.Vehicle == transform) global::ShiftJam.Driving.Set(null);
         }
 
         private void Hop()
         {
             if (!Driving || !_grounded || _held) return;
+            Vector3 v = _ball.linearVelocity;
+            Vector3 fwd = Quaternion.Euler(0f, _yaw, 0f) * Vector3.forward;
+            // stopped with forward held: Jump winds the pull-back spring instead (held until Jump lets go)
+            if (_boost.CanWind(Feed(_input.Move, Vector3.Dot(new Vector3(v.x, 0f, v.z), fwd)))) { _boost.StartWind(); return; }
             _ball.AddForce(Vector3.up * Mathf.Sqrt(2f * gravity * hopHeight), ForceMode.VelocityChange);
+        }
+
+        /// <summary>What the boost needs to know this step.</summary>
+        private CarBoost.Feed Feed(Vector2 move, float along)
+        {
+            bool live = _driver != null && _input != null;
+            return new CarBoost.Feed
+            {
+                Driven = live && _input.isActiveAndEnabled,
+                Grounded = _grounded, Slip = _slip,
+                Sprint = live && _input.Sprint, Brake = live && _input.JumpHeld,
+                Throttle = move.y, Speed = along / Mathf.Max(0.01f, topSpeed),
+            };
+        }
+
+        // ------------------------------------------------------------------ boosts (IBoostable)
+
+        /// <summary>A burst: up to <paramref name="topSpeedMultiplier"/> times top speed for <paramref name="seconds"/>, pushed
+        /// along the nose, fading at the end. Ignored while held.</summary>
+        public void Boost(float topSpeedMultiplier, float seconds)
+        {
+            if (_boost == null || _ball == null || _held) return;
+            if (_boost.Burst(topSpeedMultiplier, seconds)) Whoosh();
+        }
+
+        public void AddNitro(float amount) { if (_boost != null) _boost.AddNitro(amount); }
+
+        /// <summary>Sets the car flying (jump pads, the cannon). A cannon's hold is let go first; Build Mode's is not.</summary>
+        public void Launch(Vector3 velocity)
+        {
+            if (_ball == null) return;
+            if (_outsideHold) Hold(false);
+            if (_held) return;
+            _ball.linearVelocity = velocity;
+        }
+
+        /// <summary>Holds the car still where it is, driver and all, the way Build Mode does (the body leads, the ball waits),
+        /// or lets it go: the ball goes back under the body wherever it was left.</summary>
+        public void Hold(bool held)
+        {
+            _outsideHold = held;
+            ApplyHold();
+        }
+
+        private void ApplyHold()
+        {
+            if (_ball == null) return;   // Start applies it
+            bool want = _buildHold || _outsideHold;
+            if (want && !_held) HoldBall();
+            else if (!want && _held) ReleaseBall();
+        }
+
+        /// <summary>The boost sound, at most four times a second (chained pads).</summary>
+        private void Whoosh()
+        {
+            if (_fx == null || Time.time - _lastWhoosh < 0.25f) return;
+            _lastWhoosh = Time.time;
+            _fx.Play(boostClip, 0.8f);
         }
 
         // ------------------------------------------------------------------ Build Mode
@@ -182,21 +324,24 @@ namespace ShiftJam
             if (_ball == null) return;   // not started yet: Start measures the pose it is given
             _startPos = PutBallUnder();
             _startRot = transform.rotation;
+            PlaceFx();   // effects ride in car space; this re-fits their sound range to a new scale
         }
 
-        /// <summary>Build Mode is on: the ball stops and switches its collider off, so Build Mode's rays and drags never
-        /// land on it, and the body stays where Build Mode puts it.</summary>
-        private void Hold()
+        /// <summary>Build Mode is on (or the cannon holds it): the ball stops and switches its collider off, so Build Mode's
+        /// rays and drags never land on it, and the body stays where it is put.</summary>
+        private void HoldBall()
         {
             _held = true;
             if (!_ball.isKinematic) _ball.linearVelocity = Vector3.zero;
             _ball.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;   // the only mode a kinematic body takes
             _ball.isKinematic = true;
             _sphere.enabled = false;
+            _boost.Halt();
+            if (_fx != null) _fx.StopAll();
         }
 
-        /// <summary>Build Mode let go: the ball goes under the body where it was left and drives it again.</summary>
-        private void Release()
+        /// <summary>Let go: the ball goes under the body where it was left and drives it again.</summary>
+        private void ReleaseBall()
         {
             _held = false;
             PutBallUnder();
@@ -244,13 +389,32 @@ namespace ShiftJam
             Vector3 fwd = Quaternion.Euler(0f, _yaw, 0f) * Vector3.forward;
             float along = Vector3.Dot(planar, fwd);
             Vector2 move = Driving ? _input.Move : Vector2.zero;
+            Vector3 side = planar - fwd * along;
+            _slip = _grounded ? side.magnitude / Mathf.Max(0.01f, topSpeed) : 0f;
+
+            // Boosts: bursts run down, nitro fills and burns, the pull-back spring winds or launches.
+            _boost.Tuning = boost;
+            var feed = Feed(move, along);
+            if (_boost.CanWind(feed)) _boost.StartWind();   // Jump held first (a hop, then landed still): winds too
+            float launched = _boost.Step(dt, feed);
+            if (launched > 0f && _fx != null) _fx.Play(launchClip, 0.6f + 0.4f * launched);
+            if (_boost.NitroOn && !_wasNitro) Whoosh();
+            _wasNitro = _boost.NitroOn;
+            float mult = _boost.Multiplier, push = _boost.Push;
+
             if (_grounded)
             {
-                float want = move.y * topSpeed;
+                float want = move.y > 0f ? move.y * topSpeed * mult : move.y * topSpeed;   // a boost raises the top speed
                 float rate = Mathf.Approximately(move.y, 0f) ? coastDrag : (Mathf.Sign(want) != Mathf.Sign(along) && Mathf.Abs(along) > 0.5f ? braking : acceleration);
+                if (_boost.Winding) { want = 0f; rate = braking; }   // winding: held still while the spring tightens
                 float next = Mathf.MoveTowards(along, want, rate * dt);
+                // a boost pushes along the nose up to the raised top speed (never against the brakes)
+                if (push > 0f && !_boost.Winding && move.y > -0.05f)
+                {
+                    float cap = topSpeed * mult;
+                    if (next < cap) next = Mathf.Min(cap, next + boost.push * acceleration * push * dt);
+                }
                 // grip: the sideways slide dies quickly, so the car goes where it points
-                Vector3 side = planar - fwd * along;
                 Vector3 newPlanar = fwd * next + Vector3.MoveTowards(side, Vector3.zero, 80f * dt);
                 _ball.linearVelocity = new Vector3(newPlanar.x, v.y, newPlanar.z);
                 float speed01 = Mathf.Clamp01(Mathf.Abs(next) / topSpeed);
@@ -259,28 +423,36 @@ namespace ShiftJam
                 _yaw += move.x * turnRate * dt * dir * Mathf.Lerp(pivotTurn, 1f, Mathf.Clamp01(speed01 * 3f));
             }
             else _yaw += move.x * turnRate * airTurn * dt;
-            if (_ball.position.y < -20f) { if (Driving) GetOut(); _ball.position = _startPos; _ball.linearVelocity = Vector3.zero; _yaw = _startRot.eulerAngles.y + _flip; }
+            if (_ball.position.y < -20f)
+            {
+                if (Driving) GetOut();
+                _ball.position = _startPos; _ball.linearVelocity = Vector3.zero; _yaw = _startRot.eulerAngles.y + _flip;
+                _boost.Reset();
+            }
         }
 
         private void Update()
         {
             if (_ball == null) return;
             bool build = GameMode.Current == GameMode.Mode.Build;
-            if (build && !_held) Hold();
-            else if (!build && _held) Release();
+            if (build != _buildHold) { _buildHold = build; ApplyHold(); }
             if (_held)
             {
                 if (_audio != null) _audio.volume = Mathf.MoveTowards(_audio.volume, 0f, Time.deltaTime * 3f);
+                if (_fx != null) _fx.StopAll();
                 return;
             }
             Vector3 bottom = _ball.position + Vector3.down * _radius;
-            Quaternion facing = Quaternion.Euler(0f, _yaw - _flip, 0f);
+            // winding tips the body back, nose up, about the way it drives
+            _squat = Mathf.MoveTowards(_squat, _boost.Winding ? windSquat * _boost.Wind : 0f, Mathf.Max(1f, windSquat) * 4f * Time.deltaTime);
+            Quaternion facing = Quaternion.Euler(0f, _yaw, 0f) * Quaternion.Euler(-_squat, 0f, 0f) * Quaternion.Euler(0f, -_flip, 0f);
             Quaternion lean = Quaternion.FromToRotation(Vector3.up, _grounded ? _groundNormal : Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, lean * facing, 12f * Time.deltaTime);
             transform.position = bottom + transform.rotation * _bodyOffset;
             float speed = new Vector3(_ball.linearVelocity.x, 0f, _ball.linearVelocity.z).magnitude;
             foreach (var w in wheels) if (w != null) w.Rotate(transform.right, speed * Time.deltaTime * 60f, Space.World);
             if (_audio != null) { _audio.volume = Mathf.MoveTowards(_audio.volume, _grounded ? Mathf.Clamp01(speed / topSpeed) * 0.6f : 0f, Time.deltaTime * 3f); _audio.pitch = 0.8f + speed / topSpeed * 0.6f; }
+            if (_fx != null) _fx.Tick(Time.deltaTime, _boost.Boosting, _grounded && _slip > boost.driftMinSlip, _boost.WindGrowing, _boost.Wind, _boost.Launching, boost.keySpin, windClip);
         }
 
     }

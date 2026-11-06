@@ -2,6 +2,23 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 6 Nov 2026 12:5x — LANDED `cdcfe34` (D-0037 + D-0038): boosts, HUD, race, impact-only crashes, bump stop, ramp lead-ins, hearts, shields, mending — UNPLAYED
+I opened Shift Jam for him (he closed NectarRush). The first launch stalled inside the startup code reload at zero CPU for
+10+ min (a bridge GetState had arrived as the reload began; log kept at scratchpad Editor-hung.log): killed it, relaunched,
+and stayed off the bridge until the main window showed: open in 23 s. Ran in order: UI > Make HUD Fonts; Build Combat &
+Vehicle Pieces (15 Cyber cars with flames/smoke, ToyRacer01..10, CarCannon); Build Boost Pieces (9); Build Race Pieces
+(11); Build Traversal Pieces (lead-ins in ClimbRamp/LandingRamp/KickerSmall); Build Catalog; with Greybox beside Workshop:
+Wire Car Boost Parts (both wooden cars) + Add Ramp Lead-ins (Workshop Kicker; Greybox Climb, Kicker, Landing); both saved.
+Placed in the Workshop (23 pieces, floor map checked, no clashes): race loop (finish (0,30) heading +X; gates 1-3 at
+(130,90), (0,150), (-130,90); TV (0,-15); podium (50,5)), boost lane along x 190 from z -185 (life ring, two arrows, star,
+arch, jump pad, star, tramp, ring, heart; fan pad (215,-110)), heart + star + life ring on the racing lines, the cannon at
+(-200,-170) facing north, ToyRacer04 (wind-up key) and ToyRacer01 behind the start line. Stills: Temp\shiftjam-stage\stills4.
+Known: the BoostArch and BoostRing openings (about 4 wide) fit the Cyber cars and racers, not the wooden car (4.2 wide).
+HIS PLAYTEST (Workshop): ToyRacer04 through the finish arch starts 3 laps (HUD top right, the TV); Shift = nitro; stopped,
+W then hold Space, let go = wind-up launch; the boost lane; stars, hearts, the life ring (8 s bubble); up the ClimbRamp
+(no damage, smooth), into a wall (damage), health bar + bonnet smoke under 30%; the cannon (roll slowly into its mouth);
+H for the new keys. Sounds were picked by name: his ear.
+
 ## 6 Nov 2026 12:1x — D-0038 BUILT + STAGED with D-0037; WAITING for him back in Shift Jam to land (he is playtesting NectarRush; Shift Jam's editor is closed) — CHECKPOINT
 His "proceed": crash = impact speed into the surface; bump stop; ramp lead-ins; repair hearts, life-ring shields,
 mending after 4 s, bonnet smoke, HUD health + shield. All staged in `shiftjam-stage/race/*` (+ integ: Damageable.Blocked,

@@ -2,6 +2,20 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 5 Nov 2026 19:2x — WORK ORDER DONE (his "proceed with all", he AFK): Workshop systems landed (D-0028), UNPLAYED
+Landed + wired + committed `d6a3859`, `722b2bc`, `de46794`: Build Mode (F3), first person (F4), weapons, practice
+targets, toy soldier, Cyber cars, traversal pieces (menu Shift Jam > Workshop > Build Traversal Pieces), F9 reset; the
+Workshop has a starter set of each; catalogue built (495 entries; Art/Thumbs + Resources/BuildCatalog.asset are
+git-ignored renders of the packs: rebuild via Build Catalog). Fixes on the way: ShoulderCamera.OnEnable re-locks the
+cursor; Build Mode waits a frame when entered straight from first person. Console: the "less than 64 characters" red
+error = Fast Script Reload's welcome popup (harmless); FSR's hot-patch rewriter breaks `&& x.TryGetComponent(out T v)`
+(BoxBurst rewritten). HIS PLAYTEST, in order: (1) course: drive the stunt run (start z -216 in R4), bounce a couch
+pillow as toy, walk the keyboard; (2) title menu → Workshop: F3 build (place, move, undo, save a layout), Play as toy,
+F4 first person (pick up + throw a box), take a dart pistol at the stands (west wall) and shoot the practice targets,
+the soldier (NE), drive a Cyber car (south); (3) feet sinking → F12 on the spot. Doubts to watch: knife/foam finger may
+sit backwards in the hand (fix handEuler/viewEuler on Prefabs/Weapons), soldier facing, car springs untuned, HL2 speeds
+at toy size untuned (settings assets in Data/). Toy Land stays until he checks the ports.
+
 ## 5 Nov 2026 19:0x — PROGRESS on the work order (he AFK) — CHECKPOINT
 DONE + COMMITTED: keyboard walk-off fix `d7ee9b8`; pillow pads in the scene `bc5dfda`; CAR (D-0026) `477a37e`: body on a
 fixed offset, turns slow/stopped, air steer, toy gravity 25, chase camera (`ShoulderCamera.SetChase`), and the STUNT RUN

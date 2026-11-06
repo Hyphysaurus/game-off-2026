@@ -85,7 +85,8 @@ namespace ShiftJam
             if (k.pageDownKey.wasPressedThisFrame) Run("next");
             if (k.pageUpKey.wasPressedThisFrame) Run("prev");
             if (k.f12Key.wasPressedThisFrame) Run("mark");
-            if (_fly) Fly(k);
+            if (k.f2Key.wasPressedThisFrame) Run("core");
+            if (_fly && GameMode.Current == GameMode.Mode.Play) Fly(k);   // Build Mode's WASD is its camera's
         }
 
         private void Fly(Keyboard k)
@@ -99,9 +100,13 @@ namespace ShiftJam
             if (d.sqrMagnitude > 0.01f && new Vector3(d.x, 0, d.z).sqrMagnitude > 0.01f) _player.transform.rotation = Quaternion.LookRotation(new Vector3(d.x, 0, d.z));
         }
 
+        /// <summary>True while the console is open and typing: other key readers (Build Mode, the garage) stand back.</summary>
+        public static bool IsOpen { get; private set; }
+
         private void SetOpen(bool open)
         {
             _open = open;
+            IsOpen = open;
             if (_input2 != null) _input2.enabled = !open;
             if (open) { _cursorKeep = Cursor.lockState; _cursorVisibleKeep = Cursor.visible; Cursor.lockState = CursorLockMode.None; Cursor.visible = true; _focusNext = true; }
             else { Cursor.lockState = _cursorKeep; Cursor.visible = _cursorVisibleKeep; }
@@ -124,6 +129,7 @@ namespace ShiftJam
                         Say("time <scale>   tune <MovementSettings field> [value] (no value = read; edits the ASSET in the editor)");
                         Say("set <object> <Component> <field> <value>   get <object> <Component> <field>   (live, any serialized field)");
                         Say("reveal (replays the playroom reveal from wherever you stand)");
+                        Say("core (F2): calls the Pocket Core, a shift core you can use anywhere, a step in front of you");
                         Say("workshop (load the Workshop sandbox) | course (back to the course scene)");
                         Say("save (here, active slot) | save clear (empties the active slot)");
                         Say("note <text> -> docs/PLAYTEST_NOTES.md with room, size, position   mark (F12) = note + screenshot   shot   clear");
@@ -136,6 +142,10 @@ namespace ShiftJam
                     case "reload": Time.timeScale = 1f; SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); break;
                     case "time": Time.timeScale = Mathf.Clamp(float.Parse(a[1]), 0f, 4f); Say("time scale " + Time.timeScale); break;
                     case "fly":
+                        // only on foot in play: Build Mode, first person and the car seats own the motor and capsule
+                        // while they are on, and switching them back on under those fights them (D-0030)
+                        if (GameMode.Current != GameMode.Mode.Play) { Say("fly: back to play first (F3 / F4 off)"); break; }
+                        if (!_fly && (!_motor.enabled || !_cc.enabled)) { Say("fly: not while driving or waking up"); break; }
                         _fly = !_fly; _motor.enabled = !_fly; _cc.enabled = !_fly;
                         if (!_fly) _motor.Warp(_player.transform.position, _player.transform.rotation);
                         Say("fly " + (_fly ? "ON" : "off")); break;
@@ -150,6 +160,7 @@ namespace ShiftJam
                     case "set": case "get": SetGet(a, cmd == "set"); break;
                     case "note": Note(line.Substring(4).Trim()); break;
                     case "mark": Note("mark"); Shot(); break;
+                    case "core": Say(PocketCore.Summon()); break;
                     case "shot": Shot(); break;
                     case "workshop": Time.timeScale = 1f; SceneManager.LoadScene(TitleMenu.WorkshopScene); break;
                     case "course": Time.timeScale = 1f; SceneManager.LoadScene("Greybox"); break;
@@ -285,7 +296,7 @@ namespace ShiftJam
         private void OnGUI()
         {
             Styles();
-            if (_hud && Bind()) DrawHud();
+            if (_hud && Bind() && GameMode.Current != GameMode.Mode.Build) DrawHud();   // Build Mode has its own toolbar and status line there
             if (_open) DrawConsole();
         }
 

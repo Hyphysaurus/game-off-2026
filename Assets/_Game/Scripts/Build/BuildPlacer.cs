@@ -100,6 +100,7 @@ namespace ShiftJam
         {
             var t = _ghost.transform;
             var placed = _world.Spawn(Entry, t.position, t.rotation);
+            placed.TellMoved();   // its home is where it landed, at the scale it was given after waking up
             _history.RecordCreated(new[] { placed });
             if (BuildInput.Shift) return;   // keep placing
             Cancel();

@@ -15,12 +15,16 @@ namespace ShiftJam
         private void Update()
         {
             if (interactor == null || label == null) return;
+            // The grab first: what it holds, or the prop under the aim. Then whatever is in reach. Then why the aimed-at
+            // prop can't be grabbed ("Too big"), then the hand-carry hint.
+            var grab = interactor.Grab;
+            bool grabOn = grab != null && grab.isActiveAndEnabled;
+            if (grabOn && !string.IsNullOrEmpty(grab.Hint)) { label.text = grab.Hint; return; }
             IInteractable target = interactor.Target;
             string words = target != null ? target.PromptFor(interactor) : "";
-            if (string.IsNullOrEmpty(words))
-                label.text = carrier != null && carrier.Held != null ? heldHint : "";
-            else
-                label.text = $"{keyName}  {words}";
+            if (!string.IsNullOrEmpty(words)) label.text = $"{keyName}  {words}";
+            else if (grabOn && !string.IsNullOrEmpty(grab.Why)) label.text = grab.Why;
+            else label.text = carrier != null && carrier.Held != null ? heldHint : "";
         }
     }
 }

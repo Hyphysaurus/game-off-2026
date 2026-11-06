@@ -34,6 +34,7 @@ namespace ShiftJam
         private PlayerInput _input;   // the driver's; only others switch it off (the console), and then they have the keys
         private ShoulderCamera _camera;
         private GameObject _menu;
+        private GraphicRaycaster _raycaster;
         private RectTransform _rows;
 
         private Transform Lift => lift != null ? lift : transform;
@@ -135,7 +136,10 @@ namespace ShiftJam
         {
             if (_docked == null) return;
             if (!_docked.Occupied || GameMode.Current != GameMode.Mode.Play) { Undock(); return; }   // got out, or left Play
-            if (_input != null && !_input.enabled) return;   // the console (or another menu) has the keys
+            // The console is drawn over the menu but cannot block its clicks: the menu stands down while it is open.
+            bool console = DebugConsole.IsOpen;
+            if (_raycaster != null && _raycaster.enabled == console) _raycaster.enabled = !console;
+            if (console || (_input != null && !_input.enabled)) return;   // the console (or another menu) has the keys
             var k = Keyboard.current; var pad = Gamepad.current;
             if ((k != null && (k.enterKey.wasPressedThisFrame || k.numpadEnterKey.wasPressedThisFrame)) || (pad != null && pad.startButton.wasPressedThisFrame)) Undock();
         }
@@ -176,6 +180,8 @@ namespace ShiftJam
             if (who != null) newSeat.Interact(who);
             _docked = car;
             _body = next;
+            // Build Mode's undo steps still name the old body; undoing one would bring it back beside the new one.
+            if (placed != null) Buildable.ReportReplaced();
             BuildRows();
         }
 
@@ -197,14 +203,14 @@ namespace ShiftJam
             var canvas = _menu.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 40;
             var scaler = _menu.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f); scaler.matchWidthOrHeight = 0.5f;
-            _menu.AddComponent<GraphicRaycaster>();
+            _raycaster = _menu.AddComponent<GraphicRaycaster>();
 
             var panel = BuildUiKit.Rect("Panel", _menu.transform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-40f, 0f), new Vector2(520f, 900f));
             BuildUiKit.Panel(panel, BuildUiKit.PanelColor);
             var title = BuildUiKit.Rect("Title", panel, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -16f), new Vector2(-32f, 56f));
             BuildUiKit.Label(title, "GARAGE", 40).fontStyle = FontStyles.Bold;
             var note = BuildUiKit.Rect("Note", panel, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -70f), new Vector2(-32f, 30f));
-            BuildUiKit.Label(note, "Repaired.  Enter: drive out   E: get out", 20).color = new Color(1f, 1f, 1f, 0.6f);
+            BuildUiKit.Label(note, "Repaired.  Enter: drive out   E: get out   Right drag / A D: look around", 18).color = new Color(1f, 1f, 1f, 0.6f);
 
             var area = BuildUiKit.Rect("Rows", panel, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, 0f), Vector2.zero);
             area.offsetMin = new Vector2(16f, 90f); area.offsetMax = new Vector2(-16f, -110f);
@@ -272,7 +278,7 @@ namespace ShiftJam
         private void CloseMenu()
         {
             if (_menu != null) Destroy(_menu);
-            _menu = null; _rows = null;
+            _menu = null; _rows = null; _raycaster = null;
             if (_camera != null) _camera.SetMenuHold(false);   // takes the mouse back if running (Build Mode may have it off)
             _camera = null; _input = null;
         }

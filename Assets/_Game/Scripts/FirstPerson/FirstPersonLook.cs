@@ -6,12 +6,13 @@ namespace ShiftJam
     /// The first-person eyes: mouse look (yaw turns the body, pitch tilts the view), the camera at the body's eye height
     /// (easing through crouches), a subtle walking bob, view punch from recoil and hits, and an HL2 field of view (90 across
     /// a 4:3 screen; wide screens keep that vertical angle). Holding the rotate key while carrying a prop turns the prop
-    /// instead of the view. Drives the scene's main camera directly while first person is on.
+    /// instead of the view. A hit taken kicks the view and flashes the screen red. Drives the scene's main camera directly
+    /// while first person is on.
     /// </summary>
     [DefaultExecutionOrder(50)]   // after the body moved, before the weapon view model is posed
     public sealed class FirstPersonLook : MonoBehaviour
     {
-        private const float PunchStiffness = 120f, PunchDamping = 16f;
+        private const float PunchStiffness = 120f, PunchDamping = 16f, HurtFade = 0.35f;
 
         private FirstPersonSettings _s;
         private PlayerInput _input;
@@ -20,6 +21,7 @@ namespace ShiftJam
         private PhysicsGrabber _hands;
         private Vector2 _punch, _punchVelocity;
         private float _bobPhase, _bobWeight;
+        private float _hurtAlpha, _hurtAt = -10f;
 
         public float Yaw { get; private set; }
         public float Pitch { get; private set; }
@@ -39,6 +41,26 @@ namespace ShiftJam
 
         /// <summary>Kicks the view by these degrees (x = pitch, negative is up; y = yaw); it springs back.</summary>
         public void Punch(Vector2 degrees) => _punchVelocity += degrees * 18f;
+
+        /// <summary>A hit taken, as a share of full health: the view kicks up and the screen flashes red, harder for bigger hits.</summary>
+        public void Hurt(float share)
+        {
+            float k = Mathf.Clamp(0.5f + share * 5f, 0.5f, 2f);
+            Punch(new Vector2(-3f * k, Random.Range(-2f, 2f) * k));
+            _hurtAlpha = Mathf.Clamp(0.2f + share * 1.5f, 0.2f, 0.5f);
+            _hurtAt = Time.unscaledTime;
+        }
+
+        private void OnGUI()
+        {
+            if (Event.current.type != EventType.Repaint) return;
+            float a = _hurtAlpha * (1f - (Time.unscaledTime - _hurtAt) / HurtFade);
+            if (a <= 0f) return;
+            var old = GUI.color;
+            GUI.color = new Color(0.8f, 0.05f, 0.02f, a);
+            GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
+            GUI.color = old;
+        }
 
         private void OnEnable() { Cursor.lockState = CursorLockMode.Locked; Cursor.visible = false; }
 

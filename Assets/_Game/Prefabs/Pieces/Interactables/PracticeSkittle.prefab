@@ -71,7 +71,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.Damageable
   maxHealth: 120
-  invulnerability: 0.05
+  invulnerability: 0
   flashColor: {r: 1, g: 0.45, b: 0.2, a: 1}
   flashSeconds: 0.1
   takeKnockback: 0

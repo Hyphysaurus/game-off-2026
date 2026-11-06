@@ -8,7 +8,9 @@ namespace ShiftJam
     /// Owner of GameMode.Build (the Workshop's Two Point Museum / Planet Zoo style editor). F3 toggles it; Escape steps
     /// back (close window → cancel placing → clear selection → leave). While on, the player is paused (input, motor,
     /// shoulder camera and size key off; physics keeps running so placed props settle), the cursor is free, and the
-    /// main camera is driven by BuildCamera. Leaving gives everything back as it was.
+    /// main camera is driven by BuildCamera. Leaving gives everything back as it was. The car the player sits in can't be
+    /// selected; an undo, a load, Start empty or Play-as that needs it puts the player out of it first. While the debug
+    /// console is open, Build Mode ignores the keyboard and the mouse.
     /// Put one on any object in a scene with a Player. The work is split: BuildWorld (spawning, layouts), BuildPlacer
     /// (ghost), BuildSelection (editing), BuildHistory (undo), BuildUI (screen).
     /// </summary>
@@ -31,6 +33,7 @@ namespace ShiftJam
 
         private Transform _player;
         private PlayerInput _input; private PlayerMotor _motor; private Shifter _shifter; private ShoulderCamera _shoulder;
+        private CharacterController _capsule;
         private bool _inputWas, _motorWas, _shifterWas, _shoulderWas;
         private bool[] _hiddenWas = new bool[0];
         private bool _on;
@@ -55,12 +58,17 @@ namespace ShiftJam
                 _input = playerGo.GetComponent<PlayerInput>();
                 _motor = playerGo.GetComponent<PlayerMotor>();
                 _shifter = playerGo.GetComponent<Shifter>();
+                _capsule = playerGo.GetComponent<CharacterController>();
             }
             _shoulder = FindFirstObjectByType<ShoulderCamera>();
             if (buildCamera == null)
             {
                 var cam = _shoulder != null ? _shoulder.GetComponent<UnityEngine.Camera>() : UnityEngine.Camera.main;
-                if (cam != null && !cam.TryGetComponent(out buildCamera)) buildCamera = cam.gameObject.AddComponent<BuildCamera>();
+                if (cam != null)
+                {
+                    buildCamera = cam.GetComponent<BuildCamera>();
+                    if (buildCamera == null) buildCamera = cam.gameObject.AddComponent<BuildCamera>();
+                }
             }
             if (buildCamera != null) buildCamera.enabled = false;
             if (catalog == null) catalog = BuildCatalog.Load();
@@ -86,12 +94,20 @@ namespace ShiftJam
             if (GameMode.Current == GameMode.Mode.Build && !_on) Enter();
         }
 
-        private void OnEnable() { GameMode.Changed += OnModeChanged; }
+        private void OnEnable() { GameMode.Changed += OnModeChanged; Buildable.Replaced += OnReplacedElsewhere; }
 
         private void OnDisable()
         {
             GameMode.Changed -= OnModeChanged;
+            Buildable.Replaced -= OnReplacedElsewhere;
             if (_on) Exit();
+        }
+
+        // A piece was swapped outside Build Mode (the garage): undo steps naming the old one would bring it back.
+        private void OnReplacedElsewhere()
+        {
+            History?.Clear();
+            Selection?.Prune();
         }
 
         private void OnDestroy()
@@ -130,6 +146,8 @@ namespace ShiftJam
         private void Enter()
         {
             _on = true;
+            // A shift paused halfway would freeze its full-screen tear over the build view: finish it now (no events).
+            if (_shifter != null && _shifter.Shifting) _shifter.SetSizeNow(_shifter.Size);
             _inputWas = Pause(_input); _motorWas = Pause(_motor); _shifterWas = Pause(_shifter); _shoulderWas = Pause(_shoulder);
             Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
             _hiddenWas = new bool[hideWhileBuilding.Length];
@@ -158,7 +176,10 @@ namespace ShiftJam
             _ui.SetVisible(false);
             buildCamera.End();
             for (int i = 0; i < hideWhileBuilding.Length && i < _hiddenWas.Length; i++) if (hideWhileBuilding[i] != null) hideWhileBuilding[i].SetActive(_hiddenWas[i]);
-            Resume(_input, _inputWas); Resume(_motor, _motorWas); Resume(_shifter, _shifterWas); Resume(_shoulder, _shoulderWas);
+            // An open console keeps input off and turns it on when it closes. The motor only comes back with its capsule:
+            // whoever switched the capsule off meanwhile (console fly) has it.
+            Resume(_input, _inputWas && !BuildInput.ConsoleOpen); Resume(_motor, _motorWas && (_capsule == null || _capsule.enabled));
+            Resume(_shifter, _shifterWas); Resume(_shoulder, _shoulderWas);
             // The cursor stays free: the shoulder camera takes it back on the next click in the game view.
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
         }
@@ -170,6 +191,33 @@ namespace ShiftJam
         }
 
         private static void Resume(Behaviour b, bool was) { if (b != null) b.enabled = was; }
+
+        /// <summary>Keeps the player paused and the cursor free while building. Whoever switches a part back on meanwhile
+        /// (the console closing, a seat letting go) wants it on afterwards, so that is what leaving gives back. A shift
+        /// started meanwhile (the console's F8) ends at once: the paused Shifter would freeze its screen tear halfway.</summary>
+        private void KeepPaused()
+        {
+            if (_shifter != null && _shifter.Shifting) _shifter.SetSizeNow(_shifter.Size);
+            if (_input != null && _input.enabled) { _inputWas = true; _input.enabled = false; }
+            if (_motor != null && _motor.enabled) { _motorWas = true; _motor.enabled = false; }
+            if (_shoulder != null && _shoulder.enabled) { _shoulderWas = true; _shoulder.enabled = false; }
+            if (Cursor.lockState != CursorLockMode.None) Cursor.lockState = CursorLockMode.None;
+            if (!Cursor.visible) Cursor.visible = true;
+        }
+
+        /// <summary>Gets the player out of the car it sits in, now. Called before Build Mode hides, removes or re-poses that
+        /// car, or plays from somewhere else: once the car is being switched off its seat can no longer let go.</summary>
+        private void EjectPlayer()
+        {
+            if (_player == null || _player.parent == null) return;
+            var seat = _player.GetComponentInParent<CarSeat>();
+            var toyCar = _player.GetComponentInParent<ToyCar>();
+            if (seat != null && seat.Driver == _player) seat.GetOut(false);
+            else if (toyCar != null && toyCar.Driving) toyCar.Eject();
+            else return;   // not in a car
+            if (_motor != null) _motor.Warp(_player.position, _player.rotation);   // no car momentum left to slide on later
+            if (_on) KeepPaused();   // the seat gave the motor back: remember that, and keep it off until we leave
+        }
 
         // ------------------------------------------------------------------ per frame
 
@@ -187,12 +235,9 @@ namespace ShiftJam
                 return;
             }
             if (!_on) return;
-            // Something else (the debug console closing, say) may switch the player back on: keep it paused.
-            if (_input != null && _input.enabled) _input.enabled = false;
-            if (_motor != null && _motor.enabled) _motor.enabled = false;
-            if (_shoulder != null && _shoulder.enabled) _shoulder.enabled = false;
+            KeepPaused();
 
-            bool overUI = BuildInput.OverUI;
+            bool overUI = BuildInput.OverUI;   // also true while the console is open, so the wheel, drags and clicks stay off
             buildCamera.KeysBlocked = typing;
             buildCamera.WheelBlocked = overUI || BuildInput.Ctrl || BuildInput.Alt;
 
@@ -242,7 +287,8 @@ namespace ShiftJam
             int n = Selection.Items.Count;
             if (n == 1 && Selection.Items[0] != null) return $"<b>{Selection.Items[0].name}</b> selected   <alpha=#99>drag move · R turn · + − scale · [ ] raise · Ctrl+D copy · Del delete · F frame · H all keys";
             if (n > 1) return $"<b>{n}</b> selected   <alpha=#99>drag move · R turn · + − scale · [ ] raise · Ctrl+D copy · Del delete · F frame";
-            return "<alpha=#bb>Pick something from the catalogue, or click a thing in the room to edit it · H shows every key · F3 / Esc back to play";
+            string seated = World.PlayerSeatedIn != null ? " (not the car you are in: get out first)" : "";
+            return $"<alpha=#bb>Pick something from the catalogue, or click a thing in the room to edit it{seated} · H shows every key · F3 / Esc back to play";
         }
 
         // ------------------------------------------------------------------ commands (UI and keys)
@@ -254,8 +300,9 @@ namespace ShiftJam
             Placer.Begin(entry);
         }
 
-        public void Undo() { Placer.Cancel(); History.Undo(); Selection.Prune(); }
-        public void Redo() { Placer.Cancel(); History.Redo(); Selection.Prune(); }
+        // A step that names the car the player sits in would hide, move or scale the player with it: out of the car first.
+        public void Undo() { Placer.Cancel(); if (History.NextUndoHas(World.HoldsPlayer)) EjectPlayer(); History.Undo(); Selection.Prune(); }
+        public void Redo() { Placer.Cancel(); if (History.NextRedoHas(World.HoldsPlayer)) EjectPlayer(); History.Redo(); Selection.Prune(); }
         public void ToggleSnap() => Options.snap = !Options.snap;
         public void ToggleOverlap() => Options.allowOverlap = !Options.allowOverlap;
 
@@ -270,6 +317,7 @@ namespace ShiftJam
         {
             if (!BuildLayouts.TryLoad(name, out var file)) return $"Could not read '{name}'.";
             Placer.Cancel(); Selection.Interrupt(); Selection.Clear();
+            EjectPlayer();   // the room is rebuilt: the car the player sits in may be hidden or removed
             int missing = World.Apply(file);
             History.Clear();
             string note = file.scene != UnityEngine.SceneManagement.SceneManager.GetActiveScene().name ? $" (made in scene '{file.scene}')" : "";
@@ -279,6 +327,7 @@ namespace ShiftJam
         public string StartEmpty()
         {
             Placer.Cancel(); Selection.Interrupt(); Selection.Clear();
+            EjectPlayer();   // a placed car the player sits in is about to be removed
             World.Reset();
             History.Clear();
             return "Room reset: everything placed is gone, the room's own props are back where they started.";
@@ -291,6 +340,7 @@ namespace ShiftJam
         public void TestAs(ShiftSize size, bool firstPerson)
         {
             if (_player == null || _motor == null) return;
+            EjectPlayer();   // on foot first: the size below is set on the player's own scale, not inside a car's
             Vector3 spot = buildCamera.Focus;
             var cam = buildCamera.Camera;
             if (World.Surface(cam, new Vector2(Screen.width / 2f, Screen.height / 2f), null, buildCamera.Focus.y, out var point, out var normal) && normal.y > 0.5f) spot = point;

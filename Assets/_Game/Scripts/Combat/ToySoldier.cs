@@ -6,11 +6,13 @@ namespace ShiftJam
     /// A plastic toy soldier that guards a spot: walks its route (or wanders near its post), spots the player by line of
     /// sight inside a view cone, waits a forgiving reaction time, then turns and fires pooled projectiles until it has
     /// not seen the player for a while. Knocked out, it tips over and stands up again at its post after a pause.
-    /// Aims at whatever stands for the player: the toy/kid, the first-person body, or the car being driven.
-    /// Speeds and distances are for a soldier at scale 1 and scale with its transform.
+    /// Aims at whatever stands for the player: the toy/kid, the first-person body, or the car being driven; at the part of
+    /// it nearest its own chest height, so a kid towering over it is shot in the legs. Holds still while Build Mode is
+    /// on, and wherever Build Mode puts it becomes its post. Speeds and distances are for a soldier at scale 1 and scale
+    /// with its transform.
     /// </summary>
     [RequireComponent(typeof(CharacterController), typeof(Damageable))]
-    public sealed class ToySoldier : MonoBehaviour, IResettable
+    public sealed class ToySoldier : MonoBehaviour, IResettable, IBuildMoved
     {
         private enum State { Patrol, Engage, Down }
 
@@ -80,6 +82,14 @@ namespace ShiftJam
             _vertical = 0f; _seenFor = 0f; _lastSeen = -100f; _sees = false; _waitUntil = 0f;
         }
 
+        /// <summary>Build Mode placed, moved, copied or re-posed us: stand guard here from now on (F9 and getting up after a
+        /// knock-out come back here, a copy no longer walks to the original's spot).</summary>
+        public void OnBuildMoved()
+        {
+            _post = transform.position; _postRot = transform.rotation; _wanderTo = _post;
+            _routeIndex = 0; _routeStep = 1; _waitUntil = 0f; _stuckFor = 0f; _vertical = 0f;
+        }
+
         private void OnDied(DamageInfo _)
         {
             _state = State.Down; _downAt = Time.time; _sees = false; _seenFor = 0f;
@@ -90,6 +100,7 @@ namespace ShiftJam
         {
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
+            if (GameMode.Current == GameMode.Mode.Build) return;   // held still while the room is edited, or a drag jitters
             if (_state == State.Down) { Topple(); if (Time.time - _downAt >= downTime) ResetState(); return; }
 
             Perceive(dt);
@@ -132,29 +143,37 @@ namespace ShiftJam
             else if (_state == State.Engage && Time.time - _lastSeen >= loseSightTime) { _state = State.Patrol; _seenFor = 0f; }
         }
 
-        /// <summary>The player's stand-in and the point to aim at: first-person body, the car being driven, or the player.</summary>
+        /// <summary>The player's stand-in and the point to aim at: first-person body, the car being driven, or the player.
+        /// On foot the aim is the point between its legs and its chest nearest our own chest height: a toy on our floor is
+        /// aimed at the chest as before, and the kid is shot in the legs (its chest is far out of range above us).</summary>
         private bool TryTarget(out Vector3 aim, out Transform root)
         {
             aim = Vector3.zero; root = null;
             if (GameMode.Current == GameMode.Mode.Build) return false;   // the builder is not a target
+            float chest;   // above the target's feet
             var fp = FirstPersonMode.Active;
             if (fp != null && fp.Body != null && fp.Body.isActiveAndEnabled)
             {
                 root = fp.Body.transform;
-                aim = fp.Body.Centre;
-                return true;
+                chest = fp.Body.Centre.y - root.position.y;
             }
-            if (_player == null) _player = FindFirstObjectByType<PlayerMotor>();
-            if (_player == null || !_player.gameObject.activeInHierarchy) return false;
-            if (!_player.enabled && _player.transform.parent != null)
+            else
             {
-                // Seated: aim at the car.
-                root = _player.transform.parent;
-                aim = root.position + Vector3.up * (0.6f * root.lossyScale.y);
-                return true;
+                if (_player == null) _player = FindFirstObjectByType<PlayerMotor>();
+                if (_player == null || !_player.gameObject.activeInHierarchy) return false;
+                if (!_player.enabled && _player.transform.parent != null)
+                {
+                    // Seated: aim at the car.
+                    root = _player.transform.parent;
+                    aim = root.position + Vector3.up * (0.6f * root.lossyScale.y);
+                    return true;
+                }
+                root = _player.transform;
+                chest = 0.6f * 1.8f * _player.Scale;
             }
-            root = _player.transform;
-            aim = root.position + Vector3.up * (0.6f * 1.8f * _player.Scale);
+            float ours = transform.position.y + chestHeight * Scale - root.position.y;
+            float legs = Mathf.Min(0.5f * Scale, chest);
+            aim = root.position + Vector3.up * Mathf.Clamp(ours, legs, chest);
             return true;
         }
 
@@ -185,7 +204,9 @@ namespace ShiftJam
             Vector3 from = Eye;
             Vector3 to = aim - from;
             if (to.magnitude > fireRange * Scale) return;
-            Vector3 flat = Vector3.ProjectOnPlane(to, Vector3.up);
+            // Facing is judged from the body, not the muzzle: a rifle tip out to the side and in front would read a close
+            // target as off to one side and never fire.
+            Vector3 flat = Vector3.ProjectOnPlane(aim - transform.position, Vector3.up);
             if (flat.sqrMagnitude > 1e-6f && Vector3.Angle(transform.forward, flat) > 20f) return;   // still turning
             _nextFire = Time.time + fireInterval * Random.Range(0.85f, 1.15f);
             Vector3 dir = to.normalized;

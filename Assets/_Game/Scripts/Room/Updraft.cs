@@ -7,7 +7,8 @@ namespace ShiftJam
     /// <summary>
     /// A column of wind: while the player is inside this trigger, the motor's velocity eases toward the column's
     /// direction (this object's +Y) at wind speed. A broken fan on its back makes one; a toy rides it up, a kid
-    /// steps over it. Speeds are for kid size and scale with the player, like everything else.
+    /// steps over it. Speeds are for kid size and scale with the player, like everything else. In first person the
+    /// body rides it the same way.
     /// </summary>
     [RequireComponent(typeof(BoxCollider))]
     public sealed class Updraft : MonoBehaviour
@@ -21,19 +22,25 @@ namespace ShiftJam
         [SerializeField, Tooltip("Fires when a carried player enters the column.")] private UnityEvent onEnter;
 
         private readonly List<PlayerMotor> _inside = new List<PlayerMotor>();
+        private readonly List<FirstPersonBody> _bodies = new List<FirstPersonBody>();
         private BoxCollider _box;
 
         private void Awake() { _box = GetComponent<BoxCollider>(); _box.isTrigger = true; }
 
-        private bool Carries(PlayerMotor motor)
-        {
-            if (anySize) return true;
-            var shifter = motor.GetComponent<Shifter>();
-            return shifter == null || shifter.Size == requiredSize;
-        }
+        private bool Carries(Shifter shifter) => anySize || shifter == null || shifter.Size == requiredSize;
+        private bool Carries(PlayerMotor motor) => anySize || Carries(motor.GetComponent<Shifter>());
+        private bool Carries(FirstPersonBody body) => anySize || Carries(body.Owner != null ? body.Owner.GetComponentInParent<Shifter>() : null);
 
         private void OnTriggerEnter(Collider other)
         {
+            var body = other.GetComponentInParent<FirstPersonBody>();
+            if (body != null)
+            {
+                if (_bodies.Contains(body)) return;
+                _bodies.Add(body);
+                if (Carries(body)) onEnter?.Invoke();
+                return;
+            }
             var motor = other.GetComponentInParent<PlayerMotor>();
             if (motor == null || _inside.Contains(motor)) return;
             _inside.Add(motor);
@@ -42,6 +49,8 @@ namespace ShiftJam
 
         private void OnTriggerExit(Collider other)
         {
+            var body = other.GetComponentInParent<FirstPersonBody>();
+            if (body != null) { _bodies.Remove(body); return; }
             var motor = other.GetComponentInParent<PlayerMotor>();
             if (motor != null) _inside.Remove(motor);
         }
@@ -55,6 +64,16 @@ namespace ShiftJam
                 if (motor == null || !motor.isActiveAndEnabled) { _inside.RemoveAt(i); continue; }
                 if (!Carries(motor)) continue;
                 motor.Blow(transform.up * (windSpeed * motor.Scale), windAcceleration * motor.Scale);
+            }
+            for (int i = _bodies.Count - 1; i >= 0; i--)
+            {
+                var body = _bodies[i];
+                if (body == null || !body.isActiveAndEnabled) { _bodies.RemoveAt(i); continue; }
+                if (!Carries(body)) continue;
+                // the body has no wind of its own: bend its velocity toward the column's, as the motor's Blow does
+                Vector3 v = body.Velocity;
+                Vector3 next = Vector3.MoveTowards(v, transform.up * (windSpeed * body.Scale), windAcceleration * body.Scale * Time.deltaTime);
+                body.AddVelocity(next - v);
             }
         }
     }

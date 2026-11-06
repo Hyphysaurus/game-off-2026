@@ -18,9 +18,12 @@ namespace ShiftJam
             var motor = target.GetComponentInParent<PlayerMotor>();
             if (motor != null)
             {
-                if (!motor.isActiveAndEnabled) return false;   // driving or in first person: the car / body takes it instead
-                motor.Knock(velocity);
-                return true;
+                if (motor.isActiveAndEnabled) { motor.Knock(velocity); return true; }
+                // Parked. In first person the body stands in for the player (a separate object, so not found above);
+                // driving, the car takes the hits instead.
+                var fp = motor.GetComponent<FirstPersonMode>();
+                if (fp != null && fp.Body != null && fp.Body.isActiveAndEnabled) { fp.Body.AddVelocity(velocity); return true; }
+                return false;
             }
             var rb = target.GetComponentInParent<Rigidbody>();
             if (rb != null && !rb.isKinematic)

@@ -30,6 +30,11 @@ namespace ShiftJam
         public Vector3 GripOffset => gripOffset;
         public Quaternion GripRotation => Quaternion.Euler(gripRotation);
         public bool Plank => plank;
+        [SerializeField, Tooltip("Carried in the hand (Carrier) instead of grabbed (ThirdPersonGrab). Planks and flashlights always are.")]
+        private bool keepInHand;
+        /// <summary>True for tools held in the hand: the flashlight (Attack uses it) and planks (laid along the ground).
+        /// Everything else is grabbed and set down with the third-person grab.</summary>
+        public bool KeepInHand => keepInHand || plank || GetComponent<Flashlight>() != null;
         public bool IsCarried { get; private set; }
         /// <summary>Raised when the Attack button is pressed while this is held. The flashlight toggles on it.</summary>
         public event Action Used;

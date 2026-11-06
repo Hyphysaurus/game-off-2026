@@ -14,7 +14,7 @@ namespace ShiftJam
     /// The car knows nothing about players: a CarSeat feeds it a PlayerInput.
     /// </summary>
     [RequireComponent(typeof(Rigidbody), typeof(Damageable))]
-    public sealed class ArcadeCar : MonoBehaviour, IResettable
+    public sealed class ArcadeCar : MonoBehaviour, IResettable, IBuildMoved, IChaseTarget
     {
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
@@ -39,6 +39,7 @@ namespace ShiftJam
         private float[] _radius, _offset, _spin;
         private bool[] _contact;
         private Vector3 _spawn; private Quaternion _spawnRot;
+        private float _sizedAt;             // the scale the wheel radii were measured at
         private float _steerVisual, _upsideDown, _nextCrash, _wreckedAt;
         private readonly Dictionary<Damageable, float> _nextRam = new Dictionary<Damageable, float>();
         private readonly RaycastHit[] _hits = new RaycastHit[8];
@@ -51,6 +52,18 @@ namespace ShiftJam
         public Damageable Health => _health;
         public ArcadeCarSettings Settings => settings;
         public float Scale => Mathf.Max(0.001f, transform.lossyScale.y);
+        public Vector3 ChaseVelocity => _rb != null ? _rb.linearVelocity : Vector3.zero;
+        public float ChaseTopSpeed => settings != null ? settings.maxSpeed * Scale : 0f;
+        /// <summary>Any wheel touching the ground.</summary>
+        public bool ChaseGrounded
+        {
+            get
+            {
+                if (_contact == null || _contact.Length == 0) return true;
+                foreach (var c in _contact) if (c) return true;
+                return false;
+            }
+        }
         /// <summary>Speed over the ground, world units per second.</summary>
         public float Speed => _rb != null ? Vector3.ProjectOnPlane(_rb.linearVelocity, Vector3.up).magnitude : 0f;
         /// <summary>Set by the seat while the driver waits to get out: full brakes, no throttle.</summary>
@@ -85,6 +98,7 @@ namespace ShiftJam
                 hubY += _rest[i].y;
             }
             if (wheels.Length > 0) _rb.centerOfMass = new Vector3(0f, hubY / wheels.Length + centreOfMassHeight, AverageZ());
+            _sizedAt = Scale;
             _oneShots = gameObject.AddComponent<AudioSource>(); _oneShots.playOnAwake = false; _oneShots.spatialBlend = 1f;
         }
 
@@ -225,6 +239,20 @@ namespace ShiftJam
                 _rb.isKinematic = false;
                 _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             }
+        }
+
+        /// <summary>Build Mode placed, moved, turned or scaled the car (or undid or loaded it): F9 and a wreck's recovery
+        /// bring it back here now, and the springs use wheel sizes at its new scale.</summary>
+        public void OnBuildMoved()
+        {
+            if (_rb == null || _radius == null) return;   // never woke up
+            _spawn = transform.position; _spawnRot = transform.rotation;
+            _upsideDown = 0f;
+            // radii are world units: follow a scale first, so a hub with nothing to measure still fits; then re-measure
+            float k = Scale / Mathf.Max(0.001f, _sizedAt);
+            if (!Mathf.Approximately(k, 1f)) for (int i = 0; i < _radius.Length; i++) _radius[i] *= k;
+            _sizedAt = Scale;
+            RefreshParts();
         }
 
         /// <summary>Takes over another car's start: a garage body swap belongs where the old body started, not on the lift.</summary>

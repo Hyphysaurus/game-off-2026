@@ -37,8 +37,8 @@ namespace ShiftJam
         private Vector2 _pressAt;
         private bool _additive;
         private Buildable _primary;
+        private Buildable[] _moving;   // what a drag-move holds, fixed when it starts (the selection may lose things meanwhile)
         private Vector3[] _startPositions;
-        private bool[][] _held;
         private Vector3 _primaryStart, _planeStart;
         private float _planeY;
 
@@ -70,10 +70,10 @@ namespace ShiftJam
             Changed?.Invoke();
         }
 
-        /// <summary>Drops things that were deleted, undone away or destroyed.</summary>
+        /// <summary>Drops things that were deleted, undone away or destroyed, and the car the player sits in.</summary>
         public void Prune()
         {
-            if (_items.RemoveAll(b => b == null || !b.gameObject.activeInHierarchy) > 0) Changed?.Invoke();
+            if (_items.RemoveAll(b => b == null || !b.gameObject.activeInHierarchy || _world.HoldsPlayer(b)) > 0) Changed?.Invoke();
         }
 
         /// <summary>The one selected shape, or null.</summary>
@@ -154,13 +154,13 @@ namespace ShiftJam
             if (_primary == null) { _press = Press.None; return; }
             _history.Begin(_items);
             _ignore.Clear();
-            _startPositions = new Vector3[_items.Count];
-            _held = new bool[_items.Count][];
-            for (int i = 0; i < _items.Count; i++)
+            _moving = _items.ToArray();
+            _startPositions = new Vector3[_moving.Length];
+            for (int i = 0; i < _moving.Length; i++)
             {
-                _ignore.Add(_items[i].transform);
-                _startPositions[i] = _items[i].transform.position;
-                _held[i] = _items[i].Hold();
+                _ignore.Add(_moving[i].transform);
+                _startPositions[i] = _moving[i].transform.position;
+                _moving[i].Hold();
             }
             _primaryStart = _primary.transform.position;
             _planeY = BuildBounds.World(_primary.gameObject, out var b) ? b.min.y + RestSink.Under(_primary.transform) : _primaryStart.y;
@@ -169,7 +169,7 @@ namespace ShiftJam
 
         private void DragMove(Vector2 at)
         {
-            if (_primary == null) return;
+            if (_primary == null || _moving == null) return;
             float grid = GridOf(_primary);
             Vector3 delta;
             bool lockX = BuildInput.Held(Key.X), lockZ = BuildInput.Held(Key.Z);
@@ -189,15 +189,19 @@ namespace ShiftJam
                 if (_options.snap) BuildBounds.SnapToGrid(t, grid);
                 delta = t.position - _primaryStart;
             }
-            for (int i = 0; i < _items.Count; i++) if (_items[i] != null) _items[i].transform.position = _startPositions[i] + delta;
+            for (int i = 0; i < _moving.Length; i++) if (_moving[i] != null) _moving[i].transform.position = _startPositions[i] + delta;
             Physics.SyncTransforms();
         }
 
         private void EndMove()
         {
-            for (int i = 0; i < _items.Count && i < _held.Length; i++) if (_items[i] != null) _items[i].Release(_held[i]);
+            if (_moving != null)
+            {
+                foreach (var b in _moving) if (b != null) b.Release();
+                foreach (var b in _moving) if (b != null) b.TellMoved();
+            }
             _history.Commit();
-            _held = null; _startPositions = null;
+            _moving = null; _startPositions = null;
             _press = Press.None;
         }
 
@@ -214,7 +218,7 @@ namespace ShiftJam
             var picked = _additive ? new List<Buildable>(_items) : new List<Buildable>();
             foreach (var b in Buildable.All)
             {
-                if (b == null || !b.gameObject.activeInHierarchy || _world.IsPlayer(b.transform)) continue;
+                if (b == null || !b.gameObject.activeInHierarchy || _world.IsPlayer(b.transform) || _world.HoldsPlayer(b)) continue;
                 if (!BuildBounds.World(b.gameObject, out var bounds)) continue;
                 Vector3 s = cam.WorldToScreenPoint(bounds.center);
                 if (s.z > 0f && BoxRect.Contains(new Vector2(s.x, s.y)) && !picked.Contains(b)) picked.Add(b);
@@ -282,6 +286,7 @@ namespace ShiftJam
                 var copy = _world.Duplicate(b);
                 copy.transform.position += offset;
                 copy.StopBodies();
+                copy.TellMoved();   // only now: it woke up on the original's spot, and that is not its home
                 copies.Add(copy);
             }
             _history.RecordCreated(copies);
@@ -360,7 +365,7 @@ namespace ShiftJam
 
         private void Settle()
         {
-            foreach (var b in _items) if (b != null) b.StopBodies();
+            foreach (var b in _items) if (b != null) { b.StopBodies(); b.TellMoved(); }
             _history.Commit();
         }
 

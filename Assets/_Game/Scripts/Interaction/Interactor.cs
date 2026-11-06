@@ -12,6 +12,7 @@ namespace ShiftJam
         [SerializeField] private PlayerInput input;
         [SerializeField, Tooltip("Optional. Found on this object if empty.")] private Shifter shifter;
         [SerializeField, Tooltip("Optional. Found on this object if empty. Whatever it holds is never a target.")] private Carrier carrier;
+        [SerializeField, Tooltip("Optional. Found on this object, or added, if empty. On E it goes first: what it holds or aims at.")] private ThirdPersonGrab grab;
         [SerializeField, Tooltip("How far in front of the feet the search reaches, at kid size.")] private float reach = 1.6f;
         [SerializeField, Tooltip("Height of the search centre above the feet, at kid size.")] private float height = 0.9f;
         [SerializeField] private LayerMask mask = ~0;
@@ -27,10 +28,20 @@ namespace ShiftJam
         {
             if (shifter == null) shifter = GetComponent<Shifter>();
             if (carrier == null) carrier = GetComponent<Carrier>();
+            if (grab == null) grab = GetComponent<ThirdPersonGrab>();
+            if (grab == null) grab = gameObject.AddComponent<ThirdPersonGrab>();   // every player gets the grab
         }
 
         private void OnEnable() { input.Interact += OnInteract; }
-        private void OnDisable() { input.Interact -= OnInteract; }
+
+        private void OnDisable()
+        {
+            input.Interact -= OnInteract;
+            // Parked (first person): nothing is in reach, or the HUD would show the last prompt the whole time.
+            if (Target == null) return;
+            Target = null;
+            TargetChanged?.Invoke(null);
+        }
 
         private void Update()
         {
@@ -45,6 +56,7 @@ namespace ShiftJam
             {
                 if (_hits[i].transform.IsChildOf(transform)) continue;
                 if (carrier != null && carrier.Held != null && _hits[i].transform.IsChildOf(carrier.Held.transform)) continue;
+                if (grab != null && grab.HeldTransform != null && _hits[i].transform.IsChildOf(grab.HeldTransform)) continue;
                 var candidate = _hits[i].GetComponentInParent<IInteractable>();
                 if (candidate == null) continue;
                 if (string.IsNullOrEmpty(candidate.PromptFor(this))) continue;   // nothing to say = not a target
@@ -61,6 +73,13 @@ namespace ShiftJam
             }
         }
 
-        private void OnInteract() => Target?.Interact(this);
+        /// <summary>The player's third-person grab, or null.</summary>
+        public ThirdPersonGrab Grab => grab;
+
+        private void OnInteract()
+        {
+            if (grab != null && grab.isActiveAndEnabled && grab.TryUse()) return;   // set down what is held, or grab what is aimed at
+            Target?.Interact(this);
+        }
     }
 }

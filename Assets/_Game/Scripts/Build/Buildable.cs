@@ -40,9 +40,16 @@ namespace ShiftJam
 
         private static readonly List<Buildable> Registry = new List<Buildable>();
         private Rigidbody[] _bodies;
+        private bool[] _heldKinematic;
+        private CollisionDetectionMode[] _heldModes;
 
         /// <summary>Every buildable that has woken up, shown or hidden. Destroyed ones leave the list.</summary>
         public static IReadOnlyList<Buildable> All => Registry;
+
+        /// <summary>Raised when something other than Build Mode swaps a piece for another (a garage body swap). Build Mode
+        /// drops its undo history then: its steps would bring the old piece back.</summary>
+        public static event System.Action Replaced;
+        public static void ReportReplaced() => Replaced?.Invoke();
 
         public string CatalogId => catalogId;
         /// <summary>For a copy of a scene prop: the original's scene path.</summary>
@@ -55,7 +62,7 @@ namespace ShiftJam
         public BuildState Original { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetRegistry() => Registry.Clear();
+        private static void ResetRegistry() { Registry.Clear(); Replaced = null; }
 
         private void Awake()
         {
@@ -93,6 +100,19 @@ namespace ShiftJam
             if (s.hasShape && Shape != null) Shape.Set(Shape.Kind, s.shapeSize, s.shapeSteps, s.shapeColor);
             if (gameObject.activeSelf != s.active) gameObject.SetActive(s.active);
             StopBodies();
+            TellMoved();
+        }
+
+        /// <summary>Tells every IBuildMoved under this piece that Build Mode just gave it a new pose or scale. A hidden piece
+        /// is skipped: it is told again when it is shown.</summary>
+        public void TellMoved()
+        {
+            if (!gameObject.activeInHierarchy) return;
+            foreach (var m in GetComponentsInChildren<IBuildMoved>())
+            {
+                try { m.OnBuildMoved(); }
+                catch (System.Exception e) { Debug.LogException(e, this); }   // one piece's hook must not stop an edit or a load halfway
+            }
         }
 
         /// <summary>Loose props keep no speed from before a move.</summary>
@@ -108,19 +128,37 @@ namespace ShiftJam
             Physics.SyncTransforms();
         }
 
-        /// <summary>Holds loose props still while they are dragged; returns what each body was, for Release.</summary>
-        public bool[] Hold()
+        /// <summary>Holds loose props still while they are dragged: kinematic, with continuous collision switched to
+        /// speculative first (the only kind a kinematic body takes). Release puts each body back as it was.</summary>
+        public void Hold()
         {
             _bodies ??= GetComponentsInChildren<Rigidbody>(true);
-            var was = new bool[_bodies.Length];
-            for (int i = 0; i < _bodies.Length; i++) { if (_bodies[i] == null) continue; was[i] = _bodies[i].isKinematic; _bodies[i].isKinematic = true; }
-            return was;
+            _heldKinematic = new bool[_bodies.Length];
+            _heldModes = new CollisionDetectionMode[_bodies.Length];
+            for (int i = 0; i < _bodies.Length; i++)
+            {
+                var b = _bodies[i];
+                if (b == null) continue;
+                _heldKinematic[i] = b.isKinematic;
+                _heldModes[i] = b.collisionDetectionMode;
+                if (b.isKinematic) continue;   // already held by its owner (a parked car): left alone
+                if (b.collisionDetectionMode == CollisionDetectionMode.Continuous || b.collisionDetectionMode == CollisionDetectionMode.ContinuousDynamic)
+                    b.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+                b.isKinematic = true;
+            }
         }
 
-        public void Release(bool[] was)
+        public void Release()
         {
-            if (_bodies == null || was == null) return;
-            for (int i = 0; i < _bodies.Length && i < was.Length; i++) if (_bodies[i] != null) _bodies[i].isKinematic = was[i];
+            if (_bodies == null || _heldKinematic == null) return;
+            for (int i = 0; i < _bodies.Length && i < _heldKinematic.Length; i++)
+            {
+                var b = _bodies[i];
+                if (b == null || _heldKinematic[i]) continue;
+                b.isKinematic = false;                       // moving again first, then its own collision mode back
+                b.collisionDetectionMode = _heldModes[i];
+            }
+            _heldKinematic = null; _heldModes = null;
             StopBodies();
         }
     }

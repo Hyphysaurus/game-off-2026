@@ -4629,6 +4629,7 @@ GameObject:
   - component: {fileID: 882868798}
   - component: {fileID: 882868797}
   - component: {fileID: 882868796}
+  - component: {fileID: 882868800}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -4651,6 +4652,7 @@ MonoBehaviour:
   input: {fileID: 882868788}
   shifter: {fileID: 882868786}
   carrier: {fileID: 0}
+  grab: {fileID: 0}
   reach: 1.6
   height: 0.9
   mask:
@@ -4849,6 +4851,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ShadowReach
   shifter: {fileID: 0}
   toyDistance: 50
+  buildReach: 2.5
 --- !u!114 &882868795
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4957,6 +4960,33 @@ MonoBehaviour:
   input: {fileID: 0}
   shoulderCamera: {fileID: 0}
   toggleKey: 97
+--- !u!114 &882868800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 882868784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d19fd88b599524145a9a66ef8be26f42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ThirdPersonGrab
+  reach: 3.5
+  chestHeight: 1.1
+  holdDistance: 2.2
+  minHoldDistance: 1.2
+  maxHoldDistance: 6
+  wheelStep: 0.4
+  maxLiftSize: 4
+  maxLiftMass: 20
+  holdStiffness: 0.35
+  maxHoldSpeed: 25
+  breakDistance: 1.2
+  throwSpeed: 12
+  throwFullSpeedMass: 4
+  rotateSensitivity: 0.4
+  footprintColour: {r: 0.55, g: 0.9, b: 1, a: 0.45}
 --- !u!1001 &884364506
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5764,9 +5794,7 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  chaseRecenterDelay: 0.6
-  chaseRecenterSpeed: 140
-  chasePitch: 14
+  vehicle: {fileID: 0}
 --- !u!1001 &1032056270
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6193,6 +6221,7 @@ MonoBehaviour:
   onPutDown:
     m_PersistentCalls:
       m_Calls: []
+  keepInHand: 0
 --- !u!1001 &1105704154
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6445,6 +6474,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2035798528}
     m_Modifications:
+    - target: {fileID: 2872171821132070436, guid: 39ea75ea967005f488abb43f961f97c4, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 6562933841513802218, guid: 39ea75ea967005f488abb43f961f97c4, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
     - target: {fileID: 6801047743267996809, guid: 39ea75ea967005f488abb43f961f97c4, type: 3}
       propertyPath: m_LocalPosition.x
       value: 120

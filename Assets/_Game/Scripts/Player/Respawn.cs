@@ -23,6 +23,7 @@ namespace ShiftJam
         private Shifter _shifter;
         private Vector3 _point;
         private Quaternion _facing;
+        private float _busyUntil;   // a put is under way until then (unscaled time, like the fade)
 
         private void Awake()
         {
@@ -34,6 +35,11 @@ namespace ShiftJam
 
         private void Put()
         {
+            if (_motor == null) return;   // Unity also sends Reset() in the editor (adding the component, the Reset menu)
+            // One put at a time. The kill-height check asks every frame, and a new Cut restarts the fade before it
+            // darkens, so the warp would never come. After the cut the player is back up and the check stops asking.
+            if (Time.unscaledTime < _busyUntil) return;
+            _busyUntil = Time.unscaledTime + cutOut + cutIn + 0.1f;
             if (fade != null) fade.Cut(cutOut, () => _motor.Warp(_point, _facing), cutIn);
             else _motor.Warp(_point, _facing);
         }

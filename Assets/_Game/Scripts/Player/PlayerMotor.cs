@@ -41,6 +41,9 @@ namespace ShiftJam
         public float Scale => shifter != null ? shifter.Scale : 1f;
         /// <summary>Raised when a jump starts.</summary>
         public event Action Jumped;
+        /// <summary>Raised at the end of every Warp (respawn, portal, console tp): whoever holds the player elsewhere (first
+        /// person) follows it instead of undoing it.</summary>
+        public event Action<Vector3, Quaternion> Warped;
         /// <summary>Raised on landing with the fall speed at impact, in kid-size metres per second.</summary>
         public event Action<float> Landed;
 
@@ -213,6 +216,7 @@ namespace ShiftJam
             _peakFall = 0f;
             _jumpPressedTime = -10f;
             _jumping = false;
+            Warped?.Invoke(position, rotation);
         }
     }
 }

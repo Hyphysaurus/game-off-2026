@@ -34,14 +34,19 @@ namespace ShiftJam
             }
         }
 
-        /// <summary>True while the mouse is over any part of the build UI.</summary>
-        public static bool OverUI => EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+        /// <summary>True while the debug console is open. It is drawn with IMGUI, which the EventSystem cannot see, so it is
+        /// asked by name: while it is open it has the keyboard and the mouse.</summary>
+        public static bool ConsoleOpen => DebugConsole.IsOpen;
 
-        /// <summary>True while a text box has the keyboard: hotkeys stay quiet.</summary>
+        /// <summary>True while the mouse is over any part of the build UI, or the console is open.</summary>
+        public static bool OverUI => ConsoleOpen || (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject());
+
+        /// <summary>True while a text box (or the console) has the keyboard: hotkeys stay quiet.</summary>
         public static bool Typing
         {
             get
             {
+                if (ConsoleOpen) return true;
                 var es = EventSystem.current;
                 if (es == null || es.currentSelectedGameObject == null) return false;
                 return es.currentSelectedGameObject.TryGetComponent(out TMP_InputField field) && field.isFocused;

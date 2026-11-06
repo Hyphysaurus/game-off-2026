@@ -5,7 +5,8 @@ namespace ShiftJam
     /// <summary>
     /// A training dummy on a spring: every hit rocks it away from the blow and it wobbles back upright. Knocked out (health
     /// gone), it topples flat, lies there a moment and pops back up at full health. The Workshop reset stands it up at once.
-    /// The visual is a child pivot (at the base) so the root's collider and position never move.
+    /// The visual is a child pivot (at the base) so the root's collider and position never move. Lying flat it has no
+    /// collider: the upright capsule would stop shots and the player where nothing is drawn.
     /// </summary>
     [RequireComponent(typeof(Damageable))]
     public sealed class PracticeTarget : MonoBehaviour, IResettable
@@ -19,6 +20,7 @@ namespace ShiftJam
         [SerializeField] private AudioClip popClip;
 
         private Damageable _health;
+        private Collider _collider;
         private Quaternion _rest;
         private Vector2 _lean, _leanVelocity;   // tilt about world X and Z, degrees
         private Vector2 _fallDir;
@@ -28,6 +30,7 @@ namespace ShiftJam
         private void Awake()
         {
             _health = GetComponent<Damageable>();
+            _collider = GetComponent<Collider>();
             if (pivot == null && transform.childCount > 0) pivot = transform.GetChild(0);
             if (pivot != null) _rest = pivot.localRotation;
             if (popClip != null) { _audio = gameObject.AddComponent<AudioSource>(); _audio.playOnAwake = false; _audio.spatialBlend = 1f; }
@@ -57,6 +60,7 @@ namespace ShiftJam
             _fallDir = new Vector2(dir.z, -dir.x);
             _downAt = Time.time;
             _upAt = Time.time + downTime;
+            SetSolid(false);
         }
 
         public void ResetState()
@@ -64,8 +68,11 @@ namespace ShiftJam
             _health.ResetState();
             _lean = _leanVelocity = Vector2.zero;
             _downAt = -1f;
+            SetSolid(true);
             if (pivot != null) pivot.localRotation = _rest;
         }
+
+        private void SetSolid(bool on) { if (_collider != null) _collider.enabled = on; }
 
         private void Update()
         {
@@ -81,6 +88,7 @@ namespace ShiftJam
                 {
                     _health.ResetState();
                     _downAt = -1f;
+                    SetSolid(true);
                     _leanVelocity = -_fallDir * 260f;   // springs up past upright and wobbles
                     if (_audio != null) _audio.PlayOneShot(popClip);
                 }

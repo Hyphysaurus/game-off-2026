@@ -10,10 +10,16 @@ namespace ShiftJam
     [Serializable]
     public sealed class LayoutFile
     {
-        public int version = 1;
+        /// <summary>Name start of the scene groups the editor's Bake Layout makes ("Baked_&lt;layout&gt;").</summary>
+        public const string BakedPrefix = "Baked_";
+
+        public int version = 2;   // 2: bakedRoots
         public string scene;
         public string saved;
         public List<LayoutItem> items = new List<LayoutItem>();
+        /// <summary>The Baked_ groups that were in the scene when this was saved: the file only lists what changed on top of
+        /// them. Empty in files from before version 2.</summary>
+        public List<string> bakedRoots = new List<string>();
     }
 
     /// <summary>One thing in a layout. Exactly one of id (catalogue), cloneOf (copy of a scene prop) or sceneKey (the prop itself) is set.</summary>

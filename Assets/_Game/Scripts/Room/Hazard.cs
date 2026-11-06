@@ -18,7 +18,7 @@ namespace ShiftJam
 
         private void OnTriggerEnter(Collider other)
         {
-            Shifter shifter = other.GetComponentInParent<Shifter>();
+            Shifter shifter = PlayerTouch.Find(other, out _);   // on foot or the first-person body
             if (shifter == null || shifter.Shifting) return;
             if (!anySize && shifter.Size != hurts) return;
             Respawn respawn = shifter.GetComponent<Respawn>();

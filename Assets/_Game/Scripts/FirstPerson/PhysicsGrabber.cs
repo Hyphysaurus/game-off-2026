@@ -7,9 +7,10 @@ namespace ShiftJam
     /// Half-Life 2's hands. E on a loose prop picks it up (if it is light and small enough for your size; Heavy props need
     /// kid size) and holds it floating in front of the eyes on a spring: the prop is driven by velocity, never parented,
     /// so it still bumps into walls and other props. Attack throws it, E again lets go, the mouse wheel turns it, and
-    /// holding R (or the right mouse button) turns it with the mouse. Jammed behind a wall, it slips out of your hands.
-    /// E on anything else does what E does in third person (a switch, a weapon pickup); vehicles are left to on-foot play.
-    /// Also draws the crosshair and the E hint.
+    /// holding R (or the right mouse button) turns it with the mouse. Jammed behind a wall, or when a shift starts, it
+    /// drops. E on anything else does what E does in third person (a switch, a weapon pickup); vehicles and the kid's
+    /// carried things (a carried prop, the flashlight) are left to on-foot play, as they seat or fill the parked player's
+    /// hands. Also draws the crosshair and the E hint.
     /// </summary>
     public sealed class PhysicsGrabber : MonoBehaviour
     {
@@ -19,18 +20,14 @@ namespace ShiftJam
         private Transform _eye;
         private WeaponHolder _holder;
         private Interactor _interactor;
+        private Shifter _shifter;
 
         private readonly RaycastHit[] _hits = new RaycastHit[16];
-        private readonly List<Collider> _heldColliders = new List<Collider>();
-        private Quaternion _turn;            // the held prop's rotation relative to the body's heading
-        private Vector3 _centreLocal;        // bounds centre in the prop's own space
-        private float _distance, _strain, _savedMaxAngular;
-        private bool _savedGravity;
-        private RigidbodyInterpolation _savedInterp;
+        private readonly SpringHold _hold = new SpringHold();   // the float-in-front spring, shared with the third-person grab
         private int _busyFrame = -1;
         private string _hint;
 
-        public Rigidbody Held { get; private set; }
+        public Rigidbody Held => _hold.Held;
         /// <summary>True while holding, and on the frame something was thrown: that click is not a weapon's.</summary>
         public bool BusyThisFrame => Held != null || _busyFrame == Time.frameCount;
         public bool RotatingHeld => Held != null && _input != null && _input.RotateHeld;
@@ -38,10 +35,12 @@ namespace ShiftJam
         public void Setup(FirstPersonSettings settings, PlayerInput input, FirstPersonBody body, Transform eye, WeaponHolder holder, Interactor interactor)
         {
             _s = settings; _input = input; _body = body; _eye = eye; _holder = holder; _interactor = interactor;
+            _shifter = body != null && body.Owner != null ? body.Owner.GetComponent<Shifter>() : null;
         }
 
         private void OnEnable()
         {
+            if (_shifter != null) _shifter.ShiftStarted += OnShiftStarted;
             if (_input == null) return;
             _input.Interact += OnInteract;
             _input.UseHeld += OnAttack;
@@ -49,9 +48,13 @@ namespace ShiftJam
 
         private void OnDisable()
         {
+            if (_shifter != null) _shifter.ShiftStarted -= OnShiftStarted;
             if (_input != null) { _input.Interact -= OnInteract; _input.UseHeld -= OnAttack; }
             Release();
         }
+
+        /// <summary>A shift changes the hold distance, the reach, what can be lifted and the near plane: let go.</summary>
+        private void OnShiftStarted(ShiftSize _) => Release();
 
         private float Scale => _body != null ? _body.Scale : 1f;
 
@@ -93,73 +96,43 @@ namespace ShiftJam
             return found;
         }
 
-        /// <summary>An IInteractable that makes sense in first person: not a vehicle (they seat the parked player).</summary>
+        /// <summary>An IInteractable that makes sense in first person: not a vehicle (they seat the parked player), and not
+        /// the kid's carry (a Carried prop, a flashlight picked up by a kid): those go into the parked player's hands, which
+        /// never follow while parked, so the thing would hang in mid-air and the weapon would be put away.</summary>
         private IInteractable Usable(Collider col)
         {
             if (_interactor == null) return null;
             var thing = col.GetComponentInParent<IInteractable>();
-            if (thing == null || thing is CarSeat || thing is ToyCar) return null;
+            if (thing == null || thing is CarSeat || thing is ToyCar || thing is Carried) return null;
+            if (thing is Flashlight && _shifter != null && _shifter.Size == ShiftSize.Kid) return null;   // a toy's E still switches it
             return string.IsNullOrEmpty(thing.PromptFor(_interactor)) ? null : thing;
         }
 
         private bool CanLift(Rigidbody rb, out string why)
         {
             why = null;
-            if (rb.GetComponentInParent<ArcadeCar>() != null || rb.GetComponentInParent<ToyCar>() != null) { why = "Too heavy"; return false; }
+            if (rb.GetComponentInParent<ArcadeCar>() != null || rb.GetComponentInParent<ToyCar>() != null || ToyCar.OwnsBall(rb)) { why = "Too heavy"; return false; }
             if (rb.mass > _s.maxLiftMass) { why = "Too heavy"; return false; }
-            var shifter = _body.Owner != null ? _body.Owner.GetComponent<Shifter>() : null;
-            if (rb.TryGetComponent(out Pushable push) && !push.PushableBy(shifter != null ? shifter.Size : ShiftSize.Kid)) { why = "Too heavy"; return false; }
+            if (rb.TryGetComponent(out Pushable push) && !push.PushableBy(_shifter != null ? _shifter.Size : ShiftSize.Kid)) { why = "Too heavy"; return false; }
             Bounds b = BoundsOf(rb);
             if (Mathf.Max(b.size.x, b.size.y, b.size.z) > _s.maxLiftSize * Scale) { why = "Too big"; return false; }
             return true;
         }
 
-        private static Bounds BoundsOf(Rigidbody rb)
-        {
-            var cols = rb.GetComponentsInChildren<Collider>();
-            Bounds b = new Bounds(rb.position, Vector3.zero);
-            bool any = false;
-            foreach (var c in cols)
-            {
-                if (c.isTrigger || c.attachedRigidbody != rb) continue;
-                if (!any) { b = c.bounds; any = true; } else b.Encapsulate(c.bounds);
-            }
-            return b;
-        }
+        private static Bounds BoundsOf(Rigidbody rb) => SpringHold.BoundsOf(rb);
 
         private void Grab(Rigidbody rb, Vector3 at)
         {
-            Held = rb;
-            _savedGravity = rb.useGravity; _savedInterp = rb.interpolation; _savedMaxAngular = rb.maxAngularVelocity;
-            rb.useGravity = false;
-            rb.interpolation = RigidbodyInterpolation.Interpolate;
-            rb.maxAngularVelocity = 30f;
+            // We never stand on, or get shoved by, what we hold (the hold ignores the body's capsule).
+            _hold.Grab(rb, Quaternion.Euler(0f, _eye.eulerAngles.y, 0f), _body.Capsule);
             Bounds b = BoundsOf(rb);
-            _centreLocal = Quaternion.Inverse(rb.rotation) * (b.center - rb.position);
             float reach = b.extents.magnitude + _body.Capsule.radius + 0.15f * Scale;
-            _distance = Mathf.Clamp(Mathf.Max(_s.holdDistance * Scale, reach), 0.1f, _s.grabReach * Scale * 1.25f);
-            _turn = Quaternion.Inverse(Quaternion.Euler(0f, _eye.eulerAngles.y, 0f)) * rb.rotation;
-            _strain = 0f;
-            // We never stand on, or get shoved by, what we hold.
-            _heldColliders.Clear();
-            foreach (var c in rb.GetComponentsInChildren<Collider>())
-                if (c.attachedRigidbody == rb) { _heldColliders.Add(c); Physics.IgnoreCollision(c, _body.Capsule, true); }
+            _hold.Distance = Mathf.Clamp(Mathf.Max(_s.holdDistance * Scale, reach), 0.1f, _s.grabReach * Scale * 1.25f);
             _busyFrame = Time.frameCount;
         }
 
         /// <summary>Lets go gently: the prop keeps its current motion and falls.</summary>
-        public void Release()
-        {
-            var rb = Held;
-            if (rb == null) { Held = null; return; }
-            Held = null;
-            rb.useGravity = _savedGravity;
-            rb.interpolation = _savedInterp;
-            rb.maxAngularVelocity = _savedMaxAngular;
-            if (_body != null && _body.Capsule != null)
-                foreach (var c in _heldColliders) if (c != null) Physics.IgnoreCollision(c, _body.Capsule, false);
-            _heldColliders.Clear();
-        }
+        public void Release() => _hold.Release();
 
         private void Throw()
         {
@@ -177,9 +150,7 @@ namespace ShiftJam
         {
             if (Held == null) return;
             float k = _s.mouseRotateSensitivity / Mathf.Max(0.0001f, _s.mouseSensitivity);   // look comes in degrees already
-            Quaternion yaw = Quaternion.Euler(0f, _eye.eulerAngles.y, 0f);
-            Quaternion world = Quaternion.AngleAxis(-delta.x * k, Vector3.up) * Quaternion.AngleAxis(delta.y * k, _eye.right);
-            _turn = Quaternion.Inverse(yaw) * world * yaw * _turn;
+            _hold.RotateBy(delta * k, Quaternion.Euler(0f, _eye.eulerAngles.y, 0f), _eye.right);
         }
 
         private void Update()
@@ -189,7 +160,7 @@ namespace ShiftJam
             if (Held != null)
             {
                 float wheel = _input != null ? _input.Scroll : 0f;
-                if (wheel != 0f) _turn = Quaternion.Euler(0f, wheel * _s.wheelRotateStep, 0f) * _turn;
+                if (wheel != 0f) _hold.Spin(wheel * _s.wheelRotateStep);
                 _hint = "Click  Throw     E  Drop     Wheel / hold R  Turn";
                 return;
             }
@@ -206,26 +177,9 @@ namespace ShiftJam
 
         private void FixedUpdate()
         {
-            var rb = Held;
-            if (rb == null || _eye == null) return;
-            float dt = Time.fixedDeltaTime, scale = Scale;
-            Quaternion targetRot = Quaternion.Euler(0f, _eye.eulerAngles.y, 0f) * _turn;
-            Vector3 targetCentre = _eye.position + _eye.forward * _distance;
-            Vector3 targetPos = targetCentre - targetRot * _centreLocal;
-
-            Vector3 gap = targetPos - rb.position;
-            Vector3 want = Vector3.ClampMagnitude(gap * (_s.holdStiffness / dt), _s.maxHoldSpeed * scale);
-            rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, want, 0.8f);
-
-            Quaternion delta = targetRot * Quaternion.Inverse(rb.rotation);
-            delta.ToAngleAxis(out float angle, out Vector3 axis);
-            if (angle > 180f) angle -= 360f;
-            if (!float.IsNaN(axis.x) && axis.sqrMagnitude > 1e-6f)
-                rb.angularVelocity = Vector3.ClampMagnitude(axis * (angle * Mathf.Deg2Rad * _s.holdStiffness / dt), 25f);
-
-            // Stuck behind something for a moment: it slips from the hands.
-            _strain = gap.magnitude > _s.breakDistance * scale ? _strain + dt : 0f;
-            if (_strain > 0.25f) Release();
+            if (Held == null || _eye == null) return;
+            var t = new SpringHold.Tuning { stiffness = _s.holdStiffness, maxSpeed = _s.maxHoldSpeed, breakDistance = _s.breakDistance };
+            _hold.Drive(_eye.position + _eye.forward * _hold.Distance, Quaternion.Euler(0f, _eye.eulerAngles.y, 0f), Scale, t, Time.fixedDeltaTime);
         }
 
         private void OnGUI()

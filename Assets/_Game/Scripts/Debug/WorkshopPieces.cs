@@ -35,11 +35,16 @@ namespace ShiftJam
         {
             public string Name, Label, Model; public Kind Kind; public float Length;
             public float Damage, Interval, Spread, Knock; public int Pellets; public bool Auto;
+            /// <summary>A model standing up (longest side Y) with its tip at the bottom: -Y becomes the tip instead of +Y.</summary>
+            public bool TipDown;
+            /// <summary>Melee: where the fist closes, as a share of the length from the back end. 0 = 0.1 (a cuff, a pommel).</summary>
+            public float GripAt;
         }
 
         private static readonly WeaponSpec[] Weapons =
         {
-            new WeaponSpec { Name = "ToyKnife", Label = "Toy Knife", Model = CW + "Knives/Knife_02.prefab", Kind = Kind.Melee, Length = 0.6f, Damage = 30f, Knock = 7f },
+            // Knife_02 stands ring up, blade tip down: the fist takes the handle just under the finger ring.
+            new WeaponSpec { Name = "ToyKnife", Label = "Toy Knife", Model = CW + "Knives/Knife_02.prefab", Kind = Kind.Melee, Length = 0.6f, Damage = 30f, Knock = 7f, TipDown = true, GripAt = 0.35f },
             new WeaponSpec { Name = "FoamFinger", Label = "Foam Finger", Model = BS + "Other/foam_finger_001.prefab", Kind = Kind.Melee, Length = 0.9f, Damage = 20f, Knock = 14f },
             new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.18f, Spread = 1f, Pellets = 1, Knock = 3f },
             new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 9f, Interval = 0.7f, Spread = 6f, Pellets = 7, Knock = 4f },
@@ -238,7 +243,8 @@ namespace ShiftJam
                 Bounds b0 = LocalBounds(space, inst);
                 Vector3 s = b0.size;
                 if (s.x >= s.y && s.x >= s.z) inst.transform.localRotation = Quaternion.Euler(0f, -90f, 0f) * inst.transform.localRotation;
-                else if (s.y >= s.x && s.y >= s.z) inst.transform.localRotation = Quaternion.Euler(90f, 0f, 0f) * inst.transform.localRotation;   // +Y (the top) becomes the tip
+                else if (s.y >= s.x && s.y >= s.z)   // the top (+Y) becomes the tip, or the bottom (-Y) for a tip-down model
+                    inst.transform.localRotation = Quaternion.Euler(spec.TipDown ? -90f : 90f, 0f, 0f) * inst.transform.localRotation;
             }
             Bounds b = LocalBounds(space, inst);
             float k = spec.Length / Mathf.Max(1e-4f, b.size.z);
@@ -251,7 +257,7 @@ namespace ShiftJam
                 grip.x = b.center.x;
             }
             else if (spec.Kind == Kind.Blaster) grip = new Vector3(b.center.x, b.min.y + b.size.y * 0.3f, b.min.z + b.size.z * 0.3f);
-            else grip = new Vector3(b.center.x, b.center.y, b.min.z + b.size.z * 0.1f);
+            else grip = new Vector3(b.center.x, b.center.y, b.min.z + b.size.z * (spec.GripAt > 0f ? spec.GripAt : 0.1f));
             tip = muzzleSocket != null ? space.InverseTransformPoint(muzzleSocket.position) : new Vector3(b.center.x, b.center.y, b.max.z);
         }
 
@@ -271,7 +277,7 @@ namespace ShiftJam
             Set(health, "maxHealth", 120f);
             Set(health, "showNumbers", true);
             Set(health, "takeKnockback", false);
-            Set(health, "invulnerability", 0.05f);
+            Set(health, "invulnerability", 0f);   // every pellet and dart counts; a swing already hits each target once
             var target = root.AddComponent<PracticeTarget>();
             Set(target, "pivot", pivot.transform);
             Save(root, PieceInteractables + "/" + name + ".prefab");
@@ -280,23 +286,36 @@ namespace ShiftJam
 
         private static bool BuildSoldier(Projectile dart)
         {
-            var model = Load(PR + "Army/Army_Soldier_01.prefab");
+            // A standing rifleman, rifle along +Z at chest height (the way ToySoldier faces). 01 and 02 are lying down,
+            // 05 carries a bazooka.
+            var model = Load(PR + "Army/Army_Soldier_06.prefab");
             if (model == null) return false;
             var root = new GameObject("ToySoldier");
             var visual = new GameObject("Visual");
             visual.transform.SetParent(root.transform, false);
             var inst = Place(model, visual.transform);
             FitHeight(inst, visual.transform, 1.6f, out Bounds b);
+            // Stand on the figure's own pivot (its body), not the middle of its bounds: the rifle reaches far out in front.
+            inst.transform.localPosition = new Vector3(0f, inst.transform.localPosition.y, 0f);
+            b = LocalBounds(visual.transform, inst);
             var cc = root.AddComponent<CharacterController>();
-            cc.height = 1.6f; cc.radius = Mathf.Clamp(Mathf.Max(b.extents.x, b.extents.z), 0.2f, 0.4f); cc.center = Vector3.up * 0.8f;
+            cc.height = 1.6f; cc.radius = Mathf.Clamp(b.extents.x, 0.2f, 0.4f); cc.center = Vector3.up * 0.8f;   // side to side: the rifle is not body
             cc.stepOffset = 0.3f; cc.skinWidth = 0.03f;
             var health = root.AddComponent<Damageable>();
             Set(health, "maxHealth", 60f);
             Set(health, "showNumbers", true);
             Set(health, "takeKnockback", false);
+            Set(health, "invulnerability", 0f);   // every pellet and SMG dart counts
             var soldier = root.AddComponent<ToySoldier>();
             Set(soldier, "projectile", dart);
             Set(soldier, "visual", visual.transform);
+            if (FrontPoint(visual.transform, inst, out Vector3 tip))
+            {
+                var muzzle = new GameObject("Muzzle").transform;   // shots leave the rifle's tip
+                muzzle.SetParent(root.transform, false);
+                muzzle.localPosition = tip + Vector3.forward * 0.03f;
+                Set(soldier, "muzzle", muzzle);
+            }
             Save(root, PieceInteractables + "/ToySoldier.prefab");
             return true;
         }
@@ -344,7 +363,7 @@ namespace ShiftJam
             rbody.mass = 4f;
             var health = root.AddComponent<Damageable>();
             Set(health, "maxHealth", settings != null ? settings.health : 150f);
-            Set(health, "invulnerability", 0.05f);
+            Set(health, "invulnerability", 0f);   // every pellet counts; rams and crashes have their own cooldowns
             var arcade = root.AddComponent<ArcadeCar>();
             Set(arcade, "settings", settings);
             root.AddComponent<CarSeat>();
@@ -521,11 +540,29 @@ namespace ShiftJam
             return any ? b : new Bounds(Vector3.zero, Vector3.one * 0.1f);
         }
 
+        /// <summary>The frontmost vertex (largest z) of the model's meshes, in <paramref name="space"/>: a rifle's tip.
+        /// Pack meshes are not Read/Write, but the editor can read them (CourseBuilder.Wedge does too).</summary>
+        private static bool FrontPoint(Transform space, GameObject go, out Vector3 front)
+        {
+            front = Vector3.zero; bool any = false;
+            foreach (var f in go.GetComponentsInChildren<MeshFilter>())
+            {
+                if (f.sharedMesh == null) continue;
+                foreach (var v in f.sharedMesh.vertices)
+                {
+                    Vector3 p = space.InverseTransformPoint(f.transform.TransformPoint(v));
+                    if (!any || p.z > front.z) { front = p; any = true; }
+                }
+            }
+            return any;
+        }
+
         /// <summary>A renderer's mesh box, measured in <paramref name="space"/> (tighter than the world AABB).</summary>
         private static Bounds RendererBounds(Transform space, Renderer r)
         {
             Bounds local; Transform from = r.transform;
-            if (r is MeshRenderer && r.TryGetComponent(out MeshFilter mf) && mf.sharedMesh != null) local = mf.sharedMesh.bounds;
+            var mf = r is MeshRenderer ? r.GetComponent<MeshFilter>() : null;
+            if (mf != null && mf.sharedMesh != null) local = mf.sharedMesh.bounds;
             else if (r is SkinnedMeshRenderer smr) { local = smr.localBounds; if (smr.rootBone != null) from = smr.rootBone; }
             else
             {

@@ -42240,6 +42240,7 @@ GameObject:
   - component: {fileID: 882868793}
   - component: {fileID: 882868794}
   - component: {fileID: 882868795}
+  - component: {fileID: 882868796}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -42262,6 +42263,7 @@ MonoBehaviour:
   input: {fileID: 882868788}
   shifter: {fileID: 882868786}
   carrier: {fileID: 0}
+  grab: {fileID: 0}
   reach: 1.6
   height: 0.9
   mask:
@@ -42460,6 +42462,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ShadowReach
   shifter: {fileID: 0}
   toyDistance: 50
+  buildReach: 2.5
 --- !u!114 &882868795
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42480,6 +42483,33 @@ MonoBehaviour:
   groundMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &882868796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 882868784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d19fd88b599524145a9a66ef8be26f42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ThirdPersonGrab
+  reach: 3.5
+  chestHeight: 1.1
+  holdDistance: 2.2
+  minHoldDistance: 1.2
+  maxHoldDistance: 6
+  wheelStep: 0.4
+  maxLiftSize: 4
+  maxLiftMass: 20
+  holdStiffness: 0.35
+  maxHoldSpeed: 25
+  breakDistance: 1.2
+  throwSpeed: 12
+  throwFullSpeedMass: 4
+  rotateSensitivity: 0.4
+  footprintColour: {r: 0.55, g: 0.9, b: 1, a: 0.45}
 --- !u!1001 &886911780
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -44984,9 +45014,7 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  chaseRecenterDelay: 0.6
-  chaseRecenterSpeed: 140
-  chasePitch: 14
+  vehicle: {fileID: 0}
 --- !u!1001 &965641632
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49668,6 +49696,7 @@ MonoBehaviour:
   onPutDown:
     m_PersistentCalls:
       m_Calls: []
+  keepInHand: 0
 --- !u!1001 &1128358623
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -60762,6 +60791,7 @@ MonoBehaviour:
   onPutDown:
     m_PersistentCalls:
       m_Calls: []
+  keepInHand: 0
 --- !u!1001 &1296991732
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -79006,6 +79036,7 @@ MonoBehaviour:
   onPutDown:
     m_PersistentCalls:
       m_Calls: []
+  keepInHand: 0
 --- !u!1001 &1671343877
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -84765,6 +84796,7 @@ MonoBehaviour:
   onPutDown:
     m_PersistentCalls:
       m_Calls: []
+  keepInHand: 0
 --- !u!1001 &1853927780
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -86439,6 +86471,7 @@ MonoBehaviour:
   onPutDown:
     m_PersistentCalls:
       m_Calls: []
+  keepInHand: 0
 --- !u!1001 &1903348424
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -95428,6 +95461,7 @@ MonoBehaviour:
   onPutDown:
     m_PersistentCalls:
       m_Calls: []
+  keepInHand: 0
 --- !u!1001 &2040978121
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -96748,6 +96782,7 @@ MonoBehaviour:
   onPutDown:
     m_PersistentCalls:
       m_Calls: []
+  keepInHand: 0
 --- !u!1001 &2074308175
 PrefabInstance:
   m_ObjectHideFlags: 0

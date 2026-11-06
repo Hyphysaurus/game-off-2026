@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace ShiftJam
@@ -24,6 +25,7 @@ namespace ShiftJam
         private readonly BuildMode _mode;
         private readonly GameObject _canvasGo;
         private readonly Canvas _canvas;
+        private readonly GraphicRaycaster _raycaster;
         private readonly BuildCataloguePanel _catalogue;
         private readonly BuildLayoutsPanel _layouts;
         private readonly TextMeshProUGUI _status, _sheet;
@@ -44,7 +46,7 @@ namespace ShiftJam
             _canvas = _canvasGo.AddComponent<Canvas>(); _canvas.renderMode = RenderMode.ScreenSpaceOverlay; _canvas.sortingOrder = 40;
             var scaler = _canvasGo.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = 0.5f;
-            _canvasGo.AddComponent<GraphicRaycaster>();
+            _raycaster = _canvasGo.AddComponent<GraphicRaycaster>();
             var root = _canvasGo.transform;
 
             // toolbar
@@ -132,6 +134,12 @@ namespace ShiftJam
         /// <summary>Called by BuildMode once a frame while building.</summary>
         public void Refresh(string status)
         {
+            // The console is drawn over the toolbar but cannot block its clicks: the buttons stand down while it is open,
+            // and the layout name box lets go of the keyboard so it does not take the console's typing too.
+            bool clickable = !BuildInput.ConsoleOpen;
+            if (_raycaster.enabled != clickable) _raycaster.enabled = clickable;
+            var es = EventSystem.current;
+            if (!clickable && es != null && es.currentSelectedGameObject != null) es.SetSelectedGameObject(null);
             _layouts.Tick();
             _status.text = status;
             var o = _mode.Options;

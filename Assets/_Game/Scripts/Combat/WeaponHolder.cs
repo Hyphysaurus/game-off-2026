@@ -36,6 +36,8 @@ namespace ShiftJam
         private Transform _fpBody, _fpView;
         private FirstPersonLook _fpLook;
         private PhysicsGrabber _fpHands;
+        private ThirdPersonGrab _grab;   // the third-person grab: a held prop fills the hands, and its throw is not a shot
+        private bool _waitRelease;   // Attack is still down from a click the hands used (a throw): no automatic fire yet
 
         public Weapon Current => _current >= 0 && _current < _weapons.Count ? _weapons[_current] : null;
         public int Count => _weapons.Count;
@@ -58,6 +60,7 @@ namespace ShiftJam
             if (input == null) input = GetComponent<PlayerInput>();
             if (shifter == null) shifter = GetComponent<Shifter>();
             if (carrier == null) carrier = GetComponent<Carrier>();
+            _grab = GetComponent<ThirdPersonGrab>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (animator != null)
             {
@@ -179,7 +182,7 @@ namespace ShiftJam
                 if (_weapons[i] != null) _weapons[i].gameObject.SetActive(i == _current && isActiveAndEnabled && !HandsFull);
         }
 
-        private bool HandsFull => carrier != null && carrier.Held != null;
+        private bool HandsFull => (carrier != null && carrier.Held != null) || (_grab != null && _grab.Holding);
 
         /// <summary>Attack belongs to us: on foot, in Play or first person, mouse captured, hands free.</summary>
         private bool CanAct()
@@ -188,6 +191,7 @@ namespace ShiftJam
             if (GameMode.Current == GameMode.Mode.Build) return false;
             if (Cursor.lockState != CursorLockMode.Locked) return false;   // that click was to capture the mouse
             if (_fpHands != null && _fpHands.BusyThisFrame) return false;    // the click threw the held prop
+            if (_grab != null && _grab.BusyThisFrame) return false;
             return true;
         }
 
@@ -212,7 +216,10 @@ namespace ShiftJam
             var w = Current;
             bool visible = w != null && !HandsFull;
             if (w != null && w.gameObject.activeSelf != visible) { if (!visible) w.Cancel(); w.gameObject.SetActive(visible); }
-            if (visible && input != null && input.AttackHeld && CanAct()) w.TriggerHeld();
+            bool held = input != null && input.AttackHeld;
+            if (!held) _waitRelease = false;
+            else if ((_fpHands != null && _fpHands.BusyThisFrame) || (_grab != null && _grab.BusyThisFrame)) _waitRelease = true;   // the press threw a prop: wait for a new one
+            if (visible && held && !_waitRelease && CanAct()) w.TriggerHeld();
 
             // The arm reaches out while a weapon is in hand. The Carrier writes its own weight earlier this frame: keep the larger.
             if (animator != null && _layer >= 0)

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58f50af25f0b9bc40983ca73eab81eb3, type: 3}
+  m_Name: VehicleCamera
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.VehicleCameraSettings
+  distance: 2
+  lookHeight: 0.6
+  pitch: 12
+  minDistance: 0.35
+  positionLag: 0.06
+  heightLag: 0.15
+  turnLag: 0.25
+  airTurnSlowdown: 3
+  followTravelFrom: 0.25
+  speedFov: 6
+  speedPullBack: 0.15
+  recenterDelay: 1
+  pitchReturn: 50
+  showroomOrbitSpeed: 90
+  showroomZoom: {x: 0.5, y: 2.5}
+  showroomZoomStep: 0.1
+  leaveBlend: 0.35

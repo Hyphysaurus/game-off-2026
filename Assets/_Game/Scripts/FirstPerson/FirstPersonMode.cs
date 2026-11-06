@@ -28,6 +28,7 @@ namespace ShiftJam
         private Interactor _interactor;
         private Carrier _carrier;
         private WeaponHolder _holder;
+        private Damageable _health;
         private GameObject _rig;
         private FirstPersonBody _body;
         private FirstPersonLook _look;
@@ -49,14 +50,39 @@ namespace ShiftJam
             _interactor = GetComponent<Interactor>();
             _carrier = GetComponent<Carrier>();
             _holder = GetComponent<WeaponHolder>();
+            _health = GetComponent<Damageable>();
         }
 
-        private void OnEnable() => GameMode.Changed += OnModeChanged;
+        private void OnEnable()
+        {
+            GameMode.Changed += OnModeChanged;
+            if (_motor != null) _motor.Warped += OnWarped;
+            if (_health != null) _health.Damaged += OnHurt;
+        }
 
         private void OnDisable()
         {
             GameMode.Changed -= OnModeChanged;
+            if (_motor != null) _motor.Warped -= OnWarped;
+            if (_health != null) _health.Damaged -= OnHurt;
             if (_inside) { Exit(); if (GameMode.Current == GameMode.Mode.FirstPerson) GameMode.ResetQuietly(); }
+        }
+
+        /// <summary>Something moved the player (a respawn, a death, the console's tp): the body goes there too, so the warp
+        /// sticks and we stay in first person. Exit's own warp comes after _inside is cleared, so it is not caught here.</summary>
+        private void OnWarped(Vector3 position, Quaternion rotation)
+        {
+            if (!_inside) return;
+            _hands.Release();
+            _body.Place(position);
+            _look.Place(rotation.eulerAngles.y, _look.Pitch);
+        }
+
+        /// <summary>The player's own flash is on hidden renderers in here: the view kicks and the screen tints instead.
+        /// The shove reaches the body through Knockback.</summary>
+        private void OnHurt(DamageInfo hit)
+        {
+            if (_inside) _look.Hurt(hit.Amount / Mathf.Max(1f, _health.MaxHealth));
         }
 
         private void OnDestroy()
@@ -73,7 +99,7 @@ namespace ShiftJam
         private void Update()
         {
             var k = Keyboard.current;
-            if (k != null)
+            if (k != null && !DebugConsole.IsOpen)   // the console's typing is not a key press
             {
                 if (k[toggleKey].wasPressedThisFrame)
                 {

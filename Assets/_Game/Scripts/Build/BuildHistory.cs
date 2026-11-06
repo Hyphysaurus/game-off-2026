@@ -25,6 +25,19 @@ namespace ShiftJam
 
         public bool CanUndo => _undo.Count > 0;
         public bool CanRedo => _redo.Count > 0;
+
+        /// <summary>True when the step Undo would apply names something that passes <paramref name="test"/>.</summary>
+        public bool NextUndoHas(Predicate<Buildable> test) => LastHas(_undo, test);
+        /// <summary>True when the step Redo would apply names something that passes <paramref name="test"/>.</summary>
+        public bool NextRedoHas(Predicate<Buildable> test) => LastHas(_redo, test);
+
+        private static bool LastHas(List<Step> list, Predicate<Buildable> test)
+        {
+            if (list.Count == 0 || test == null) return false;
+            foreach (var b in list[list.Count - 1].who) if (b != null && test(b)) return true;
+            return false;
+        }
+
         /// <summary>Raised after anything here changes (a new step, an undo, a redo, a clear).</summary>
         public event Action Changed;
 

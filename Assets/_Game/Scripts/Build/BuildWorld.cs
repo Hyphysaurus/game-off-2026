@@ -27,6 +27,13 @@ namespace ShiftJam
         public bool IsPlayer(Transform t) => _player != null && t.IsChildOf(_player);
         public Transform Player => _player;
 
+        /// <summary>True when the player is inside <paramref name="b"/> (seated in a car). Build Mode leaves that piece alone:
+        /// hiding, removing or copying it would take the player with it.</summary>
+        public bool HoldsPlayer(Buildable b) => b != null && _player != null && _player.IsChildOf(b.transform);
+
+        /// <summary>The piece the player sits in, or null when on foot.</summary>
+        public Buildable PlayerSeatedIn => _player != null && _player.parent != null ? _player.parent.GetComponentInParent<Buildable>() : null;
+
         private static readonly RaycastHit[] Hits = new RaycastHit[64];
 
         /// <summary>
@@ -51,7 +58,8 @@ namespace ShiftJam
             return false;
         }
 
-        /// <summary>The buildable under a screen point: the nearest solid hit (not the player), if it is buildable and shown.</summary>
+        /// <summary>The buildable under a screen point: the nearest solid hit (not the player), if it is buildable, shown and
+        /// not the car the player sits in.</summary>
         public Buildable Pick(Camera cam, Vector2 screen)
         {
             Ray ray = cam.ScreenPointToRay(screen);
@@ -64,7 +72,7 @@ namespace ShiftJam
             }
             if (nearest == null) return null;
             var b = nearest.GetComponentInParent<Buildable>();
-            return b != null && b.isActiveAndEnabled ? b : null;
+            return b != null && b.isActiveAndEnabled && !HoldsPlayer(b) ? b : null;
         }
 
         private static bool Ignored(Transform t, HashSet<Transform> ignore)
@@ -192,7 +200,10 @@ namespace ShiftJam
 
         public LayoutFile Capture()
         {
-            var file = new LayoutFile { scene = SceneManager.GetActiveScene().name, saved = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm") };
+            var scene = SceneManager.GetActiveScene();
+            var file = new LayoutFile { scene = scene.name, saved = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm") };
+            // The baked layouts this one is drawn on top of: baking it again then edits that group instead of replacing it.
+            foreach (var go in scene.GetRootGameObjects()) if (go.name.StartsWith(LayoutFile.BakedPrefix, System.StringComparison.Ordinal)) file.bakedRoots.Add(go.name);
             foreach (var b in Buildable.All)
             {
                 if (b == null) continue;
@@ -228,12 +239,18 @@ namespace ShiftJam
                 if (!string.IsNullOrEmpty(item.cloneOf))
                 {
                     if (byKey.TryGetValue(item.cloneOf, out var source)) made = Duplicate(source);
-                    else if (ScenePath.Find(scene, item.cloneOf) is Transform found && found.TryGetComponent(out Buildable fb)) made = Duplicate(fb);
+                    else
+                    {
+                        var found = ScenePath.Find(scene, item.cloneOf);
+                        var fb = found != null ? found.GetComponent<Buildable>() : null;
+                        if (fb != null) made = Duplicate(fb);
+                    }
                 }
                 else
                 {
                     var entry = Catalog != null ? Catalog.Find(item.id) : null;
-                    if (entry != null) made = Spawn(entry, item.position, item.rotation);
+                    // an entry whose prefab was deleted or moved (Build Catalog not re-run) counts as missing, like an unknown id
+                    if (entry != null && (entry.IsShape || entry.prefab != null)) made = Spawn(entry, item.position, item.rotation);
                 }
                 if (made == null) { missing++; continue; }
                 made.Apply(item.ToState());

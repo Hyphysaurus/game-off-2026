@@ -245,3 +245,16 @@
   the Workshop. Ported from Toy Land: Damageable, MeleeAttack, ToyBlaster, ToyProjectile, EnemyDefender, ArcadeVehicle,
   VehicleSeat, SafePositionTracker, EncounterReset; dropped MissionDirector, HUD, ToyAudio, VehicleCustomizer, its
   input/camera, FanUpdraft. Toy Land removal stays HIS call after he checks these. NOTHING PLAYED.
+- **D-0029 (5 Nov) Ramp lip sunk; drive-in Garage; car warps = location portals.** His notes: "i cant actually go on the
+  ramps because of the collision and angle"; "i wrecked my car, and since these cars are modular, it would be cool to
+  build a garage in here where we could drive up and swap out"; "we'll probably create warp portals that teleport in
+  location for driving in cars instead of shifting in size - we shift in location". RAMPS: measured live, the slope was
+  fine (18-20 deg vs the capsule's 45) but Ramp_02 ends in a 0.07 lip that scales to a 0.6 wall at the toe (step offset
+  0.3); `CourseBuilder.Wedge` now measures the low-end lip, sizes the slope (not the mesh) to the rise and sinks the lip
+  under the floor (same lesson as D-0021's room ramps). GARAGE: `Vehicles/Garage.cs` (drive-through bay: slow in = lifted,
+  repaired, menu: body = any of the 15 Cyber cars with the driver kept in the seat, wheels = stock or any of the 15 pack
+  wheel sets, every part slot Simple/Cool/None or On/None; Enter drives out, E gets out; wrecks are towed to a free bay
+  instead of their start) + `Vehicles/CarLook.cs` (part slots found by the pack's names, wheels fitted on the car's own
+  hubs) + ArcadeCar.Repair/RefreshParts/PlaceAt + CarSeat.Driver. Builder: all 15 cars into Pieces/Vehicles + Garage
+  prefab (pack barriers + finish arch). Part swaps stay within one car (each part fits only its own body). Car portals
+  (teleport car + driver) = his direction, NOT built yet. NOTHING PLAYED.

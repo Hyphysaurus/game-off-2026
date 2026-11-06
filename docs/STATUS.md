@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 5 Nov 2026 21:1x — RAMP LIP + GARAGE (D-0029), staged/written, waiting for him to stop Play — CHECKPOINT
+- His playtest notes (Workshop, live): stray "SHIFT / press any key" card on screen (the HUD's StartCard came over with the
+  HUD; hidden live, to switch off in Workshop.unity); can't get onto ramps (0.6 lip at the toe, fix in CourseBuilder.Wedge,
+  landed); wrecked his car → GARAGE (staged in %TEMP%/shiftjam-stage/garage: Garage.cs, CarLook.cs, ArcadeCar.cs,
+  CarSeat.cs, WorkshopPieces.cs; compiles outside); car + shift warp → his call: location portals for cars (not built);
+  pillows too tall to climb → options given (ledge grab recommended; pack has 6 Trampolines), awaiting his pick.
+- AFTER HE STOPS PLAY: land staged files → Refresh → Build Combat & Vehicle Pieces (15 cars + Garage) → Make traversal
+  pieces → fix placed Ramp_02 instances in Workshop + Greybox course → StartCard off → place a Garage in the Workshop →
+  Build Catalog → save scenes → stills → commit.
+
 ## 5 Nov 2026 19:2x — WORK ORDER DONE (his "proceed with all", he AFK): Workshop systems landed (D-0028), UNPLAYED
 Landed + wired + committed `d6a3859`, `722b2bc`, `de46794`: Build Mode (F3), first person (F4), weapons, practice
 targets, toy soldier, Cyber cars, traversal pieces (menu Shift Jam > Workshop > Build Traversal Pieces), F9 reset; the

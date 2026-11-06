@@ -1086,13 +1086,20 @@ namespace ShiftJam
             bool alongZ = Mathf.Abs(dz) >= Mathf.Abs(dx);
             Vector3 upLocal = alongZ ? (dz > 0 ? Vector3.forward : Vector3.back) : (dx > 0 ? Vector3.right : Vector3.left);   // the local way it climbs
             Vector3 size = mb.size;
-            go.transform.localScale = alongZ ? new Vector3(width / size.x, rise / size.y, length / size.z) : new Vector3(length / size.x, rise / size.y, width / size.z);
+            // The pack ramp ends in a raised lip at its low edge. Scaled up, that lip is a wall taller than the player's
+            // step, so size the slope (not the whole mesh) to the rise and sink the lip under whatever it sits on.
+            float lowEnd = alongZ ? (upLocal.z > 0 ? mb.min.z : mb.max.z) : (upLocal.x > 0 ? mb.min.x : mb.max.x);
+            float band = (alongZ ? size.z : size.x) * 0.08f, lip = 0f;
+            foreach (var p in v) if (Mathf.Abs((alongZ ? p.z : p.x) - lowEnd) <= band) lip = Mathf.Max(lip, p.y - mb.min.y);
+            lip = Mathf.Min(lip, size.y * 0.25f);
+            float sy = rise / (size.y - lip);
+            go.transform.localScale = alongZ ? new Vector3(width / size.x, sy, length / size.z) : new Vector3(length / size.x, sy, width / size.z);
             Vector3 flat = new Vector3(climb.x, 0f, climb.z).normalized, cross = new Vector3(-flat.z, 0f, flat.x);
             go.transform.rotation = Quaternion.Euler(0f, Quaternion.FromToRotation(upLocal, flat).eulerAngles.y, 0f);
             var b = B(go);
             Vector3 highEdge = b.center + flat * (Mathf.Abs(flat.x) * b.extents.x + Mathf.Abs(flat.z) * b.extents.z);
-            go.transform.position += flat * Vector3.Dot(high - highEdge, flat) + cross * Vector3.Dot(high - b.center, cross) + Vector3.up * (high.y - b.min.y);
-            Log.AppendLine($"{name}: rise {rise:F1} over {length:F0} = {Mathf.Atan2(rise, length) * Mathf.Rad2Deg:F0} deg");
+            go.transform.position += flat * Vector3.Dot(high - highEdge, flat) + cross * Vector3.Dot(high - b.center, cross) + Vector3.up * (high.y - b.min.y - lip * sy);
+            Log.AppendLine($"{name}: rise {rise:F1} over {length:F0} = {Mathf.Atan2(rise, length) * Mathf.Rad2Deg:F0} deg, lip {lip * sy:F2} sunk");
             return go;
         }
 

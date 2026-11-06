@@ -218,3 +218,12 @@
   pack's Ramp_02 wedge stretched to 30 wide; the builder reads the wedge's slope from its mesh. NOTHING removed from the
   room: 11 small loose props under the pieces were moved to the lane's sides (a first pass that cleared the lane deleted
   the maze and camp; discarded unsaved within minutes).
+- **D-0027 (5 Nov) The Workshop is its own scene: a sandbox room for Build Mode, first person, weapons and vehicles.** His
+  words: "set up a similar room with the basic furniture ... so that i can easily rearrange furniture and experiment
+  iterating on my own courses, leave this current room as is". `Scenes/Workshop.unity` = a copy of Greybox (player, camera,
+  HUD wiring intact) with Room removed, GameFlow off, Respawn.loadSave off, WakeUp off; `CourseBuilder.BuildWorkshopRoom`
+  (menu Shift Jam > Workshop > Build Workshop Room, Workshop scene only): 8x8 floor tiles (520 x 520), Wall_01 walls, no
+  ceiling (the Build Mode camera looks in from above; the walls are one-sided, so they cut away from outside), three
+  lights, starter furniture under Workshop/Layout (bed, bedside table, desk + chair, shelf, bookshelf, sofa, wardrobe,
+  three boxes, a pillow pad, four mats, the toy car + a kicker). Reached from the title menu's Workshop button or the
+  console (`workshop` / `course`); the title menu does not open inside the Workshop. In Build Settings after Greybox.

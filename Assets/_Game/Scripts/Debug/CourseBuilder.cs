@@ -914,6 +914,73 @@ namespace ShiftJam
             Debug.Log($"PILLOW PADS: {made} couch pillow(s) now carryable + toy launch pads");
         }
 
+        // ------------------------------------------------------------------ the Workshop (D-0027)
+        // A sandbox room in its own scene (Workshop.unity): an 8x8-tile floor (520 x 520) with Wall_01 walls, no ceiling so
+        // the Build Mode camera sees in from above, warm lights, and a starter set of plain furniture under
+        // Workshop/Layout (everything there is movable in Build Mode). The player starts in the middle as the toy.
+        const float WorkshopHalf = 260f;
+
+        [MenuItem("Shift Jam/Workshop/Build Workshop Room")]
+        public static void BuildWorkshopRoom()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (scene.name != "Workshop") { Debug.LogError("Open Workshop.unity first (this builds into the active scene)."); return; }
+            Log.Clear();
+            var oldRoot = GameObject.Find("Workshop"); if (oldRoot != null) Object.DestroyImmediate(oldRoot);
+            var root = new GameObject("Workshop").transform;
+            var shell = Child(root, "Shell"); var layout = Child(root, "Layout");
+            Vector3 c = Vector3.zero; float h = WorkshopHalf;
+            for (int i = 0; i < 8; i++) for (int j = 0; j < 8; j++)
+                Spawn("Floor_01", "Floor", shell, c + new Vector3(-h + 32.5f + i * 65f, 0, -h + 32.5f + j * 65f), Vector3.zero, 1f);
+            for (int i = 0; i < 8; i++)
+            {
+                float a = -h + 32.5f + i * 65f;
+                var s = Spawn("Wall_01", "Wall_S", shell, c + new Vector3(a, 0, -h), Vector3.zero, 1f); var bs = B(s); s.transform.position += new Vector3(0, -bs.min.y, (c.z - h) - bs.max.z);
+                var n = Spawn("Wall_01", "Wall_N", shell, c + new Vector3(a, 0, h), new Vector3(0, 180, 0), 1f); var bn = B(n); n.transform.position += new Vector3(0, -bn.min.y, (c.z + h) - bn.min.z);
+                var w = Spawn("Wall_01", "Wall_W", shell, c + new Vector3(-h, 0, a), new Vector3(0, 90, 0), 1f); var bw = B(w); w.transform.position += new Vector3((c.x - h) - bw.max.x, -bw.min.y, 0);
+                var e = Spawn("Wall_01", "Wall_E", shell, c + new Vector3(h, 0, a), new Vector3(0, -90, 0), 1f); var be = B(e); e.transform.position += new Vector3((c.x + h) - be.min.x, -be.min.y, 0);
+            }
+            foreach (float x in new[] { -h - 2.5f, h + 2.5f }) foreach (float z in new[] { -h - 2.5f, h + 2.5f })
+            { var p = Spawn("Wall_05", "Pillar", shell, c + new Vector3(x, 0, z), Vector3.zero, 1f); var bp = B(p); p.transform.position += new Vector3(c.x + x - bp.center.x, -bp.min.y, c.z + z - bp.center.z); }
+            PointLight("RoomLight", shell, c + new Vector3(0, 140f, 0), 650f, 4f, new Color(1f, 0.93f, 0.82f), true);
+            PointLight("FillNW", shell, c + new Vector3(-150f, 120f, 150f), 380f, 1.5f, new Color(1f, 0.9f, 0.75f));
+            PointLight("FillSE", shell, c + new Vector3(150f, 120f, -150f), 380f, 1.5f, new Color(1f, 0.9f, 0.75f));
+
+            // starter furniture along the walls, the middle left open for building
+            GameObject Against(string prefab, string name, Vector3 at, float yaw)
+            {
+                var go = Rest(Spawn(prefab, name, layout, at, new Vector3(0, yaw, 0), 1f), 0f, null); var b = B(go);
+                Vector3 push = Vector3.zero;   // slide flush to the nearest wall
+                if (at.z > h - 80f) push.z = (h - 1f) - b.max.z; else if (at.z < -h + 80f) push.z = (-h + 1f) - b.min.z;
+                if (at.x > h - 80f) push.x = (h - 1f) - b.max.x; else if (at.x < -h + 80f) push.x = (-h + 1f) - b.min.x;
+                go.transform.position += push; return go;
+            }
+            Against("Bed_01", "Bed", new Vector3(-190f, 0, 200f), 0f);
+            Against("Bedside_Table_01", "BedsideTable", new Vector3(-120f, 0, 240f), 0f);
+            Against("Table_01", "Desk", new Vector3(40f, 0, 240f), 0f);
+            Rest(Spawn("Chair_01", "Chair", layout, new Vector3(40f, 0, 205f), new Vector3(0, 180, 0), 1f), 0f, null);
+            Against("Shelf_01", "Shelf", new Vector3(-250f, 0, 20f), 90f);
+            Against("Bookshelf_01", "Bookshelf", new Vector3(-250f, 0, -90f), 90f);
+            Against("Sofa_01", "Sofa", new Vector3(250f, 0, 40f), -90f);
+            Against("Wardrobe_01", "Wardrobe", new Vector3(230f, 0, -230f), -90f);
+            foreach (var (n, x, z, yaw) in new[] { ("Cardboard_Box_01", -200f, -220f, 15f), ("Cardboard_Box_05", -170f, -230f, -10f), ("Cardboard_Box_06", -140f, -235f, 5f) })
+                Rest(Spawn(n, n, layout, new Vector3(x, 0, z), new Vector3(0, yaw, 0), 1f), 0f, null);
+            var pillow = Rest(Spawn("Pillow_01", "Pillow", layout, new Vector3(-60f, 0, -60f), new Vector3(0, 20, 0), 1f), 0f, null);
+            Carry(pillow); PillowPad(pillow, 30f, AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/DoorGlow.mat"));
+            for (int i = 0; i < 4; i++) Rest(Spawn("Mat_0" + (1 + i), "Mat", layout, new Vector3(60f + (i % 2) * 25.5f, 0, -40f + (i / 2) * 25.5f), Vector3.zero, 1f), 0.05f, null);
+            // the toy car, parked facing north by the south wall
+            var car = Rest(Spawn("Wooden_Car_01", "ToyCar", layout, new Vector3(0f, 0, -200f), Vector3.zero, 1f), 0f, null);
+            var tc = car.AddComponent<ToyCar>(); Set(tc, "rollLoop", Clip("Toy_Car_Roll_v1")); Set(tc, "crash", Clip("Toy_Car_Crash_v1"));
+            var tbc = car.AddComponent<BoxCollider>(); tbc.isTrigger = true; var cbb = B(car); tbc.center = car.transform.InverseTransformPoint(cbb.center); tbc.size = cbb.size + Vector3.one * 2f;
+            Wedge("Kicker", layout, new Vector3(0f, 0f, -120f), Vector3.forward, 4f, 12f, 24f);
+
+            // the player starts in the middle as the toy, facing north
+            var player = GameObject.Find("Player");
+            if (player != null) { player.transform.SetPositionAndRotation(new Vector3(0f, 0.1f, -150f), Quaternion.identity); }
+            EditorSceneManager.MarkSceneDirty(scene);
+            Debug.Log("WORKSHOP ROOM BUILT\n" + Log);
+        }
+
         // ------------------------------------------------------------------ the car course (D-0026)
         // A stunt run for the toy car in the playroom's clear north-south corridor (x 505..535, between the race track and
         // the broken fan; the maze/camp starts at x 540 north of z -76, the castle at z -229): north-bound from just above

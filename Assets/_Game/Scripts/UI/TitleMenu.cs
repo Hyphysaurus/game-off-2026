@@ -25,9 +25,11 @@ namespace ShiftJam
         private static void Spawn()
         {
             if (GameObject.Find("Player") == null || FindFirstObjectByType<TitleMenu>() != null) return;
+            if (SceneManager.GetActiveScene().name == WorkshopScene) return;   // the Workshop is a sandbox: straight in
             new GameObject("TitleMenu").AddComponent<TitleMenu>();
         }
 
+        public const string WorkshopScene = "Workshop";
         private const string WideTitle = "Titles/title_shift_wide", StackedTitle = "Titles/title_shift_stacked";
         private float _menuX = 0.5f;
 
@@ -135,6 +137,7 @@ namespace ShiftJam
             MenuButton("New Game", y, NewGame); y -= 0.085f;
             for (int i = 0; i < SaveGame.Slots; i++) { int k = i; _slots[i] = MenuButton("Slot", y, () => PickSlot(k), 560f, 30); y -= 0.058f; }
             y -= 0.025f;
+            MenuButton("Workshop", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); }); y -= 0.065f;
             MenuButton("Quit", y, Quit);
             Text("Hint", _root.transform, "mouse, arrows or stick · Enter / A to choose", 22, new Vector2(0.5f, 0.05f), new Vector2(900, 40)).alpha = 0.6f;
         }

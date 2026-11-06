@@ -124,6 +124,7 @@ namespace ShiftJam
                         Say("time <scale>   tune <MovementSettings field> [value] (no value = read; edits the ASSET in the editor)");
                         Say("set <object> <Component> <field> <value>   get <object> <Component> <field>   (live, any serialized field)");
                         Say("reveal (replays the playroom reveal from wherever you stand)");
+                        Say("workshop (load the Workshop sandbox) | course (back to the course scene)");
                         Say("save (here, active slot) | save clear (empties the active slot)");
                         Say("note <text> -> docs/PLAYTEST_NOTES.md with room, size, position   mark (F12) = note + screenshot   shot   clear");
                         break;
@@ -150,6 +151,8 @@ namespace ShiftJam
                     case "note": Note(line.Substring(4).Trim()); break;
                     case "mark": Note("mark"); Shot(); break;
                     case "shot": Shot(); break;
+                    case "workshop": Time.timeScale = 1f; SceneManager.LoadScene(TitleMenu.WorkshopScene); break;
+                    case "course": Time.timeScale = 1f; SceneManager.LoadScene("Greybox"); break;
                     case "reveal": { var rv = FindFirstObjectByType<RoomReveal>(); if (rv != null) { rv.Play(true); Say("reveal"); } else Say("no reveal in the scene"); break; }
                     case "save":
                         if (a.Length > 1 && a[1] == "clear") { SaveGame.Clear(SaveGame.Slot); Say("slot " + (SaveGame.Slot + 1) + " cleared"); }

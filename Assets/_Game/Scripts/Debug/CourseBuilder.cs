@@ -402,7 +402,7 @@ namespace ShiftJam
             var pad = RestOn(Spawn("Chesspad_01", "Chesspad", r4, new Vector3(seatX, 0, sofaB.center.z - 13f), new Vector3(0, 10, 0), 1f), SeatY(sofaB.center.z - 13f)); var padB = B(pad);
             foreach (var (n, off) in new[] { ("Chess_White_King_01", new Vector3(-3f, 0, 2f)), ("Chess_Black_Queen_01", new Vector3(3f, 0, -3f)), ("Chess_White_Pawn_01", new Vector3(-5f, 0, -5f)), ("Chess_Black_Hoss_01", new Vector3(5f, 0, 4f)) }) RestOn(Spawn(n, n, r4, padB.center + off, Vector3.zero, 1f), Top(pad, padB.center.x + off.x, padB.center.z + off.z));
             var firstPillow = r4.Find("Pillow"); if (firstPillow != null) { firstPillow.position = new Vector3(seatX, 0, sofaB.max.z - 15f); RestOn(firstPillow.gameObject, SeatY(sofaB.max.z - 15f)); }
-            CouchPillowPads(r4, glow);
+            CouchPillowPads(r4);
             blocked.Add(sofaB);
             React(Prop("Toy_Cat_01", c + new Vector3(140f, 0, 70f), -140f), Reactor.Response.Squash, "Pet");
             // a broken desk fan on its back in front of the sofa, propped up by a book so it blows up and toward the seat: a
@@ -591,7 +591,7 @@ namespace ShiftJam
             BookStairs(r5, c + new Vector3(-hw + 6f, 0, hd * 0.5f), Vector3.right, 0f, shelfY[0], "Flight0");
             // flight 1 is a trampoline: a pillow on shelf 1's open front, under the lip of shelf 2; drift back in the air to land on it
             var pillow = Rest(Spawn("Pillow_01", "Trampoline", r5, c + new Vector3(hw - 30f, 0, hd * 0.2f), new Vector3(0, 10, 0), 1f), shelfY[0], null);
-            PillowPad(pillow, (shelfY[1] - B(pillow).max.y) + 10f, glow);
+            PillowPad(pillow, (shelfY[1] - B(pillow).max.y) + 10f);
             Checkpoint("CP_shelf" + shelfY[0], r5, c + new Vector3(0, shelfY[0] + 2f, hd * 0.5f), new Vector3(hw * 2 - 10f, 4f, hd - 4f), ShiftSize.Toy);
             Checkpoint("CP_shelf" + shelfY[1], r5, c + new Vector3(0, shelfY[1] + 2f, hd * 0.75f), new Vector3(hw * 2 - 10f, 4f, hd / 2f - 4f), ShiftSize.Toy);
             // dressing: boxes and a pillow on the shelves, costumes hanging in the front half (static)
@@ -882,7 +882,7 @@ namespace ShiftJam
 
         /// <summary>Couch pillows (D-0025): the kid carries them where they are needed, the toy bounces on them. Each throws
         /// the toy clear of the sofa's back wherever it is put down. Skips a pillow that already has its pad.</summary>
-        static int CouchPillowPads(Transform r4, Material glow)
+        static int CouchPillowPads(Transform r4)
         {
             var sofa = r4.Find("Sofa"); int made = 0;
             foreach (var n in new[] { "Pillow", "Pillow2" })
@@ -890,26 +890,114 @@ namespace ShiftJam
                 var p = r4.Find(n); if (p == null || p.Find("Pad") != null) continue;
                 Carry(p.gameObject);
                 float h = sofa != null ? B(sofa.gameObject).max.y - B(p.gameObject).max.y + 6f : 30f;
-                PillowPad(p.gameObject, Mathf.Max(h, 12f), glow); made++;
+                PillowPad(p.gameObject, Mathf.Max(h, 12f)); made++;
             }
             return made;
         }
 
-        /// <summary>A toy-only launch pad on a pillow: a trigger over its top, a glow disc, the pillow squashes on each bounce.
-        /// Pad and glow are the pillow's children, so they travel when the kid carries it (the Carrier switches them off in hand).</summary>
-        static void PillowPad(GameObject pillow, float height, Material glow)
+        /// <summary>A toy-only launch pad on a pillow: a trigger over its top, a soft glow on its crown, the pillow squashes on
+        /// each bounce. Pad and glow are the pillow's children, so they travel when the kid carries it (the Carrier switches them
+        /// off in hand).</summary>
+        static void PillowPad(GameObject pillow, float height)
         {
-            var pb = B(pillow);
+            var pb = PillowBounds(pillow);
             var padTrig = Trigger("Pad", pillow.transform, new Vector3(pb.center.x, pb.max.y + 0.6f, pb.center.z), new Vector3(pb.size.x * 0.8f, 1.6f, pb.size.z * 0.8f));
             var pad = padTrig.AddComponent<LaunchPad>(); Set(pad, "height", height); Set(pad, "visual", pillow.transform);
-            Quad("PadGlow", pillow.transform, new Vector3(pb.center.x, pb.max.y + 0.3f, pb.center.z), new Vector3(90, 0, 0), Vector3.one * (pb.size.x * 0.9f), glow);
+            FitPadGlow(pillow);
+        }
+
+        const string PadGlowPath = "Assets/_Game/Data/PadGlow.mat";
+        const float PadGlowSize = 0.65f;                                          // share of the pillow's narrower side
+        static readonly Color PadGlowColour = new Color(1f, 0.74f, 0.42f, 0.8f);   // the door glow's warm hue, soft
+
+        /// <summary>The pad's mark: the cores' soft round mote, warm, lying flat on the pillow's crown and no wider than its
+        /// flatter middle, so nothing hangs in the air. Adds it, or re-fits the one already there (6 Nov: it was a square of the
+        /// opaque door-strip material, 0.9 of the pillow wide, floating 0.3 over the crown).</summary>
+        static void FitPadGlow(GameObject pillow)
+        {
+            var pb = PillowBounds(pillow);
+            var t = pillow.transform.Find("PadGlow");
+            if (t == null) t = Quad("PadGlow", pillow.transform, Vector3.zero, Vector3.zero, Vector3.one, null).transform;
+            t.position = new Vector3(pb.center.x, pb.max.y + 0.05f, pb.center.z);
+            t.rotation = Quaternion.Euler(90f, 0f, 0f);
+            float parentScale = Mathf.Max(1e-4f, Mathf.Abs(pillow.transform.lossyScale.x));
+            t.localScale = Vector3.one * (Mathf.Min(pb.size.x, pb.size.z) * PadGlowSize / parentScale);
+            var r = t.GetComponent<Renderer>();
+            r.sharedMaterial = PadGlowMaterial();
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            r.receiveShadows = false;
+        }
+
+        /// <summary>The pillow's own renderers, its glow left out.</summary>
+        static Bounds PillowBounds(GameObject pillow)
+        {
+            var glow = pillow.transform.Find("PadGlow");
+            bool any = false; Bounds b = new Bounds(pillow.transform.position, Vector3.zero);
+            foreach (var r in pillow.GetComponentsInChildren<Renderer>())
+            {
+                if (r is ParticleSystemRenderer || (glow != null && r.transform.IsChildOf(glow))) continue;
+                if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds);
+            }
+            return b;
+        }
+
+        /// <summary>PadGlow.mat: a copy of OrbGlow.mat (the cores' soft round mote, additive) tinted warm. Made once.</summary>
+        static Material PadGlowMaterial()
+        {
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(PadGlowPath);
+            if (mat != null) return mat;
+            if (!AssetDatabase.CopyAsset("Assets/_Game/Data/OrbGlow.mat", PadGlowPath))
+            {
+                Debug.LogWarning("Could not copy OrbGlow.mat for the pad glow; using OrbGlow itself.");
+                return AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/OrbGlow.mat");
+            }
+            mat = AssetDatabase.LoadAssetAtPath<Material>(PadGlowPath);
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", PadGlowColour);
+            if (mat.HasProperty("_Color")) mat.SetColor("_Color", PadGlowColour);
+            EditorUtility.SetDirty(mat);
+            AssetDatabase.SaveAssets();
+            return mat;
+        }
+
+        /// <summary>Re-fits every pad glow in the open scenes and in the PillowPad piece. Safe to run again.</summary>
+        [MenuItem("Shift Jam/Refit Pad Glows")]
+        public static void RefitPadGlows()
+        {
+            var log = new StringBuilder("PAD GLOWS:");
+            int n = 0;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var s = SceneManager.GetSceneAt(i); if (!s.isLoaded) continue;
+                var pillows = new List<GameObject>();
+                foreach (var root in s.GetRootGameObjects())
+                    foreach (var t in root.GetComponentsInChildren<Transform>(true))
+                        if (t.name == "PadGlow" && t.parent != null) pillows.Add(t.parent.gameObject);
+                foreach (var p in pillows) { FitPadGlow(p); n++; log.Append($" {s.name}/{p.name} {DescribePad(p)};"); }
+                if (pillows.Count > 0) EditorSceneManager.MarkSceneDirty(s);
+            }
+            const string piece = "Assets/_Game/Prefabs/Pieces/Traversal/PillowPad.prefab";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(piece) != null)
+            {
+                var root = PrefabUtility.LoadPrefabContents(piece);
+                var pillows = root.GetComponentsInChildren<Transform>(true).Where(t => t.name == "PadGlow" && t.parent != null).Select(t => t.parent.gameObject).ToList();
+                foreach (var p in pillows) { FitPadGlow(p); n++; log.Append($" PillowPad.prefab/{p.name} {DescribePad(p)};"); }
+                PrefabUtility.SaveAsPrefabAsset(root, piece);
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+            Debug.Log(log.Append($" {n} re-fitted. Save the scene(s).").ToString());
+        }
+
+        static string DescribePad(GameObject pillow)
+        {
+            var b = PillowBounds(pillow); var g = pillow.transform.Find("PadGlow");
+            return $"pillow {b.size.x:0.#}x{b.size.y:0.#}x{b.size.z:0.#}, glow {(g != null ? g.lossyScale.x : 0f):0.#} wide at crown+{(g != null ? g.position.y - b.max.y : 0f):0.##}";
         }
 
         [MenuItem("Shift Jam/Make Pillows Pads")]
         public static void MakePillowsPads()
         {
             var r4 = GameObject.Find("Room/Course/R4_Playroom"); if (r4 == null) { Debug.LogError("no Room/Course/R4_Playroom"); return; }
-            int made = CouchPillowPads(r4.transform, AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/DoorGlow.mat"));
+            int made = CouchPillowPads(r4.transform);
             EditorSceneManager.MarkSceneDirty(r4.scene);
             Debug.Log($"PILLOW PADS: {made} couch pillow(s) now carryable + toy launch pads");
         }
@@ -966,7 +1054,7 @@ namespace ShiftJam
             foreach (var (n, x, z, yaw) in new[] { ("Cardboard_Box_01", -200f, -220f, 15f), ("Cardboard_Box_05", -170f, -230f, -10f), ("Cardboard_Box_06", -140f, -235f, 5f) })
                 Rest(Spawn(n, n, layout, new Vector3(x, 0, z), new Vector3(0, yaw, 0), 1f), 0f, null);
             var pillow = Rest(Spawn("Pillow_01", "Pillow", layout, new Vector3(-60f, 0, -60f), new Vector3(0, 20, 0), 1f), 0f, null);
-            Carry(pillow); PillowPad(pillow, 30f, AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/DoorGlow.mat"));
+            Carry(pillow); PillowPad(pillow, 30f);
             for (int i = 0; i < 4; i++) Rest(Spawn("Mat_0" + (1 + i), "Mat", layout, new Vector3(60f + (i % 2) * 25.5f, 0, -40f + (i / 2) * 25.5f), Vector3.zero, 1f), 0.05f, null);
             // the toy car, parked facing north by the south wall
             var car = Rest(Spawn("Wooden_Car_01", "ToyCar", layout, new Vector3(0f, 0, -200f), Vector3.zero, 1f), 0f, null);
@@ -989,12 +1077,11 @@ namespace ShiftJam
         {
             const string dir = "Assets/_Game/Prefabs/Pieces/Traversal";
             System.IO.Directory.CreateDirectory(dir);
-            var glow = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/DoorGlow.mat");
             void Save(Transform root) { PrefabUtility.SaveAsPrefabAsset(root.gameObject, $"{dir}/{root.name}.prefab"); Object.DestroyImmediate(root.gameObject); }
             Transform Root(string n) => new GameObject(n).transform;
 
             var pad = Root("PillowPad"); var pillow = Rest(Spawn("Pillow_01", "Pillow", pad, Vector3.zero, Vector3.zero, 1f), 0f, null);
-            Carry(pillow); PillowPad(pillow, 30f, glow); Save(pad);
+            Carry(pillow); PillowPad(pillow, 30f); Save(pad);
 
             var kick = Root("KickerSmall"); Wedge("Wedge", kick, new Vector3(0f, 0f, 6f), Vector3.forward, 4f, 12f, 16f); Save(kick);
             var climb = Root("ClimbRamp"); Wedge("Wedge", climb, new Vector3(0f, 0f, 17f), Vector3.forward, 12.2f, 34f, 30f); Save(climb);

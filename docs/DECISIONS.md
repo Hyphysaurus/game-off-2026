@@ -206,6 +206,10 @@
   than the motor holds the toy down, the toy went ungrounded, the press was gated on Grounded, so the key rose back into
   the capsule and the controller shoved it out; repeat per key. Now a short ray from the feet presses regardless of
   Grounded, a key holds 0.08 s after the feet leave, sink 0.15 (field renamed keyDepth so the scene's old 0.22 drops).
+  6 Nov, his "floating square above it glowing": the pad's mark was a quad of DoorGlow.mat (the door strips' opaque,
+  untextured HDR material) 0.9 of the pillow wide, 0.3 over its crown. Now `CourseBuilder.FitPadGlow`: PadGlow.mat (a
+  copy of OrbGlow.mat, the cores' soft round additive mote, tinted the same warm), flat on the crown (+0.05), 0.65 of
+  the narrower side, no shadows; menu Shift Jam > Refit Pad Glows re-fits the open scenes and the PillowPad piece.
 - **D-0026 (5 Nov) The toy car drives like a toy RC car and has a stunt run in the playroom.** His notes: "the driving is
   strange, the car itself is spawned in a strange position"; "build a course for it to travel, bonus points if there's
   verticality and air time". Car (`Room/ToyCar.cs`): the body keeps a fixed offset from its hidden ball, measured once

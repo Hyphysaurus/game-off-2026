@@ -2,7 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 6 Nov 2026 10:5x — STAGED, NOT LANDED: pillow pad glow fix + boosts / HUD / race (his "proceed with all of those") — CHECKPOINT
+## 6 Nov 2026 11:0x — PAD GLOW LANDED (he stopped Play), UNSEEN by him; boosts / HUD / race still building
+Copied in, compiled in the editor, Refit Pad Glows run with Greybox open beside Workshop: Greybox 3 + Workshop 1 + the
+PillowPad piece now use PadGlow.mat (warm soft disc on the crown, 0.65 of the narrower side, no shadows), both scenes
+saved. Stills (Temp\shiftjam-stage\stills3): from above a soft warm spot on the pillow, from the side a faint line on
+its top edge; nothing floats. Console notes: CarSeat.OnDisable -> GetOut -> SetParent is refused when the car is being
+switched off (seen at Play exit while seated in CyberCar07; harmless there, guard it with the cars integration); Fast
+Script Reload's auto-refresh dialog throws on every reload (button text over Unity 6.3's 64 characters): noise, his call.
+
+## 6 Nov 2026 10:5x — STAGED: pillow pad glow fix (LANDED 11:0x, above) + boosts / HUD / race (his "proceed with all of those") — CHECKPOINT
 **Pad glow (his "floating square above it glowing"):** `CourseBuilder.PillowPad` made the pad mark with DoorGlow.mat (the
 door strips' opaque, HDR, untextured material) on a quad 0.9 of the pillow wide, 0.3 over its crown: a hard glowing
 square in the air. Staged fix (compiles, 0 errors): `shiftjam-stage/padglow/Debug/CourseBuilder.cs` (Windows Temp):

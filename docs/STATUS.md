@@ -2,6 +2,21 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 6 Nov 2026 10:5x — STAGED, NOT LANDED: pillow pad glow fix + boosts / HUD / race (his "proceed with all of those") — CHECKPOINT
+**Pad glow (his "floating square above it glowing"):** `CourseBuilder.PillowPad` made the pad mark with DoorGlow.mat (the
+door strips' opaque, HDR, untextured material) on a quad 0.9 of the pillow wide, 0.3 over its crown: a hard glowing
+square in the air. Staged fix (compiles, 0 errors): `shiftjam-stage/padglow/Debug/CourseBuilder.cs` (Windows Temp):
+`FitPadGlow` = PadGlow.mat (a copy of OrbGlow.mat: the cores' soft round mote, additive) tinted warm, flat on the crown
+(+0.05), 0.65 of the narrower side, no shadows; menu **Shift Jam > Refit Pad Glows** re-fits every PadGlow in the open
+scenes + the PillowPad piece. To land after he stops Play: copy in, compile, open Greybox (3: both couch pillows + the
+shelf Trampoline) and Workshop (1), run the menu, save both, still of a pillow, commit.
+**Boosts, HUD, race (DESIGN §3/§4):** contracts in `shiftjam-stage/race/contract` (IBoostable, Driving, RaceState,
+Garage.MenuOpen); workflow `boosts-hud-race` (run wf_2309ad83-1f5) has five builders staging into
+`shiftjam-stage/race/{cars,pieces,carsandcannon,hud,race_loop}`: nitro on Shift + bursts + wind-up launch + FX on both
+cars; boost arrow/arch/ring, jump pad, bounce tramp, fan pad, nitro star; Battle Stadium racers 1-10 + the cannon; the
+driving HUD (Teko/Fredoka OFL fonts, Kenney Shift key); race gates, finish, TV, podium. Nothing in Assets yet. If the
+run dies: read its journal.jsonl, keep what compiled, resume with the same script.
+
 ## 6 Nov 2026 10:1x — LANDED `e8a046f` (he stopped Play): the 44-file set, builders re-run, UNPLAYED
 Copied, compiled in the editor (0 errors), Build Combat & Vehicle Pieces (24), Dev > Build Pocket Core, Dev > Create
 Vehicle Camera Settings, Build Catalog (509, Interactables 4), ThirdPersonGrab on the Player in Workshop + Greybox, both

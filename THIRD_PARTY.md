@@ -18,3 +18,6 @@ Unity Version Control (the `.plastic` workspace) carries the full tree including
 
 Everything else in the repository is either original to this project or Unity's own template
 content (TextMesh Pro essentials under the Unity Companion License).
+
+## Generated from the packs (git-ignored)
+- `Assets/_Game/Art/Thumbs/` and `Assets/_Game/Resources/BuildCatalog.asset`: Build Mode catalogue thumbnails rendered from the ithappy packs. Rebuild with Shift Jam > Workshop > Build Catalog after importing the packs.

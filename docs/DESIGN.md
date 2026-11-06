@@ -138,3 +138,38 @@ per surface (the toy hears everything louder), the box burst thump, the train's 
 1 (frame + dressing) → 3 (pieces) → 2 (R3 core, then the train) → 4 (ending). All four fit before the week-2
 art items in BACKLOG.md. Parked: Cat_01 as a roaming pet (a monster at toy size, a cat at kid size) is the
 best idea in the pack and the most expensive; after the jam.
+
+## Proposals, 6 Nov 2026 (PROPOSED while he plays; nothing here is built; his picks)
+
+### 1. Getting the toy onto a pillow (his note 5 Nov: "pillows too tall to climb")
+Measured: Pillow_01 lies 10.8 units tall (22 x 19 across). The toy is 1.8 tall and jumps 2.0, and every pillow's launch
+pad sits on the pillow's top. No jump reaches it, and a ledge grab reaches about one body height above the jump apex
+(~3.6), a third of the way. So last night's pick (a ledge grab) was wrong for pillows. Options:
+- **A. Bouncy sides (my pick).** Running into a pillow's side throws the toy up and a little inward, so it lands on
+  the top, and the top pad throws it high as it does now. No new art. It works wherever the kid drops the pillow, so
+  "kid arranges, toy traverses" holds. Build: LaunchPad gets a side mode (height = the pillow's top + clearance, an
+  inward nudge); the builder adds a side trigger to every pillow pad (Workshop pillow, PillowPad piece, couch pillows,
+  wardrobe pillow). About an hour.
+- **B. A springboard step.** The Cyber pack's Trampoline_01 (about 1.7 tall at car scale, a hop for the toy) set beside
+  the pillow throws the toy onto it. Pack art and a clear read, but it stays put when the kid moves the pillow unless it
+  is carryable too. Worth adding to the Build Mode catalogue anyway (the pack has six).
+- **C. Steps the kid sets down.** Books or boxes as stairs (the BookStairs piece exists): about eight 1.3 risers per
+  pillow. On theme, slow.
+- **D. A mantle / ledge grab.** Not for pillows. Useful later as a climb verb for 2 to 4 unit ledges (book risers, box
+  lids) if he wants one.
+
+### 2. Car location portals (his direction 5 Nov: "warp portals that teleport in location for driving in cars instead of shifting in size - we shift in location")
+Today the course's Portal moves only a player on foot: it looks for the player's collider, which is off while seated,
+so a car drives straight through. Proposal:
+- **CarPortal.** Drive through a ring and come out of its partner at the same speed, turned to the partner's facing.
+  Car, driver and camera move together; a short warp flash uses his swirl drawing (Art/Portals/warp_mask_swirl); the
+  exit is quiet for a moment so you do not bounce straight back.
+- **Pairing by colour.** Any two portals of the same colour link (red, blue, green), so in Build Mode he places a red,
+  then another red, and they connect. Works the same in the course.
+- **Look.** The Cyber pack's Circle_01 hoop (a 10 m ring, about 9 units across at car scale: a car fits with room),
+  his swirl art spinning inside it, a floor arrow (Arrow_01, flat) at the way in.
+- **Build.** Vehicles/CarPortal.cs (trigger, colour registry, teleport via ArcadeCar.PlaceAt with the velocity turned
+  into the exit's frame, ShoulderCamera.Warp + chase, exit cooldown), a flash, the builder makes three colour prefabs
+  into Pieces/Vehicles, catalogue rebuild, a starter pair in the Workshop. Two to three hours.
+- **His calls.** Keep speed through the portal (my pick) or stop at the exit; let the toy on foot use them too or
+  cars only; where they go in the course (a shortcut off the stunt run?); the hoop or one of his drawings as the frame.

@@ -19,9 +19,9 @@ checked: garage gate + above, a car on pack wheels (Temp/shiftjam-stage/stills1,
   (4) wreck a car (hard crashes) and wait: it is towed into the bay; (5) F3, place a ClimbRamp from the catalogue:
   green ghost, no step at the toe; (6) no start card on entering the Workshop. Main room: drive the stunt run, the
   landing ramp's toe should no longer bump.
-- STILL OPEN (his calls): pillows too tall for the toy to get onto: A mantle/ledge grab (works on every ledge: books,
-  boxes, desk edges; my pick), B a pack Trampoline (Cyber Track Props, six) beside each pillow, C walking into a pillow
-  bounces the toy up onto it, D the kid sets a box/book step beside it (kid arranges, toy traverses); car location portals
+- STILL OPEN (his calls): pillows too tall for the toy to get onto: measured 10.8 tall vs a 2.0 jump, so a ledge grab
+  cannot reach (corrected 6 Nov); options in DESIGN "Proposals, 6 Nov" (A bouncy sides = my pick, B pack trampoline
+  step, C kid-set steps); car location portals (plan in the same section)
   (his direction, D-0029, not built); run cadence A/B; the 4 Nov design-pass picks; idle-jump ending; run legs inward;
   Feel on the shift; Toy Land removal; `Assets/ERP` + `.erp` (his Editor Rich Presence) untracked.
 

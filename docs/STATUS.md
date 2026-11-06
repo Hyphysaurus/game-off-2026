@@ -2,7 +2,7 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 6 Nov 2026 12:3x — D-0038 BUILT + STAGED with D-0037; WAITING for him back in Shift Jam to land (he is playtesting NectarRush; Shift Jam's editor is closed) — CHECKPOINT
+## 6 Nov 2026 12:1x — D-0038 BUILT + STAGED with D-0037; WAITING for him back in Shift Jam to land (he is playtesting NectarRush; Shift Jam's editor is closed) — CHECKPOINT
 His "proceed": crash = impact speed into the surface; bump stop; ramp lead-ins; repair hearts, life-ring shields,
 mending after 4 s, bonnet smoke, HUD health + shield. All staged in `shiftjam-stage/race/*` (+ integ: Damageable.Blocked,
 KeyHelp, CourseBuilder), 29 files compile 0/0. The review was paused at his word (tokens). LAND ORDER (out of Play, Shift

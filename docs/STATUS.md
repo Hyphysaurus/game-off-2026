@@ -2,6 +2,12 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 5 Nov 2026 18:2x — PILLOW PADS + KEYBOARD POP (D-0025), files landed, COMMITTED, UNPLAYED
+After his recorded playtest (OBS, `Videos/Shift Jam/2026-11-05 13-37-06.mp4`, 21 min): couch pillows are now carryable
+(kid) toy launch pads; keyboard keys hold while feet are on them (the pop on every key). HIS STEPS: let Unity compile,
+Shift Jam > Make Pillows Pads, save the scene, Play: bounce on a couch pillow as the toy, carry one as the kid and put it
+down, bounce again; walk the keyboard (notes, no hop). If the keyboard still pops: MotionProbe while he walks it.
+
 ## 5 Nov 2026 13:1x — PINK PUFFS in the toy box fixed (his screenshot), files landed while he plays, UNSEEN
 Root cause: the pack's `FX_Dust.prefab` points at a material the pack does not ship (guid 3feca5f0… found nowhere), so
 each wall-landing puff from BoxBurst drew in error magenta. Fix in OUR code, pack untouched: `Resources/FX/BoxDust.mat`

@@ -196,3 +196,13 @@
   burst used the ToyBox object's origin as the box's middle, 20 off, so side walls fell askew and the front wall inward;
   BoxBurst now uses the average of the walls' centres, the rebuild stands the box on its own Floor board (core and
   flashlight inside), and flaps hinge one thickness in so they lie flat beyond their wall. Stills: docs/stills/toybox_*.png.
+- **D-0025 (5 Nov) Couch pillows are kid-carried toy launch pads; keyboard keys hold while feet are on them.** His words:
+  "as Kid size, we can rearrange them and move them to important locations so we can use them in Toy Size"; the pillows
+  "still dont launch toy form up" (only the R5 trampoline ever had a pad; D-0021's "pillows stay pads" never reached R4).
+  Both couch pillows: `Carryable` + `Carried` and a toy-only `LaunchPad` (`CourseBuilder.PillowPad`, shared with the
+  trampoline) throwing the toy clear of the sofa back (sofa top - pillow top + 6, min 12) wherever they are put down; the
+  Carrier already switches the pad's trigger off in hand. Existing scene: menu Shift Jam > Make Pillows Pads (idempotent).
+  Keyboard: "launches up in the air every time i step on a key". Read, not measured: a key sank (0.22 in 0.04 s) faster
+  than the motor holds the toy down, the toy went ungrounded, the press was gated on Grounded, so the key rose back into
+  the capsule and the controller shoved it out; repeat per key. Now a short ray from the feet presses regardless of
+  Grounded, a key holds 0.08 s after the feet leave, sink 0.15 (field renamed keyDepth so the scene's old 0.22 drops).

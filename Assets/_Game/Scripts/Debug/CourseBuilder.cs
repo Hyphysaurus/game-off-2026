@@ -401,6 +401,7 @@ namespace ShiftJam
             var pad = RestOn(Spawn("Chesspad_01", "Chesspad", r4, new Vector3(seatX, 0, sofaB.center.z - 13f), new Vector3(0, 10, 0), 1f), SeatY(sofaB.center.z - 13f)); var padB = B(pad);
             foreach (var (n, off) in new[] { ("Chess_White_King_01", new Vector3(-3f, 0, 2f)), ("Chess_Black_Queen_01", new Vector3(3f, 0, -3f)), ("Chess_White_Pawn_01", new Vector3(-5f, 0, -5f)), ("Chess_Black_Hoss_01", new Vector3(5f, 0, 4f)) }) RestOn(Spawn(n, n, r4, padB.center + off, Vector3.zero, 1f), Top(pad, padB.center.x + off.x, padB.center.z + off.z));
             var firstPillow = r4.Find("Pillow"); if (firstPillow != null) { firstPillow.position = new Vector3(seatX, 0, sofaB.max.z - 15f); RestOn(firstPillow.gameObject, SeatY(sofaB.max.z - 15f)); }
+            CouchPillowPads(r4, glow);
             blocked.Add(sofaB);
             React(Prop("Toy_Cat_01", c + new Vector3(140f, 0, 70f), -140f), Reactor.Response.Squash, "Pet");
             // a broken desk fan on its back in front of the sofa, propped up by a book so it blows up and toward the seat: a
@@ -589,10 +590,7 @@ namespace ShiftJam
             BookStairs(r5, c + new Vector3(-hw + 6f, 0, hd * 0.5f), Vector3.right, 0f, shelfY[0], "Flight0");
             // flight 1 is a trampoline: a pillow on shelf 1's open front, under the lip of shelf 2; drift back in the air to land on it
             var pillow = Rest(Spawn("Pillow_01", "Trampoline", r5, c + new Vector3(hw - 30f, 0, hd * 0.2f), new Vector3(0, 10, 0), 1f), shelfY[0], null);
-            var pb = B(pillow);
-            var padTrig = Trigger("Pad", pillow.transform, new Vector3(pb.center.x, pb.max.y + 0.6f, pb.center.z), new Vector3(pb.size.x * 0.8f, 1.6f, pb.size.z * 0.8f));
-            var pad = padTrig.AddComponent<LaunchPad>(); Set(pad, "height", (shelfY[1] - pb.max.y) + 10f); Set(pad, "visual", pillow.transform);
-            Quad("PadGlow", pillow.transform, new Vector3(pb.center.x, pb.max.y + 0.3f, pb.center.z), new Vector3(90, 0, 0), Vector3.one * (pb.size.x * 0.9f), glow);
+            PillowPad(pillow, (shelfY[1] - B(pillow).max.y) + 10f, glow);
             Checkpoint("CP_shelf" + shelfY[0], r5, c + new Vector3(0, shelfY[0] + 2f, hd * 0.5f), new Vector3(hw * 2 - 10f, 4f, hd - 4f), ShiftSize.Toy);
             Checkpoint("CP_shelf" + shelfY[1], r5, c + new Vector3(0, shelfY[1] + 2f, hd * 0.75f), new Vector3(hw * 2 - 10f, 4f, hd / 2f - 4f), ShiftSize.Toy);
             // dressing: boxes and a pillow on the shelves, costumes hanging in the front half (static)
@@ -879,6 +877,40 @@ namespace ShiftJam
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorSceneManager.MarkSceneDirty(box.scene);
             Debug.Log("TOY BOX REBUILT: 4 walls, 2 flaps, tape, label; BoxBurst wired");
+        }
+
+        /// <summary>Couch pillows (D-0025): the kid carries them where they are needed, the toy bounces on them. Each throws
+        /// the toy clear of the sofa's back wherever it is put down. Skips a pillow that already has its pad.</summary>
+        static int CouchPillowPads(Transform r4, Material glow)
+        {
+            var sofa = r4.Find("Sofa"); int made = 0;
+            foreach (var n in new[] { "Pillow", "Pillow2" })
+            {
+                var p = r4.Find(n); if (p == null || p.Find("Pad") != null) continue;
+                Carry(p.gameObject);
+                float h = sofa != null ? B(sofa.gameObject).max.y - B(p.gameObject).max.y + 6f : 30f;
+                PillowPad(p.gameObject, Mathf.Max(h, 12f), glow); made++;
+            }
+            return made;
+        }
+
+        /// <summary>A toy-only launch pad on a pillow: a trigger over its top, a glow disc, the pillow squashes on each bounce.
+        /// Pad and glow are the pillow's children, so they travel when the kid carries it (the Carrier switches them off in hand).</summary>
+        static void PillowPad(GameObject pillow, float height, Material glow)
+        {
+            var pb = B(pillow);
+            var padTrig = Trigger("Pad", pillow.transform, new Vector3(pb.center.x, pb.max.y + 0.6f, pb.center.z), new Vector3(pb.size.x * 0.8f, 1.6f, pb.size.z * 0.8f));
+            var pad = padTrig.AddComponent<LaunchPad>(); Set(pad, "height", height); Set(pad, "visual", pillow.transform);
+            Quad("PadGlow", pillow.transform, new Vector3(pb.center.x, pb.max.y + 0.3f, pb.center.z), new Vector3(90, 0, 0), Vector3.one * (pb.size.x * 0.9f), glow);
+        }
+
+        [MenuItem("Shift Jam/Make Pillows Pads")]
+        public static void MakePillowsPads()
+        {
+            var r4 = GameObject.Find("Room/Course/R4_Playroom"); if (r4 == null) { Debug.LogError("no Room/Course/R4_Playroom"); return; }
+            int made = CouchPillowPads(r4.transform, AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/DoorGlow.mat"));
+            EditorSceneManager.MarkSceneDirty(r4.scene);
+            Debug.Log($"PILLOW PADS: {made} couch pillow(s) now carryable + toy launch pads");
         }
 
         /// <summary>A kid-carryable prop with the pick-up prompt.</summary>

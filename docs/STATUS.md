@@ -2,9 +2,9 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 6 Nov 2026 08:4x — STAGED, NOT LANDED (he is gaming): sweep fixes + Pocket Core + key list + grab — CHECKPOINT
+## 6 Nov 2026 09:1x — STAGED, NOT LANDED: sweep fixes + Pocket Core + key list + grab + vehicle camera — CHECKPOINT
 Everything below sits in `%TEMP%\shiftjam-stage\landing\` at its Assets/_Game/Scripts path (35 .cs: 30 changed, 5 new),
-compiled outside Unity together (0 errors). Nothing is in Assets yet. 41 .cs now (33 changed, 8 new) with the grab.
+compiled outside Unity together (0 errors). Nothing is in Assets yet. 44 .cs now (34 changed, 10 new) with the grab and the vehicle camera.
 - SWEEP of the unplayed Workshop systems (4 agents, 30 findings, 29 confirmed): fixed by three fixers on separate files +
   my review of every diff. Course-wide: the kill-height net now fires (Respawn guard). Build Mode: the car you sit in is
   off-limits and undo/load/Start empty/Play-as eject you first (was a softlock), the console stops Build Mode's keys and
@@ -25,8 +25,10 @@ compiled outside Unity together (0 errors). Nothing is in Assets yet. 41 .cs now
   shows it. Landing extra: add ThirdPersonGrab to the Player in both scenes so its values are tunable (it is auto-added
   at run time either way). HIS PLAYTEST then: kid grabs a couch pillow, sets it under the sofa arm, shifts (F2 Pocket
   Core), drops onto it as the toy.
-- WAITING on his word: vehicle camera plan (frame the car, smooth follow, speed widening, driver hidden in every
-  vehicle).
+- VEHICLE CAMERA (D-0036) staged: vehicle mode in ShoulderCamera, garage orbit (right drag / A D / wheel), IChaseTarget on
+  both car types, wooden car hides its driver. Landing extra: Shift Jam > Dev > Create Vehicle Camera Settings (makes
+  Resources/VehicleCamera.asset; built-in defaults work without it). His 09:0x live garage look: works (Car 01, Wheel 03,
+  part rows right); the stale "E  Drive" prompt under the menu is the sweep's Interactor fix (staged).
 
 ## 6 Nov 2026 06:1x — GARAGE + RAMPS LANDED (D-0029/30/31), reviewed before landing, COMMITTED, UNPLAYED
 Last night's checkpoint list is done. Commits: `22e4dd3` (checkpoint), `bf7b714` (placed ramps refit), `6c32ccd`

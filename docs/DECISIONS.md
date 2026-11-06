@@ -300,3 +300,14 @@
 - **D-0035 (6 Nov) H shows every key.** `UI/KeyHelp` (H or the pad's View; Build Mode keeps its own H sheet): on foot,
   grab, driving, garage, first person, Build Mode and dev keys; the player's actions are read from the project-wide input
   actions so rebinds show; keys scripts read directly are listed by hand and must be kept in step.
+- **D-0036 (6 Nov) A proper vehicle camera; only the car shows while driving.** His ask: "a proper third person
+  vehicle camera, player should be invisible, only car is visible", then live in the garage: "allow me to move the
+  camera around to pan around the car". The shoulder camera gets a vehicle mode (not a second camera, so Build Mode,
+  first person and the console keep their switches): it aims at the car's middle sized by the car itself (not the
+  driver's shoulder), trails it a little (more up and down, so bumps and landings settle), swings in behind the way the
+  car travels at speed and where the nose points when slow or reversing, turns slower in the air, widens a little and
+  pulls back at top speed, and blends back to the shoulder on getting out. In the garage (menu up) right or middle drag,
+  A/D and the left stick orbit the parked car, W/S tilt, the wheel zooms off the menu (kept across body swaps). Cars tell
+  it their speed, top speed and grounding (`IChaseTarget`: ArcadeCar, ToyCar). Tuning: `VehicleCameraSettings`, loaded
+  from Resources/VehicleCamera (Shift Jam > Dev > Create Vehicle Camera Settings; live edits in Play). The wooden car now
+  hides its driver like the Cyber cars. His picks were mine: follow travel at speed, small speed widening.

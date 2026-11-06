@@ -315,3 +315,34 @@
   it their speed, top speed and grounding (`IChaseTarget`: ArcadeCar, ToyCar). Tuning: `VehicleCameraSettings`, loaded
   from Resources/VehicleCamera (Shift Jam > Dev > Create Vehicle Camera Settings; live edits in Play). The wooden car now
   hides its driver like the Cyber cars. His picks were mine: follow travel at speed, small speed widening.
+- **D-0037 (6 Nov) Speed boosts, a driving HUD and a race loop, from the racing packs we own.** His asks: "design some
+  speed boosts and search assets for a basic driving hud", "access the battlestadium as well", then "proceed with all of
+  those" (DESIGN 3/4). Cars (`IBoostable` on ArcadeCar and ToyCar, shared logic in `Vehicles/CarBoost`): bursts that
+  raise the speed cap and push along the nose, a nitro meter spent on Shift (the jam theme's key; drifts, air time, pads
+  and stars fill it), the pull-back launch (stopped: W, then hold Jump to wind, let go to fire), flames and drift smoke
+  (`CarFx`, the Cyber pack's own BoostFX/DriftFX). Track pieces (Build Boost Pieces): BoostArrow (the kid can grab it),
+  BoostArch, BoostRing, JumpPad, BounceTramp, FanPad, NitroStar. Battle Stadium's ten racing cars drive (ToyRacer01..10,
+  car 4's key turns while winding) and its cannon fires a car across the room (`CarCannon`). `UI/DrivingHud`: speed in
+  scale km/h (x 4.608: 1 unit = 2 cm, a 1:64 car), the arc, nitro with the Shift key, BOOST, wind, laps (Teko and
+  Fredoka are OFL, the key icon Kenney CC0: these may sit in the public repo). Race (`Race/*`, Build Race Pieces):
+  numbered checkpoint arches in order, the finish arch counts laps, a stadium TV, a podium with fireworks; `RaceState`
+  is the one race store. Built by five builders on exclusive files after the contracts were written (IBoostable, Driving,
+  RaceState, Garage.MenuOpen); one reviewer found two race edge cases before he paused the review (fixed: every finish
+  line waits after a race; a car let go inside the line on leaving Build Mode is not a crossing). Integration: one
+  whoosh per burst (pads silent, the car plays it), one wind clip on every car (Safe_Dial, his ear), ToyCar.Gravity read
+  by the pads and the cannon, the seat skips the reparent while its car is being switched off (Play stopping).
+- **D-0038 (6 Nov) Crashes count only real impacts; springs have a bump stop; ramps start gently; cars mend.** His
+  notes: "the ramp is still damaging the cars on driving up, and the cars take damage on landing. which is fine, since
+  theyre modular, i intend to use fraggo to animate their destruction. but, we need health pick ups and shields etc that
+  would allow us to regen health while driving"; "also slightly adjust the lip of the ramps so its a smooth drive up".
+  Found: the lip was already sunk (D-0029); a crash scored the car's WHOLE contact speed, and at a 20 deg ramp foot the
+  springs (2x the car's weight at full travel) bottomed out so the body box hit the slope at full speed (about 36 damage a
+  ramp at top speed). Now: crash damage = the speed INTO the surface (along the contact normal; head-on hits and hard flat
+  landings still hurt, landing on a slope mostly does not); a bump stop in the last 30% of the spring travel (stiffness 3,
+  damping 15, ArcadeCarSettings); every wedge ramp gets a lead-in at half its slope reaching a fifth of its length past
+  the toe (Wedge + menu Add Ramp Lead-ins for ramps already in a scene), so each bend is half as sharp. Health: repair
+  hearts (+35%, back in 10 s), life-ring shields (an 8 s bubble round the car with the ring circling it, blocked hits
+  flash it, it blinks before it ends; `CarShield`), mending while driving after 4 s without a hit (5%/s), bonnet smoke
+  under 30% health and thick while wrecked; the HUD's health bar shows the shield's seconds. One `CarPickup` (kind:
+  nitro / repair / shield) replaced NitroPickup. Fraggo Fracture Engine (Unluck Software) is in his Asset Store
+  downloads, not imported: the car's Died event and its modular parts (CarLook's slots) are where it will plug in.

@@ -104,7 +104,9 @@ namespace ShiftJam
         private void OnModeChanged(GameMode.Mode from, GameMode.Mode to)
         {
             if (World == null) return;
-            if (to == GameMode.Mode.Build && !_on) Enter();
+            // from first person, wait a frame: its own exit has to hand the player back before we pause it, or we would
+            // record the player as already off and first person would switch the gameplay camera on under ours
+            if (to == GameMode.Mode.Build && !_on) { if (from == GameMode.Mode.FirstPerson) _enterNextFrame = true; else Enter(); }
             else if (from == GameMode.Mode.Build && _on) Exit();
         }
 
@@ -171,8 +173,11 @@ namespace ShiftJam
 
         // ------------------------------------------------------------------ per frame
 
+        private bool _enterNextFrame;
+
         private void Update()
         {
+            if (_enterNextFrame) { _enterNextFrame = false; if (GameMode.Current == GameMode.Mode.Build && !_on && World != null) Enter(); }
             if (World == null) return;
             bool typing = BuildInput.Typing;
             // F3 (not while a menu has the game paused, not while typing)

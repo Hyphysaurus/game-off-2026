@@ -164,7 +164,8 @@ namespace ShiftJam
             var mat = dustMaterial != null ? dustMaterial : Resources.Load<Material>("FX/BoxDust");
             foreach (var ps in puff.GetComponentsInChildren<ParticleSystem>())
             {
-                if (mat != null && ps.TryGetComponent(out ParticleSystemRenderer pr)) pr.sharedMaterial = mat;
+                var pr = mat != null ? ps.GetComponent<ParticleSystemRenderer>() : null;   // plain form: Fast Script Reload's rewriter breaks `&& TryGetComponent(out ...)`
+                if (pr != null) pr.sharedMaterial = mat;
                 var main = ps.main; main.loop = false; main.scalingMode = ParticleSystemScalingMode.Hierarchy;
                 ps.Play();
             }

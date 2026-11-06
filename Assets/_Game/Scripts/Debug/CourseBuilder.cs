@@ -61,6 +61,7 @@ namespace ShiftJam
             Transform r4Entry = null, r5Start = null, wardrobeFront = null;
             BuildPlayroom(r4, r6, dark, grass, glowMat, coreMat, out r4Entry, out wardrobeFront);
             r5Start = BuildWardrobe(r5, wood, glowMat, coreMat);
+            BuildCarCourse();   // the stunt run lives in R4 too (D-0026); it parks the car at its start
 
             // ---- portals between rooms ----
             // bedroom toy door -> R3 start (replace the old Goal with a Portal)
@@ -911,6 +912,88 @@ namespace ShiftJam
             int made = CouchPillowPads(r4.transform, AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/DoorGlow.mat"));
             EditorSceneManager.MarkSceneDirty(r4.scene);
             Debug.Log($"PILLOW PADS: {made} couch pillow(s) now carryable + toy launch pads");
+        }
+
+        // ------------------------------------------------------------------ the car course (D-0026)
+        // A stunt run for the toy car in the playroom's clear north-south corridor (x 505..535, between the race track and
+        // the broken fan; the maze/camp starts at x 540 north of z -76, the castle at z -229): north-bound from just above
+        // the castle: a short run-up, a climb onto a deck of four cardboard boxes (12.2 high), a kicker off the deck's end
+        // over a 20-unit gap, a landing ramp back to the floor at z ~ -82. Numbers from the car (top speed 26, gravity 25):
+        // ~0.8 s of air, peak ~15 up; the landing ramp's top sits where the arc comes down. Removes NOTHING from the room:
+        // small loose props under a piece are moved to the lane's side (listed in the log).
+        const float CarLaneX = 520f;
+
+        [MenuItem("Shift Jam/Build Car Course")]
+        public static void BuildCarCourse()
+        {
+            var r4 = GameObject.Find("Room/Course/R4_Playroom"); if (r4 == null) { Debug.LogError("no Room/Course/R4_Playroom"); return; }
+            var old = r4.transform.Find("CarCourse"); if (old != null) Object.DestroyImmediate(old.gameObject);
+            var course = Child(r4.transform, "CarCourse");
+            float x = CarLaneX, w = 30f;
+            Vector3 north = Vector3.forward;
+            Wedge("Climb", course, new Vector3(x, 0f, -166f), north, 12.2f, 34f, w);
+            float deckTop = 0f;
+            for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++)
+            {
+                var box = Rest(Spawn("Cardboard_Box_05", $"Deck{i}{j}", course, new Vector3(x - 7.55f + j * 15.1f, 0f, -158.6f + i * 14.8f), Vector3.zero, 1f), 0f, null);
+                deckTop = Mathf.Max(deckTop, B(box).max.y);
+            }
+            Wedge("Kicker", course, new Vector3(x, deckTop - 0.25f, -136.4f), north, 3f, 10f, w);
+            Wedge("Landing", course, new Vector3(x, 0f, -116.4f), Vector3.back, deckTop, 34f, w);   // high end faces the gap
+            Rest(Spawn("Toy_Sign_01", "StartSign", course, new Vector3(x - w * 0.5f - 4f, 0f, -214f), new Vector3(0, 90, 0), 1f), 0f, null);
+            // move small loose props out from under the pieces (never deletes)
+            var lane = new Bounds(new Vector3(x, 10f, -150f), new Vector3(w + 4f, 20f, 140f));
+            int moved = 0;
+            foreach (Transform t in r4.transform.Cast<Transform>().ToArray())
+            {
+                if (t == course || t.name == "ToyCar" || t.name == "Mat" || t.name.StartsWith("Floor") || t.name.StartsWith("Wall")) continue;
+                if (t.GetComponentsInChildren<Renderer>().Length == 0) continue;
+                var b = B(t.gameObject); if (b.size.y > 10f || b.size.x > 25f || b.size.z > 25f) continue;
+                if (!lane.Contains(new Vector3(b.center.x, 10f, b.center.z))) continue;
+                float side = b.center.x < x ? x - w * 0.5f - 6f - b.extents.x : x + w * 0.5f + 6f + b.extents.x;
+                t.position += Vector3.right * (side - b.center.x); moved++;
+                Log.AppendLine("moved aside " + t.name);
+            }
+            // the car waits at the start, nose north (the nose is where its front wheels are)
+            var car = r4.transform.Find("ToyCar");
+            if (car != null)
+            {
+                car.rotation = Quaternion.identity;
+                Transform front = null, rear = null;
+                foreach (var t in car.GetComponentsInChildren<Transform>()) { if (t.name.Contains("Front") || t.name.EndsWith("_FL") || t.name.EndsWith("_FR")) front = t; if (t.name.Contains("Rear") || t.name.EndsWith("_RL") || t.name.EndsWith("_RR")) rear = t; }
+                if (front != null && rear != null && Vector3.Dot(front.position - rear.position, Vector3.forward) < 0f) car.rotation = Quaternion.Euler(0f, 180f, 0f);
+                var cb = B(car.gameObject); car.position += new Vector3(x - cb.center.x, -cb.min.y, -216f - cb.center.z);
+            }
+            EditorSceneManager.MarkSceneDirty(r4.scene);
+            Debug.Log($"CAR COURSE BUILT: deck top {deckTop:F1}, moved aside {moved}\n" + Log);
+        }
+
+        /// <summary>A wedge ramp from the pack's Ramp_02, stretched to <paramref name="width"/> x <paramref name="rise"/> x
+        /// <paramref name="length"/>, climbing along <paramref name="climb"/> with its high edge at <paramref name="high"/>
+        /// (x/z), resting its base on high.y. The wedge's own slope axis and high end are read from the mesh, so the
+        /// prefab's orientation does not matter.</summary>
+        static GameObject Wedge(string name, Transform parent, Vector3 high, Vector3 climb, float rise, float length, float width)
+        {
+            var go = Spawn("Ramp_02", name, parent, Vector3.zero, Vector3.zero, 1f);
+            var mf = go.GetComponentInChildren<MeshFilter>(); var mb = mf.sharedMesh.bounds;
+            Vector3[] v = mf.sharedMesh.vertices; float xPos = 0, xNeg = 0, zPos = 0, zNeg = 0; int nxp = 0, nxn = 0, nzp = 0, nzn = 0;
+            foreach (var p in v)
+            {
+                if (p.x > mb.center.x + mb.extents.x * 0.6f) { xPos += p.y; nxp++; } else if (p.x < mb.center.x - mb.extents.x * 0.6f) { xNeg += p.y; nxn++; }
+                if (p.z > mb.center.z + mb.extents.z * 0.6f) { zPos += p.y; nzp++; } else if (p.z < mb.center.z - mb.extents.z * 0.6f) { zNeg += p.y; nzn++; }
+            }
+            float dx = (nxp > 0 ? xPos / nxp : 0) - (nxn > 0 ? xNeg / nxn : 0), dz = (nzp > 0 ? zPos / nzp : 0) - (nzn > 0 ? zNeg / nzn : 0);
+            bool alongZ = Mathf.Abs(dz) >= Mathf.Abs(dx);
+            Vector3 upLocal = alongZ ? (dz > 0 ? Vector3.forward : Vector3.back) : (dx > 0 ? Vector3.right : Vector3.left);   // the local way it climbs
+            Vector3 size = mb.size;
+            go.transform.localScale = alongZ ? new Vector3(width / size.x, rise / size.y, length / size.z) : new Vector3(length / size.x, rise / size.y, width / size.z);
+            Vector3 flat = new Vector3(climb.x, 0f, climb.z).normalized, cross = new Vector3(-flat.z, 0f, flat.x);
+            go.transform.rotation = Quaternion.Euler(0f, Quaternion.FromToRotation(upLocal, flat).eulerAngles.y, 0f);
+            var b = B(go);
+            Vector3 highEdge = b.center + flat * (Mathf.Abs(flat.x) * b.extents.x + Mathf.Abs(flat.z) * b.extents.z);
+            go.transform.position += flat * Vector3.Dot(high - highEdge, flat) + cross * Vector3.Dot(high - b.center, cross) + Vector3.up * (high.y - b.min.y);
+            Log.AppendLine($"{name}: rise {rise:F1} over {length:F0} = {Mathf.Atan2(rise, length) * Mathf.Rad2Deg:F0} deg");
+            return go;
         }
 
         /// <summary>A kid-carryable prop with the pick-up prompt.</summary>

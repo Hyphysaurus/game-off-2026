@@ -206,3 +206,15 @@
   than the motor holds the toy down, the toy went ungrounded, the press was gated on Grounded, so the key rose back into
   the capsule and the controller shoved it out; repeat per key. Now a short ray from the feet presses regardless of
   Grounded, a key holds 0.08 s after the feet leave, sink 0.15 (field renamed keyDepth so the scene's old 0.22 drops).
+- **D-0026 (5 Nov) The toy car drives like a toy RC car and has a stunt run in the playroom.** His notes: "the driving is
+  strange, the car itself is spawned in a strange position"; "build a course for it to travel, bonus points if there's
+  verticality and air time". Car (`Room/ToyCar.cs`): the body keeps a fixed offset from its hidden ball, measured once
+  (following the renderer bounds every frame made it bob as wheels spun and it leaned); turns standing still at 45% and
+  steers 35% in the air; its own gravity 25 like the toy (Unity's 9.8 made hops float); `ShoulderCamera.SetChase` swings
+  the camera behind the car's nose when the mouse rests and pulls back 1.6x. Course (`CourseBuilder.BuildCarCourse`, menu
+  Shift Jam > Build Car Course, also part of Build Course): the clear corridor x 505..535 between the orange race track
+  and the broken fan, north-bound: start z -216 (car parked nose north), climb 20° to a 2x2 deck of Cardboard_Box_05
+  (12.2), a 17° kicker off its end (top 14.9), a 20-unit gap, a 20° landing ramp to the floor at z -82. Ramps are the
+  pack's Ramp_02 wedge stretched to 30 wide; the builder reads the wedge's slope from its mesh. NOTHING removed from the
+  room: 11 small loose props under the pieces were moved to the lane's sides (a first pass that cleared the lane deleted
+  the maze and camp; discarded unsaved within minutes).

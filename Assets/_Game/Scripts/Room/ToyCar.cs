@@ -17,6 +17,10 @@ namespace ShiftJam
         [SerializeField] private float acceleration = 34f, braking = 60f, coastDrag = 10f;
         [SerializeField, Tooltip("Degrees per second at full lock and speed.")] private float turnRate = 150f;
         [SerializeField, Tooltip("Hop height, units.")] private float hopHeight = 3f;
+        [SerializeField, Tooltip("Gravity on the car, units/s². The toy's own is 25; Unity's default 9.8 made jumps float.")] private float gravity = 25f;
+        [SerializeField, Range(0f, 1f), Tooltip("Share of the turn rate available standing still (a toy car can turn on the spot).")] private float pivotTurn = 0.45f;
+        [SerializeField, Range(0f, 1f), Tooltip("Share of the turn rate in the air, to line up a landing.")] private float airTurn = 0.35f;
+        [SerializeField, Tooltip("The camera pulls back this much while driving.")] private float chaseDistance = 1.6f;
         [SerializeField, Tooltip("Where the driver sits, in the car's local space (found from the body if zero).")] private Vector3 seat;
         [SerializeField, Tooltip("Wheel objects spun with speed; found by name if empty.")] private Transform[] wheels;
         [SerializeField] private AudioClip rollLoop, crash;
@@ -25,7 +29,7 @@ namespace ShiftJam
         private Rigidbody _ball; private SphereCollider _sphere; private float _radius, _yaw, _flip;
         private Vector3 _startPos; private Quaternion _startRot;
         private PlayerMotor _driverMotor; private PlayerInput _input; private Interactor _interactor; private CharacterController _cc; private Animator _anim;
-        private Renderer[] _body;
+        private Renderer[] _body; private Vector3 _bodyOffset; private ShoulderCamera _camera;
         private Transform _driver; private float _enteredAt; private bool _grounded; private AudioSource _audio; private Vector3 _groundNormal = Vector3.up;
 
         public Transform Ball => _ball != null ? _ball.transform : null;
@@ -51,11 +55,14 @@ namespace ShiftJam
             var go = new GameObject(name + "_Ball"); go.transform.position = new Vector3(b.center.x, b.min.y + _radius, b.center.z);
             _sphere = go.AddComponent<SphereCollider>(); _sphere.radius = _radius;
             _sphere.material = new PhysicsMaterial("CarBall") { dynamicFriction = 0f, staticFriction = 0f, frictionCombine = PhysicsMaterialCombine.Minimum, bounciness = 0f };
-            _ball = go.AddComponent<Rigidbody>(); _ball.mass = 2f; _ball.constraints = RigidbodyConstraints.FreezeRotation; _ball.interpolation = RigidbodyInterpolation.Interpolate; _ball.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            _ball = go.AddComponent<Rigidbody>(); _ball.useGravity = false; _ball.mass = 2f; _ball.constraints = RigidbodyConstraints.FreezeRotation; _ball.interpolation = RigidbodyInterpolation.Interpolate; _ball.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             foreach (var c in GetComponentsInChildren<Collider>()) Physics.IgnoreCollision(_sphere, c);
             var own = GetComponent<Rigidbody>(); if (own != null) Destroy(own);
             var push = GetComponent<Pushable>(); if (push != null) Destroy(push);
             _startPos = go.transform.position; _startRot = transform.rotation;
+            // the body's place relative to the ball's lowest point, measured once: following the renderer bounds every
+            // frame made the body bob as the wheels spun and the car leaned
+            _bodyOffset = Quaternion.Inverse(transform.rotation) * (transform.position - (go.transform.position + Vector3.down * _radius));
             _audio = gameObject.AddComponent<AudioSource>(); _audio.loop = true; _audio.clip = rollLoop; _audio.spatialBlend = 0.7f; _audio.volume = 0f; _audio.maxDistance = 120f; _audio.rolloffMode = AudioRolloffMode.Linear;
             if (rollLoop != null) _audio.Play();
         }
@@ -83,6 +90,7 @@ namespace ShiftJam
             if (_anim != null) { _anim.SetFloat("Speed", 0f); _anim.SetBool("Grounded", true); _anim.SetFloat("VerticalVelocity", 0f); }
             _enteredAt = Time.time;
             _input.Interact += GetOut; _input.Jump += Hop;
+            _camera = FindFirstObjectByType<ShoulderCamera>(); if (_camera != null) _camera.SetChase(transform, _flip, chaseDistance);
             onEnter?.Invoke();
         }
 
@@ -97,14 +105,14 @@ namespace ShiftJam
             _cc.enabled = true; _driverMotor.enabled = true; _interactor.enabled = true;
             _driverMotor.Warp(at, Quaternion.Euler(0f, transform.eulerAngles.y - _flip, 0f));
             _driver = null;
+            if (_camera != null) _camera.SetChase(null);
             onExit?.Invoke();
         }
 
         private void Hop()
         {
             if (!Driving || !_grounded) return;
-            float g = Mathf.Abs(Physics.gravity.y);
-            _ball.AddForce(Vector3.up * Mathf.Sqrt(2f * g * hopHeight), ForceMode.VelocityChange);
+            _ball.AddForce(Vector3.up * Mathf.Sqrt(2f * gravity * hopHeight), ForceMode.VelocityChange);
         }
 
         private void FixedUpdate()
@@ -113,6 +121,7 @@ namespace ShiftJam
             float dt = Time.fixedDeltaTime;
             _grounded = Physics.SphereCast(_ball.position + Vector3.up * 0.1f, _radius * 0.9f, Vector3.down, out var hit, 0.4f, ~0, QueryTriggerInteraction.Ignore) && hit.collider != _sphere;
             _groundNormal = _grounded ? hit.normal : Vector3.up;
+            _ball.AddForce(Vector3.down * gravity, ForceMode.Acceleration);
             Vector3 v = _ball.linearVelocity; Vector3 planar = new Vector3(v.x, 0f, v.z);
             Vector3 fwd = Quaternion.Euler(0f, _yaw, 0f) * Vector3.forward;
             float along = Vector3.Dot(planar, fwd);
@@ -127,8 +136,11 @@ namespace ShiftJam
                 Vector3 newPlanar = fwd * next + Vector3.MoveTowards(side, Vector3.zero, 80f * dt);
                 _ball.linearVelocity = new Vector3(newPlanar.x, v.y, newPlanar.z);
                 float speed01 = Mathf.Clamp01(Mathf.Abs(next) / topSpeed);
-                _yaw += move.x * turnRate * dt * Mathf.Sign(next == 0 ? 1f : next) * Mathf.Clamp01(speed01 * 3f);
+                // steering flips in reverse like a real car; standing still it turns the way the stick says
+                float dir = Mathf.Abs(next) > 0.5f ? Mathf.Sign(next) : (move.y < -0.1f ? -1f : 1f);
+                _yaw += move.x * turnRate * dt * dir * Mathf.Lerp(pivotTurn, 1f, Mathf.Clamp01(speed01 * 3f));
             }
+            else _yaw += move.x * turnRate * airTurn * dt;
             if (_ball.position.y < -20f) { if (Driving) GetOut(); _ball.position = _startPos; _ball.linearVelocity = Vector3.zero; _yaw = _startRot.eulerAngles.y + _flip; }
         }
 
@@ -139,8 +151,7 @@ namespace ShiftJam
             Quaternion facing = Quaternion.Euler(0f, _yaw - _flip, 0f);
             Quaternion lean = Quaternion.FromToRotation(Vector3.up, _grounded ? _groundNormal : Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, lean * facing, 12f * Time.deltaTime);
-            var b = Bounds();   // the body sits with its lowest point on the ball's lowest point, centred over it
-            transform.position += new Vector3(_ball.position.x - b.center.x, bottom.y - b.min.y, _ball.position.z - b.center.z);
+            transform.position = bottom + transform.rotation * _bodyOffset;
             float speed = new Vector3(_ball.linearVelocity.x, 0f, _ball.linearVelocity.z).magnitude;
             foreach (var w in wheels) if (w != null) w.Rotate(transform.right, speed * Time.deltaTime * 60f, Space.World);
             if (_audio != null) { _audio.volume = Mathf.MoveTowards(_audio.volume, _grounded ? Mathf.Clamp01(speed / topSpeed) * 0.6f : 0f, Time.deltaTime * 3f); _audio.pitch = 0.8f + speed / topSpeed * 0.6f; }

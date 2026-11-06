@@ -23,6 +23,11 @@ namespace ShiftJam
         private float _yaw, _pitch;
         private bool _cursorLocked;
         private readonly RaycastHit[] _hits = new RaycastHit[16];
+        // chase mode (a vehicle is driven): the camera swings in behind the vehicle's nose when the mouse rests
+        private Transform _chase; private float _chaseYawOffset, _chaseDistance = 1f, _lastLookTime = -10f;
+        [SerializeField, Tooltip("While driving: seconds without mouse look before the camera swings behind the vehicle.")] private float chaseRecenterDelay = 0.6f;
+        [SerializeField, Tooltip("While driving: degrees per second the camera swings behind the vehicle.")] private float chaseRecenterSpeed = 140f;
+        [SerializeField, Tooltip("While driving: the pitch the camera settles to.")] private float chasePitch = 14f;
 
         public float Yaw => _yaw;
         public float Pitch => _pitch;
@@ -74,6 +79,13 @@ namespace ShiftJam
             float fov = Mathf.Lerp(settings.fieldOfView, settings.kidFieldOfView, kid);
 
             Vector2 look = input != null ? input.ConsumeLook(settings.mouseSensitivity, settings.padSensitivity, dt) : Vector2.zero;
+            if (look.sqrMagnitude > 0.0001f) _lastLookTime = Time.unscaledTime;
+            if (_chase != null && Time.unscaledTime - _lastLookTime > chaseRecenterDelay)
+            {
+                float behind = _chase.eulerAngles.y + _chaseYawOffset;
+                _yaw = Mathf.MoveTowardsAngle(_yaw, behind, chaseRecenterSpeed * dt);
+                _pitch = Mathf.MoveTowards(_pitch, chasePitch, chaseRecenterSpeed * 0.3f * dt);
+            }
             if (_cursorLocked && Time.timeScale > 0f)
             {
                 _yaw = Mathf.Repeat(_yaw + look.x, 360f);
@@ -87,18 +99,26 @@ namespace ShiftJam
             Vector3 back = rotation * Vector3.back;
 
             // Keep the camera out of walls: the nearest thing between the pivot and the wanted spot wins.
-            float wanted = settings.distance * scale * distanceMul;
+            float wanted = settings.distance * scale * distanceMul * (_chase != null ? _chaseDistance : 1f);
             float distance = wanted;
             int count = Physics.SphereCastNonAlloc(pivot, settings.collisionRadius * scale, back, _hits, wanted, collisionMask, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
             {
-                if (_hits[i].transform.IsChildOf(target)) continue;
+                if (_hits[i].transform.IsChildOf(target) || (_chase != null && _hits[i].transform.IsChildOf(_chase))) continue;
                 distance = Mathf.Min(distance, Mathf.Max(settings.minDistance * scale, _hits[i].distance));
             }
 
             transform.SetPositionAndRotation(pivot + back * distance, rotation);
             _camera.fieldOfView = fov + FovOffset;
             _camera.nearClipPlane = Mathf.Max(0.001f, settings.nearClip * scale);
+        }
+
+        /// <summary>Chase a vehicle while it is driven: <paramref name="yawOffset"/> turns the vehicle's yaw into its nose's
+        /// yaw, <paramref name="distanceMultiplier"/> pulls the camera back. Pass null to stop.</summary>
+        public void SetChase(Transform vehicle, float yawOffset = 0f, float distanceMultiplier = 1.6f)
+        {
+            _chase = vehicle; _chaseYawOffset = yawOffset; _chaseDistance = vehicle != null ? distanceMultiplier : 1f;
+            _lastLookTime = -10f;
         }
 
         /// <summary>Points the camera the given way at once, for spawns and portals.</summary>

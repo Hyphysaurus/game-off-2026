@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26a5248168f757d4dafeae84c9e80ed8, type: 3}
+  m_Name: FirstPersonSettings
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.FirstPersonSettings
+  standHeight: 1.8
+  crouchHeight: 0.9
+  radius: 0.3
+  standEye: 1.62
+  crouchEye: 0.75
+  duckTime: 0.25
+  stepHeight: 0.45
+  slopeLimit: 45
+  runSpeed: 4.8
+  sprintSpeed: 8.1
+  crouchSpeedMultiplier: 0.34
+  accelerate: 10
+  friction: 4
+  stopSpeed: 2.5
+  airAccelerate: 10
+  airSpeedCap: 0.76
+  gravity: 15.2
+  jumpHeight: 0.55
+  maxFallSpeed: 50
+  fieldOfView: 90
+  mouseSensitivity: 0.1
+  padSensitivity: 200
+  invertY: 0
+  maxPitch: 89
+  viewBob: 1
+  bobAmount: 0.025
+  bobPerUnit: 0.32
+  nearClip: 0.04
+  grabReach: 2.4
+  maxLiftMass: 20
+  maxLiftSize: 1.6
+  holdDistance: 1.3
+  holdStiffness: 0.35
+  maxHoldSpeed: 25
+  breakDistance: 1.2
+  throwSpeed: 12
+  throwFullSpeedMass: 4
+  wheelRotateStep: 15
+  mouseRotateSensitivity: 0.4

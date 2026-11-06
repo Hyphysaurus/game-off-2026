@@ -15,7 +15,9 @@ namespace ShiftJam
 
         private InputActionAsset _instance;
         private InputActionMap _player;
-        private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop;
+        private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop, _previous, _next;
+        // Workshop extras the asset has no actions for: made here so this stays the only script that knows devices.
+        private InputAction _dropWeapon, _scroll, _rotate;
         private Vector2 _mouseLook;   // pixels moved since the last read
         private Vector2 _stickLook;   // current right-stick value, -1..1
 
@@ -32,6 +34,18 @@ namespace ShiftJam
         public event Action UseHeld;
         /// <summary>Raised once per press of the Crouch action: put the carried thing down.</summary>
         public event Action Drop;
+        /// <summary>True while Attack is held: automatic weapons keep firing.</summary>
+        public bool AttackHeld => _use != null && _use.IsPressed();
+        /// <summary>True while Crouch is held: the first-person body ducks.</summary>
+        public bool CrouchHeld => _drop != null && _drop.IsPressed();
+        /// <summary>True while the rotate key (R or the right mouse button) is held: the first-person grab turns the held thing.</summary>
+        public bool RotateHeld => _rotate != null && _rotate.IsPressed();
+        /// <summary>Mouse wheel notches this frame (+1 up, -1 down), 0 when still.</summary>
+        public float Scroll { get { float y = _scroll != null ? _scroll.ReadValue<float>() : 0f; return Mathf.Abs(y) < 0.01f ? 0f : Mathf.Sign(y); } }
+        /// <summary>Raised on Previous (1) and Next (2): cycle weapons.</summary>
+        public event Action Previous, Next;
+        /// <summary>Raised on Q: drop the weapon in hand.</summary>
+        public event Action DropWeapon;
 
         private void Awake()
         {
@@ -44,6 +58,14 @@ namespace ShiftJam
             _interact = _player.FindAction("Interact", true);
             _use = _player.FindAction("Attack", true);
             _drop = _player.FindAction("Crouch", true);
+            _previous = _player.FindAction("Previous", true);
+            _next = _player.FindAction("Next", true);
+            _dropWeapon = new InputAction("DropWeapon", InputActionType.Button, "<Keyboard>/q");
+            _dropWeapon.AddBinding("<Gamepad>/dpad/down");
+            _scroll = new InputAction("Scroll", InputActionType.Value, "<Mouse>/scroll/y");
+            _rotate = new InputAction("RotateHeld", InputActionType.Button, "<Keyboard>/r");
+            _rotate.AddBinding("<Mouse>/rightButton");
+            _rotate.AddBinding("<Gamepad>/leftShoulder");
         }
 
         private void OnEnable()
@@ -54,12 +76,20 @@ namespace ShiftJam
             _drop.performed += OnDrop;
             _look.performed += OnLook;
             _look.canceled += OnLook;
+            _previous.performed += OnPrevious;
+            _next.performed += OnNext;
+            _dropWeapon.performed += OnDropWeapon;
             _player.Enable();
+            _dropWeapon.Enable(); _scroll.Enable(); _rotate.Enable();
         }
 
         private void OnDisable()
         {
             _player.Disable();
+            _dropWeapon.Disable(); _scroll.Disable(); _rotate.Disable();
+            _previous.performed -= OnPrevious;
+            _next.performed -= OnNext;
+            _dropWeapon.performed -= OnDropWeapon;
             _jump.performed -= OnJump;
             _interact.started -= OnInteract;
             _use.performed -= OnUse;
@@ -72,12 +102,16 @@ namespace ShiftJam
         private void OnDestroy()
         {
             if (_instance != null) Destroy(_instance);
+            _dropWeapon?.Dispose(); _scroll?.Dispose(); _rotate?.Dispose();
         }
 
         private void OnJump(InputAction.CallbackContext _) => Jump?.Invoke();
         private void OnInteract(InputAction.CallbackContext _) => Interact?.Invoke();
         private void OnUse(InputAction.CallbackContext _) => UseHeld?.Invoke();
         private void OnDrop(InputAction.CallbackContext _) => Drop?.Invoke();
+        private void OnPrevious(InputAction.CallbackContext _) => Previous?.Invoke();
+        private void OnNext(InputAction.CallbackContext _) => Next?.Invoke();
+        private void OnDropWeapon(InputAction.CallbackContext _) => DropWeapon?.Invoke();
 
         private void OnLook(InputAction.CallbackContext ctx)
         {

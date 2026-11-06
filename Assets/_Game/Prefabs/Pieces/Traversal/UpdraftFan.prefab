@@ -1,0 +1,177 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5278947501874507077
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 395120177286745736}
+  m_Layer: 0
+  m_Name: UpdraftFan
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &395120177286745736
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5278947501874507077}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8953677463335138025}
+  - {fileID: 8776801955881916732}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8937053989264580543
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8776801955881916732}
+  - component: {fileID: 6259191210126661629}
+  - component: {fileID: 2751943396904022643}
+  m_Layer: 0
+  m_Name: Column
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8776801955881916732
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8937053989264580543}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 58.505943, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 395120177286745736}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &6259191210126661629
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8937053989264580543}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 14, y: 70, z: 14}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2751943396904022643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8937053989264580543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b63dd1edc54a6174e9f83c85775fdf48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.Updraft
+  windSpeed: 14
+  windAcceleration: 60
+  anySize: 0
+  requiredSize: 0
+  blades: {fileID: 4155103099896424566}
+  spinSpeed: 900
+  onEnter:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!1001 &6411128529906148531
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 395120177286745736}
+    m_Modifications:
+    - target: {fileID: 2646213708282287706, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.14226913
+      objectReference: {fileID: 0}
+    - target: {fileID: 2646213708282287706, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 11.277823
+      objectReference: {fileID: 0}
+    - target: {fileID: 2646213708282287706, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 13.766228
+      objectReference: {fileID: 0}
+    - target: {fileID: 2646213708282287706, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2646213708282287706, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2646213708282287706, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2646213708282287706, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2646213708282287706, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2646213708282287706, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2646213708282287706, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3455085498175786208, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+      propertyPath: m_Name
+      value: Fan
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+--- !u!4 &4155103099896424566 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7012389595595590853, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+  m_PrefabInstance: {fileID: 6411128529906148531}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8953677463335138025 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2646213708282287706, guid: c9e9fc44fe63ad940b5b6966be4191a7, type: 3}
+  m_PrefabInstance: {fileID: 6411128529906148531}
+  m_PrefabAsset: {fileID: 0}

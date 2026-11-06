@@ -1,0 +1,276 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+namespace ShiftJam
+{
+    /// <summary>
+    /// The player's weapons. Carries up to a few (taken from WeaponPickups with E), shows the one in hand, fires it with
+    /// Attack (tap, or hold for automatic), cycles with Previous / Next (1 / 2) and drops it with Q. The kid's carry wins:
+    /// while the Carrier holds something (the flashlight), Attack is the carried thing's and the weapon is put away; in
+    /// first person, while the hands hold a prop, Attack throws it instead.
+    /// Third person: the weapon sits in the right hand (the arm raised through the Animator's Arms layer, like the Carrier).
+    /// First person: it floats in front of the camera as a view model. Weapons are parented to the player so they shift
+    /// size with it.
+    /// </summary>
+    [DefaultExecutionOrder(100)]   // after the Carrier's arm weight and the cameras, so the weapon never lags a frame
+    public sealed class WeaponHolder : MonoBehaviour
+    {
+        [SerializeField, Tooltip("Found on this object if empty.")] private PlayerInput input;
+        [SerializeField, Tooltip("Found on this object if empty.")] private Shifter shifter;
+        [SerializeField, Tooltip("Found on this object if empty.")] private Carrier carrier;
+        [SerializeField, Tooltip("Found in children if empty.")] private Animator animator;
+        [SerializeField, Tooltip("Aims along this camera. Main Camera if empty.")] private Camera aimCamera;
+        [SerializeField, Min(1)] private int maxWeapons = 2;
+        [SerializeField, Tooltip("Animator layer that raises the arm; shared with the Carrier.")] private string armsLayer = "Arms";
+        [SerializeField, Tooltip("Palm centre in the hand bone's space (rig metres).")] private Vector3 palm = new Vector3(0f, 0.08f, 0f);
+        [SerializeField, Tooltip("Chest height above the feet, units at scale 1: melee and the muzzle check start here.")] private float chestHeight = 1.15f;
+        [SerializeField, Tooltip("Speed a dropped weapon is tossed forward, units per second at scale 1.")] private float dropToss = 3f;
+
+        private readonly List<Weapon> _weapons = new List<Weapon>();
+        private int _current = -1;
+        private Transform _hand, _shoulder;
+        private int _layer = -1;
+        private float _arm;
+        private AudioSource _audio;
+        private Transform _fpBody, _fpView;
+        private FirstPersonLook _fpLook;
+        private PhysicsGrabber _fpHands;
+
+        public Weapon Current => _current >= 0 && _current < _weapons.Count ? _weapons[_current] : null;
+        public int Count => _weapons.Count;
+        public bool Full => _weapons.Count >= maxWeapons;
+        public float Scale => shifter != null ? shifter.Scale : Mathf.Max(0.001f, transform.lossyScale.y);
+        public bool FirstPerson => _fpView != null;
+        /// <summary>The first-person body standing in for the player, when there is one: never shot by our own shots.</summary>
+        public Transform FirstPersonBodyRoot => _fpBody;
+        private Transform View => _fpView != null ? _fpView : (aimCamera != null ? aimCamera.transform : (Camera.main != null ? Camera.main.transform : null));
+        /// <summary>Where the aim ray starts: the camera.</summary>
+        public Vector3 AimOrigin => View != null ? View.position : AttackOrigin;
+        public Vector3 AimForward => View != null ? View.forward : transform.forward;
+        /// <summary>Where melee and the muzzle check start: the eyes in first person, the chest in third.</summary>
+        public Vector3 AttackOrigin => _fpView != null ? _fpView.position : transform.position + Vector3.up * (chestHeight * Scale);
+        /// <summary>Which way melee hits: the view in first person, the body's facing in third.</summary>
+        public Vector3 AttackForward => _fpView != null ? _fpView.forward : transform.forward;
+
+        private void Awake()
+        {
+            if (input == null) input = GetComponent<PlayerInput>();
+            if (shifter == null) shifter = GetComponent<Shifter>();
+            if (carrier == null) carrier = GetComponent<Carrier>();
+            if (animator == null) animator = GetComponentInChildren<Animator>();
+            if (animator != null)
+            {
+                if (animator.isHuman)
+                {
+                    _hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+                    _shoulder = animator.GetBoneTransform(HumanBodyBones.RightUpperArm);
+                }
+                _layer = animator.GetLayerIndex(armsLayer);
+            }
+            _audio = gameObject.AddComponent<AudioSource>();
+            _audio.playOnAwake = false;
+            _audio.spatialBlend = 0.6f;
+        }
+
+        private void OnEnable()
+        {
+            if (input == null) return;
+            input.UseHeld += OnAttack; input.Previous += OnPrevious; input.Next += OnNext; input.DropWeapon += OnDropWeapon;
+            ShowCurrent();
+        }
+
+        private void OnDisable()
+        {
+            if (input != null) { input.UseHeld -= OnAttack; input.Previous -= OnPrevious; input.Next -= OnNext; input.DropWeapon -= OnDropWeapon; }
+            if (Current != null) { Current.Cancel(); Current.gameObject.SetActive(false); }   // seated, or the player is off
+            if (animator != null && _layer >= 0 && carrier != null && carrier.Held == null) animator.SetLayerWeight(_layer, 0f);
+            _arm = 0f;
+        }
+
+        /// <summary>Called by FirstPersonMode: hold the weapon as a view model in front of <paramref name="view"/>, or back in
+        /// the hand with nulls.</summary>
+        public void SetFirstPerson(Transform body, Transform view, FirstPersonLook look, PhysicsGrabber hands)
+        {
+            _fpBody = body; _fpView = view; _fpLook = look; _fpHands = hands;
+            foreach (var w in _weapons) SetViewModel(w, view != null);
+        }
+
+        /// <summary>True for anything that is part of us (never a target).</summary>
+        public bool IsSelf(Transform t) => t.IsChildOf(transform) || (_fpBody != null && t.IsChildOf(_fpBody));
+
+        /// <summary>A recoil or impact kick for the first-person view; nothing in third person.</summary>
+        public void Punch(Vector2 degrees) { if (_fpLook != null) _fpLook.Punch(degrees); }
+
+        public void PlayClip(AudioClip clip, float pitch)
+        {
+            if (clip == null || _audio == null) return;
+            _audio.pitch = pitch;
+            _audio.PlayOneShot(clip);
+        }
+
+        /// <summary>Takes a weapon: a prefab is copied, a loose one in the world is picked up. A full holder drops the
+        /// weapon in hand to make room. Returns the weapon now in hand.</summary>
+        public Weapon Equip(Weapon source)
+        {
+            if (source == null) return null;
+            Weapon weapon = source.gameObject.scene.IsValid() ? source : Instantiate(source);
+            if (weapon.Holder != null && weapon.Holder != this) return null;
+            if (_weapons.Contains(weapon)) { Select(_weapons.IndexOf(weapon)); return weapon; }
+            if (Full && Current != null) Drop(Current);
+            if (Current != null) { Current.Cancel(); Current.gameObject.SetActive(false); }
+
+            var looks = weapon.GetComponent<WeaponLooks>();
+            if (looks == null) looks = weapon.gameObject.AddComponent<WeaponLooks>();
+            looks.SetLoose(false);
+            weapon.transform.SetParent(transform, false);
+            weapon.transform.localScale = looks.BaseScale;   // under the player: toy size at scale 1, grows with a shift
+            weapon.SetHolder(this);
+            SetViewModel(weapon, FirstPerson);
+            _weapons.Add(weapon);
+            _current = _weapons.Count - 1;
+            ShowCurrent();
+            Pose();
+            return weapon;
+        }
+
+        /// <summary>Lets go of a weapon: it falls out of the hand as a loose prop that E takes again.</summary>
+        public void Drop(Weapon weapon)
+        {
+            int index = _weapons.IndexOf(weapon);
+            if (index < 0) return;
+            weapon.Cancel();
+            _weapons.RemoveAt(index);
+            if (_current >= _weapons.Count) _current = _weapons.Count - 1;
+            else if (index < _current) _current--;
+            weapon.SetHolder(null);
+            SetViewModel(weapon, false);
+            weapon.gameObject.SetActive(true);
+            weapon.transform.SetParent(null, true);
+            if (_fpView != null) weapon.transform.position = _fpView.position + _fpView.forward * (0.6f * Scale);
+            var looks = weapon.GetComponent<WeaponLooks>();
+            if (looks != null) looks.SetLoose(true);
+            if (weapon.TryGetComponent(out Rigidbody rb))
+                rb.linearVelocity = Vector3.ProjectOnPlane(AimForward, Vector3.up).normalized * (dropToss * Scale) + Vector3.up * (dropToss * 0.5f * Scale);
+            ShowCurrent();
+        }
+
+        private void OnDropWeapon() { if (CanAct() && Current != null && !Current.Busy) Drop(Current); }
+        private void OnPrevious() => Cycle(-1);
+        private void OnNext() => Cycle(1);
+
+        private void Cycle(int step)
+        {
+            if (_weapons.Count < 2 || !CanAct() || (Current != null && Current.Busy)) return;
+            Select((_current + step + _weapons.Count) % _weapons.Count);
+        }
+
+        private void Select(int index)
+        {
+            if (index == _current) return;
+            if (Current != null) { Current.Cancel(); Current.gameObject.SetActive(false); }
+            _current = index;
+            ShowCurrent();
+        }
+
+        private void ShowCurrent()
+        {
+            for (int i = 0; i < _weapons.Count; i++)
+                if (_weapons[i] != null) _weapons[i].gameObject.SetActive(i == _current && isActiveAndEnabled && !HandsFull);
+        }
+
+        private bool HandsFull => carrier != null && carrier.Held != null;
+
+        /// <summary>Attack belongs to us: on foot, in Play or first person, mouse captured, hands free.</summary>
+        private bool CanAct()
+        {
+            if (!isActiveAndEnabled || Time.timeScale <= 0f || HandsFull) return false;
+            if (GameMode.Current == GameMode.Mode.Build) return false;
+            if (Cursor.lockState != CursorLockMode.Locked) return false;   // that click was to capture the mouse
+            if (_fpHands != null && _fpHands.BusyThisFrame) return false;    // the click threw the held prop
+            return true;
+        }
+
+        private void OnAttack()
+        {
+            var w = Current;
+            if (w == null || !CanAct()) return;
+            FaceAim();
+            w.TriggerPressed();
+        }
+
+        /// <summary>Third person: turn the body to the camera's heading so the attack goes where you look.</summary>
+        private void FaceAim()
+        {
+            if (FirstPerson) return;
+            Vector3 flat = Vector3.ProjectOnPlane(AimForward, Vector3.up);
+            if (flat.sqrMagnitude > 1e-4f) transform.rotation = Quaternion.LookRotation(flat.normalized, Vector3.up);
+        }
+
+        private void Update()
+        {
+            var w = Current;
+            bool visible = w != null && !HandsFull;
+            if (w != null && w.gameObject.activeSelf != visible) { if (!visible) w.Cancel(); w.gameObject.SetActive(visible); }
+            if (visible && input != null && input.AttackHeld && CanAct()) w.TriggerHeld();
+
+            // The arm reaches out while a weapon is in hand. The Carrier writes its own weight earlier this frame: keep the larger.
+            if (animator != null && _layer >= 0)
+            {
+                _arm = Mathf.MoveTowards(_arm, visible && !FirstPerson ? 1f : 0f, Time.deltaTime / 0.15f);
+                if (_arm > 0f) animator.SetLayerWeight(_layer, Mathf.Max(animator.GetLayerWeight(_layer), _arm));
+            }
+        }
+
+        private void LateUpdate() => Pose();
+
+        private void Pose()
+        {
+            var w = Current;
+            if (w == null || !w.gameObject.activeSelf) return;
+            float s = Scale;
+            if (_fpView != null)
+            {
+                Quaternion rot = _fpView.rotation * w.ViewRotation * w.PoseRotation;
+                Vector3 pos = _fpView.position + _fpView.rotation * (w.ViewOffset * s) + rot * (w.PosePosition * s);
+                w.transform.SetPositionAndRotation(pos, rot);
+                return;
+            }
+            Quaternion frame;
+            if (w.AimsWithView) frame = Quaternion.LookRotation(AimForward, Vector3.up);
+            else
+            {
+                // Melee follows the arm (shoulder to hand) on the body's heading, so the blade reads as held out.
+                Vector3 reach = _hand != null && _shoulder != null ? _hand.position - _shoulder.position : transform.forward;
+                Vector3 flat = Vector3.ProjectOnPlane(reach, Vector3.up);
+                if (flat.sqrMagnitude < 1e-6f) flat = transform.forward;
+                frame = Quaternion.LookRotation(flat.normalized, Vector3.up);
+            }
+            Quaternion r = frame * w.PoseRotation * w.HandRotation;
+            Vector3 grip = _hand != null ? _hand.TransformPoint(palm) : transform.position + Vector3.up * (chestHeight * s) + transform.right * (0.3f * s) + transform.forward * (0.3f * s);
+            w.transform.SetPositionAndRotation(grip + r * ((w.HandOffset + w.PosePosition) * s), r);
+        }
+
+        /// <summary>Third person with a blaster: a small crosshair where the shots go (first person draws its own).</summary>
+        private void OnGUI()
+        {
+            if (Event.current.type != EventType.Repaint || FirstPerson || !(Current is BlasterWeapon) || !Current.gameObject.activeSelf) return;
+            if (Cursor.lockState != CursorLockMode.Locked || GameMode.Current != GameMode.Mode.Play) return;
+            float cx = Screen.width * 0.5f, cy = Screen.height * 0.5f;
+            var old = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, 0.8f);
+            GUI.DrawTexture(new Rect(cx - 8f, cy - 1f, 5f, 2f), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(cx + 3f, cy - 1f, 5f, 2f), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(cx - 1f, cy - 8f, 2f, 5f), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(cx - 1f, cy + 3f, 2f, 5f), Texture2D.whiteTexture);
+            GUI.color = old;
+        }
+
+        private static void SetViewModel(Weapon w, bool on)
+        {
+            if (w == null) return;
+            foreach (var r in w.GetComponentsInChildren<Renderer>(true))
+                r.shadowCastingMode = on ? ShadowCastingMode.Off : ShadowCastingMode.On;   // a floating gun casts a stray shadow
+        }
+    }
+}

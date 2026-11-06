@@ -981,6 +981,39 @@ namespace ShiftJam
             Debug.Log("WORKSHOP ROOM BUILT\n" + Log);
         }
 
+        /// <summary>Traversal pieces for the Workshop catalogue (Prefabs/Pieces/Traversal): the course's own parts as prefabs,
+        /// pivot at the bottom centre: a pillow pad (kid carries, toy bounces), a small kicker, a climb ramp up to box height,
+        /// an upright updraft fan and a book staircase. Re-running overwrites them (same GUIDs).</summary>
+        [MenuItem("Shift Jam/Workshop/Build Traversal Pieces")]
+        public static void BuildTraversalPieces()
+        {
+            const string dir = "Assets/_Game/Prefabs/Pieces/Traversal";
+            System.IO.Directory.CreateDirectory(dir);
+            var glow = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/DoorGlow.mat");
+            void Save(Transform root) { PrefabUtility.SaveAsPrefabAsset(root.gameObject, $"{dir}/{root.name}.prefab"); Object.DestroyImmediate(root.gameObject); }
+            Transform Root(string n) => new GameObject(n).transform;
+
+            var pad = Root("PillowPad"); var pillow = Rest(Spawn("Pillow_01", "Pillow", pad, Vector3.zero, Vector3.zero, 1f), 0f, null);
+            Carry(pillow); PillowPad(pillow, 30f, glow); Save(pad);
+
+            var kick = Root("KickerSmall"); Wedge("Wedge", kick, new Vector3(0f, 0f, 6f), Vector3.forward, 4f, 12f, 16f); Save(kick);
+            var climb = Root("ClimbRamp"); Wedge("Wedge", climb, new Vector3(0f, 0f, 17f), Vector3.forward, 12.2f, 34f, 30f); Save(climb);
+            var land = Root("LandingRamp"); Wedge("Wedge", land, new Vector3(0f, 0f, -17f), Vector3.back, 12.2f, 34f, 30f); Save(land);
+
+            var fan = Root("UpdraftFan");
+            var fanProp = Spawn("Fan_Base_01", "Fan", fan, Vector3.zero, new Vector3(-90f, 0f, 0f), 1f); Rest(fanProp, 0f, null); var fb = B(fanProp);
+            fanProp.transform.position += new Vector3(-fb.center.x, 0f, -fb.center.z);
+            Transform blades = null; foreach (Transform ch in fanProp.GetComponentsInChildren<Transform>()) if (ch != fanProp.transform && ch.name.Contains("Propeller")) { blades = ch; break; }
+            var column = new GameObject("Column"); column.transform.SetParent(fan, false); column.transform.localPosition = new Vector3(0f, B(fanProp).max.y + 35f, 0f);
+            var colBox = column.AddComponent<BoxCollider>(); colBox.isTrigger = true; colBox.size = new Vector3(14f, 70f, 14f);
+            var up = column.AddComponent<Updraft>(); if (blades != null) Set(up, "blades", blades);
+            Save(fan);
+
+            var stairs = Root("BookStairs"); BookStairs(stairs, new Vector3(0f, 0f, -12f), Vector3.forward, 0f, 12f, "Books"); Save(stairs);
+            AssetDatabase.SaveAssets();
+            Debug.Log("TRAVERSAL PIECES: PillowPad, KickerSmall, ClimbRamp, LandingRamp, UpdraftFan, BookStairs -> " + dir);
+        }
+
         // ------------------------------------------------------------------ the car course (D-0026)
         // A stunt run for the toy car in the playroom's clear north-south corridor (x 505..535, between the race track and
         // the broken fan; the maze/camp starts at x 540 north of z -76, the castle at z -229): north-bound from just above

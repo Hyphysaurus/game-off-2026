@@ -227,3 +227,21 @@
   lights, starter furniture under Workshop/Layout (bed, bedside table, desk + chair, shelf, bookshelf, sofa, wardrobe,
   three boxes, a pillow pad, four mats, the toy car + a kicker). Reached from the title menu's Workshop button or the
   console (`workshop` / `course`); the title menu does not open inside the Workshop. In Build Settings after Greybox.
+- **D-0028 (5 Nov) Workshop systems: Build Mode, first person, weapons, enemies, arcade cars, traversal pieces.** His asks:
+  Build Mode "like Two Point Museum or Planet Zoo"; "the ability to go into First Person ... emulate the Half Life 2
+  character"; "weapons from melee and ranged, cars and other vehicles, and interactables"; Toy Land: "take whats good from
+  it and improve and integrate it, then we can remove it". Written by two subagents in parallel (staged outside Assets,
+  compiled against the project's rsp, landed and wired by the orchestrator), shared contract `Core/GameMode.cs`.
+  BUILD (`Scripts/Build/`, 22 files): BuildMode (F3) + management camera + catalogue (Resources/BuildCatalog, thumbnails in
+  Art/Thumbs, menu Shift Jam > Workshop > Build Catalog) + ghost placement (green/red, grid G) + selection/move/turn/scale/
+  copy/delete + undo/redo + shapes (box, ramp, stairs, pillar, wall) + layouts as JSON in persistentDataPath/Layouts +
+  Bake Layout Into Scene + Play as toy/kid/first person. FIRST PERSON (`Scripts/FirstPerson/`): F4, Source-style movement,
+  crouch-jump, HL2 physics pickup/turn/throw, FOV 90 (4:3 horizontal). COMBAT (`Scripts/Combat/`): WeaponHolder (2 slots,
+  1/2, Q drop), melee (windup/active/recovery, hit-stop), blasters (pooled darts, pellets, auto), Damageable + numbers,
+  PracticeTarget, ToySoldier (port of EnemyDefender). VEHICLES: ArcadeCar (four ray springs, handbrake drift, self-right,
+  ram damage, wreck) + CarSeat (uses ShoulderCamera.SetChase). F9 resets the Workshop. Patches: PlayerInput (Previous/
+  Next/DropWeapon/Scroll/Rotate + AttackHeld/CrouchHeld), PlayerMotor.Knock, ShoulderCamera.OnEnable re-locks the cursor.
+  Pieces (Prefabs/Pieces/<Weapons|Interactables|Vehicles|Traversal>) reference pack prefabs only. Starter set placed in
+  the Workshop. Ported from Toy Land: Damageable, MeleeAttack, ToyBlaster, ToyProjectile, EnemyDefender, ArcadeVehicle,
+  VehicleSeat, SafePositionTracker, EncounterReset; dropped MissionDirector, HUD, ToyAudio, VehicleCustomizer, its
+  input/camera, FanUpdraft. Toy Land removal stays HIS call after he checks these. NOTHING PLAYED.

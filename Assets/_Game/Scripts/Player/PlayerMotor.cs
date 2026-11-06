@@ -186,6 +186,22 @@ namespace ShiftJam
             _windTarget = velocity; _windAccel = acceleration; _windFrame = Time.frameCount;
         }
 
+        /// <summary>A hit's shove: adds a velocity (world units per second, already scaled by whoever hit). Any upward part
+        /// lifts the player off the ground like a small launch; the sideways part fades with the usual deceleration.</summary>
+        public void Knock(Vector3 velocity)
+        {
+            _planar += new Vector3(velocity.x, 0f, velocity.z);
+            if (velocity.y > 0f)
+            {
+                _vertical = Mathf.Max(_vertical, velocity.y);
+                _jumping = false;
+                _jumpCut = true;
+                Grounded = false;
+                _lastGroundedTime = -10f;
+                _peakFall = 0f;
+            }
+        }
+
         public void Warp(Vector3 position, Quaternion rotation)
         {
             bool wasEnabled = _controller.enabled;

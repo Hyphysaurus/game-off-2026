@@ -47,6 +47,7 @@ namespace ShiftJam
             SetCursorLocked(true);
         }
 
+        private void OnEnable() { SetCursorLocked(true); }   // coming back from a menu, Build Mode or first person
         private void OnDisable() { SetCursorLocked(false); }
 
         private void Update()

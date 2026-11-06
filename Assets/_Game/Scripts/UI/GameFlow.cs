@@ -20,6 +20,9 @@ namespace ShiftJam
         private void Awake()
         {
             if (fade == null) fade = ScreenFade.Find();
+            // Unity runs Awake even on a switched-off component. A switched-off flow (the Workshop's) must not raise a
+            // start card that only its own Update can take down.
+            if (!enabled) return;
             if (startCard != null) startCard.SetActive(true);
             if (endCard != null) endCard.SetActive(false);
         }

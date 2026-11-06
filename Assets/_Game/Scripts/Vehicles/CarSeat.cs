@@ -32,6 +32,8 @@ namespace ShiftJam
         private bool _wantsOut;
 
         public bool Occupied => _driver != null;
+        /// <summary>The seated player, or null.</summary>
+        public Transform Driver => _driver;
 
         private void Awake()
         {

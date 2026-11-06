@@ -8,7 +8,8 @@ namespace ShiftJam
     /// A drivable Rigidbody car, arcade style. Four ray springs hold the body up (so it rides ramps and lands jumps on its
     /// wheels), the engine pushes along the ground, grip kills sideways sliding (less while the handbrake is held, for
     /// drifts), and steering turns faster with speed. Ramming something with health hurts it; hard crashes hurt the car.
-    /// At zero health it is a smoking wreck that throws its driver out and is put back at its start after a while.
+    /// At zero health it is a smoking wreck that throws its driver out and, after a while, is towed to a free Garage bay if
+    /// the scene has one (else put back at its start).
     /// Flipped over and stuck, it rights itself. Everything is in units at car scale 1 and scales with the transform.
     /// The car knows nothing about players: a CarSeat feeds it a PlayerInput.
     /// </summary>
@@ -46,6 +47,8 @@ namespace ShiftJam
         public bool Occupied => _driver != null;
         public bool Wrecked => _health != null && _health.Dead;
         public Rigidbody Body => _rb;
+        public IReadOnlyList<Transform> Wheels => wheels;
+        public Damageable Health => _health;
         public ArcadeCarSettings Settings => settings;
         public float Scale => Mathf.Max(0.001f, transform.lossyScale.y);
         /// <summary>Speed over the ground, world units per second.</summary>
@@ -64,7 +67,7 @@ namespace ShiftJam
             _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             _rb.linearDamping = 0.05f;
             _rb.angularDamping = 1.5f;
-            _renderers = GetComponentsInChildren<Renderer>();
+            _renderers = GetComponentsInChildren<Renderer>(true);   // hidden parts too: the garage can switch them on later
             _block = new MaterialPropertyBlock();
             _spawn = transform.position; _spawnRot = transform.rotation;
             FindWheels();
@@ -111,7 +114,8 @@ namespace ShiftJam
             for (int i = 0; i < wheels.Length; i++)
             {
                 string n = wheels[i].name;
-                steers[i] = n.EndsWith("_FL") || n.EndsWith("_FR") || n.Contains("Front");
+                string corner = n.TrimEnd('0', '1', '2', '3', '4', '5', '6', '7', '8', '9');   // Car 09's front pairs: _FL1, _FL2
+                steers[i] = corner.EndsWith("_FL") || corner.EndsWith("_FR") || n.Contains("Front");
             }
         }
 
@@ -137,7 +141,7 @@ namespace ShiftJam
 
         public void ResetState()
         {
-            _rb.linearVelocity = Vector3.zero; _rb.angularVelocity = Vector3.zero;
+            if (!_rb.isKinematic) { _rb.linearVelocity = Vector3.zero; _rb.angularVelocity = Vector3.zero; }   // parked: nothing to clear
             _rb.position = _spawn; _rb.rotation = _spawnRot;
             transform.SetPositionAndRotation(_spawn, _spawnRot);
             _health.ResetState();
@@ -147,9 +151,100 @@ namespace ShiftJam
             foreach (var r in _renderers) if (r != null) r.SetPropertyBlock(null);
         }
 
+        /// <summary>Full health and a clean body, where it stands (the garage's fix).</summary>
+        public void Repair()
+        {
+            _health.ResetState();
+            _nextRam.Clear();
+            if (wreckSmoke != null) wreckSmoke.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            foreach (var r in _renderers) if (r != null) r.SetPropertyBlock(null);
+        }
+
+        /// <summary>Re-reads the renderers and wheel sizes after parts were swapped or the car was rescaled (the garage).</summary>
+        public void RefreshParts()
+        {
+            var all = GetComponentsInChildren<Renderer>(true);
+            var own = new List<Renderer>(all.Length);
+            foreach (var r in all) if (r.GetComponentInParent<PlayerMotor>(true) == null) own.Add(r);   // not a seated driver
+            _renderers = own.ToArray();
+            if (wheels == null) return;
+            for (int i = 0; i < wheels.Length; i++)
+            {
+                float r = RadiusOf(wheels[i]);
+                if (r > 1e-4f) _radius[i] = r;
+            }
+        }
+
+        /// <summary>
+        /// A wheel's radius from the meshes drawn under its hub, measured in the hub's own axes. The hub turns with the
+        /// wheel, so where the spin stopped does not matter (a turning wheel's world box reads up to 1.4x too tall).
+        /// </summary>
+        private static float RadiusOf(Transform hub)
+        {
+            float r = 0f;
+            Matrix4x4 toHub = hub.worldToLocalMatrix;
+            foreach (var mf in hub.GetComponentsInChildren<MeshFilter>())
+            {
+                var rend = mf.GetComponent<Renderer>();
+                if (mf.sharedMesh == null || rend == null || !rend.enabled) continue;
+                Bounds b = mf.sharedMesh.bounds;
+                Matrix4x4 m = toHub * mf.transform.localToWorldMatrix;
+                for (int k = 0; k < 8; k++)
+                {
+                    Vector3 c = b.center + Vector3.Scale(b.extents, new Vector3((k & 1) == 0 ? -1f : 1f, (k & 2) == 0 ? -1f : 1f, (k & 4) == 0 ? -1f : 1f));
+                    r = Mathf.Max(r, Mathf.Abs(m.MultiplyPoint3x4(c).y));
+                }
+            }
+            return r * Mathf.Abs(hub.lossyScale.y);
+        }
+
+        /// <summary>Puts the car down at a pose, still, as if placed there (the garage's tow and body swap).</summary>
+        public void PlaceAt(Vector3 position, Quaternion rotation)
+        {
+            if (!_rb.isKinematic) { _rb.linearVelocity = Vector3.zero; _rb.angularVelocity = Vector3.zero; }
+            _rb.position = position; _rb.rotation = rotation;
+            transform.SetPositionAndRotation(position, rotation);
+            _upsideDown = 0f;
+        }
+
+        /// <summary>True while a garage holds the car on its lift.</summary>
+        public bool Parked => _rb != null && _rb.isKinematic;
+
+        /// <summary>Holds the car still on a lift (kinematic: nothing pushes it and its physics step stops) or lets it go.</summary>
+        public void Park(bool parked)
+        {
+            if (parked == _rb.isKinematic) return;
+            if (parked)
+            {
+                _rb.linearVelocity = Vector3.zero; _rb.angularVelocity = Vector3.zero;
+                _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;   // the only mode a kinematic body takes
+                _rb.isKinematic = true;
+            }
+            else
+            {
+                _rb.isKinematic = false;
+                _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            }
+        }
+
+        /// <summary>Takes over another car's start: a garage body swap belongs where the old body started, not on the lift.</summary>
+        public void InheritStart(ArcadeCar from)
+        {
+            if (from == null) return;
+            _spawn = from._spawn; _spawnRot = from._spawnRot;
+        }
+
+        /// <summary>A wreck back in one piece: towed to the free garage bay nearest to where it wrecked, else to its start.</summary>
+        private void Recover()
+        {
+            Vector3 at = transform.position;
+            ResetState();
+            if (Garage.TowSpot(this, at, out Vector3 p, out Quaternion q)) PlaceAt(p, q);
+        }
+
         private void FixedUpdate()
         {
-            if (settings == null || wheels.Length == 0) return;
+            if (settings == null || wheels.Length == 0 || _rb.isKinematic) return;   // parked on a lift: nothing to drive
             float dt = Time.fixedDeltaTime, s = Scale;
             float g = Mathf.Max(0.01f, -Physics.gravity.y);
             int n = wheels.Length, grounded = 0;
@@ -231,7 +326,7 @@ namespace ShiftJam
                 _rb.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
                 _rb.angularVelocity = Vector3.zero;
             }
-            if (transform.position.y < _spawn.y - 80f * s) { WreckedNow?.Invoke(); ResetState(); }
+            if (transform.position.y < _spawn.y - 80f * s) { WreckedNow?.Invoke(); Recover(); }
         }
 
         private bool Probe(Vector3 origin, Vector3 dir, float length, out RaycastHit best)
@@ -268,7 +363,7 @@ namespace ShiftJam
                 // Dark while wrecked (re-applied each frame: a hit's flash clears property blocks).
                 _block.Clear(); _block.SetColor(BaseColorId, wreckTint);
                 foreach (var r in _renderers) if (r != null) r.SetPropertyBlock(_block);
-                if (settings != null && settings.wreckRespawn > 0f && Time.time - _wreckedAt >= settings.wreckRespawn && !Occupied) ResetState();
+                if (settings != null && settings.wreckRespawn > 0f && Time.time - _wreckedAt >= settings.wreckRespawn && !Occupied) Recover();
             }
 
             if (engine != null)

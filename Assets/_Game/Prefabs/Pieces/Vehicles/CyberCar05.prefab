@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1148412519979772390}
   - component: {fileID: 4460753403848608951}
   - component: {fileID: 4847516859365706033}
+  - component: {fileID: 6700321936827022297}
   m_Layer: 0
   m_Name: CyberCar05
   m_TagString: Untagged
@@ -145,6 +146,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.CarSeat
   seat: {x: 0, y: 0, z: 0}
   showDriver: 0
+--- !u!114 &6700321936827022297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2088038588776682165}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75ad730ea8a3dd44fb11bfe4401aadba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.CarLook
 --- !u!1001 &5896292886845535672
 PrefabInstance:
   m_ObjectHideFlags: 0

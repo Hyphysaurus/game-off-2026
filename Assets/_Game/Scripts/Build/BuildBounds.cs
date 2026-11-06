@@ -68,13 +68,14 @@ namespace ShiftJam
 
         /// <summary>
         /// Moves <paramref name="t"/> so its drawn box sits on a surface: on a floor-like hit its bottom touches the point
-        /// and it is centred over it; on a wall-like hit it is pushed out of the wall, centred on the point.
+        /// (less any <see cref="RestSink"/>: a ramp's sunk toe stays under the floor) and it is centred over it; on a
+        /// wall-like hit it is pushed out of the wall, centred on the point.
         /// </summary>
         public static void Rest(Transform t, Vector3 point, Vector3 normal)
         {
             if (!World(t.gameObject, out var b)) { t.position = point; return; }
             Vector3 offset;
-            if (normal.y >= 0.5f) offset = new Vector3(point.x - b.center.x, point.y - b.min.y, point.z - b.center.z);
+            if (normal.y >= 0.5f) offset = new Vector3(point.x - b.center.x, point.y - b.min.y - RestSink.Under(t), point.z - b.center.z);
             else
             {
                 Vector3 flat = new Vector3(normal.x, 0f, normal.z).normalized;
@@ -105,6 +106,8 @@ namespace ShiftJam
             half.x *= 0.96f; half.z *= 0.96f;
             half.y = Mathf.Max(0.01f, half.y - lift / 2f - half.y * 0.02f);
             Vector3 centre = t.TransformPoint(lb.center) + t.up * (lift / 2f);
+            float sink = RestSink.Under(t);   // a ramp's toe sits in the floor on purpose: test only what stands above it
+            if (sink > 0f) { float s = Mathf.Min(sink, half.y); half.y = Mathf.Max(0.01f, half.y - s / 2f); centre += t.up * (s / 2f); }
             int n = Physics.OverlapBoxNonAlloc(centre, half, Overlap, t.rotation, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < n; i++)
             {

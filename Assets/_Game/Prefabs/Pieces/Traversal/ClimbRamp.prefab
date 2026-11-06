@@ -99,8 +99,29 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2803520692520499074, guid: 9d99290b1c9d74840924123b3cc90a4f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4900731193334229378}
   m_SourcePrefab: {fileID: 100100000, guid: 9d99290b1c9d74840924123b3cc90a4f, type: 3}
+--- !u!1 &8516376166429003818 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2803520692520499074, guid: 9d99290b1c9d74840924123b3cc90a4f, type: 3}
+  m_PrefabInstance: {fileID: 5825445937647888296}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4900731193334229378
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8516376166429003818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5102cd27f689a474dbcb7f3bc4e58769, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.RestSink
+  depth: 0.074201226
 --- !u!4 &9042084203036592784 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3288696022923242808, guid: 9d99290b1c9d74840924123b3cc90a4f, type: 3}

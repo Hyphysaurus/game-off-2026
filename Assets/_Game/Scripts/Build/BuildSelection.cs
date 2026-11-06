@@ -163,7 +163,7 @@ namespace ShiftJam
                 _held[i] = _items[i].Hold();
             }
             _primaryStart = _primary.transform.position;
-            _planeY = BuildBounds.World(_primary.gameObject, out var b) ? b.min.y : _primaryStart.y;
+            _planeY = BuildBounds.World(_primary.gameObject, out var b) ? b.min.y + RestSink.Under(_primary.transform) : _primaryStart.y;
             _planeStart = PlanePoint(_pressAt);
         }
 
@@ -316,9 +316,11 @@ namespace ShiftJam
                 var t = b.transform;
                 Vector3 s = t.localScale * factor;
                 if (Mathf.Abs(s.x) < 0.01f || Mathf.Abs(s.x) > 1000f) continue;
+                float sunk = RestSink.Under(t);
                 t.localScale = s;
                 BuildBounds.World(b.gameObject, out var after);
-                t.position += new Vector3(before.center.x - after.center.x, before.min.y - after.min.y, before.center.z - after.center.z);
+                float rise = (before.min.y + sunk) - (after.min.y + RestSink.Under(t));   // where it stands stays put (sunk toes too)
+                t.position += new Vector3(before.center.x - after.center.x, rise, before.center.z - after.center.z);
             }
             Settle();
         }

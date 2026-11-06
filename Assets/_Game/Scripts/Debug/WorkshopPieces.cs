@@ -52,12 +52,16 @@ namespace ShiftJam
             ("PracticeBear", PR + "Toys/Toy_Bear_01.prefab", 1.6f),
         };
 
-        private static readonly (string name, string model)[] Cars =
+        /// <summary>All fifteen Cyber Racing cars (CyberCar01..15); the garage's body button cycles through them.</summary>
+        private static (string name, string model)[] Cars
         {
-            ("CyberCar01", CY + "Car_01/Car_01.prefab"),
-            ("CyberCar05", CY + "Car_05/Car_05.prefab"),
-            ("CyberCar08", CY + "Car_08/Car_08.prefab"),
-        };
+            get
+            {
+                var list = new (string, string)[15];
+                for (int i = 0; i < 15; i++) list[i] = ($"CyberCar{i + 1:00}", CY + $"Car_{i + 1:00}/Car_{i + 1:00}.prefab");
+                return list;
+            }
+        }
 
         private const float CarLength = 3.8f;   // a toy's car, at toy scale (the toy is 1.8 tall)
 
@@ -74,6 +78,7 @@ namespace ShiftJam
             foreach (var t in Targets) if (BuildTarget(t.name, t.model, t.height)) made.Add(t.name);
             if (BuildSoldier(dart)) made.Add("ToySoldier");
             foreach (var c in Cars) if (BuildCar(c.name, c.model, car)) made.Add(c.name);
+            if (BuildGarage()) made.Add("Garage");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log($"[Workshop] Built {made.Count} pieces: {string.Join(", ", made)}. Settings: {AssetDatabase.GetAssetPath(fp)}, {AssetDatabase.GetAssetPath(car)}.");
@@ -300,6 +305,13 @@ namespace ShiftJam
         {
             var model = Load(modelPath);
             if (model == null) return false;
+            if (!HasWheels(model))
+            {
+                // The pack swaps two names for car 3: Car_03.prefab is the bare shell, Car_03_Body.prefab the whole car.
+                var whole = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath.Replace(".prefab", "_Body.prefab"));
+                if (whole == null || !HasWheels(whole)) { Debug.LogError($"[Workshop] {modelPath} has no wheels (nor a _Body version with them): {name} not built."); return false; }
+                model = whole;
+            }
             var root = new GameObject(name);
             var inst = Place(model, root.transform);
             inst.name = "Body";
@@ -336,8 +348,134 @@ namespace ShiftJam
             var arcade = root.AddComponent<ArcadeCar>();
             Set(arcade, "settings", settings);
             root.AddComponent<CarSeat>();
+            root.AddComponent<CarLook>();
             Save(root, PieceVehicles + "/" + name + ".prefab");
             return true;
+        }
+
+        /// <summary>
+        /// A drive-through bay at toy scale: a dark floor (no collider, so no lip), the pack's straight barriers end to end
+        /// down both sides, its chequered finish line flat across the way out, and a gate over the way out (two posts and a
+        /// bar with the sign on both faces). The Garage trigger fills the bay; cars face +Z (the way out) when docked.
+        /// </summary>
+        private static bool BuildGarage()
+        {
+            const float W = 5.2f, L = 7f, WallH = 1.1f, GateH = 4.2f, Post = 0.3f;   // bay, toy units (cars are 3.8 long)
+            var root = new GameObject("Garage");
+            var lift = new GameObject("Lift").transform; lift.SetParent(root.transform, false);
+            var dark = GarageMaterial();
+
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Object.DestroyImmediate(floor.GetComponent<Collider>());
+            floor.name = "BayFloor"; floor.transform.SetParent(root.transform, false);
+            floor.transform.localScale = new Vector3(W, 0.02f, L); floor.transform.localPosition = new Vector3(0f, 0.011f, 0f);
+            floor.GetComponent<MeshRenderer>().sharedMaterial = dark;
+
+            // Walls: straight barrier segments end to end along each side, each stretched to an equal share of the length.
+            var wall = Load(CY + "Track Props/Barrier_04.prefab");
+            if (wall != null)
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    int n = 1;
+                    for (int i = 0; i < n; i++)
+                    {
+                        var holder = new GameObject(side < 0 ? "WallL" : "WallR").transform; holder.SetParent(root.transform, false);
+                        var b = Place(wall, holder);
+                        FitHeight(b, holder, WallH, out Bounds bb);
+                        bool alongX = bb.size.x >= bb.size.z;
+                        float len = Mathf.Max(0.1f, alongX ? bb.size.x : bb.size.z), thick = alongX ? bb.size.z : bb.size.x;
+                        if (i == 0) n = Mathf.Max(1, Mathf.CeilToInt(L / len - 0.01f));
+                        if (alongX) holder.localRotation = Quaternion.Euler(0f, 90f, 0f);   // run along the bay
+                        var s = Vector3.one; if (alongX) s.x = (L / n) / len; else s.z = (L / n) / len; holder.localScale = s;
+                        holder.localPosition = new Vector3(side * (W + thick) * 0.5f, 0f, -L * 0.5f + (L / n) * (i + 0.5f));
+                        var col = holder.gameObject.AddComponent<BoxCollider>();
+                        col.center = bb.center; col.size = bb.size;
+                    }
+                }
+
+            // The way out: the pack's finish line is a flat strip (12 x 2, no height), laid across the bay floor's end.
+            var line = Load(CY + "Track Props/Finish_Line_01.prefab");
+            if (line != null)
+            {
+                var holder = new GameObject("FinishLine").transform; holder.SetParent(root.transform, false);
+                var f = Place(line, holder);
+                Bounds fb = LocalBounds(holder, f);
+                if (fb.size.z > fb.size.x) holder.localRotation = Quaternion.Euler(0f, 90f, 0f);   // its long side across the bay
+                f.transform.localScale *= W / Mathf.Max(0.01f, Mathf.Max(fb.size.x, fb.size.z));
+                fb = LocalBounds(holder, f);
+                f.transform.localPosition = new Vector3(-fb.center.x, -fb.min.y, -fb.center.z);
+                float depth = Mathf.Min(fb.size.x, fb.size.z);
+                holder.localPosition = new Vector3(0f, 0.03f, L * 0.5f - depth * 0.5f);
+            }
+
+            // The gate: two posts outside the walls and a bar across the top, the sign on both faces of the bar.
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var post = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                post.name = side < 0 ? "GatePostL" : "GatePostR"; post.transform.SetParent(root.transform, false);
+                post.transform.localScale = new Vector3(Post, GateH, Post);
+                post.transform.localPosition = new Vector3(side * (W * 0.5f + 0.6f), GateH * 0.5f, L * 0.5f);
+                post.GetComponent<MeshRenderer>().sharedMaterial = dark;
+            }
+            var bar = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            bar.name = "GateBar"; bar.transform.SetParent(root.transform, false);
+            bar.transform.localScale = new Vector3(W + 1.2f + Post, 0.9f, Post);
+            bar.transform.localPosition = new Vector3(0f, GateH - 0.45f, L * 0.5f);
+            bar.GetComponent<MeshRenderer>().sharedMaterial = dark;
+            for (int face = -1; face <= 1; face += 2)
+            {
+                var sign = new GameObject(face > 0 ? "SignOut" : "SignIn", typeof(RectTransform));
+                sign.transform.SetParent(root.transform, false);
+                sign.transform.localPosition = new Vector3(0f, GateH - 0.45f, L * 0.5f + face * (Post * 0.5f + 0.02f));
+                sign.transform.localRotation = Quaternion.Euler(0f, face > 0 ? 180f : 0f, 0f);   // text faces away from the bar
+                var tmp = sign.AddComponent<TMPro.TextMeshPro>();
+                tmp.text = "GARAGE"; tmp.fontSize = 7f; tmp.alignment = TMPro.TextAlignmentOptions.Center; tmp.fontStyle = TMPro.FontStyles.Bold;
+                tmp.rectTransform.sizeDelta = new Vector2(W, 0.9f);
+            }
+
+            var trigger = root.AddComponent<BoxCollider>();
+            trigger.isTrigger = true; trigger.center = new Vector3(0f, 1.2f, 0f); trigger.size = new Vector3(W, 2.4f, L);
+            var garage = root.AddComponent<Garage>();
+            Set(garage, "lift", lift);
+            var bodies = new List<Object>();
+            foreach (var c in Cars) { var p = AssetDatabase.LoadAssetAtPath<GameObject>(PieceVehicles + "/" + c.name + ".prefab"); if (p != null) bodies.Add(p); }
+            var wheels = new List<Object>();
+            for (int i = 1; i <= 15; i++) { var w = AssetDatabase.LoadAssetAtPath<GameObject>(CY + $"Wheels/Wheel_{i:00}.prefab"); if (w != null) wheels.Add(w); }
+            SetArray(garage, "bodies", bodies);
+            SetArray(garage, "wheels", wheels);
+            Save(root, PieceVehicles + "/Garage.prefab");
+            return true;
+        }
+
+        /// <summary>Dark slate for the garage's floor and gate: a copy of our plain lit material (BuildShape), recoloured.</summary>
+        private static Material GarageMaterial()
+        {
+            const string path = Data + "/GarageDark.mat";
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (mat != null) return mat;
+            if (!AssetDatabase.CopyAsset(Data + "/BuildShape.mat", path)) { Debug.LogWarning("[Workshop] Could not copy BuildShape.mat for the garage."); return null; }
+            mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            mat.SetColor("_BaseColor", new Color(0.16f, 0.18f, 0.22f));
+            EditorUtility.SetDirty(mat);
+            return mat;
+        }
+
+        /// <summary>True when a pack car has wheels the ArcadeCar can find (its wheel naming, steering wheels excluded).</summary>
+        private static bool HasWheels(GameObject model)
+        {
+            foreach (var t in model.GetComponentsInChildren<Transform>(true))
+                if (t.name.Contains("Wheel") && !t.name.Contains("Steering") && !t.name.Contains("steering")) return true;
+            return false;
+        }
+
+        private static void SetArray(Object target, string field, List<Object> values)
+        {
+            var so = new SerializedObject(target);
+            var p = so.FindProperty(field);
+            if (p == null || !p.isArray) { Debug.LogError($"[Workshop] {target.GetType().Name} has no array '{field}'."); return; }
+            p.arraySize = values.Count;
+            for (int i = 0; i < values.Count; i++) p.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // ---------- helpers ----------
@@ -363,8 +501,9 @@ namespace ShiftJam
         private static void FitHeight(GameObject inst, Transform space, float height, out Bounds b)
         {
             b = LocalBounds(space, inst);
-            float k = height / Mathf.Max(1e-4f, b.size.y);
-            inst.transform.localScale *= k;
+            // A flat prop (a finish line, a decal) has no height to fit: scaling it would blow it up to kilometres.
+            if (b.size.y < 0.01f) Debug.LogWarning($"[Workshop] {inst.name} is flat: left at its own size.");
+            else inst.transform.localScale *= height / b.size.y;
             b = LocalBounds(space, inst);
             inst.transform.localPosition = new Vector3(-b.center.x, -b.min.y, -b.center.z);   // feet at the pivot, centred
             b = LocalBounds(space, inst);

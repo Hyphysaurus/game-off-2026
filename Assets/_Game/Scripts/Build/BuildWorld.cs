@@ -152,7 +152,8 @@ namespace ShiftJam
             return go;
         }
 
-        /// <summary>Removes everything but the drawing: scripts first (they may need the rest), then bodies and colliders.</summary>
+        /// <summary>Removes everything but the drawing: scripts first (they may need the rest), then bodies and colliders.
+        /// RestSink stays: it is only a number, and the ghost needs it to rest where the placed piece will.</summary>
         private static void Strip(GameObject root)
         {
             foreach (var t in root.GetComponentsInChildren<Transform>(true))
@@ -162,14 +163,14 @@ namespace ShiftJam
                 for (int i = comps.Length - 1; i >= 0; i--)
                 {
                     var c = comps[i];
-                    if (c == null || c is Transform || c is MeshFilter || c is MeshRenderer || c is SkinnedMeshRenderer || c is LODGroup) continue;
+                    if (c == null || c is Transform || c is MeshFilter || c is MeshRenderer || c is SkinnedMeshRenderer || c is LODGroup || c is RestSink) continue;
                     if (c is MonoBehaviour || c is Joint) Object.DestroyImmediate(c);
                 }
                 comps = t.GetComponents<Component>();
                 for (int i = comps.Length - 1; i >= 0; i--)
                 {
                     var c = comps[i];
-                    if (c == null || c is Transform || c is MeshFilter || c is MeshRenderer || c is SkinnedMeshRenderer || c is LODGroup) continue;
+                    if (c == null || c is Transform || c is MeshFilter || c is MeshRenderer || c is SkinnedMeshRenderer || c is LODGroup || c is RestSink) continue;
                     Object.DestroyImmediate(c);
                 }
             }

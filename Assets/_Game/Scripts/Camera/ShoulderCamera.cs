@@ -47,11 +47,26 @@ namespace ShiftJam
             SetCursorLocked(true);
         }
 
-        private void OnEnable() { SetCursorLocked(true); }   // coming back from a menu, Build Mode or first person
+        private void OnEnable() { SetCursorLocked(!_menuHold); }   // coming back from a menu, Build Mode or first person
         private void OnDisable() { SetCursorLocked(false); }
+
+        private bool _menuHold;
+
+        /// <summary>
+        /// A menu on screen (the garage) holds the mouse: the cursor stays free and a click goes to the menu instead of
+        /// locking the mouse again. The camera keeps running (it follows the car, mouse look is off while the cursor is
+        /// free). Released, it takes the mouse back if it is running; if Build Mode switched it off, its OnEnable will.
+        /// </summary>
+        public void SetMenuHold(bool held)
+        {
+            _menuHold = held;
+            if (held) SetCursorLocked(false);
+            else if (isActiveAndEnabled) SetCursorLocked(true);
+        }
 
         private void Update()
         {
+            if (_menuHold) return;
             // Escape frees the mouse; a click in the game view takes it back.
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) SetCursorLocked(false);
             else if (!_cursorLocked && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) SetCursorLocked(true);

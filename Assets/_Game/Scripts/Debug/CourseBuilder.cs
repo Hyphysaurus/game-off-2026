@@ -1099,6 +1099,7 @@ namespace ShiftJam
             var b = B(go);
             Vector3 highEdge = b.center + flat * (Mathf.Abs(flat.x) * b.extents.x + Mathf.Abs(flat.z) * b.extents.z);
             go.transform.position += flat * Vector3.Dot(high - highEdge, flat) + cross * Vector3.Dot(high - b.center, cross) + Vector3.up * (high.y - b.min.y - lip * sy);
+            go.AddComponent<RestSink>().Set(lip);   // so Build Mode keeps the toe sunk when the ramp is placed or moved
             Log.AppendLine($"{name}: rise {rise:F1} over {length:F0} = {Mathf.Atan2(rise, length) * Mathf.Rad2Deg:F0} deg, lip {lip * sy:F2} sunk");
             return go;
         }

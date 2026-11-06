@@ -2,7 +2,18 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 6 Nov 2026 09:1x — STAGED, NOT LANDED: sweep fixes + Pocket Core + key list + grab + vehicle camera — CHECKPOINT
+## 6 Nov 2026 10:1x — LANDED `e8a046f` (he stopped Play): the 44-file set, builders re-run, UNPLAYED
+Copied, compiled in the editor (0 errors), Build Combat & Vehicle Pieces (24), Dev > Build Pocket Core, Dev > Create
+Vehicle Camera Settings, Build Catalog (509, Interactables 4), ThirdPersonGrab on the Player in Workshop + Greybox, both
+scenes saved. Stills: the soldier stands (rifleman, muzzle), the Pocket Core glows amber. Left uncommitted on purpose:
+ShiftWarp.mat and TMP's LiberationSans fallback atlas (both rewritten by Play).
+HIS PLAYTEST (Workshop): H (key list); F2 (Pocket Core) and E on it; as the kid aim at the couch pillow + E (grab), wheel,
+hold R, E to set down on the footprint, click to throw; drive a Cyber car (camera frames the car, swings behind at speed,
+blends back on getting out; wooden car hides the toy); in the garage right-drag / A D / wheel orbit; F3 while seated
+(the car is not selectable, status line says so); console open + Build keys (nothing happens); the soldier walks back to
+where you move it; F5 / falling in first person respawns; knife held by the handle; shotgun on the soldier.
+
+## 6 Nov 2026 09:1x — STAGED, NOT LANDED: sweep fixes + Pocket Core + key list + grab + vehicle camera — CHECKPOINT (landed 10:1x, see above)
 Everything below sits in `%TEMP%\shiftjam-stage\landing\` at its Assets/_Game/Scripts path (35 .cs: 30 changed, 5 new),
 compiled outside Unity together (0 errors). Nothing is in Assets yet. 44 .cs now (34 changed, 10 new) with the grab and the vehicle camera.
 - SWEEP of the unplayed Workshop systems (4 agents, 30 findings, 29 confirmed): fixed by three fixers on separate files +

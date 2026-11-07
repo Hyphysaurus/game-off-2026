@@ -26,5 +26,9 @@ namespace ShiftJam
         void Hold(bool held);
         /// <summary>True while someone drives it.</summary>
         bool Driven { get; }
+        /// <summary>Moves the car, driver and all, to <paramref name="position"/> (where its transform goes) facing
+        /// <paramref name="rotation"/>, travelling at <paramref name="velocity"/>: a CarPortal (D-0039). False when the car
+        /// cannot go now (held, parked, wrecked, not started).</summary>
+        bool Teleport(Vector3 position, Quaternion rotation, Vector3 velocity);
     }
 }

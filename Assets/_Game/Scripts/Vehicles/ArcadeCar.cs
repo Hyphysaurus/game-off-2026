@@ -366,6 +366,16 @@ namespace ShiftJam
             _upsideDown = 0f;
         }
 
+        /// <summary>A portal: the same as PlaceAt, then on its way at <paramref name="velocity"/>. A held, parked or wrecked
+        /// car stays put.</summary>
+        public bool Teleport(Vector3 position, Quaternion rotation, Vector3 velocity)
+        {
+            if (_rb == null || _rb.isKinematic || _heldOutside || Wrecked) return false;
+            PlaceAt(position, rotation);
+            _rb.linearVelocity = velocity;
+            return true;
+        }
+
         /// <summary>Holds the car still where it is, driver and all (the cannon loads and aims it), or lets it go. A car a
         /// garage has parked stays the garage's.</summary>
         public void Hold(bool held)

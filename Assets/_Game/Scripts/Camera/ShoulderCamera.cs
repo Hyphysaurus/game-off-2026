@@ -279,10 +279,13 @@ namespace ShiftJam
             _yawVelocity = 0f;
         }
 
-        /// <summary>Points the camera the given way at once, for spawns and portals.</summary>
+        /// <summary>Points the camera the given way at once, for spawns and portals. While it follows a car it also jumps to
+        /// the car instead of gliding across the room (a car portal).</summary>
         public void Warp(float yaw, float? pitch = null)
         {
             _yaw = yaw;
+            _yawVelocity = 0f;
+            _aimReady = false;
             if (pitch.HasValue) _pitch = Mathf.Clamp(pitch.Value, settings.minPitch, settings.maxPitch);
         }
     }

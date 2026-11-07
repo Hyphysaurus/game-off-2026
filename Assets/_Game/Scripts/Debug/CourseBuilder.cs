@@ -904,6 +904,148 @@ namespace ShiftJam
             var padTrig = Trigger("Pad", pillow.transform, new Vector3(pb.center.x, pb.max.y + 0.6f, pb.center.z), new Vector3(pb.size.x * 0.8f, 1.6f, pb.size.z * 0.8f));
             var pad = padTrig.AddComponent<LaunchPad>(); Set(pad, "height", height); Set(pad, "visual", pillow.transform);
             FitPadGlow(pillow);
+            FitSideBounce(pillow);
+        }
+
+        const float SideMargin = 1f;   // how far the side trigger reaches out from the pillow, world units at toy scale
+
+        /// <summary>D-0039: a toy-only side trigger wrapping the pillow, floor to crown, a little wider than it. Running into
+        /// it throws the toy just over the crown and inward, onto the pad (LaunchPad side mode). Measured in the pillow's own
+        /// space, so it turns and scales with it. Adds it, or re-fits the one already there.</summary>
+        static void FitSideBounce(GameObject pillow)
+        {
+            var old = pillow.transform.Find("Side");
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+            if (!BuildBounds.Local(pillow.transform, out Bounds lb)) return;
+            float s = Mathf.Max(1e-4f, Mathf.Abs(pillow.transform.lossyScale.x));
+            var t = new GameObject("Side"); t.transform.SetParent(pillow.transform, false);
+            t.transform.localPosition = lb.center;
+            var bc = t.AddComponent<BoxCollider>(); bc.isTrigger = true;
+            bc.size = new Vector3(lb.size.x + 2f * SideMargin / s, lb.size.y, lb.size.z + 2f * SideMargin / s);
+            var side = t.AddComponent<LaunchPad>(); Set(side, "side", true);
+        }
+
+        /// <summary>Gives every pillow pad in the open scenes and in the PillowPad piece its side bounce. Safe to run again.</summary>
+        [MenuItem("Shift Jam/Add Pillow Side Bounces")]
+        public static void AddPillowSideBounces()
+        {
+            var log = new StringBuilder("PILLOW SIDE BOUNCES:");
+            int n = 0;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var s = SceneManager.GetSceneAt(i); if (!s.isLoaded) continue;
+                var pillows = new List<GameObject>();
+                foreach (var root in s.GetRootGameObjects())
+                    foreach (var t in root.GetComponentsInChildren<Transform>(true))
+                        if (t.name == "PadGlow" && t.parent != null) pillows.Add(t.parent.gameObject);
+                foreach (var p in pillows) { FitSideBounce(p); n++; log.Append($" {s.name}/{p.name} {DescribeSide(p)};"); }
+                if (pillows.Count > 0) EditorSceneManager.MarkSceneDirty(s);
+            }
+            const string piece = "Assets/_Game/Prefabs/Pieces/Traversal/PillowPad.prefab";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(piece) != null)
+            {
+                var root = PrefabUtility.LoadPrefabContents(piece);
+                var pillows = root.GetComponentsInChildren<Transform>(true).Where(t => t.name == "PadGlow" && t.parent != null).Select(t => t.parent.gameObject).ToList();
+                foreach (var p in pillows) { FitSideBounce(p); n++; log.Append($" PillowPad.prefab/{p.name} {DescribeSide(p)};"); }
+                PrefabUtility.SaveAsPrefabAsset(root, piece);
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+            Debug.Log(log.Append($" {n} pillow(s). Save the scene(s).").ToString());
+        }
+
+        /// <summary>D-0039: a starter red pair of car portals in the Workshop, on clear floor away from the race loop and the
+        /// boost lane, as far apart as the room allows, each facing the room's middle. Skips if a red portal is already
+        /// there. The search reads every drawn thing's box, so it never lands a hoop inside furniture.</summary>
+        [MenuItem("Shift Jam/Workshop/Place Starter Car Portals")]
+        public static void PlaceStarterPortals()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (scene.name != "Workshop") { Debug.LogError("Open Workshop.unity first."); return; }
+            var layout = GameObject.Find("Workshop/Layout");
+            if (layout == null) { Debug.LogError("No Workshop/Layout."); return; }
+            if (Object.FindObjectsByType<CarPortal>(FindObjectsSortMode.None).Any(p => p.Colour == PortalColour.Red)) { Debug.Log("CAR PORTALS: a red pair is already placed."); return; }
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Prefabs/Pieces/Traversal/CarPortal_Red.prefab");
+            if (prefab == null) { Debug.LogError("Run Shift Jam > Workshop > Build Car Portals first."); return; }
+
+            var solids = new List<Bounds>();
+            foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+            {
+                if (r is ParticleSystemRenderer || !r.enabled || !r.gameObject.activeInHierarchy) continue;
+                var b = r.bounds; if (b.max.y < 0.6f) continue;   // floor tiles, rugs and floor glows
+                solids.Add(b);
+            }
+            // keep the race loop (finish (0,30), gates out to x +-130, z 150) and the boost lane (x 190) free
+            bool Reserved(Vector3 p) => (Mathf.Abs(p.x) < 165f && p.z > -5f && p.z < 185f) || (p.x > 165f && p.x < 220f && p.z < 110f);
+            bool Clear(Vector3 p, float yaw)
+            {
+                // the hoop plus a run-in and a run-out lane, 14 wide and 50 long along its facing
+                bool alongZ = Mathf.Abs(Mathf.Sin(yaw * Mathf.Deg2Rad)) < 0.5f;
+                var box = new Bounds(p + Vector3.up * 5f, alongZ ? new Vector3(14f, 9f, 50f) : new Vector3(50f, 9f, 14f));
+                if (Mathf.Abs(box.min.x) > 250f || Mathf.Abs(box.max.x) > 250f || Mathf.Abs(box.min.z) > 250f || Mathf.Abs(box.max.z) > 250f) return false;
+                foreach (var s in solids) if (s.Intersects(box)) return false;
+                return true;
+            }
+            float FacingMiddle(Vector3 p) => Mathf.Abs(p.x) > Mathf.Abs(p.z) ? (p.x > 0f ? 270f : 90f) : (p.z > 0f ? 180f : 0f);
+            var spots = new List<(Vector3 p, float yaw)>();
+            for (float x = -220f; x <= 220f; x += 10f)
+                for (float z = -220f; z <= 220f; z += 10f)
+                {
+                    var p = new Vector3(x, 0f, z); if (Reserved(p)) continue;
+                    float yaw = FacingMiddle(p);
+                    if (Clear(p, yaw)) spots.Add((p, yaw));
+                }
+            if (spots.Count < 2) { Debug.LogError($"CAR PORTALS: only {spots.Count} clear spot(s); place them in Build Mode."); return; }
+            var pick = spots[0]; var other = spots[1]; float best = 0f;
+            foreach (var a in spots) foreach (var c in spots)
+            {
+                float d = (a.p - c.p).sqrMagnitude; if (d > best) { best = d; pick = a; other = c; }
+            }
+            foreach (var (p, yaw, n) in new[] { (pick.p, pick.yaw, "CarPortal_Red_A"), (other.p, other.yaw, "CarPortal_Red_B") })
+            {
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, layout.transform);
+                go.name = n; go.transform.SetPositionAndRotation(p, Quaternion.Euler(0f, yaw, 0f));
+            }
+            EditorSceneManager.MarkSceneDirty(scene);
+            Debug.Log($"CAR PORTALS: red pair at ({pick.p.x:0},{pick.p.z:0}) yaw {pick.yaw:0} and ({other.p.x:0},{other.p.z:0}) yaw {other.yaw:0}; {spots.Count} clear spots. Save the scene.");
+        }
+
+        /// <summary>Batch: -executeMethod ShiftJam.CourseBuilder.LandPortalsAndPillows (no -nographics: it renders the catalogue
+        /// and stills). Builds the car portals, re-runs the catalogue, gives every pillow its side bounce in both scenes,
+        /// places the starter red pair, saves, and renders stills of each portal into Temp/stills_d0039.</summary>
+        public static void LandPortalsAndPillows()
+        {
+            RacingPieces.BuildCarPortalsMenu();
+            BuildCatalogBuilder.BuildFromMenu();
+            EditorSceneManager.OpenScene(ScenePath);
+            AddPillowSideBounces();
+            EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
+            EditorSceneManager.OpenScene("Assets/_Game/Scenes/Workshop.unity");
+            AddPillowSideBounces();
+            PlaceStarterPortals();
+            EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
+            string dir = "Temp/stills_d0039"; System.IO.Directory.CreateDirectory(dir);
+            Shot(dir + "/workshop_top.png", new Vector3(0f, 400f, 0f), Quaternion.Euler(90f, 0f, 0f), 0f, 1400, 1400, 270f);
+            foreach (var p in Object.FindObjectsByType<CarPortal>(FindObjectsSortMode.None))
+            {
+                var root = p.transform.parent; Vector3 at = root.position;
+                Vector3 eye = at + root.rotation * new Vector3(-9f, 6f, -16f);
+                Shot(dir + "/" + root.name + ".png", eye, Quaternion.LookRotation(at + Vector3.up * 3f - eye), 60f, 1280, 720);
+            }
+            foreach (var t in Object.FindObjectsByType<LaunchPad>(FindObjectsSortMode.None))
+            {
+                if (t.name != "Side") continue;
+                var pillow = t.transform.parent; var b = t.GetComponent<Collider>().bounds;
+                Vector3 eye = b.center + new Vector3(b.size.x * 1.4f, b.size.y * 1.2f, -b.size.z * 1.6f);
+                Shot(dir + "/pillow_" + pillow.name + ".png", eye, Quaternion.LookRotation(b.center - eye), 55f, 1280, 720);
+                break;
+            }
+            Debug.Log("D-0039 LANDED: stills in " + dir);
+        }
+
+        static string DescribeSide(GameObject pillow)
+        {
+            var t = pillow.transform.Find("Side"); var c = t != null ? t.GetComponent<Collider>() : null;
+            return c != null ? $"side {c.bounds.size.x:0.#}x{c.bounds.size.y:0.#}x{c.bounds.size.z:0.#} top {c.bounds.max.y:0.#}" : "no side";
         }
 
         const string PadGlowPath = "Assets/_Game/Data/PadGlow.mat";

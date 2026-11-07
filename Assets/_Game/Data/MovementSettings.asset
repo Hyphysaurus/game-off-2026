@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MovementSettings
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.MovementSettings
   walkSpeed: 5.5
-  sprintSpeed: 10
+  sprintSpeed: 8
   acceleration: 60
   deceleration: 50
   turnSpeed: 720

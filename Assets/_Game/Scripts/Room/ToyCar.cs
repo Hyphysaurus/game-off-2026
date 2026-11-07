@@ -292,6 +292,17 @@ namespace ShiftJam
             _ball.linearVelocity = velocity;
         }
 
+        /// <summary>A portal: the body goes to the pose, the ball goes under it, and both carry on at <paramref name="velocity"/>.
+        /// Not while held (Build Mode, the cannon) or before Start has made the ball.</summary>
+        public bool Teleport(Vector3 position, Quaternion rotation, Vector3 velocity)
+        {
+            if (_ball == null || _held) return false;
+            transform.SetPositionAndRotation(position, rotation);
+            PutBallUnder();   // also turns the steering heading to the new facing and stops the ball
+            _ball.linearVelocity = velocity;
+            return true;
+        }
+
         /// <summary>Holds the car still where it is, driver and all, the way Build Mode does (the body leads, the ball waits),
         /// or lets it go: the ball goes back under the body wherever it was left.</summary>
         public void Hold(bool held)

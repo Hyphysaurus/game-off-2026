@@ -50,9 +50,127 @@ namespace ShiftJam
             if (BuildNitroStar(chime)) made.Add("NitroStar");
             if (BuildRepairHeart()) made.Add("RepairHeart");
             if (BuildShieldRing()) made.Add("ShieldRing");
+            made.AddRange(BuildCarPortals());
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"[RacingPieces] Built {made.Count} of 9: {string.Join(", ", made)}. Run Shift Jam > Workshop > Build Catalog so Build Mode lists them.");
+            Debug.Log($"[RacingPieces] Built {made.Count} of 12: {string.Join(", ", made)}. Run Shift Jam > Workshop > Build Catalog so Build Mode lists them.");
+        }
+
+        // ---------- car portals (D-0039) ----------
+
+        private const float PortalHole = 7f;   // the hoop's opening, across: the wooden car (4.2 wide) with room
+        private static readonly (PortalColour colour, Color tint)[] PortalColours =
+        {
+            (PortalColour.Red, new Color(1f, 0.32f, 0.3f)),
+            (PortalColour.Blue, new Color(0.3f, 0.62f, 1f)),
+            (PortalColour.Green, new Color(0.35f, 1f, 0.45f)),
+        };
+
+        [MenuItem("Shift Jam/Workshop/Build Car Portals")]
+        public static void BuildCarPortalsMenu()
+        {
+            EnsureFolder(Traversal);
+            var made = BuildCarPortals();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"[RacingPieces] Car portals: {string.Join(", ", made)}. Run Build Catalog so Build Mode lists them.");
+        }
+
+        /// <summary>
+        /// CarPortal_Red / _Blue / _Green: the Cyber pack's Circle_01 hoop standing up, sized by its OPENING (7 across, so the
+        /// wooden car fits), its lower rim sunk just under the floor (a RestSink keeps it there in Build Mode) so cars drive
+        /// straight through along +Z. His swirl drawing (warp_mask_swirl) fills the opening in the portal's colour and spins;
+        /// a soft glow of the same colour lies on the floor under it, so the pairs read at a glance.
+        /// </summary>
+        private static List<string> BuildCarPortals()
+        {
+            var made = new List<string>();
+            var model = Load(CY + "Circle_01.prefab");
+            var swirlTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_Game/Art/Portals/warp_mask_swirl.png");
+            if (model == null) return made;
+            if (swirlTex == null) Debug.LogWarning("[RacingPieces] No warp_mask_swirl.png: the portals get a plain glow.");
+            var sound = ClipAt("Toys/Star_Light_On.wav");
+            foreach (var (colour, tint) in PortalColours)
+            {
+                string name = "CarPortal_" + colour;
+                var root = new GameObject(name);
+                var holder = Child(root.transform, "Model");
+                var inst = Place(model, holder);
+
+                // stand it up with its opening along Z: the thinnest side of the hoop is its depth
+                Bounds b = LocalBounds(holder, inst);
+                if (b.size.y <= b.size.x && b.size.y <= b.size.z) inst.transform.localRotation = Quaternion.Euler(90f, 0f, 0f) * inst.transform.localRotation;
+                else if (b.size.x <= b.size.y && b.size.x <= b.size.z) inst.transform.localRotation = Quaternion.Euler(0f, 90f, 0f) * inst.transform.localRotation;
+                b = LocalBounds(holder, inst);
+                inst.transform.localPosition -= b.center;
+                float hole = HoleAcross(inst, holder);
+                if (hole < 0.1f) hole = Mathf.Min(b.size.x, b.size.y) * 0.7f;
+                inst.transform.localScale *= PortalHole / hole;
+                b = LocalBounds(holder, inst);
+                inst.transform.localPosition -= b.center;
+                float holeRadius = PortalHole * 0.5f;
+                float middle = holeRadius - 0.4f;   // the opening's lowest point 0.4 under the floor: a car rolls straight in
+                inst.transform.localPosition += Vector3.up * middle;
+                b = LocalBounds(holder, inst);
+                root.AddComponent<RestSink>().Set(Mathf.Max(0f, -b.min.y));
+                Solid(root.transform, inst, false, null);
+
+                // the swirl: two quads back to back (the glow shader draws one side), filling the opening
+                var swirl = Child(root.transform, "Swirl");
+                swirl.localPosition = new Vector3(0f, middle, 0f);
+                var swirlMat = PortalSwirlMaterial(colour, tint, swirlTex);
+                var front = Quad("Front", swirl, Vector3.zero, PortalHole * 0.98f, swirlMat);
+                front.transform.localRotation = Quaternion.identity;
+                var back = Quad("Back", swirl, Vector3.zero, PortalHole * 0.98f, swirlMat);
+                back.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                Quad("FloorGlow", root.transform, new Vector3(0f, 0.05f, 0f), PortalHole * 1.3f, Glow("CarPortalGlow_" + colour, new Color(tint.r, tint.g, tint.b, 0.7f)));
+
+                var trigger = Trigger(root.transform, "Portal", new Vector3(0f, middle, 0f), new Vector3(PortalHole * 0.9f, PortalHole * 0.9f, Mathf.Max(2.5f, b.size.z * 2f)));
+                var portal = trigger.AddComponent<CarPortal>();
+                Set(portal, "colour", (int)colour);
+                Set(portal, "swirl", swirl);
+                SetArray(portal, "glow", new List<Object> { front.GetComponent<Renderer>(), back.GetComponent<Renderer>() });
+                var light = FlashLight(root.transform, new Vector3(0f, middle, 0f), PortalHole * 2f);
+                light.color = tint;
+                Set(portal, "flashLight", light);
+                Set(portal, "sound", sound);
+                Save(root, Traversal + "/" + name + ".prefab");
+                made.Add(name);
+            }
+            return made;
+        }
+
+        /// <summary>The hoop's opening across, in <paramref name="space"/>: twice the nearest any vertex comes to the middle,
+        /// measured in the hoop's plane (x, y).</summary>
+        private static float HoleAcross(GameObject inst, Transform space)
+        {
+            Bounds b = LocalBounds(space, inst);
+            float nearest = float.MaxValue;
+            foreach (var mf in inst.GetComponentsInChildren<MeshFilter>())
+            {
+                if (mf.sharedMesh == null) continue;
+                foreach (var v in mf.sharedMesh.vertices)
+                {
+                    Vector3 p = space.InverseTransformPoint(mf.transform.TransformPoint(v)) - b.center;
+                    nearest = Mathf.Min(nearest, new Vector2(p.x, p.y).magnitude);
+                }
+            }
+            return nearest < float.MaxValue ? nearest * 2f : 0f;
+        }
+
+        /// <summary>His swirl drawing as an additive glow in a portal's colour: a copy of OrbGlow.mat. Made once.</summary>
+        private static Material PortalSwirlMaterial(PortalColour colour, Color tint, Texture2D swirl)
+        {
+            string path = Data + "/CarPortalSwirl_" + colour + ".mat";
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (mat != null) return mat;
+            var orb = AssetDatabase.LoadAssetAtPath<Material>(Data + "/OrbGlow.mat");
+            if (orb == null) { Debug.LogWarning("[RacingPieces] No OrbGlow.mat to copy for the portal swirl."); return null; }
+            mat = new Material(orb) { name = "CarPortalSwirl_" + colour };
+            if (swirl != null && mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", swirl);
+            mat.SetColor("_BaseColor", new Color(tint.r, tint.g, tint.b, 0.9f));
+            AssetDatabase.CreateAsset(mat, path);
+            return mat;
         }
 
         // ---------- boosts ----------

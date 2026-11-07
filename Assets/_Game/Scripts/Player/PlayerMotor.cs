@@ -37,6 +37,8 @@ namespace ShiftJam
 
         public bool Grounded { get; private set; }
         public Vector3 Velocity => _planar + Vector3.up * _vertical;
+        /// <summary>Gravity at the current size, world units per second squared (pads work out their throws from it).</summary>
+        public float Gravity => settings.gravity * Scale;
         /// <summary>The current shift scale; 1 at kid size.</summary>
         public float Scale => shifter != null ? shifter.Scale : 1f;
         /// <summary>Raised when a jump starts.</summary>

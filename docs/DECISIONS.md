@@ -346,3 +346,20 @@
   under 30% health and thick while wrecked; the HUD's health bar shows the shield's seconds. One `CarPickup` (kind:
   nitro / repair / shield) replaced NitroPickup. Fraggo Fracture Engine (Unluck Software) is in his Asset Store
   downloads, not imported: the car's Died event and its modular parts (CarLook's slots) are where it will plug in.
+- **D-0039 (6 Nov) Pillows bounce you up from the side; car portals pair by colour; run cadence B.** His word "start
+  building" on the three open picks, taken as my recommendations. (1) Pillow climb, option A: every pillow pad also gets
+  a toy-only `Side` trigger (floor to crown, 1 unit wider than the pillow, in the pillow's own space so it turns and
+  scales with it). Running into it (moving toward the middle at 1+ own unit/s) throws the toy 2 own units over the crown
+  and inward, just fast enough to come down 60% of the way to the middle, worked out each time from where it stands
+  (`LaunchPad` side mode; `PlayerMotor.Gravity`). Every LaunchPad now fires only on the way down: rising through one (a
+  jump, a side throw) no longer fires it. Ledge grab stays off the table for pillows (10.8 tall vs a 2.0 jump). (2) Car
+  portals (his "we shift in location"): `Vehicles/CarPortal` keeps speed, sends you out of the partner's FRONT even when
+  entered from behind, car + driver + chase camera together (`IBoostable.Teleport` on ArcadeCar and ToyCar;
+  `ShoulderCamera.Warp` now also snaps the car framing), 0.75 s per-car wait so nothing bounces back; any two of the same
+  colour pair (three or more: each sends to the next one placed). Cars only: the toy on foot keeps the course `Portal`.
+  Pieces CarPortal_Red/Blue/Green = Cyber Circle_01 standing, sized by its opening (7, the wooden car is 4.2), lower rim
+  0.4 under the floor (RestSink), his swirl drawing (warp_mask_swirl) spinning inside in the portal's colour, a floor glow
+  of the same colour, Star_Light_On on a warp (his ear). Pieces sit in Traversal with the other track pieces, not
+  Vehicles as the proposal said. Starter red pair in the Workshop, placed by a clear-floor search that keeps the race loop
+  and boost lane free: (-220,-190) facing +X and (220,220) facing -Z. Course placement is his call. (3) Run cadence B:
+  sprint 10 → 8, Run Boost clip ×2.5 → ×1.6 (walk 5.5 unchanged).

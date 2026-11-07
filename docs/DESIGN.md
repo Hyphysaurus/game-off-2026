@@ -141,7 +141,7 @@ best idea in the pack and the most expensive; after the jam.
 
 ## Proposals, 6 Nov 2026 (PROPOSED while he plays; nothing here is built; his picks)
 
-### 1. Getting the toy onto a pillow (his note 5 Nov: "pillows too tall to climb")
+### 1. Getting the toy onto a pillow (his note 5 Nov: "pillows too tall to climb") — A BUILT 6 Nov (D-0039)
 Measured: Pillow_01 lies 10.8 units tall (22 x 19 across). The toy is 1.8 tall and jumps 2.0, and every pillow's launch
 pad sits on the pillow's top. No jump reaches it, and a ledge grab reaches about one body height above the jump apex
 (~3.6), a third of the way. So last night's pick (a ledge grab) was wrong for pillows. Options:
@@ -158,7 +158,7 @@ pad sits on the pillow's top. No jump reaches it, and a ledge grab reaches about
 - **D. A mantle / ledge grab.** Not for pillows. Useful later as a climb verb for 2 to 4 unit ledges (book risers, box
   lids) if he wants one.
 
-### 2. Car location portals (his direction 5 Nov: "warp portals that teleport in location for driving in cars instead of shifting in size - we shift in location")
+### 2. Car location portals (his direction 5 Nov: "warp portals that teleport in location for driving in cars instead of shifting in size - we shift in location") — BUILT 6 Nov (D-0039; my picks on his calls: keep speed, cars only, hoop frame; course spots still his)
 Today the course's Portal moves only a player on foot: it looks for the player's collider, which is off while seated,
 so a car drives straight through. Proposal:
 - **CarPortal.** Drive through a ring and come out of its partner at the same speed, turned to the partner's facing.

@@ -2,6 +2,20 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 6 Nov 2026 23:3x — BUILT + LANDED headless (D-0039): pillow side bounce, car portals, run cadence B — UNPLAYED
+His "start building" on the three open picks (my recommendations). Unity closed: code compiled outside (0 errors),
+committed `7dfde1c`, then a batch editor ran `CourseBuilder.LandPortalsAndPillows`: built CarPortal_Red/Blue/Green
+(Traversal), catalogue 543 entries (the three portals have no thumbnail yet: run Shift Jam > Workshop > Build Catalog
+once in the editor), side bounce on every pillow pad (Greybox: both couch pillows + the wardrobe trampoline pillow;
+Workshop pillow; PillowPad piece), red pair placed in the Workshop at (-220,-190) facing +X and (220,220) facing -Z,
+both scenes saved. Stills checked (%TEMP%\sj_d0039_stills): hoops stand with the rim sunk, red swirl inside, pillow
+unchanged. New batch-safe `BuildCatalogBuilder.BuildNoWait` (previews never finish in a quitting batch).
+HIS PLAYTEST: as the toy, RUN into the Workshop pillow's side (you should pop onto its top, then the top pad throws you
+high); standing beside it does nothing; jumping on any pad still bounces on landing. Drive any car through a red hoop:
+out of the other corner's hoop at the same speed, camera behind you; try it from the back side too. Feel the new run
+(sprint 8, slower Boost legs). Open calls: where portals go in the course; hoop tint per colour (now pack purple, colour
+is in the swirl and floor glow); toy on foot through car portals (off).
+
 ## 6 Nov 2026 12:5x — LANDED `cdcfe34` (D-0037 + D-0038): boosts, HUD, race, impact-only crashes, bump stop, ramp lead-ins, hearts, shields, mending — UNPLAYED
 I opened Shift Jam for him (he closed NectarRush). The first launch stalled inside the startup code reload at zero CPU for
 10+ min (a bridge GetState had arrived as the reload began; log kept at scratchpad Editor-hung.log): killed it, relaunched,

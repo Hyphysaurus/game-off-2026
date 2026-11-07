@@ -76,6 +76,10 @@ MonoBehaviour:
   onLaunch:
     m_PersistentCalls:
       m_Calls: []
+  side: 0
+  clearance: 2
+  landInward: 0.6
+  minApproach: 1
 --- !u!1 &4702327734881574499
 GameObject:
   m_ObjectHideFlags: 0
@@ -108,6 +112,86 @@ Transform:
   - {fileID: 9147284533945852112}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6429627272643584724
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2252578280819846865}
+  - component: {fileID: 886703482134340673}
+  - component: {fileID: 8130006306600094980}
+  m_Layer: 0
+  m_Name: Side
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2252578280819846865
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6429627272643584724}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.025000572, z: -0.0000019073486}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 9147284533945852112}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &886703482134340673
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6429627272643584724}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 23.770905, y: 10.834312, z: 21.101494}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8130006306600094980
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6429627272643584724}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00ca7d05e92490c449edfc2916f7852a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.LaunchPad
+  anySize: 0
+  requiredSize: 0
+  height: 8
+  cooldown: 0.35
+  visual: {fileID: 0}
+  squash: 0.55
+  squashTime: 0.22
+  onLaunch:
+    m_PersistentCalls:
+      m_Calls: []
+  side: 1
+  clearance: 2
+  landInward: 0.6
+  minApproach: 1
 --- !u!1 &6584467578369009225
 GameObject:
   m_ObjectHideFlags: 0
@@ -259,6 +343,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6557104642133149951, guid: 66ee2a4b26abeb84aa7299c09c91c459, type: 3}
       insertIndex: -1
       addedObject: {fileID: 582768901819301387}
+    - targetCorrespondingSourceObject: {fileID: 6557104642133149951, guid: 66ee2a4b26abeb84aa7299c09c91c459, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2252578280819846865}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 5887422159300137541, guid: 66ee2a4b26abeb84aa7299c09c91c459, type: 3}
       insertIndex: -1

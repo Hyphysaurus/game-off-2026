@@ -63,7 +63,12 @@ namespace ShiftJam
             EditorUtility.RevealInFinder(BuildLayouts.Folder);
         }
 
-        private static void Run(bool redrawThumbs)
+        /// <summary>For batch runs (-executeMethod ... -quit): lists everything at once without drawing new thumbnails, since
+        /// previews are drawn over later editor frames a quitting batch never reaches. New pieces show without a picture
+        /// until the next Build Catalog in the editor.</summary>
+        public static void BuildNoWait() => Run(false, true);
+
+        private static void Run(bool redrawThumbs, bool noWait = false)
         {
             EnsureFolder(ThumbDir); EnsureFolder("Assets/_Game/Resources"); EnsureFolder("Assets/_Game/Data");
             foreach (var c in PieceCategories) EnsureFolder(Pieces + "/" + c);
@@ -77,7 +82,7 @@ namespace ShiftJam
                 if (redrawThumbs || !File.Exists(png)) WritePng(png, RenderShape(s, shapeMat));
             }
             var jobs = found.Where(f => redrawThumbs || !File.Exists(f.Png)).ToList();
-            if (jobs.Count == 0) { Finish(found, shapes, shapeMat, ghostMat); return; }
+            if (jobs.Count == 0 || noWait) { Finish(found, shapes, shapeMat, ghostMat); return; }
             new ThumbBatch(jobs, () => Finish(found, shapes, shapeMat, ghostMat)).Start();
         }
 

@@ -1011,11 +1011,11 @@ namespace ShiftJam
 
         /// <summary>Batch: -executeMethod ShiftJam.CourseBuilder.LandPortalsAndPillows (no -nographics: it renders the catalogue
         /// and stills). Builds the car portals, re-runs the catalogue, gives every pillow its side bounce in both scenes,
-        /// places the starter red pair, saves, and renders stills of each portal into Temp/stills_d0039.</summary>
+        /// places the starter red pair, saves, and renders stills of each portal into %TEMP%/sj_d0039_stills.</summary>
         public static void LandPortalsAndPillows()
         {
             RacingPieces.BuildCarPortalsMenu();
-            BuildCatalogBuilder.BuildFromMenu();
+            BuildCatalogBuilder.BuildNoWait();
             EditorSceneManager.OpenScene(ScenePath);
             AddPillowSideBounces();
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
@@ -1023,7 +1023,7 @@ namespace ShiftJam
             AddPillowSideBounces();
             PlaceStarterPortals();
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
-            string dir = "Temp/stills_d0039"; System.IO.Directory.CreateDirectory(dir);
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "sj_d0039_stills"); System.IO.Directory.CreateDirectory(dir);   // not the project Temp: Unity empties it on exit
             Shot(dir + "/workshop_top.png", new Vector3(0f, 400f, 0f), Quaternion.Euler(90f, 0f, 0f), 0f, 1400, 1400, 270f);
             foreach (var p in Object.FindObjectsByType<CarPortal>(FindObjectsSortMode.None))
             {

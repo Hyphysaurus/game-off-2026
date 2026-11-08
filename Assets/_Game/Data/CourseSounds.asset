@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a2b241eed84ba24b86efebb9f5db7fa, type: 3}
+  m_Name: CourseSounds
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.CourseSounds
+  grow:
+    clip: {fileID: 8300000, guid: 751d0f0ab5a38864dba0b07ea86cb1f8, type: 3}
+    volume: 0.7
+    pitchSpread: 0
+  shrink:
+    clip: {fileID: 8300000, guid: 82b04a0b86358dc448a14ac7f92b7bab, type: 3}
+    volume: 0.7
+    pitchSpread: 0
+  coreAwake:
+    clip: {fileID: 8300000, guid: a2b134b6ba514c545b2e98e76e28fff6, type: 3}
+    volume: 0.6
+    pitchSpread: 0
+  switchPress:
+    clip: {fileID: 8300000, guid: 08d2f3a8ee58217419c578604d28a530, type: 3}
+    volume: 0.8
+    pitchSpread: 0.05
+  doorOpen:
+    clip: {fileID: 8300000, guid: 94e3c9f33c82b674c89fa82c1bd3905b, type: 3}
+    volume: 0.6
+    pitchSpread: 0.05
+  checkpoint:
+    clip: {fileID: 8300000, guid: 39a0d7bf35abfd54a94afee13b78ef91, type: 3}
+    volume: 0.6
+    pitchSpread: 0
+  reset:
+    clip: {fileID: 8300000, guid: 56acbb148fe08c245a772927260b7e4f, type: 3}
+    volume: 0.6
+    pitchSpread: 0.05
+  goal:
+    clip: {fileID: 8300000, guid: 7cc114ef0771c064fb6e4ec8e9f7994d, type: 3}
+    volume: 0.8
+    pitchSpread: 0
+  jump:
+    clip: {fileID: 8300000, guid: ebe5ced26fc0f974b9dea74e0d3009ea, type: 3}
+    volume: 0.3
+    pitchSpread: 0.08
+  land:
+    clip: {fileID: 8300000, guid: bc8f06db2fa92474897cd8a7fed1fd07, type: 3}
+    volume: 0.5
+    pitchSpread: 0.1
+  landAtLeast: 11
+  music: {fileID: 0}
+  musicVolume: 0.3
+  ambience: {fileID: 8300000, guid: 9ca932cb624d7434b963acc917aac484, type: 3}
+  ambienceVolume: 0.6

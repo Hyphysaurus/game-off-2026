@@ -34898,6 +34898,52 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2475297113483244877, guid: 31b1464c7b1586c4298af1c6a26f4bfb, type: 3}
   m_PrefabInstance: {fileID: 696881429}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &708042744
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 708042746}
+  - component: {fileID: 708042745}
+  m_Layer: 0
+  m_Name: Course Audio
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &708042745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708042744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf09913d5656a2746b5af119e73ab1df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.CourseAudio
+  sounds: {fileID: 11400000, guid: 76adf2ec0aa95fc4cacd41d6510afd2e, type: 2}
+  player: {fileID: 0}
+--- !u!4 &708042746
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708042744}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &710692141
 GameObject:
   m_ObjectHideFlags: 0
@@ -98810,3 +98856,4 @@ SceneRoots:
   - {fileID: 945024615}
   - {fileID: 187729304}
   - {fileID: 941464752}
+  - {fileID: 708042746}

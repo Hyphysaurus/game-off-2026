@@ -61,25 +61,29 @@ namespace ShiftJam
         [MenuItem("Shift Jam/Audio/Place Course Audio (open scenes)")]
         public static void PlaceInOpenScenes()
         {
-            CourseSounds sounds = Build();
-            for (int i = 0; i < SceneManager.sceneCount; i++) Place(SceneManager.GetSceneAt(i), sounds);
+            Build();
+            for (int i = 0; i < SceneManager.sceneCount; i++) Place(SceneManager.GetSceneAt(i));
         }
 
         /// <summary>Batch: builds the sounds, then gives Greybox and the Workshop their Course Audio and saves both.</summary>
         public static void BuildAndPlaceBatch()
         {
-            CourseSounds sounds = Build();
+            Build();
             foreach (string path in CourseScenes)
             {
                 Scene scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
-                Place(scene, sounds);
+                Place(scene);
                 EditorSceneManager.SaveScene(scene);
             }
         }
 
-        private static void Place(Scene scene, CourseSounds sounds)
+        private static void Place(Scene scene)
         {
             if (!scene.isLoaded) return;
+            // Loaded by path here, after the scene opened: opening a scene let go of the object Build() returned, and the
+            // first batch saved both scenes with an empty reference (8 Nov).
+            var sounds = AssetDatabase.LoadAssetAtPath<CourseSounds>(AssetPath);
+            if (sounds == null) { Debug.LogError("[Audio] No " + AssetPath + ": run Build Course Sounds first."); return; }
             CourseAudio audio = null;
             foreach (GameObject root in scene.GetRootGameObjects())
             {
@@ -96,7 +100,9 @@ namespace ShiftJam
             so.FindProperty("sounds").objectReferenceValue = sounds;
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorSceneManager.MarkSceneDirty(scene);
-            Debug.Log($"[Audio] {scene.name}: Course Audio plays {AssetPath}.");
+            bool wired = new SerializedObject(audio).FindProperty("sounds").objectReferenceValue == sounds;
+            if (wired) Debug.Log($"[Audio] {scene.name}: Course Audio plays {AssetPath}.");
+            else Debug.LogError($"[Audio] {scene.name}: Course Audio did NOT take {AssetPath}.");
         }
 
         private static void Fill(ref CourseSounds.Cue cue, string file, float volume, float pitchSpread, ref int filled)

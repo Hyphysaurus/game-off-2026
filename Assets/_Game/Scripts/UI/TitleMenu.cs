@@ -140,8 +140,8 @@ namespace ShiftJam
             MenuButton("Workshop", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); }); y -= 0.065f;
             MenuButton("Quit", y, Quit);
             Text("Hint", _root.transform, "mouse, arrows or stick · Enter / A to choose", 22, new Vector2(0.5f, 0.05f), new Vector2(900, 40)).alpha = 0.6f;
-            // Which build this is (D-0040): BuildTools stamps the whole version number into the player settings.
-            var version = Text("Version", _root.transform, "v" + Application.version, 20, new Vector2(0.95f, 0.035f), new Vector2(160, 32));
+            // Which build this is (D-0040): BuildTools stamps the whole version number into the player settings; "dev" = a development build (D-0043).
+            var version = Text("Version", _root.transform, "v" + Application.version + (Debug.isDebugBuild && !Application.isEditor ? " dev" : ""), 20, new Vector2(0.95f, 0.035f), new Vector2(160, 32));
             version.alignment = TextAlignmentOptions.Right; version.alpha = 0.45f;
         }
 

@@ -1009,6 +1009,81 @@ namespace ShiftJam
             Debug.Log($"CAR PORTALS: red pair at ({pick.p.x:0},{pick.p.z:0}) yaw {pick.yaw:0} and ({other.p.x:0},{other.p.z:0}) yaw {other.yaw:0}; {spots.Count} clear spots. Save the scene.");
         }
 
+        /// <summary>D-0043: the Workshop had no shift core, so outside the editor (no F2 Pocket Core) a player there could never
+        /// change size. Nine course-style cyan Toggle cores on a 3x3 grid (x and z at -170 / 0 / +170), each slid to the
+        /// nearest clear floor within 80 units (furniture boxes, the race loop and the boost lane kept free, 60 apart), so the
+        /// toy is never far from one. Re-running replaces them (names WorkshopCore_*); a grid spot with no clear floor is
+        /// skipped and logged.</summary>
+        [MenuItem("Shift Jam/Workshop/Place Workshop Cores")]
+        public static void PlaceWorkshopCores()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (scene.name != "Workshop") { Debug.LogError("Open Workshop.unity first."); return; }
+            var layout = GameObject.Find("Workshop/Layout");
+            if (layout == null) { Debug.LogError("No Workshop/Layout."); return; }
+            var coreMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/ShiftCore.mat");
+            foreach (Transform t in layout.transform.Cast<Transform>().ToList())
+                if (t.name.StartsWith("WorkshopCore_", System.StringComparison.Ordinal)) Object.DestroyImmediate(t.gameObject);
+
+            var solids = new List<Bounds>();
+            foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+            {
+                if (r is ParticleSystemRenderer || !r.enabled || !r.gameObject.activeInHierarchy) continue;
+                var b = r.bounds; if (b.max.y < 0.6f) continue;   // floor tiles, rugs and floor glows
+                solids.Add(b);
+            }
+            // the same keep-outs as the car portals: the race loop and the boost lane
+            bool Reserved(Vector3 p) => (Mathf.Abs(p.x) < 165f && p.z > -5f && p.z < 185f) || (p.x > 165f && p.x < 220f && p.z < 110f);
+            bool Clear(Vector3 p)
+            {
+                var box = new Bounds(p + Vector3.up * 4f, new Vector3(16f, 8f, 16f));   // the core's glow plus room to walk up to it
+                if (Mathf.Abs(box.min.x) > 245f || Mathf.Abs(box.max.x) > 245f || Mathf.Abs(box.min.z) > 245f || Mathf.Abs(box.max.z) > 245f) return false;
+                foreach (var s in solids) if (s.Intersects(box)) return false;
+                return true;
+            }
+            var placed = new List<Vector3>(); var report = new StringBuilder();
+            int n = 0;
+            foreach (float gz in new[] { -170f, 0f, 170f })
+                foreach (float gx in new[] { -170f, 0f, 170f })
+                {
+                    var target = new Vector3(gx, 0f, gz); Vector3? best = null; float bestD = float.MaxValue;
+                    for (float x = gx - 80f; x <= gx + 80f; x += 5f)
+                        for (float z = gz - 80f; z <= gz + 80f; z += 5f)
+                        {
+                            var p = new Vector3(x, 0f, z); float d = (p - target).sqrMagnitude;
+                            if (d > 80f * 80f || d >= bestD || Reserved(p) || !Clear(p)) continue;
+                            if (placed.Any(q => (q - p).sqrMagnitude < 60f * 60f)) continue;
+                            best = p; bestD = d;
+                        }
+                    if (best == null) { report.AppendLine($"  grid ({gx:0},{gz:0}): no clear floor, skipped"); continue; }
+                    var at = best.Value; placed.Add(at); n++;
+                    Core("WorkshopCore_" + n, layout.transform, at + Vector3.up * 2.5f, ShiftSource.Mode.Toggle, coreMat, false);
+                    report.AppendLine($"  WorkshopCore_{n} at ({at.x:0},{at.z:0}) for grid ({gx:0},{gz:0})");
+                }
+            EditorSceneManager.MarkSceneDirty(scene);
+            Debug.Log($"WORKSHOP CORES: {n} placed\n{report}{Log}");
+        }
+
+        /// <summary>Batch: -executeMethod ShiftJam.CourseBuilder.LandWorkshopCores (no -nographics: it renders a still). Opens
+        /// the Workshop, places its cores, saves, and draws a top-down still into %TEMP%/sj_d0043_stills.</summary>
+        public static void LandWorkshopCores()
+        {
+            Log.Clear();
+            EditorSceneManager.OpenScene("Assets/_Game/Scenes/Workshop.unity");
+            PlaceWorkshopCores();
+            EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
+            AssetDatabase.SaveAssets();
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "sj_d0043_stills"); System.IO.Directory.CreateDirectory(dir);
+            Shot(dir + "/workshop_cores_top.png", new Vector3(0f, 400f, 0f), Quaternion.Euler(90f, 0f, 0f), 0f, 1400, 1400, 270f);
+            var first = GameObject.Find("Workshop/Layout/WorkshopCore_1");
+            if (first != null)
+            {
+                Vector3 c = first.transform.position, eye = c + new Vector3(18f, 10f, -22f);
+                Shot(dir + "/workshop_core_1.png", eye, Quaternion.LookRotation(c - eye), 55f, 1280, 720);
+            }
+            Debug.Log("D-0043 LANDED: stills in " + dir);
+        }
+
         /// <summary>Batch: -executeMethod ShiftJam.CourseBuilder.LandPortalsAndPillows (no -nographics: it renders the catalogue
         /// and stills). Builds the car portals, re-runs the catalogue, gives every pillow its side bounce in both scenes,
         /// places the starter red pair, saves, and renders stills of each portal into %TEMP%/sj_d0039_stills.</summary>

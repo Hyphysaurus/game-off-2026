@@ -2,6 +2,18 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 8 Nov 2026 14:1x — v4 DEV BUILD (F2 Pocket Core back) + NINE SHIFT CORES IN THE WORKSHOP (D-0043) — UNPLAYED
+His v3 note: "shifting is tougher than ever with such few warp shift locations"; his "begin with both" (he in AoE:
+hidden low-priority batch runs only). v1-v3 were plain builds, so the dev keys (F2 Pocket Core, F8 size, F1 console)
+were off outside the editor, and the Workshop had no core at all. Now: v4 is a development build (title "v4 dev",
+`Builds/Windows/v4/ShiftJam.exe`, 1.8 min, smoke check clean: both scenes 0 errors) and the Workshop has nine cyan
+Toggle cores spread over its floor (positions in D-0043; stills in %TEMP%\sj_d0043_stills). Course cores unchanged.
+HIS PLAYTEST (v4): F2 calls the Pocket Core anywhere (course and Workshop), F8 size, F1 console; in the Workshop walk
+to any cyan core and E: grow / shrink (one is a few steps from the start, one per corner and side). Say where in the
+course shifting felt worst: those spots get a core next (or a Pocket Core charge, his call).
+Not committed: his Editor Rich Presence plugin (Assets/ERP, .erp) and the editor's touches to two glow materials, three
+font assets and UnityConnectSettings (from an earlier editor session, his to keep or drop).
+
 ## 8 Nov 2026 08:3x — v3: CARRIED IN THE ARMS (D-0042): props at the chest with both hands on them, tools at their grips, reach in and lower down — UNPLAYED
 His "proceed with all" on the plan (carry in the arms). Proven headless with a temporary probe and stills (deleted): the
 flashlight in a closed fist at its handle, the ruler flat across the waist on both palms, a pillow hugged at the chest
@@ -556,6 +568,7 @@ tutorial room in Greybox.unity, Feel hooks on ShiftSource/Switch/Door, a Core sc
 → STEP 3 room greybox + shift beat → feel pass → commit → v1.
 
 ## Versions
+- v4 — 8 Nov 2026: D-0043 (DEVELOPMENT build: dev keys F1/F2/F8 on, title "v4 dev"; nine shift cores in the Workshop); smoke check clean; UNPLAYED. `Builds/Windows/v4` (local).
 - v3 — 8 Nov 2026: D-0042 (carried in the arms, grips, reach and lower, the fist fixed); smoke check clean; UNPLAYED. `Builds/Windows/v3` (local).
 - v2 — 8 Nov 2026: D-0041 (shrinking with a tool in hand, KeepApart, no false checkpoint reset on a shrink); smoke check clean; UNPLAYED. `Builds/Windows/v2` (local).
 - v1 — 8 Nov 2026: first Windows build (Greybox course + Workshop), course sounds, version on the title; smoke check clean; UNPLAYED. `Builds/Windows/v1` (local, git-ignored).

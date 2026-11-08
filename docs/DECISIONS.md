@@ -415,3 +415,16 @@
   no camera sees it (CullUpdateTransforms), and a culled Animator skips IK: CarryPose sets the body to AlwaysAnimate.
   Measured by a temporary probe (deleted): flashlight on its grip (0.000), pillow hands within 0.3 toy units of its sides
   (wider than the shoulders: hugged), ruler hands within 0.1 of their grips; stills checked. v3 built, smoke clean.
+
+- **D-0043 (8 Nov, 14:1x) Playtest builds are development builds; the Workshop gets nine shift cores.** His v3 note:
+  "shifting is tougher than ever with such few warp shift locations"; his pick "both". Cause: v1-v3 were plain builds
+  (`BuildOptions.None`), and the dev keys (F1 console, F2 Pocket Core, F8 size) only exist in the editor and in
+  development builds, so the built game had no F2; and the Workshop had NO ShiftSource at all (the course has six), so
+  outside the editor a player there could never change size. (1) `BuildTools`: `-development` (batch) and the menu
+  Shift Jam > Build > Windows Development make a development build; the report says so and the title reads "vN dev".
+  Playtest builds use it; the jam release stays a plain build. (2) `CourseBuilder.PlaceWorkshopCores` (menu Shift Jam >
+  Workshop > Place Workshop Cores; batch `LandWorkshopCores`): nine course-style cyan Toggle cores (WorkshopCore_1..9
+  under Workshop/Layout) on a 3x3 grid at x/z -170/0/+170, each slid to the nearest clear floor (furniture boxes, the
+  race loop and boost lane kept free, 60 apart): (-170,-170) (0,-170) (165,-170) (-170,5) (-25,-5) (165,0) (-170,170)
+  (0,185) (170,170). Re-running replaces them. (3) The course's six cores are NOT changed: each one gates a puzzle
+  (D-0013: fixed cores are the level design); extra course cores wait for his note on where it felt worst.

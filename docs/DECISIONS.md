@@ -363,3 +363,20 @@
   Vehicles as the proposal said. Starter red pair in the Workshop, placed by a clear-floor search that keeps the race loop
   and boost lane free: (-220,-190) facing +X and (220,220) facing -Z. Course placement is his call. (3) Run cadence B:
   sprint 10 → 8, Run Boost clip ×2.5 → ×1.6 (walk 5.5 unchanged).
+- **D-0040 (8 Nov) Course sounds; the first Windows build (v1) with a version on the title; a smoke check.** His "begin
+  the shift jam pass" (7 Nov) on my plan: sounds, a first Windows build, the portal thumbnails. (1) Sounds: `GameEvents`
+  also announce a core waking, a switch, a door opening, a checkpoint claimed, a reset and the goal (raised beside each
+  one's UnityEvent). `CourseSounds` holds one cue per moment (clip, volume, pitch spread) plus jump, a hard landing (fall
+  speed 11+: a jump on flat ground lands at 10), a room tone and music; one `CourseAudio` per scene plays them flat (2D),
+  four cue sources in turn. First picks by name and measured shape from the Playroom pack: grow/shrink Star_Light_On/Off,
+  core Star_Light_Activate, switch Mouse_Click_v2 (both Light_Switch takes click twice), door Castle_Gate_v1, checkpoint
+  UI_Notification_v1, reset Wooden_Toy_Drop_v2, goal Win_v1, jump Toy_Squeak_Single_v2 at 0.3, landing Chess_Fall_v2,
+  room tone Room_Ambience_Loop_v2 at 0.6. Music left empty: his. Star_Light_On is also the car portal's and the cannon
+  fuse's sound: his ear may want the shift to have its own. Menus Shift Jam > Audio > Build Course Sounds (fills only
+  empty cues, so his picks stay) and Place Course Audio (open scenes). (2) Build: Shift Jam > Build > Windows (next
+  version) writes Builds/Windows/vN/ShiftJam.exe (git-ignored) and build-report.txt; the whole version number goes into
+  the player settings and shows bottom right on the title ("v1"). Ship the folder without
+  `Shift Jam Project_BurstDebugInformation_DoNotShip`. (3) `SmokeRun`: a player started with `-batchmode -smoketest`
+  mutes itself before the first scene, opens each scene for 6 s, logs errors per scene and quits 0 or 1. It covers the
+  code, not the picture (a hidden player runs at thousands of frames a second). (4) Build Catalog's `BuildThenQuit`
+  draws missing thumbnails in a batch and quits (the three D-0039 portals now have theirs).

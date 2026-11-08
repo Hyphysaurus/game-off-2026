@@ -17,10 +17,19 @@ namespace ShiftJam
         private int _errors;
         private string _first;
 
+        private static bool Asked => Array.IndexOf(Environment.GetCommandLineArgs(), "-smoketest") >= 0;
+
+        /// <summary>Silent before the first scene wakes: a hidden check must never play the rooms on his speakers.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Mute()
+        {
+            if (Asked) AudioListener.volume = 0f;
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Begin()
         {
-            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-smoketest") < 0) return;
+            if (!Asked) return;
             var go = new GameObject("Smoke run");
             DontDestroyOnLoad(go);
             go.AddComponent<SmokeRun>();

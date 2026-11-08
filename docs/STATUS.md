@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 8 Nov 2026 05:5x — v1 WINDOWS BUILD (smoke check clean) + COURSE SOUNDS LANDED (D-0040) + portal thumbnails — UNPLAYED
+His 7 Nov "begin the shift jam pass" finished with Unity closed (hidden low-priority batch runs only). Commits `1676887`
+(code), `63a10d6` (sounds landed), this one (build + docs). SOUNDS: CourseSounds.asset with 11 first picks from the
+Playroom pack (list in D-0040), a Course Audio object in Greybox and the Workshop; music left empty for him. BUILD v1:
+`Builds/Windows/v1/ShiftJam.exe` (402 MB, first build 5.7 min, 0 errors), the title shows "v1" bottom right. SMOKE:
+the built game opened both scenes for 6 s each with 0 errors (only notes: 12 props too detailed for a full convex
+collider, a simplified hull is used). Portal thumbnails drawn (catalogue 543 entries, 543 pictures).
+HIS PLAYTEST: run `Builds\Windows\v1\ShiftJam.exe` (the real build, not the editor): title (v1 in the corner), New
+Game, the course end to end with sound: a shift (shimmer), a core waking, the switch click, a door, a checkpoint chime,
+a fall reset (thump), the goal (win jingle), jump squeak, hard-landing tock, the room tone. Say which sounds to swap
+(Shift Jam > Audio > the CourseSounds asset in Data/, or tell me). Then the Workshop from the title. Music: his.
+NOT YET ON GITHUB: 74 commits since 2 Nov (`git push` is his: `! git.exe -C "C:\Users\maram\Dev\Unity Projects\Shift Jam Project" push`).
+
 ## 6 Nov 2026 23:3x — BUILT + LANDED headless (D-0039): pillow side bounce, car portals, run cadence B — UNPLAYED
 His "start building" on the three open picks (my recommendations). Unity closed: code compiled outside (0 errors),
 committed `7dfde1c`, then a batch editor ran `CourseBuilder.LandPortalsAndPillows`: built CarPortal_Red/Blue/Green
@@ -522,4 +535,4 @@ tutorial room in Greybox.unity, Feel hooks on ShiftSource/Switch/Door, a Core sc
 → STEP 3 room greybox + shift beat → feel pass → commit → v1.
 
 ## Versions
-- (none yet) v1 = first playable tutorial room.
+- v1 — 8 Nov 2026: first Windows build (Greybox course + Workshop), course sounds, version on the title; smoke check clean; UNPLAYED. `Builds/Windows/v1` (local, git-ignored).

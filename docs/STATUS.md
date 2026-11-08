@@ -2,6 +2,17 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 8 Nov 2026 08:3x — v3: CARRIED IN THE ARMS (D-0042): props at the chest with both hands on them, tools at their grips, reach in and lower down — UNPLAYED
+His "proceed with all" on the plan (carry in the arms). Proven headless with a temporary probe and stills (deleted): the
+flashlight in a closed fist at its handle, the ruler flat across the waist on both palms, a pillow hugged at the chest
+with both hands at its sides. v3: `Builds/Windows/v3/ShiftJam.exe`, smoke check clean.
+HIS PLAYTEST (v3): as the kid grab a pillow, the bear, a box (E): it comes into your arms; walk; the footprint ahead shows
+where E lowers it; wheel moves that spot; click throws. Pick up the flashlight (fist on the handle) and the ruler (both
+hands, flat). Shrink while holding: it drops ahead (D-0041). Tune on the Player: ThirdPersonGrab carryHeight 0.8,
+carryGap 0.1, handsBack 0.3, setDownGap 0.35, reachTime/lowerTime 0.25; on the body's CarryPose (added at run time):
+turnWeight, elbowOut, elbowDown, elbowWeight, palmThickness; the pose in Animation/CarryPose.anim (rerunning Build Carry
+Pose rewrites it). Known: props wider than the shoulders read as hugged; hands stay open on a big prop.
+
 ## 8 Nov 2026 06:2x — v2: SHRINKING WITH SOMETHING IN HAND FIXED (D-0041) + A FALSE CHECKPOINT RESET ON EVERY SHRINK FIXED — UNPLAYED
 His v1 report: stuck after shrinking while holding the flashlight (and other items); grab and hold poses need work
 (PLAN coming separately, nothing built); "sounds are good". Proven with a headless probe before and after (deleted):
@@ -545,5 +556,6 @@ tutorial room in Greybox.unity, Feel hooks on ShiftSource/Switch/Door, a Core sc
 → STEP 3 room greybox + shift beat → feel pass → commit → v1.
 
 ## Versions
+- v3 — 8 Nov 2026: D-0042 (carried in the arms, grips, reach and lower, the fist fixed); smoke check clean; UNPLAYED. `Builds/Windows/v3` (local).
 - v2 — 8 Nov 2026: D-0041 (shrinking with a tool in hand, KeepApart, no false checkpoint reset on a shrink); smoke check clean; UNPLAYED. `Builds/Windows/v2` (local).
 - v1 — 8 Nov 2026: first Windows build (Greybox course + Workshop), course sounds, version on the title; smoke check clean; UNPLAYED. `Builds/Windows/v1` (local, git-ignored).

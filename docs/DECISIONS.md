@@ -398,3 +398,20 @@
   scale with the body when the size changes, and falls are counted only off the ground, in the player's own units as they
   happen (`Landed` keeps its meaning; Respawn, CourseAudio and the console read it unchanged). The probe was temporary and
   is deleted. v2 built and smoke-checked.
+- **D-0042 (8 Nov) Carried in the arms: props held at the chest with both hands on them, tools gripped at their grips,
+  a quick reach in and lower down.** His v1 note "positioning of our grab and holding animations leave a lot of room for
+  improvement" and his pick, carry in the arms ("proceed with all"). Built by a builder agent staged outside the project,
+  landed here. (1) The third-person grab holds a prop in front of the belly within arm's reach (its own depth allowed for,
+  never inside the body), lower than before, turning with the body, still on the physics spring; both hands go to its
+  sides by Humanoid IK (`CarryPose` on the body, fed by `ICarryHands`), elbows steered out and down, over a two-arm carry
+  pose: a 'Carry' animator layer (index 2, IK pass on, TwoArmMask, CarryPose.anim generated from muscle values) built by
+  Shift Jam > Animation > Build Carry Pose. The footprint marks where E lowers it, a short way ahead; the wheel now nudges
+  that spot (0.05 to 1.8 toy units, 0.15 a notch); click still throws, R still turns. (2) Tools: every carryable has a grip
+  in its own space (the flashlight a quarter in from its handle end; planks two grips, carried flat across the front in
+  both hands, palms up); children named Grip, GripR or GripL override. Carryable's world-unit gripOffset is gone. (3) Pick
+  up eases the thing into the hands over 0.25 s while the arms come up; set down lowers it over 0.25 s; a shift still lets
+  go at once (D-0041). (4) Fixed on the way: HoldPose.anim's finger curves had names a clip does not bind, so the fist
+  never closed (now it does, on the flashlight and weapons). (5) Found by the probe: the pack's body Animator culls when
+  no camera sees it (CullUpdateTransforms), and a culled Animator skips IK: CarryPose sets the body to AlwaysAnimate.
+  Measured by a temporary probe (deleted): flashlight on its grip (0.000), pillow hands within 0.3 toy units of its sides
+  (wider than the shoulders: hugged), ruler hands within 0.1 of their grips; stills checked. v3 built, smoke clean.

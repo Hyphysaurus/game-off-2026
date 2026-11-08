@@ -82,6 +82,9 @@ namespace ShiftJam
         private void Awake()
         {
             _animator = GetComponent<Animator>();
+            // The pack's body culls its animation when no camera sees it, and a culled Animator skips the IK pass: the hands
+            // would let go of what they hold whenever the camera pushes into the body or a wall. The one body always animates.
+            _animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             _layer = _animator.GetLayerIndex(carryLayer);
             if (!_animator.isHuman) return;
             _right = MakeArm(true);

@@ -218,7 +218,7 @@ namespace ShiftJam
                 Ramp("Ruler_Big_02", "Ramp1", r4, new Vector3(bb.center.x, bb.max.y + 0.03f, bb.min.z), Vector3.forward, bb.max.y);
             }
             var ruler = Rest(Spawn("Ruler_Big_01", "Ruler", r4, new Vector3(cb.min.x - 14f, 0, tb.min.z - 26f), new Vector3(0, 35, 0), 1f), 0f, null);   // west of the stool, clear of the ramps
-            var rc = ruler.AddComponent<Carryable>(); Set(rc, "gripOffset", new Vector3(0, 0, -6f)); Set(rc, "plank", true);
+            var rc = ruler.AddComponent<Carryable>(); Set(rc, "plank", true);   // carried flat in both hands, grips from its own box (D-0042)
             ruler.AddComponent<Carried>();   // kid-only pick-up prompt
             // core B: shrink, on the table, near the south edge
             var coreB = Core("CoreB_Shrink", r4, new Vector3(tb.center.x - 20f, tb.max.y + 2.5f, tb.min.z + 10f), ShiftSource.Mode.ShrinkOnly, coreMat, false);
@@ -264,7 +264,7 @@ namespace ShiftJam
             var hp = holeTrig.AddComponent<Portal>(); Set(hp, "requiredSize", (int)ShiftSize.Toy);
             PointLight("HoleLight", r4, new Vector3(wb.min.x - 4f, 2.5f, wb.center.z), 16f, 2f, new Color(1f, 0.85f, 0.55f));
             var safe = Rest(Spawn("Safe_01", "Safe", r4, new Vector3(wb.min.x - 9f, 0, wb.center.z), new Vector3(0, 90, 0), 1f), 0f, null);
-            var sc = safe.AddComponent<Carryable>(); Set(sc, "gripOffset", new Vector3(0, -4f, 6f)); safe.AddComponent<Carried>();
+            safe.AddComponent<Carryable>(); safe.AddComponent<Carried>();   // grabbed and carried in the arms (D-0042)
             wardrobeFront = Point("WardrobeFront", r4, new Vector3(wb.min.x - 40f, 0, wb.center.z), 0f);   // facing north, toward the window
             // --- the entry from R3: west wall, at the lane's z
             entry = Point("Entry", r4, new Vector3(c.x - R4HalfX + 8f, 0, LaneZ), 90f);

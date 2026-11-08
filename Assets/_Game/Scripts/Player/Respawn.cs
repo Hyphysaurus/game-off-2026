@@ -40,6 +40,7 @@ namespace ShiftJam
             // darkens, so the warp would never come. After the cut the player is back up and the check stops asking.
             if (Time.unscaledTime < _busyUntil) return;
             _busyUntil = Time.unscaledTime + cutOut + cutIn + 0.1f;
+            GameEvents.RaisePlayerReset(this);
             if (fade != null) fade.Cut(cutOut, () => _motor.Warp(_point, _facing), cutIn);
             else _motor.Warp(_point, _facing);
         }

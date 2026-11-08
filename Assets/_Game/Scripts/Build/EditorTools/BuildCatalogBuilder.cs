@@ -68,6 +68,16 @@ namespace ShiftJam
         /// until the next Build Catalog in the editor.</summary>
         public static void BuildNoWait() => Run(false, true);
 
+        /// <summary>For batch runs WITHOUT -quit (8 Nov, D-0040): draws the thumbnails still missing over the editor's own
+        /// frames, then quits by itself. For pieces a quitting batch left without a picture (D-0039's three portals).</summary>
+        public static void BuildThenQuit()
+        {
+            s_afterFinish = () => EditorApplication.Exit(0);
+            Run(false);
+        }
+
+        private static System.Action s_afterFinish;
+
         private static void Run(bool redrawThumbs, bool noWait = false)
         {
             EnsureFolder(ThumbDir); EnsureFolder("Assets/_Game/Resources"); EnsureFolder("Assets/_Game/Data");
@@ -192,6 +202,8 @@ namespace ShiftJam
             AssetDatabase.SaveAssets();
             var counts = string.Join(", ", list.GroupBy(e => e.category).Select(g => $"{g.Key} {g.Count()}"));
             Debug.Log($"Build Catalog: {list.Count} entries ({counts}), {thumbs} thumbnails → {CatalogPath}");
+            var after = s_afterFinish; s_afterFinish = null;
+            after?.Invoke();
         }
 
         /// <summary>Hand edits survive a rebuild: the old name and scale are kept.</summary>

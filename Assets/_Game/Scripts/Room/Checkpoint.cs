@@ -40,6 +40,7 @@ namespace ShiftJam
             Claimed = true;
             if (litWhenClaimed != null) litWhenClaimed.SetActive(true);
             onClaimed?.Invoke();
+            GameEvents.RaiseCheckpointClaimed(this);
         }
     }
 }

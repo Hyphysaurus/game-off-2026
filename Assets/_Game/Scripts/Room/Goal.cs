@@ -35,6 +35,7 @@ namespace ShiftJam
             Reached = true;
             if (label != null) label.text = message;
             onReached?.Invoke();
+            GameEvents.RaiseGoalReached(this);
         }
     }
 }

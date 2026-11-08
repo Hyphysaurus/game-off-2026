@@ -28,6 +28,7 @@ namespace ShiftJam
             if (IsOpen) return;
             IsOpen = true;
             _progress = 0f;
+            GameEvents.RaiseDoorOpening(this);
         }
 
         private void Update()

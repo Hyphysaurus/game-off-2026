@@ -52,6 +52,7 @@ namespace ShiftJam
             Dormant = false;
             ApplyLooks();
             onAwaken?.Invoke();
+            GameEvents.RaiseSourceAwakened(this);
         }
 
         /// <summary>Power off: back to dark. A spent core stays spent.</summary>

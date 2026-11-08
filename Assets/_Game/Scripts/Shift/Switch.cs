@@ -29,6 +29,7 @@ namespace ShiftJam
             Used = true;
             foreach (Door door in doors) if (door != null) door.Open();
             onActivated?.Invoke();
+            GameEvents.RaiseSwitchPressed(this);
         }
     }
 }

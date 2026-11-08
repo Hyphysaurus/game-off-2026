@@ -41,6 +41,7 @@ namespace ShiftJam
         public void Grab(Rigidbody rb, Quaternion heading, Collider holder)
         {
             Release();
+            KeepApart.Cancel(rb.gameObject);   // a hold sets its own ignore: a pending part-then-touch must not undo it
             Held = rb; _holder = holder;
             _savedGravity = rb.useGravity; _savedInterp = rb.interpolation; _savedMaxAngular = rb.maxAngularVelocity;
             rb.useGravity = false;
@@ -66,7 +67,13 @@ namespace ShiftJam
                 rb.interpolation = _savedInterp;
                 rb.maxAngularVelocity = _savedMaxAngular;
             }
-            if (_holder != null) foreach (var c in _colliders) if (c != null) Physics.IgnoreCollision(c, _holder, false);
+            // Let go inside the holder (a big thing held close, a shrink), it ignores the holder until they part: touching again
+            // at once would box the player in (D-0041).
+            if (_holder != null)
+            {
+                if (rb != null) KeepApart.Until(rb.gameObject, _colliders, _holder);
+                else foreach (var c in _colliders) if (c != null) Physics.IgnoreCollision(c, _holder, false);
+            }
             _colliders.Clear();
             _holder = null;
             return rb != null ? rb : null;

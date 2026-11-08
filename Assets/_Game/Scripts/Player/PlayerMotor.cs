@@ -28,7 +28,8 @@ namespace ShiftJam
         private CharacterController _controller;
         private Vector3 _planar;            // horizontal velocity, world space
         private float _vertical;            // vertical speed, positive up
-        private float _peakFall;
+        private float _peakFall;            // the fastest fall since leaving the ground, in the player's own units a second
+        private float _lastScale;           // the size the speeds above were last moving at
         private float _lastGroundedTime = -10f;
         private float _jumpPressedTime = -10f;
         private bool _jumping;              // a jump started and has not landed yet
@@ -46,7 +47,7 @@ namespace ShiftJam
         /// <summary>Raised at the end of every Warp (respawn, portal, console tp): whoever holds the player elsewhere (first
         /// person) follows it instead of undoing it.</summary>
         public event Action<Vector3, Quaternion> Warped;
-        /// <summary>Raised on landing with the fall speed at impact, in kid-size metres per second.</summary>
+        /// <summary>Raised on landing with the fall speed at impact in the player's own units a second (the world speed over its size, taken as it fell).</summary>
         public event Action<float> Landed;
 
         private void Awake()
@@ -57,6 +58,7 @@ namespace ShiftJam
             if (cameraTransform == null && Camera.main != null) cameraTransform = Camera.main.transform;
             if (animator != null) animator.applyRootMotion = false;
             if (settings != null && settings.propGravity > 0f) Physics.gravity = Vector3.down * settings.propGravity;
+            _lastScale = Scale;
         }
 
         /// <summary>Walking into a loose prop shoves it: a velocity change along the way we were moving, capped at the push
@@ -84,6 +86,16 @@ namespace ShiftJam
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
             float scale = Scale;
+            // A shift changes the body's size mid-motion, and its speeds change with it: a kid's speeds are not a toy's. Kept
+            // at the old size, a shrink that lost the ground for a frame fell at a kid's speed, which the fall rule read as a
+            // toy's fatal fall, and the player went back to the checkpoint (D-0041).
+            if (_lastScale > 0f && !Mathf.Approximately(scale, _lastScale))
+            {
+                float k = scale / _lastScale;
+                _planar *= k;
+                _vertical *= k;
+            }
+            _lastScale = scale;
 
             // Where the stick points, on the ground, relative to the camera.
             Vector3 forward = cameraTransform != null ? Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up) : Vector3.forward;
@@ -134,7 +146,8 @@ namespace ShiftJam
                 _planar = new Vector3(v.x, 0f, v.z); _vertical = v.y;
                 if (_vertical > 0f) { _jumping = false; _jumpCut = true; _lastGroundedTime = -10f; _peakFall = 0f; }
             }
-            if (_vertical < 0f) _peakFall = Mathf.Max(_peakFall, -_vertical);
+            // A fall counts off the ground only (the grounded push down is not a fall), in the player's own units as it happens.
+            if (!Grounded && _vertical < 0f) _peakFall = Mathf.Max(_peakFall, -_vertical / scale);
 
             CollisionFlags flags = _controller.Move((_planar + Vector3.up * _vertical) * dt);
             if ((flags & CollisionFlags.Above) != 0 && _vertical > 0f) _vertical = 0f;
@@ -147,7 +160,7 @@ namespace ShiftJam
                 _jumping = false;
                 if (!wasGrounded)
                 {
-                    Landed?.Invoke(_peakFall / scale);
+                    Landed?.Invoke(_peakFall);
                     _peakFall = 0f;
                 }
             }

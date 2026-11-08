@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 8 Nov 2026 06:2x — v2: SHRINKING WITH SOMETHING IN HAND FIXED (D-0041) + A FALSE CHECKPOINT RESET ON EVERY SHRINK FIXED — UNPLAYED
+His v1 report: stuck after shrinking while holding the flashlight (and other items); grab and hold poses need work
+(PLAN coming separately, nothing built); "sounds are good". Proven with a headless probe before and after (deleted):
+the toy no longer keeps a kid-size tool (it is set down 19 units ahead as the shrink starts), nothing set down can box
+the player in (KeepApart), and the shrink no longer warps the player to the checkpoint (it did every time the shrink lost
+the ground for a frame). v2: `Builds/Windows/v2/ShiftJam.exe`, smoke check clean.
+HIS PLAYTEST (v2): as the kid pick up the flashlight (wardrobe) or the ruler (playroom), shrink at a core: the tool drops
+ahead of you and you stay where you were; walk around it; grab a pillow close to your chest as the kid, set it down
+(E) and walk out of it; shrink and grow a few times on the floor and on furniture: no jump back to a checkpoint.
+
 ## 8 Nov 2026 05:5x — v1 WINDOWS BUILD (smoke check clean) + COURSE SOUNDS LANDED (D-0040) + portal thumbnails — UNPLAYED
 His 7 Nov "begin the shift jam pass" finished with Unity closed (hidden low-priority batch runs only). Commits `1676887`
 (code), `63a10d6` (sounds landed), this one (build + docs). SOUNDS: CourseSounds.asset with 11 first picks from the
@@ -535,4 +545,5 @@ tutorial room in Greybox.unity, Feel hooks on ShiftSource/Switch/Door, a Core sc
 → STEP 3 room greybox + shift beat → feel pass → commit → v1.
 
 ## Versions
+- v2 — 8 Nov 2026: D-0041 (shrinking with a tool in hand, KeepApart, no false checkpoint reset on a shrink); smoke check clean; UNPLAYED. `Builds/Windows/v2` (local).
 - v1 — 8 Nov 2026: first Windows build (Greybox course + Workshop), course sounds, version on the title; smoke check clean; UNPLAYED. `Builds/Windows/v1` (local, git-ignored).

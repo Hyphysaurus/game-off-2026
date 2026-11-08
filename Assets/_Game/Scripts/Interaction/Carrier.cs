@@ -6,11 +6,13 @@ namespace ShiftJam
     /// The player's hands. Holds one Carryable in the right hand (the Humanoid hand bone, with the thing's own
     /// grip offsets), fades the animator's Arms layer in so the arm reaches out and the fingers close, passes
     /// the Attack button to it, and puts it down on whatever is under the hand when Crouch is pressed.
-    /// Never parents the thing, so the player's 35x scale does not touch it.
+    /// Never parents the thing, so the player's 35x scale does not touch it. A shift lets go of it, ahead of the body
+    /// (D-0041): a toy cannot hold a kid's flashlight, and setting it down from a toy's hand boxed the toy in.
     /// </summary>
     public sealed class Carrier : MonoBehaviour
     {
         [SerializeField, Tooltip("Found on this object if empty.")] private PlayerInput input;
+        [SerializeField, Tooltip("Found on this object if empty. A shift lets go of what is held.")] private Shifter shifter;
         [SerializeField, Tooltip("Fallback hold point if the rig has no right hand bone.")] private Transform holdPoint;
         [SerializeField, Tooltip("Found in children if empty.")] private Animator animator;
         [SerializeField, Tooltip("Animator layer that poses the arm while holding; faded in and out.")] private string armsLayer = "Arms";
@@ -19,6 +21,7 @@ namespace ShiftJam
 
         private readonly RaycastHit[] _hits = new RaycastHit[16];
         private Transform _hand, _shoulder;
+        private CharacterController _body;
         private int _layer = -1;
         private float _armWeight;
 
@@ -27,6 +30,8 @@ namespace ShiftJam
         private void Awake()
         {
             if (input == null) input = GetComponent<PlayerInput>();
+            if (shifter == null) shifter = GetComponent<Shifter>();
+            _body = GetComponent<CharacterController>();
             if (holdPoint == null) holdPoint = transform;
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (animator != null)
@@ -43,16 +48,19 @@ namespace ShiftJam
         private void OnEnable()
         {
             if (input != null) { input.UseHeld += OnUse; input.Drop += PutDown; }
+            if (shifter != null) shifter.ShiftStarted += OnShiftStarted;
         }
 
         private void OnDisable()
         {
             if (input != null) { input.UseHeld -= OnUse; input.Drop -= PutDown; }
+            if (shifter != null) shifter.ShiftStarted -= OnShiftStarted;
         }
 
         public void PickUp(Carryable thing)
         {
             if (thing == null || Held != null) return;
+            KeepApart.Cancel(thing.gameObject);
             Held = thing;
             foreach (var col in Held.GetComponentsInChildren<Collider>()) col.enabled = false;   // out of the physics while in hand
             Held.SetCarried(true);
@@ -63,11 +71,51 @@ namespace ShiftJam
         public void PutDown()
         {
             if (Held == null) return;
+            PutDownAt(_hand != null ? _hand.position : holdPoint.position);
+        }
+
+        /// <summary>
+        /// A shift lets go, as the grabs do (D-0041). The event comes before the size changes, so the body is still the size
+        /// that held it: the thing is set down ahead of that body and clear of it, which keeps it clear of the new size too
+        /// (a toy stands inside the kid's footprint).
+        /// </summary>
+        private void OnShiftStarted(ShiftSize _)
+        {
+            if (Held != null) PutDownAt(ClearSpot(Held));
+        }
+
+        /// <summary>A point at chest height ahead of the player, far enough that the thing, turned as it will rest, does not reach the body.</summary>
+        private Vector3 ClearSpot(Carryable thing)
+        {
+            Quaternion facing = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+            thing.transform.rotation = facing * thing.HoldRotation;
+            Bounds b = RenderBounds(thing, thing.transform.position);
+            float half = Mathf.Max(b.extents.x, b.extents.z);
+            float radius = _body != null ? _body.radius * transform.lossyScale.x : 0.5f;
+            float chest = _body != null ? _body.height * transform.lossyScale.y * 0.5f : 1f;
+            Vector3 offset = b.center - thing.transform.position;   // the pivot is not always the middle
+            Vector3 middle = transform.position + facing * Vector3.forward * (radius * 1.25f + half);
+            return new Vector3(middle.x - offset.x, transform.position.y + chest, middle.z - offset.z);
+        }
+
+        private static Bounds RenderBounds(Carryable thing, Vector3 fallback)
+        {
+            var rs = thing.GetComponentsInChildren<Renderer>();
+            if (rs.Length == 0) return new Bounds(fallback, Vector3.zero);
+            Bounds b = rs[0].bounds;
+            foreach (var r in rs) b.Encapsulate(r.bounds);
+            return b;
+        }
+
+        /// <summary>Rest the held thing on whatever is under <paramref name="from"/>, facing the way the player faces, and let go.</summary>
+        private void PutDownAt(Vector3 from)
+        {
+            if (Held == null) return;
             Carryable thing = Held;
             Held = null;
-            foreach (var col in thing.GetComponentsInChildren<Collider>()) col.enabled = true;
+            Collider[] colliders = thing.GetComponentsInChildren<Collider>();
+            foreach (var col in colliders) col.enabled = true;
 
-            Vector3 from = _hand != null ? _hand.position : holdPoint.position;
             float yaw = transform.eulerAngles.y;
             thing.transform.rotation = Quaternion.Euler(0f, yaw, 0f) * thing.HoldRotation;
 
@@ -91,6 +139,8 @@ namespace ShiftJam
                 thing.transform.position += Vector3.up * (floorY - b.min.y);
             }
             if (thing.Plank && rs.Length > 0) LayAlongGround(thing, floorY, b.size.z);
+            // Set down around the player (a big thing from a small hand), it ignores the body until they part (D-0041).
+            KeepApart.Until(thing.gameObject, colliders, _body);
             thing.SetCarried(false);
         }
 

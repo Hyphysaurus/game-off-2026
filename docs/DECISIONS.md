@@ -380,3 +380,21 @@
   mutes itself before the first scene, opens each scene for 6 s, logs errors per scene and quits 0 or 1. It covers the
   code, not the picture (a hidden player runs at thousands of frames a second). (4) Build Catalog's `BuildThenQuit`
   draws missing thumbnails in a batch and quits (the three D-0039 portals now have theirs).
+- **D-0041 (8 Nov) Shrinking with something in hand: the tool is let go ahead of the body, nothing set down ever boxes
+  the player in, and a shrink no longer sends the player back to the checkpoint.** His v1 report: "Picking up a flashlight
+  (and other items) as a kid, then shrinking to Toy Mode with held item left me stuck". A headless probe (kid at the
+  playroom's WardrobeFront holds the wardrobe flashlight, shrinks, presses C as the HUD offers, tries to walk out) showed
+  three faults. (1) The Carrier (hand tools: flashlight, ruler) was the one hold that ignored a shift (first person and the
+  third-person grab already let go), so the toy kept a kid-size flashlight (9 x 12 x 10 units beside a 1.8-unit toy) and
+  "C Put down" set it down centred on the toy, its non-convex mesh collider back on: blocked 2 ways of 4. Now a shift lets
+  go of the tool before the size changes, set down at chest height ahead of the body by the body's radius x 1.25 plus the
+  tool's half size (pivot offset allowed for), so it lies clear of the new size too (probe: 19 units ahead, 4 ways of 4
+  free). (2) `KeepApart`: anything let go while it overlaps the player's body (Carrier put-downs, `SpringHold.Release` for
+  the third-person grab and first person) ignores the body until their boxes part, then touches it again; a new hold
+  cancels it (probe: set down at the kid's hand it kept apart, collision came back once the kid walked clear, and the
+  kid was stopped by it walking back). (3) Found by the probe: the shrink itself sent the player back to the checkpoint.
+  The motor's speeds stayed at the old size through a shift, so a shrink that lost the ground for a frame fell at a kid's
+  speed (about 85 units/s, the kid's standing push), which the fall rule read as a toy's 140-unit fatal fall. Now speeds
+  scale with the body when the size changes, and falls are counted only off the ground, in the player's own units as they
+  happen (`Landed` keeps its meaning; Respawn, CourseAudio and the console read it unchanged). The probe was temporary and
+  is deleted. v2 built and smoke-checked.

@@ -458,3 +458,17 @@
   track and the toy box refuse a grow; open playroom floor and the bedroom floor allow it; the wardrobe is zoned.
   Known effects: the bedroom's bed core and the playroom's maze core A and ruler ramp become optional for a player
   with a charge (his call after playing). No camera shake on a refusal (sound + text only). All wording placeholder.
+
+- **D-0046 (9 Nov, 15:4x) Puzzle pieces read from across the room.** His note: "its not obvious that we need to hit
+  specific switches"; his pick 1-3. (1) `Room/Highlight.cs`: a gold glint (PuzzleGlint.mat = Spark.mat's copy, the
+  spark texture his drawing replaces) floats, breathes and bobs over each puzzle piece and fades once it has done its
+  job (switch used, flashlight on, carryable picked up, push switch pushed). Size = 0.6 x the piece, 5-14 units. Only
+  puzzle pieces: every Switch, every Flashlight, the playroom's Safe and Ruler (6 in Greybox). (2)
+  `Interaction/ProblemHint.cs`: a trigger box at a blocker that shows a line on approach, without the E key
+  (InteractPrompt: IHintOnly): "Shut. A switch opens it." at each door a switch opens (until it is open); "The safe is in
+  the way. Too heavy for a toy." at the wardrobe hole, toy only, until the safe moves 15 units. Dormant cores read
+  "Dark. It needs light." (3) `FX/CauseCamera.cs`: when a switch opens a door or a core wakes, the camera turns from
+  where it stands to look at it, narrows to frame it (about a third of the view), holds 1.1 s, turns back; the player
+  holds still; once per thing per load; skipped when already within 22 degrees of view; it only turns, so it never
+  enters a wall; started a frame late so the press that caused it finishes first. Placed by `CourseBuilder.PuzzleCues`
+  (also at the end of every Build; batch `LandPuzzleCues`). Wording placeholder. Unseen: glint size and the turn.

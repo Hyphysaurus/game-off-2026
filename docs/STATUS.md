@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 9 Nov 2026 15:4x — PUZZLE PIECES SHOW (D-0046): glints, problem hints, a camera turn to what a switch did — LANDED, UNSEEN
+His "its not obvious that we need to hit specific switches"; his "proceed with 1-3". Code `117f9d6` (editor + player
+compile 0 errors), placed by a hidden batch (6 glints, 2 hints, 1 dark core; Greybox saved, no cut save). No build.
+HIS PLAYTEST (editor, Greybox): from the bedroom's middle as the kid, the wall switch has a gold glint; walk to the toy
+door: "Shut. A switch opens it." (no E); press the switch: the camera turns to the toy door as it swings, then back;
+the glint fades. The flashlight in the box glints until it is on. Playroom: the safe and the ruler glint; as the toy at
+the wardrobe hole: "The safe is in the way. Too heavy for a toy."; once the kid moves the safe, quiet. Wardrobe: core C
+reads "Dark. It needs light."; pushing the torch's switch turns the camera to core C waking. Tune on each piece's
+Highlight (minSize/maxSize/colour/bob) if a glint is too big for the toy-size beats (box, wardrobe). Reword the lines.
+
 ## 9 Nov 2026 14:4x — THE CARRIED SHIFT (D-0045): F / RB shifts anywhere for one charge — LANDED, UNPLAYED (no build)
 His "go with b". Code compiled outside (editor + player, 0 errors), the wardrobe's NoShift zone + the refused sound
 landed by a hidden batch (Greybox saved, checked for a cut save: clean). No Windows build (his rule): test in the editor.

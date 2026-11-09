@@ -16,7 +16,7 @@ namespace ShiftJam
     /// biggest files go to Builds/Windows/vN/build-report.txt.
     /// Batch: -executeMethod ShiftJam.BuildTools.WindowsBatch [-buildVersion N] [-development] (quits by itself, exit 1 on
     /// failure). A development build (D-0043) keeps the dev keys (F1 console, F2 Pocket Core, F8 size) for his playtests;
-    /// the title then reads "vN dev". The jam release stays a plain build.
+    /// the title then reads "vN dev". The jam release stays a plain build, and drops Burst's DoNotShip debug folder.
     /// Check a build with: ShiftJam.exe -batchmode -smoketest -logFile smoke.log (SmokeRun).
     /// </summary>
     public static class BuildTools
@@ -63,6 +63,10 @@ namespace ShiftJam
             bool ok = sum.result == BuildResult.Succeeded;
             if (!ok) PlayerSettings.bundleVersion = before;
             AssetDatabase.SaveAssets();
+            // Burst's debug symbols are for us, not players (Unity names the folder DoNotShip): a release build drops them.
+            if (ok && !development)
+                foreach (string sub in Directory.GetDirectories(dir, "*_BurstDebugInformation_DoNotShip"))
+                    Directory.Delete(sub, true);
 
             var text = new StringBuilder();
             text.AppendLine($"Shift Jam v{version} Windows {(development ? "development build (dev keys on)" : "build")}: {sum.result}");

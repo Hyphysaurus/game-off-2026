@@ -2,6 +2,14 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 9 Nov 2026 14:2x — ASYNC: README + itch page draft, release-build trim (no build made)
+`0bb3b7a`: README.md (facts, controls from the input actions, credits, the AI-tool disclosure) + docs/ITCH_PAGE.md;
+his pitch, name, title and tags are marked with a pen sign. Game Off's page has no AI rule (public repo + push by
+1 Dec 13:37 PST). Flag: Data/Spark.mat still uses Art/Mockups/spark_mockup.png (a scripted placeholder; BACKLOG 6).
+Trim: AI Inference package removed (with its app-ui dependency; nothing used it; 0 compile errors on reopen), plain
+builds drop Burst's DoNotShip folder. Both show at the next build. The 69 MB Build Mode catalogue stays until he
+decides whether the Workshop ships. v5 is still the latest build and has everything gameplay-side.
+
 ## 9 Nov 2026 11:3x — WORKING RULE: NO WINDOWS BUILD PER ITERATION
 His word: "i want to stop building a windows build each time we iterate". From now on changes are tested in the
 editor (open Greybox or Workshop, press Play); a Windows build is made only when he asks or for a milestone (a stranger's

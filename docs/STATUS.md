@@ -2,6 +2,11 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 9 Nov 2026 11:3x — WORKING RULE: NO WINDOWS BUILD PER ITERATION
+His word: "i want to stop building a windows build each time we iterate". From now on changes are tested in the
+editor (open Greybox or Workshop, press Play); a Windows build is made only when he asks or for a milestone (a stranger's
+test, the submission). v5 below is the last per-change build; its play steps work the same in the editor.
+
 ## 9 Nov 2026 11:1x — v5 DEV BUILD: PAUSE MENU + OPTIONS (D-0044) — UNPLAYED, MENUS NOT YET SEEN
 His "proceed" on the pause/options plan; Unity MCP busy with the hummingbird, so files + compile outside + hidden batch
 only. Code `165227a` (compiled outside, 0 errors), then v5: `Builds/Windows/v5/ShiftJam.exe` (development build, 0.8 min,

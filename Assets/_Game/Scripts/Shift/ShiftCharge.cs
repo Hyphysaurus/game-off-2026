@@ -120,12 +120,18 @@ namespace ShiftJam
         /// </summary>
         private bool RoomToGrow()
         {
-            float k = _shifter.ScaleOf(ShiftSize.Kid);
-            float radius = _controller.radius * k * 0.95f;
-            float height = Mathf.Max(_controller.height * k, radius * 2f);
+            Vector3 feet = transform.position + Vector3.up * ((_controller.center.y - _controller.height * 0.5f) * _shifter.Scale);
+            return KidFits(feet, _controller, _shifter.ScaleOf(ShiftSize.Kid), transform);
+        }
+
+        /// <summary>The room-to-grow test on its own: does this controller's capsule at the given scale fit standing at
+        /// <paramref name="feet"/>? Colliders under <paramref name="self"/> and loose props are left out.</summary>
+        public static bool KidFits(Vector3 feet, CharacterController controller, float scale, Transform self)
+        {
+            float radius = controller.radius * scale * 0.95f;
+            float height = Mathf.Max(controller.height * scale, radius * 2f);
             Vector3 up = Vector3.up;
-            Vector3 feet = transform.position + up * ((_controller.center.y - _controller.height * 0.5f) * _shifter.Scale);
-            float lift = Mathf.Max(_controller.stepOffset * k * 0.5f, radius * 0.1f);
+            float lift = Mathf.Max(controller.stepOffset * scale * 0.5f, radius * 0.1f);
             Vector3 bottom = feet + up * (radius + lift);
             Vector3 top = feet + up * (height - radius);
             if (top.y < bottom.y) top = bottom;
@@ -133,7 +139,7 @@ namespace ShiftJam
             for (int i = 0; i < n; i++)
             {
                 Collider c = Hits[i];
-                if (c.transform.IsChildOf(transform)) continue;
+                if (self != null && c.transform.IsChildOf(self)) continue;
                 Rigidbody body = c.attachedRigidbody;
                 if (body != null && !body.isKinematic) continue;
                 return false;

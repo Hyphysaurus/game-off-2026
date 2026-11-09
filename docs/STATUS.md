@@ -2,6 +2,17 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 9 Nov 2026 14:4x — THE CARRIED SHIFT (D-0045): F / RB shifts anywhere for one charge — LANDED, UNPLAYED (no build)
+His "go with b". Code compiled outside (editor + player, 0 errors), the wardrobe's NoShift zone + the refused sound
+landed by a hidden batch (Greybox saved, checked for a cut save: clean). No Windows build (his rule): test in the editor.
+HIS PLAYTEST (editor, Greybox, Play, New Game): the battery at the bottom is dark; grow at the box core: it lights and a
+hint shows once. In the bedroom press F: you shrink, the battery empties; F again: "No charge"; use the bed core: full.
+Jump and press F in the air: "Feet on the ground first". In the skirting lane as the toy, F: "No room to grow" (charge
+kept). In the playroom, open floor: F grows; next to a wall or on the race track: no room. In the wardrobe: "Can't
+shift in here", core C still works. Fall off something high: the reset refills. Workshop: starts full. Tune on the
+ShiftSettings asset: maxCharges (try 2, or 99 for shift-anytime), freeShiftWait. Judge: do the bed core, maze core and
+ruler ramp still earn their place now they are optional? Reword the four messages and the hint (ShiftCharge.cs top).
+
 ## 9 Nov 2026 14:2x — ASYNC: README + itch page draft, release-build trim (no build made)
 `0bb3b7a`: README.md (facts, controls from the input actions, credits, the AI-tool disclosure) + docs/ITCH_PAGE.md;
 his pitch, name, title and tags are marked with a pen sign. Game Off's page has no AI rule (public repo + push by

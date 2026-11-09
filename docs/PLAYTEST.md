@@ -60,3 +60,8 @@ Space = jump, C = put down, LMB = toggle the carried light.
   should not (or does not and should).
 - Camera: anywhere it sits inside a wall or a prop.
 - Feel: the three jumps in R3 and the ruler ramp in R4 are the two things the whole course is tuned around.
+
+## The carried shift (D-0045, 9 Nov)
+- New Game: battery dark. Box core: battery lit + the hint once. F anywhere on open floor: shift, battery empties.
+- F with none: "No charge"; F mid-jump: "Feet on the ground first"; F as the toy in the skirting lane or by a wall:
+  "No room to grow" (battery stays lit); F in the wardrobe: "Can't shift in here". Any core refills; a fall reset refills.

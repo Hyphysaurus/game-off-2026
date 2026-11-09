@@ -44,6 +44,10 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 7cc114ef0771c064fb6e4ec8e9f7994d, type: 3}
     volume: 0.8
     pitchSpread: 0
+  refused:
+    clip: {fileID: 8300000, guid: 48b2e021872b29d48b5eb5252fe43fd9, type: 3}
+    volume: 0.45
+    pitchSpread: 0.05
   jump:
     clip: {fileID: 8300000, guid: ebe5ced26fc0f974b9dea74e0d3009ea, type: 3}
     volume: 0.3

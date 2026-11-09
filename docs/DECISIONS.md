@@ -441,3 +441,20 @@
   keeps them in PlayerPrefs, apart from the CameraSettings / FirstPersonSettings assets: the cameras multiply the asset's
   speeds by LookScale and flip its invertY by InvertY, so an option never edits a project asset. Volume applies before
   the first scene, except in a smoke run (SmokeRun.Asked, now internal). One master volume until there is music.
+
+- **D-0045 (9 Nov, 14:4x) The carried shift (his pick B).** From the review: the shift was only at six fixed cores. Now
+  the Shift action (F, pad RB; in the input actions, so the H sheet lists it) grows or shrinks the player anywhere and
+  spends a charge (`Shift/ShiftCharge.cs`, added to the player by the Shifter). ShiftSettings: `maxCharges` 1 (0 = off,
+  big = shift any time), `freeShiftWait` 0.5 s after each shift. Refills: any core used (cores are batteries, D-0013),
+  a fall reset, a loaded save; New Game starts empty (the box core gives the first), the Workshop starts full. Rules:
+  on foot in Play only (silent otherwise); feet on the ground (0.15 s grace) or "Feet on the ground first"; no charge
+  "No charge: a core refills it"; never inside a `NoShiftZone` ("Can't shift in here"); growing needs room for the
+  kid capsule (controller x kid scale, radius x0.95, bottom lifted half a kid step so clutter under ~5 u does not count;
+  loose Rigidbodies ignored) or "No room to grow", the charge kept. Shrinking always fits. HUD (`UI/ShiftChargeHud.cs`):
+  a battery per charge at the bottom centre, the refusal line above it, a one-time hint per save slot on the first
+  refill. Sound: CourseSounds.refused = Playroom UI/Error_v3 at 0.45. The wardrobe interior is a NoShiftZone
+  (CourseBuilder.NoShiftInside, batch `LandShiftCharge`): grown on its floor a kid would be shut in; core C still works.
+  Checked by a temporary edit-mode probe (deleted): the skirting lane, the playroom entry (8 u from the wall), the race
+  track and the toy box refuse a grow; open playroom floor and the bedroom floor allow it; the wardrobe is zoned.
+  Known effects: the bedroom's bed core and the playroom's maze core A and ruler ramp become optional for a player
+  with a charge (his call after playing). No camera shake on a refusal (sound + text only). All wording placeholder.

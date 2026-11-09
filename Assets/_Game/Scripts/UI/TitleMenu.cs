@@ -18,6 +18,7 @@ namespace ShiftJam
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Boot()
         {
+            IsOpen = false;
             SceneManager.sceneLoaded += (s, m) => Spawn();
             Spawn();
         }
@@ -30,6 +31,11 @@ namespace ShiftJam
         }
 
         public const string WorkshopScene = "Workshop";
+
+        /// <summary>The title is up (PauseMenu stays shut under it).</summary>
+        public static bool IsOpen { get; private set; }
+
+        private OptionsPanel _options; private Button _optionsButton;
         private const string WideTitle = "Titles/title_shift_wide", StackedTitle = "Titles/title_shift_stacked";
         private float _menuX = 0.5f;
 
@@ -49,6 +55,7 @@ namespace ShiftJam
 
         private void Open()
         {
+            IsOpen = true;
             _root.SetActive(true);
             if (_input != null) _input.enabled = false;
             if (_camera != null) _camera.enabled = false;
@@ -60,10 +67,21 @@ namespace ShiftJam
 
         private void Close()
         {
+            IsOpen = false;
             _root.SetActive(false);
             Time.timeScale = 1f;
             if (_input != null) _input.enabled = true;
             if (_camera != null) _camera.enabled = true;   // its OnEnable locks the cursor again
+        }
+
+        private void OnDestroy() { IsOpen = false; }   // there is only ever one title
+
+        /// <summary>Options over the title (D-0044): the title hides while it is up and comes back with Options selected.</summary>
+        private void OpenOptions()
+        {
+            if (_options == null) _options = OptionsPanel.Create(transform, 51);
+            _root.SetActive(false);
+            _options.Open(() => { _root.SetActive(true); EventSystem.current?.SetSelectedGameObject(_optionsButton.gameObject); });
         }
 
         private void Continue() { if (_respawn.LoadSlot(SaveGame.Slot)) Close(); }
@@ -138,16 +156,18 @@ namespace ShiftJam
             for (int i = 0; i < SaveGame.Slots; i++) { int k = i; _slots[i] = MenuButton("Slot", y, () => PickSlot(k), 560f, 30); y -= 0.058f; }
             y -= 0.025f;
             MenuButton("Workshop", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); }); y -= 0.065f;
-            MenuButton("Quit", y, Quit);
+            // Options and Quit share the last row (a full row more would run into the hint line).
+            _optionsButton = MenuButton("Options", y, OpenOptions, 185f, 40f, -97.5f);
+            MenuButton("Quit", y, Quit, 185f, 40f, 97.5f);
             Text("Hint", _root.transform, "mouse, arrows or stick · Enter / A to choose", 22, new Vector2(0.5f, 0.05f), new Vector2(900, 40)).alpha = 0.6f;
             // Which build this is (D-0040): BuildTools stamps the whole version number into the player settings; "dev" = a development build (D-0043).
             var version = Text("Version", _root.transform, "v" + Application.version + (Debug.isDebugBuild && !Application.isEditor ? " dev" : ""), 20, new Vector2(0.95f, 0.035f), new Vector2(160, 32));
             version.alignment = TextAlignmentOptions.Right; version.alpha = 0.45f;
         }
 
-        private Button MenuButton(string label, float y, UnityEngine.Events.UnityAction onClick, float width = 380f, float size = 40f)
+        private Button MenuButton(string label, float y, UnityEngine.Events.UnityAction onClick, float width = 380f, float size = 40f, float dx = 0f)
         {
-            var rt = Rect(label, _root.transform, new Vector2(_menuX, y), new Vector2(_menuX, y), Vector2.zero, new Vector2(width, size + 22f));
+            var rt = Rect(label, _root.transform, new Vector2(_menuX, y), new Vector2(_menuX, y), new Vector2(dx, 0f), new Vector2(width, size + 22f));
             var img = rt.gameObject.AddComponent<Image>(); img.color = new Color(1f, 1f, 1f, 0.08f);
             var b = rt.gameObject.AddComponent<Button>(); b.targetGraphic = img; b.onClick.AddListener(onClick);
             var cb = b.colors; cb.highlightedColor = new Color(1f, 1f, 1f, 2.5f); cb.selectedColor = new Color(1f, 1f, 1f, 2.5f); cb.pressedColor = new Color(0.6f, 0.9f, 1f, 3f); b.colors = cb;

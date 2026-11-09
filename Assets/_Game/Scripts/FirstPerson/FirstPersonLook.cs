@@ -72,14 +72,14 @@ namespace ShiftJam
             if (!locked && UnityEngine.InputSystem.Mouse.current != null && UnityEngine.InputSystem.Mouse.current.leftButton.wasPressedThisFrame && Time.timeScale > 0f)
             { Cursor.lockState = CursorLockMode.Locked; Cursor.visible = false; }
 
-            Vector2 look = _input != null ? _input.ConsumeLook(_s.mouseSensitivity, _s.padSensitivity, dt) : Vector2.zero;
+            Vector2 look = _input != null ? _input.ConsumeLook(_s.mouseSensitivity * PlayerOptions.LookScale, _s.padSensitivity * PlayerOptions.LookScale, dt) : Vector2.zero;
             if (locked && Time.timeScale > 0f)
             {
                 if (_hands != null && _hands.RotatingHeld) _hands.RotateBy(look);
                 else
                 {
                     Yaw = Mathf.Repeat(Yaw + look.x, 360f);
-                    Pitch = Mathf.Clamp(Pitch + (_s.invertY ? look.y : -look.y), -_s.maxPitch, _s.maxPitch);
+                    Pitch = Mathf.Clamp(Pitch + (_s.invertY != PlayerOptions.InvertY ? look.y : -look.y), -_s.maxPitch, _s.maxPitch);
                 }
             }
             transform.rotation = Quaternion.Euler(0f, Yaw, 0f);

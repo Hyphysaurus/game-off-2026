@@ -72,6 +72,9 @@ namespace ShiftJam
 
         private bool _menuHold;
 
+        /// <summary>The garage menu holds the mouse (PauseMenu leaves Esc and Start to it).</summary>
+        public bool MenuHeld => _menuHold;
+
         /// <summary>
         /// A menu on screen (the garage) holds the mouse: the cursor stays free and a click goes to the menu instead of
         /// locking the mouse again. The camera keeps running (it follows the car, mouse look is off while the cursor is
@@ -88,9 +91,9 @@ namespace ShiftJam
         private void Update()
         {
             if (_menuHold) return;
-            // Escape frees the mouse; a click in the game view takes it back.
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) SetCursorLocked(false);
-            else if (!_cursorLocked && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) SetCursorLocked(true);
+            // Escape opens the pause menu, which frees the mouse by switching this camera off (D-0044); a click in the
+            // game view takes the mouse back if it got free some other way.
+            if (!_cursorLocked && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) SetCursorLocked(true);
         }
 
         private void SetCursorLocked(bool locked)
@@ -115,13 +118,13 @@ namespace ShiftJam
             float distanceMul = Mathf.Lerp(1f, settings.kidDistanceMultiplier, kid);
             float fov = Mathf.Lerp(settings.fieldOfView, settings.kidFieldOfView, kid);
 
-            Vector2 look = input != null ? input.ConsumeLook(settings.mouseSensitivity, settings.padSensitivity, dt) : Vector2.zero;
+            Vector2 look = input != null ? input.ConsumeLook(settings.mouseSensitivity * PlayerOptions.LookScale, settings.padSensitivity * PlayerOptions.LookScale, dt) : Vector2.zero;
             if (look.sqrMagnitude > 0.0001f) _lastLookTime = Time.unscaledTime;
             if (_chase != null) { VehicleView(look, fov, dt); return; }
             if (_cursorLocked && Time.timeScale > 0f)
             {
                 _yaw = Mathf.Repeat(_yaw + look.x, 360f);
-                float up = settings.invertY ? look.y : -look.y;
+                float up = settings.invertY != PlayerOptions.InvertY ? look.y : -look.y;
                 _pitch = Mathf.Clamp(_pitch + up, settings.minPitch, settings.maxPitch);
             }
 
@@ -219,7 +222,7 @@ namespace ShiftJam
                 if (_cursorLocked && Time.timeScale > 0f)
                 {
                     _yaw = Mathf.Repeat(_yaw + look.x, 360f);
-                    float up = settings.invertY ? look.y : -look.y;
+                    float up = settings.invertY != PlayerOptions.InvertY ? look.y : -look.y;
                     _pitch = Mathf.Clamp(_pitch + up, settings.minPitch, settings.maxPitch);
                 }
                 if (Time.unscaledTime - _lastLookTime > v.recenterDelay)
@@ -266,7 +269,7 @@ namespace ShiftJam
             if (drag)
             {
                 _yaw = Mathf.Repeat(_yaw + look.x, 360f);
-                float up = settings.invertY ? look.y : -look.y;
+                float up = settings.invertY != PlayerOptions.InvertY ? look.y : -look.y;
                 _pitch = Mathf.Clamp(_pitch + up, settings.minPitch, settings.maxPitch);
             }
             Vector2 move = input != null ? input.Move : Vector2.zero;

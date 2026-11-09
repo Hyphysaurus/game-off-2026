@@ -17,7 +17,7 @@ namespace ShiftJam
         private int _errors;
         private string _first;
 
-        private static bool Asked => Array.IndexOf(Environment.GetCommandLineArgs(), "-smoketest") >= 0;
+        internal static bool Asked => Array.IndexOf(Environment.GetCommandLineArgs(), "-smoketest") >= 0;
 
         /// <summary>Silent before the first scene wakes: a hidden check must never play the rooms on his speakers.</summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

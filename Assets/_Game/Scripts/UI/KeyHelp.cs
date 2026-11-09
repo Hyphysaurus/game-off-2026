@@ -26,6 +26,9 @@ namespace ShiftJam
         private float _hintUntil;
         private bool _open;
 
+        /// <summary>The sheet is up (PauseMenu leaves Esc to close it).</summary>
+        public static bool IsOpen { get; private set; }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Boot()
         {
@@ -61,7 +64,7 @@ namespace ShiftJam
 
         private void SetOpen(bool open)
         {
-            _open = open;
+            _open = open; IsOpen = open;
             if (open) Fill();
             _sheet.SetActive(open);
             if (open) _hintUntil = 0f;
@@ -128,7 +131,7 @@ namespace ShiftJam
             sb.Append('\n');
             Line(sb, Kb("Previous") + " / " + Kb("Next"), "Previous / next weapon", Pad("Previous") + " / " + Pad("Next"));
             Line(sb, "Q", "Drop the weapon", "D-pad down");
-            Line(sb, "Esc", "Free the mouse (click to take it back)");
+            Line(sb, "Esc", "Pause: resume, options, back to the title, quit", "Start");
             Line(sb, "R", "Restart, on the end card");
             Line(sb, "H", "This list", "View");
             Set(0, sb);

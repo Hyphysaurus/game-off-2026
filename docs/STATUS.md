@@ -2,6 +2,18 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 9 Nov 2026 11:1x — v5 DEV BUILD: PAUSE MENU + OPTIONS (D-0044) — UNPLAYED, MENUS NOT YET SEEN
+His "proceed" on the pause/options plan; Unity MCP busy with the hummingbird, so files + compile outside + hidden batch
+only. Code `165227a` (compiled outside, 0 errors), then v5: `Builds/Windows/v5/ShiftJam.exe` (development build, 0.8 min,
+smoke check clean: both scenes 0 errors). Nothing rendered headless, so the menus' layout is unseen.
+HIS PLAYTEST (v5): in the course or the Workshop press Esc (or Start): PAUSED with Resume / Options / Back to Title /
+Quit; sounds stop; Esc, Start or B resumes and the mouse locks again. Options: sensitivity - / + (0.25x-3x), Invert Y,
+Volume - / + (tenths), Fullscreen; Esc / B goes back; quit and relaunch: the settings stay. Title: Options sits beside
+Quit on the last row. Esc still leaves Build Mode / first person and closes H first (no pause on that press). Back to
+Title from the Workshop lands on the course title.
+Still not committed: his ERP plugin and the editor's earlier touches to two glow materials, three font assets and
+UnityConnectSettings (his call).
+
 ## 8 Nov 2026 14:1x — v4 DEV BUILD (F2 Pocket Core back) + NINE SHIFT CORES IN THE WORKSHOP (D-0043) — UNPLAYED
 His v3 note: "shifting is tougher than ever with such few warp shift locations"; his "begin with both" (he in AoE:
 hidden low-priority batch runs only). v1-v3 were plain builds, so the dev keys (F2 Pocket Core, F8 size, F1 console)
@@ -568,6 +580,7 @@ tutorial room in Greybox.unity, Feel hooks on ShiftSource/Switch/Door, a Core sc
 → STEP 3 room greybox + shift beat → feel pass → commit → v1.
 
 ## Versions
+- v5 — 9 Nov 2026: D-0044 (pause menu + Options on pause and title; development build); smoke check clean; UNPLAYED. `Builds/Windows/v5` (local).
 - v4 — 8 Nov 2026: D-0043 (DEVELOPMENT build: dev keys F1/F2/F8 on, title "v4 dev"; nine shift cores in the Workshop); smoke check clean; UNPLAYED. `Builds/Windows/v4` (local).
 - v3 — 8 Nov 2026: D-0042 (carried in the arms, grips, reach and lower, the fist fixed); smoke check clean; UNPLAYED. `Builds/Windows/v3` (local).
 - v2 — 8 Nov 2026: D-0041 (shrinking with a tool in hand, KeepApart, no false checkpoint reset on a shrink); smoke check clean; UNPLAYED. `Builds/Windows/v2` (local).

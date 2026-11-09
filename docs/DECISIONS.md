@@ -428,3 +428,16 @@
   race loop and boost lane kept free, 60 apart): (-170,-170) (0,-170) (165,-170) (-170,5) (-25,-5) (165,0) (-170,170)
   (0,185) (170,170). Re-running replaces them. (3) The course's six cores are NOT changed: each one gates a puzzle
   (D-0013: fixed cores are the level design); extra course cores wait for his note on where it felt worst.
+
+- **D-0044 (9 Nov, 11:1x) Pause and Options.** His "proceed" on the plan (BACKLOG 12). (1) `UI/PauseMenu.cs`: Esc or
+  the pad's Start pauses: Resume, Options, Back to Title, Quit. Time stops, `AudioListener.pause`, the player's input and
+  the ShoulderCamera switch off (the mouse is freed), Resume restores each as it was. Back to Title reloads the course (its
+  title menu spawns); from the Workshop it loads the course. Progress keeps from the last save point (saves only happen at
+  save points). (2) Esc keeps its older jobs first: the menu only opens in GameMode.Play with no title, H sheet, console or
+  garage up; it runs before every other script (DefaultExecutionOrder -100) so it reads their state from before this
+  frame's Esc. The ShoulderCamera no longer frees the mouse on Esc (the pause does); a click still re-locks it. (3)
+  `UI/OptionsPanel.cs` on the pause menu and the title (Options and Quit share the title's last row): mouse sensitivity
+  0.25x to 3x in quarters, invert Y, master volume in tenths, fullscreen (built game only). (4) `Core/PlayerOptions.cs`
+  keeps them in PlayerPrefs, apart from the CameraSettings / FirstPersonSettings assets: the cameras multiply the asset's
+  speeds by LookScale and flip its invertY by InvertY, so an option never edits a project asset. Volume applies before
+  the first scene, except in a smoke run (SmokeRun.Asked, now internal). One master volume until there is music.

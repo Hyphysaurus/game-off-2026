@@ -21,8 +21,8 @@ first, then juice, then the page. Nothing here is a deadline pressure, it is the
 10. His: lighting pass per room (bedroom warm, lane cold, wardrobe dark, playroom bright, garden sunlit).
 
 ## Week 3 (to 24 Nov): polish and a build
-11. Mine: Windows build + a WebGL check (the fullscreen warp pass and 4 MSAA may need a WebGL fallback).
-12. Mine: Options: mouse sensitivity, invert Y, volume. Pause (Esc already frees the cursor).
+11. Windows builds (v1-v5 done). WebGL check dropped 8 Nov (his: Unity builds only).
+12. DONE 9 Nov (D-0044, v5): Options (sensitivity, invert Y, volume, fullscreen) + Pause (Esc / Start).
 13. His: a 30-second trailer cut from a Play recording; screenshots for the page (both sizes in one frame).
 14. Both: a stranger plays it once (a friend, no hints). Fix the three worst stumbles only.
 

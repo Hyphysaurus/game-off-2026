@@ -61,6 +61,7 @@ namespace ShiftJam
             if (_shifter != null) _shifter.SetSizeNow(d.size);
             SetPoint(d.position, Quaternion.Euler(0f, d.yaw, 0f));
             _motor.Warp(d.position + Vector3.up * 0.2f, _facing);
+            if (TryGetComponent(out ShiftCharge charge)) charge.Refill();   // a loaded save starts charged (D-0045)
             Debug.Log("Loaded slot " + (slot + 1) + ": " + d.room + " as " + d.size);
             return true;
         }
@@ -69,6 +70,7 @@ namespace ShiftJam
         public void ToStart()
         {
             if (_shifter != null) _shifter.SetSizeNow(ShiftSize.Toy);
+            if (TryGetComponent(out ShiftCharge charge)) charge.Drain();   // New Game: the box core gives the first charge
             SetPoint(_spawn, _spawnFacing);
             _motor.Warp(_spawn, _spawnFacing);
         }

@@ -104,6 +104,8 @@ namespace ShiftJam
                 default: shifter.Toggle(); break;
             }
             if (shifter.Size == before) return;
+            // A core is a battery: using one also refills the shift the player carries (D-0045).
+            if (shifter.TryGetComponent(out ShiftCharge charge)) charge.Refill();
             onUsed?.Invoke();
             _used++;
             if (Spent)

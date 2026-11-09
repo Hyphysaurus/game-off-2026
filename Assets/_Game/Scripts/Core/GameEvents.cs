@@ -24,6 +24,8 @@ namespace ShiftJam
         public static event Action<Respawn> PlayerReset;
         /// <summary>The player reached a room's goal.</summary>
         public static event Action<Goal> GoalReached;
+        /// <summary>The Shift key was pressed and the shift could not happen; the string says why (shown on the HUD).</summary>
+        public static event Action<Shifter, string> ShiftRefused;
 
         internal static void RaiseShiftStarted(Shifter who, ShiftSize size) => ShiftStarted?.Invoke(who, size);
         internal static void RaiseShifted(Shifter who, ShiftSize size) => Shifted?.Invoke(who, size);
@@ -33,5 +35,6 @@ namespace ShiftJam
         internal static void RaiseCheckpointClaimed(Checkpoint checkpoint) => CheckpointClaimed?.Invoke(checkpoint);
         internal static void RaisePlayerReset(Respawn respawn) => PlayerReset?.Invoke(respawn);
         internal static void RaiseGoalReached(Goal goal) => GoalReached?.Invoke(goal);
+        internal static void RaiseShiftRefused(Shifter who, string why) => ShiftRefused?.Invoke(who, why);
     }
 }

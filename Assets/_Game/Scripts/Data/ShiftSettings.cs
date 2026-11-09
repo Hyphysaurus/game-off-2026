@@ -14,5 +14,11 @@ namespace ShiftJam
         public float duration = 0.35f;
         [Tooltip("Shape of the change over time, 0 to 1.")]
         public AnimationCurve ease = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+        [Header("The carried shift (D-0045)")]
+        [Tooltip("Charges the player can hold for the Shift key (F, pad RB). Cores, fall resets and loaded saves refill to this. 0 = the key does nothing; a big number = shift any time.")]
+        public int maxCharges = 1;
+        [Tooltip("Seconds after a shift ends before the Shift key works again.")]
+        public float freeShiftWait = 0.5f;
     }
 }

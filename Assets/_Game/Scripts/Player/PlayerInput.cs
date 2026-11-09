@@ -15,7 +15,7 @@ namespace ShiftJam
 
         private InputActionAsset _instance;
         private InputActionMap _player;
-        private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop, _previous, _next;
+        private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop, _previous, _next, _shift;
         // Workshop extras the asset has no actions for: made here so this stays the only script that knows devices.
         private InputAction _dropWeapon, _scroll, _rotate;
         private Vector2 _mouseLook;   // pixels moved since the last read
@@ -44,6 +44,8 @@ namespace ShiftJam
         public float Scroll { get { float y = _scroll != null ? _scroll.ReadValue<float>() : 0f; return Mathf.Abs(y) < 0.01f ? 0f : Mathf.Sign(y); } }
         /// <summary>Raised on Previous (1) and Next (2): cycle weapons.</summary>
         public event Action Previous, Next;
+        /// <summary>Raised once per press of the Shift action (F, pad RB): the carried shift (ShiftCharge).</summary>
+        public event Action Shift;
         /// <summary>Raised on Q: drop the weapon in hand.</summary>
         public event Action DropWeapon;
 
@@ -60,6 +62,7 @@ namespace ShiftJam
             _drop = _player.FindAction("Crouch", true);
             _previous = _player.FindAction("Previous", true);
             _next = _player.FindAction("Next", true);
+            _shift = _player.FindAction("Shift", true);
             _dropWeapon = new InputAction("DropWeapon", InputActionType.Button, "<Keyboard>/q");
             _dropWeapon.AddBinding("<Gamepad>/dpad/down");
             _scroll = new InputAction("Scroll", InputActionType.Value, "<Mouse>/scroll/y");
@@ -78,6 +81,7 @@ namespace ShiftJam
             _look.canceled += OnLook;
             _previous.performed += OnPrevious;
             _next.performed += OnNext;
+            _shift.performed += OnShift;
             _dropWeapon.performed += OnDropWeapon;
             _player.Enable();
             _dropWeapon.Enable(); _scroll.Enable(); _rotate.Enable();
@@ -89,6 +93,7 @@ namespace ShiftJam
             _dropWeapon.Disable(); _scroll.Disable(); _rotate.Disable();
             _previous.performed -= OnPrevious;
             _next.performed -= OnNext;
+            _shift.performed -= OnShift;
             _dropWeapon.performed -= OnDropWeapon;
             _jump.performed -= OnJump;
             _interact.started -= OnInteract;
@@ -111,6 +116,7 @@ namespace ShiftJam
         private void OnDrop(InputAction.CallbackContext _) => Drop?.Invoke();
         private void OnPrevious(InputAction.CallbackContext _) => Previous?.Invoke();
         private void OnNext(InputAction.CallbackContext _) => Next?.Invoke();
+        private void OnShift(InputAction.CallbackContext _) => Shift?.Invoke();
         private void OnDropWeapon(InputAction.CallbackContext _) => DropWeapon?.Invoke();
 
         private void OnLook(InputAction.CallbackContext ctx)

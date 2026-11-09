@@ -46,6 +46,7 @@ namespace ShiftJam
             GameEvents.CheckpointClaimed += OnCheckpointClaimed;
             GameEvents.PlayerReset += OnPlayerReset;
             GameEvents.GoalReached += OnGoalReached;
+            GameEvents.ShiftRefused += OnShiftRefused;
         }
 
         private void OnDisable()
@@ -62,6 +63,7 @@ namespace ShiftJam
             GameEvents.CheckpointClaimed -= OnCheckpointClaimed;
             GameEvents.PlayerReset -= OnPlayerReset;
             GameEvents.GoalReached -= OnGoalReached;
+            GameEvents.ShiftRefused -= OnShiftRefused;
         }
 
         private void OnShiftStarted(Shifter who, ShiftSize size) => Play(size == ShiftSize.Kid ? sounds?.grow : sounds?.shrink);
@@ -71,6 +73,7 @@ namespace ShiftJam
         private void OnCheckpointClaimed(Checkpoint checkpoint) => Play(sounds?.checkpoint);
         private void OnPlayerReset(Respawn respawn) => Play(sounds?.reset);
         private void OnGoalReached(Goal goal) => Play(sounds?.goal);
+        private void OnShiftRefused(Shifter who, string why) => Play(sounds?.refused);
         private void OnJumped() => Play(sounds?.jump);
 
         private void OnLanded(float fallSpeed)

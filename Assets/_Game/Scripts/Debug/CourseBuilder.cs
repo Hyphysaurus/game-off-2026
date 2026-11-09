@@ -583,6 +583,7 @@ namespace ShiftJam
             Cube("WallFront", r5, c + new Vector3(0, h / 2f, -hd - 0.5f), new Vector3(hw * 2, h, 1f), wood);   // the doors, from inside
             Cube("WallL", r5, c + new Vector3(-hw - 0.5f, h / 2f, 0), new Vector3(1f, h, hd * 2 + 2f), wood);
             Cube("WallR", r5, c + new Vector3(hw + 0.5f, h / 2f, 0), new Vector3(1f, h, hd * 2 + 2f), wood);
+            NoShiftInside(r5);
             // three shelves along the back half, 40 apart; the climb zigzags up them on book stairs
             float[] shelfY = { 40f, 80f };
             Cube("Shelf_" + shelfY[0], r5, c + new Vector3(0, shelfY[0] - 1f, hd / 2f), new Vector3(hw * 2, 2f, hd), wood);               // full depth
@@ -1082,6 +1083,37 @@ namespace ShiftJam
                 Shot(dir + "/workshop_core_1.png", eye, Quaternion.LookRotation(c - eye), 55f, 1280, 720);
             }
             Debug.Log("D-0043 LANDED: stills in " + dir);
+        }
+
+        /// <summary>
+        /// D-0045: the wardrobe interior is a NoShiftZone (grown on its floor, a kid would be shut inside; core C still
+        /// works). The zone is the room's own box, from C5 and the sizes BuildWardrobe uses. Replaces an older one.
+        /// </summary>
+        static void NoShiftInside(Transform r5)
+        {
+            const float hw = 97.5f, hd = 60f, h = 170f;
+            var old = r5.Find("NoShift"); if (old != null) Object.DestroyImmediate(old.gameObject);
+            var zone = new GameObject("NoShift");
+            zone.transform.SetParent(r5, false);
+            zone.transform.position = C5 + new Vector3(0f, h / 2f, 0f);
+            var box = zone.AddComponent<BoxCollider>(); box.isTrigger = true; box.size = new Vector3(hw * 2f, h, hd * 2f);
+            zone.AddComponent<NoShiftZone>();
+            Log.AppendLine("R5 NoShift zone " + box.size + " at " + zone.transform.position);
+        }
+
+        /// <summary>Batch: -executeMethod ShiftJam.CourseBuilder.LandShiftCharge (-nographics is fine). D-0045 without a full
+        /// course rebuild: the wardrobe's NoShift zone in Greybox (saved) and the refused sound in CourseSounds.</summary>
+        public static void LandShiftCharge()
+        {
+            Log.Clear();
+            EditorSceneManager.OpenScene(ScenePath);
+            var r5 = GameObject.Find("Room/Course/R5_Wardrobe");
+            if (r5 == null) { Debug.LogError("D-0045: no Room/Course/R5_Wardrobe in " + ScenePath); EditorApplication.Exit(1); return; }
+            NoShiftInside(r5.transform);
+            EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
+            CourseSoundsBuilder.Build();
+            AssetDatabase.SaveAssets();
+            Debug.Log("D-0045 LANDED\n" + Log);
         }
 
         /// <summary>Batch: -executeMethod ShiftJam.CourseBuilder.LandPortalsAndPillows (no -nographics: it renders the catalogue

@@ -120,6 +120,7 @@ namespace ShiftJam
             Line(sb, Kb("Jump"), "Jump (hold for higher)", Pad("Jump"));
             Line(sb, Kb("Sprint"), "Run", Pad("Sprint"));
             Line(sb, Kb("Interact"), "Use, pick up, get in, shift at a core", Pad("Interact"));
+            Line(sb, Kb("Shift"), "Shift anywhere: uses the charge, cores refill it", Pad("Shift"));
             Line(sb, Kb("Attack"), "Use what you hold, fire", Pad("Attack"));
             Line(sb, Kb("Crouch"), "Put down what you hold", Pad("Crouch"));
             sb.Append('\n');

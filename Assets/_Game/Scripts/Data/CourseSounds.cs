@@ -38,6 +38,7 @@ namespace ShiftJam
         public Cue checkpoint;
         [Tooltip("Put back at the checkpoint: a fatal fall, the floor's edge, a hazard.")] public Cue reset;
         public Cue goal;
+        [Tooltip("The Shift key refused (no room, no charge, in the air): a short no.")] public Cue refused;
 
         [Header("The player")]
         public Cue jump;

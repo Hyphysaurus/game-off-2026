@@ -22,7 +22,7 @@ namespace ShiftJam
             if (grabOn && !string.IsNullOrEmpty(grab.Hint)) { label.text = grab.Hint; return; }
             IInteractable target = interactor.Target;
             string words = target != null ? target.PromptFor(interactor) : "";
-            if (!string.IsNullOrEmpty(words)) label.text = $"{keyName}  {words}";
+            if (!string.IsNullOrEmpty(words)) label.text = target is IHintOnly ? words : $"{keyName}  {words}";   // a hint has no key (D-0046)
             else if (grabOn && !string.IsNullOrEmpty(grab.Why)) label.text = grab.Why;
             else label.text = carrier != null && carrier.Held != null ? heldHint : "";
         }

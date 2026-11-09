@@ -95,6 +95,7 @@ namespace ShiftJam
                 so.ApplyModifiedPropertiesWithoutUndo();
                 Log.AppendLine("R5 top -> wardrobe front, opens " + doors.Length + " doors");
             }
+            PuzzleCues();
             EditorSceneManager.MarkAllScenesDirty();
             Log.AppendLine("built");
         }
@@ -1083,6 +1084,104 @@ namespace ShiftJam
                 Shot(dir + "/workshop_core_1.png", eye, Quaternion.LookRotation(c - eye), 55f, 1280, 720);
             }
             Debug.Log("D-0043 LANDED: stills in " + dir);
+        }
+
+        /// <summary>
+        /// D-0046: what is a puzzle piece, and what each problem needs. A gold glint (Highlight) on every Switch, every
+        /// Flashlight and the playroom's Safe and Ruler; a ProblemHint at each door a switch opens ("Shut. A switch opens
+        /// it.") and at the wardrobe hole while the safe blocks it (toy only); every dormant core reads "Dark. It needs
+        /// light." Scene-wide, so the bedroom (placed by hand on 3 Nov) gets them too. Safe to run again. All wording is a
+        /// placeholder.
+        /// </summary>
+        static void PuzzleCues()
+        {
+            Material glint = GlintMaterial();
+            int marks = 0, hints = 0, dark = 0;
+            void Mark(Component piece)
+            {
+                if (!piece.gameObject.TryGetComponent(out Highlight h)) h = piece.gameObject.AddComponent<Highlight>();
+                Set(h, "material", glint);
+                marks++;
+            }
+            foreach (var sw in Object.FindObjectsByType<Switch>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                Mark(sw);
+                var doors = new SerializedObject(sw).FindProperty("doors");
+                for (int i = 0; doors != null && i < doors.arraySize; i++)
+                    if (doors.GetArrayElementAtIndex(i).objectReferenceValue is Door door)
+                    {
+                        var hint = HintAt(door.transform, "DoorHint", "Shut. A switch opens it.");
+                        Set(hint, "door", door);
+                        hints++;
+                    }
+            }
+            foreach (var light in Object.FindObjectsByType<Flashlight>(FindObjectsInactive.Include, FindObjectsSortMode.None)) Mark(light);
+            foreach (var c in Object.FindObjectsByType<Carryable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (c.name == "Safe" || c.name == "Ruler") Mark(c);
+            var hole = GameObject.Find("Room/Course/R4_Playroom/WardrobeHole");
+            var safe = GameObject.Find("Room/Course/R4_Playroom/Safe");
+            if (hole != null && safe != null)
+            {
+                var hint = HintAt(hole.transform, "HoleHint", "The safe is in the way. Too heavy for a toy.");
+                Set(hint, "anySize", false); Set(hint, "onlyFor", (int)ShiftSize.Toy); Set(hint, "blocker", safe.transform);
+                hints++;
+            }
+            foreach (var core in Object.FindObjectsByType<ShiftSource>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                var so = new SerializedObject(core);
+                if (!so.FindProperty("startDormant").boolValue) continue;
+                so.FindProperty("dormantPrompt").stringValue = "Dark. It needs light.";
+                so.ApplyModifiedPropertiesWithoutUndo();
+                dark++;
+            }
+            Log.AppendLine($"Puzzle cues: {marks} glints, {hints} hints, {dark} dark cores");
+        }
+
+        /// <summary>A ProblemHint box beside (not under: a door swings) the thing, covering it with room to walk up to it.</summary>
+        static ProblemHint HintAt(Transform thing, string label, string message)
+        {
+            string name = label + "_" + thing.name;
+            var parent = thing.parent;
+            var old = parent != null ? parent.Find(name) : null;
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+            var renderers = thing.GetComponentsInChildren<Renderer>();
+            Bounds b = new Bounds(thing.position, Vector3.zero);
+            if (renderers.Length > 0) { b = renderers[0].bounds; foreach (var r in renderers) b.Encapsulate(r.bounds); }
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.position = b.center;
+            var box = go.AddComponent<BoxCollider>(); box.isTrigger = true;
+            Vector3 lossy = go.transform.lossyScale;
+            Vector3 size = Vector3.Max(b.size + new Vector3(4f, 2f, 4f), new Vector3(6f, 6f, 6f));
+            box.size = new Vector3(size.x / Mathf.Max(1e-4f, lossy.x), size.y / Mathf.Max(1e-4f, lossy.y), size.z / Mathf.Max(1e-4f, lossy.z));
+            var hint = go.AddComponent<ProblemHint>();
+            Set(hint, "message", message);
+            return hint;
+        }
+
+        /// <summary>The glint's material: the spark's (his drawing replaces the texture), made once as its own asset.</summary>
+        static Material GlintMaterial()
+        {
+            const string path = "Assets/_Game/Data/PuzzleGlint.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m != null) return m;
+            var spark = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/Spark.mat");
+            if (spark == null) { Log.AppendLine("no Spark.mat: glints left without a material"); return null; }
+            m = new Material(spark) { name = "PuzzleGlint" };
+            AssetDatabase.CreateAsset(m, path);
+            return m;
+        }
+
+        /// <summary>Batch: -executeMethod ShiftJam.CourseBuilder.LandPuzzleCues (-nographics is fine). D-0046 without a full
+        /// course rebuild: PuzzleCues in Greybox, saved.</summary>
+        public static void LandPuzzleCues()
+        {
+            Log.Clear();
+            EditorSceneManager.OpenScene(ScenePath);
+            PuzzleCues();
+            EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
+            AssetDatabase.SaveAssets();
+            Debug.Log("D-0046 LANDED\n" + Log);
         }
 
         /// <summary>

@@ -13,6 +13,8 @@ namespace ShiftJam
         [SerializeField, Tooltip("Hook Feel feedbacks here.")] private UnityEvent onActivated;
 
         public bool Used { get; private set; }
+        /// <summary>The doors this switch opens (CauseCamera turns to the first).</summary>
+        public System.Collections.Generic.IReadOnlyList<Door> Doors => doors ?? System.Array.Empty<Door>();
 
         private bool RightSize(Interactor who) => anySize || who.Shifter == null || who.Shifter.Size == requiredSize;
 

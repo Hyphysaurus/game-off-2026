@@ -521,3 +521,18 @@
   %TEMP%/sj_d0048_stills); menu Shift Jam > Build Expressway (playroom). Not driven by anyone yet. Open: guards are
   invisible (a taller visible rail on the made pieces is the alternative); the carried shift will refuse to grow on or
   under the deck; the reveal camera and the kid's walk across the track are unseen; lap gates on the loop are a later step.
+
+- **D-0049 (10 Nov, 14:1x) Mat beds: one smooth collider under each group of mats.** His first drive of the
+  expressway: he took the gold car down the entry ramp to the floor and it "got stuck" (his still: front wheels in the
+  toothed gap between a red and a blue mat, the car on its belly). Cause: the pack's mats collide with their exact
+  toothed shape, the dresser quarter-turns each mat so neighbours' teeth do not mesh (wheel-wide channels), and every
+  outer edge is a 0.73 wall to a car that clears 0.38 to 0.45 and to a toy that steps 0.3 (measured in D-0047). His
+  "proceed". `Debug/CourseBuilder.MatBeds.cs`: `MatBeds(parent)` groups touching mats (6 groups of 4 in the playroom,
+  1 in the Workshop), lays a "MatBed" under each (a convex mesh: flat top at the mats' height the size of the group, a
+  foot 2.2 wider all round, so a 20 degree slope; mesh assets in `Assets/_Game/Data/MatBeds`, plain geometry, in git)
+  and switches the mats' own colliders off (not removed). The look does not change; a wheel rides over a visible seam
+  and the slope starts 2.2 before the mat. Its own check at every run: 289 rays down across each group, seams
+  included, all land on the bed at the mats' height and none on a mat's own collider. Runs inside Build (right after
+  the playroom is dressed) and inside the Workshop room build; menu Shift Jam > Add Mat Beds (open scenes); batch
+  `LandMatBeds` (Greybox + Workshop, saved). The walking toy now walks onto mats without a hop. Tune: `MatBedSkirt`.
+  Written outside the project and compiled with Unity's compiler while he was in Play; landed after he closed the editor.

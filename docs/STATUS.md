@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 10 Nov 2026 14:1x — MAT BEDS (D-0049) after his first drive: the car "got stuck" on the mats — LANDED, UNDRIVEN
+HE DROVE the expressway for the first time (editor, about half an hour): took the gold car down the entry ramp and it
+beached in the gap between two mats. No other note yet (bends, guards, ramp crest, steps: not reported either way).
+Fix landed headless after he closed the editor (`LandMatBeds`; Greybox + Workshop saved, both checked for a cut save:
+clean): 6 beds in the playroom, 1 in the Workshop, each a smooth sloped collider under a group of 4 mats; the log's
+ray check passes (289 rays a bed, 0 off). No build. Editor reopened on Greybox for him.
+HIS PLAYTEST: drive a car down a ramp and across a mat group (on at one side, over the seams, off the other); walk
+the toy onto a mat without jumping. Judge the 20 degree edge at speed.
+
 ## 10 Nov 2026 11:2x — THE EXPRESSWAY (D-0048): a raised track loop round the playroom, four stops, three cars — LANDED, UNDRIVEN
 His "create a racetrack loop ... as an expressway, have it raised above any clearance problems" + "reproduce curvy ones
 where needed" + "proceed". New: `Debug/TrackBender.cs` (bends and opens the pack's straight), `Debug/CourseBuilder.Expressway.cs`

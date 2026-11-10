@@ -270,7 +270,7 @@ namespace ShiftJam
                     {
                         if (c.transform.IsChildOf(root)) continue;
                         var top = c.transform; while (top.parent != null && top.parent != r4) top = top.parent;
-                        if (piece.Ramp && (top.name.StartsWith("Floor") || top.name == "Mat")) continue;   // a ramp ends in the floor
+                        if (piece.Ramp && (top.name.StartsWith("Floor") || top.name == "Mat" || top.name == "MatBed")) continue;   // a ramp ends in the floor
                         string line = $"{piece.Go.name} meets {top.name} (its top at {c.bounds.max.y:F1})";
                         if (!clashes.Contains(line)) clashes.Add(line);
                     }

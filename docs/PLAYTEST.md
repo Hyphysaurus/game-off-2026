@@ -86,3 +86,8 @@ Space = jump, C = put down, LMB = toggle the carried light.
 - Note: where a car leaves the road or hits something you cannot see (the guards are invisible, 2 high); the hop at the
   top of a ramp; whether a parked car has moved; the kid walking across the track; F on or under the track; anything
   the track hides that you need to see (the reveal camera, the switch camera turns).
+
+## The mats (D-0049, 10 Nov)
+- Drive a car off a ramp and straight over a group of mats: it should roll up the edge, cross the seams between mats
+  without dropping a wheel, and roll off the far side. Try an edge at speed and a corner of the group.
+- Walk the toy onto a mat: no hop needed now. Note anything that looks like floating at the mat's edge.

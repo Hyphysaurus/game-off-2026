@@ -60,6 +60,7 @@ namespace ShiftJam
             Transform r3Start = BuildLane(r3, dark, glowMat);
             Transform r4Entry = null, r5Start = null, wardrobeFront = null;
             BuildPlayroom(r4, r6, dark, grass, glowMat, coreMat, out r4Entry, out wardrobeFront);
+            MatBeds(r4);   // one smooth collider under each group of mats (D-0049), before anything is placed or checked against them
             r5Start = BuildWardrobe(r5, wood, glowMat, coreMat);
             BuildCarCourse();   // the stunt run lives in R4 too (D-0026); it parks the car at its start
             BuildExpressway(r4);   // the raised loop round the room (D-0048), after everything it has to route round is standing
@@ -1507,6 +1508,7 @@ namespace ShiftJam
             var pillow = Rest(Spawn("Pillow_01", "Pillow", layout, new Vector3(-60f, 0, -60f), new Vector3(0, 20, 0), 1f), 0f, null);
             Carry(pillow); PillowPad(pillow, 30f);
             for (int i = 0; i < 4; i++) Rest(Spawn("Mat_0" + (1 + i), "Mat", layout, new Vector3(60f + (i % 2) * 25.5f, 0, -40f + (i / 2) * 25.5f), Vector3.zero, 1f), 0.05f, null);
+            MatBeds(layout);   // D-0049
             // the toy car, parked facing north by the south wall
             var car = Rest(Spawn("Wooden_Car_01", "ToyCar", layout, new Vector3(0f, 0, -200f), Vector3.zero, 1f), 0f, null);
             var tc = car.AddComponent<ToyCar>(); Set(tc, "rollLoop", Clip("Toy_Car_Roll_v1")); Set(tc, "crash", Clip("Toy_Car_Crash_v1")); WorkshopPieces.WireBoostParts(tc);

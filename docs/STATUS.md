@@ -3,7 +3,7 @@
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
 ## 10 Nov 2026 14:1x — MAT BEDS (D-0049) after his first drive: the car "got stuck" on the mats — LANDED, UNDRIVEN
-HE DROVE the expressway for the first time (editor, about half an hour): took the gold car down the entry ramp and it
+HE DROVE the expressway for the first time (editor): took the gold car down the entry ramp and it
 beached in the gap between two mats. No other note yet (bends, guards, ramp crest, steps: not reported either way).
 Fix landed headless after he closed the editor (`LandMatBeds`; Greybox + Workshop saved, both checked for a cut save:
 clean): 6 beds in the playroom, 1 in the Workshop, each a smooth sloped collider under a group of 4 mats; the log's

@@ -2,6 +2,25 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 10 Nov 2026 11:2x — THE EXPRESSWAY (D-0048): a raised track loop round the playroom, four stops, three cars — LANDED, UNDRIVEN
+His "create a racetrack loop ... as an expressway, have it raised above any clearance problems" + "reproduce curvy ones
+where needed" + "proceed". New: `Debug/TrackBender.cs` (bends and opens the pack's straight), `Debug/CourseBuilder.Expressway.cs`
+(CourseBuilder is now a partial class). Placed by a hidden batch (`LandExpressway`; Greybox saved, checked for a cut
+save: clean; stills looked at). No build. No editor was open at either check. The build log's own checks pass: joints closed,
+nothing fixed in the road, 885 of 885 road rays on the deck, every lane clear.
+WHAT IS THERE: orange track at height 8 on wooden pillars, 779 units round (about 32 s a lap at the car's top speed).
+Entry stop (west): book steps beside the mouse hole up to a second lane, blue car; that lane's two ends are ramps to the
+floor. Desk stop (north-west): lay-by + book steps, gold car. Maze stop (east, after the north-east bend): no rail on the
+outside of one piece, to step off. Wardrobe stop (south-east): lay-by + book steps, dark car. The two floor rides of
+D-0047 in the playroom are removed; the bedroom's pink car stays.
+HIS PLAYTEST (editor, Greybox): docs/PLAYTEST.md "The expressway". Judge: the bends at speed against the invisible
+guards, the hop over the ramp's crest, the kid walking across the track, F near the track, the reveal camera.
+38 piles of dressing moved aside, among them: the hoop's ball (33 units) and the basketball (34), a pile of three
+books from the south wall (111), the train station (7), a castle tower copy (20), three wooden cylinders, the wooden
+train, alphabet cubes, and about 20 sheets of paper, cards and pencils.
+Mats on foot are unchanged (still a hop each). Made meshes live in Assets/_Imports/Generated/Expressway (git-ignored,
+check them in with UVCS).
+
 ## 10 Nov 2026 09:3x — RIDES (D-0047): three Cyber cars at the long toy walks — LANDED, UNPLAYED; the playroom's mats block them
 His "traversing the rooms as a toy can feel like a chore" + "use the cars from the cyber car asset kit". Builder code
 (`CourseBuilder.PlaceRides`, table `Rides`), placed by a hidden batch (`LandRides`; Greybox saved, checked for a cut

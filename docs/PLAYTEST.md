@@ -70,7 +70,19 @@ Space = jump, C = put down, LMB = toggle the carried light.
 - Bedroom, as the toy at the foot of the books: a pink car a few steps west, nose toward the toy door. E → "Drive".
   Stick drives, Space = handbrake, Shift = nitro, E gets out (it brakes first). The toy box is on the straight line.
   At the toy door: get out and walk in (the door does not take a car).
-- Playroom: a blue car ahead and to the right of the mouse hole; a gold car at the foot of the last ruler ramp.
-  Known: the foam mats are taller than the cars' clearance. Note where a car stops dead, and whether the clutter makes
-  driving worse than walking.
+- Playroom: the floor rides are gone; the cars wait on the expressway (below).
 - As the kid: "Too big to drive". Note if walking over a parked car knocks it away from its spot.
+
+## The expressway (D-0048, 10 Nov)
+- From the mouse hole: book steps a few strides ahead and to the right, seven hops up to an orange lane with a blue
+  car. E → "Drive". The lane beside it is the loop.
+- Clockwise (the way the car faces): north, round past the desk (a lay-by on the left with a gold car and book steps),
+  along the north side, round the north-east bend. Just after that bend the left rail is flat for one piece: stop, E,
+  step off the edge (a drop of 8, no respawn), walk to the maze.
+- After the desk: down the three rulers as before, then the book steps are behind the last box to the north-east; up to
+  the gold car. Clockwise to the south-east: a lay-by on the left with book steps down toward the wardrobe.
+- The ramps: the blue car's lane runs down to the floor at both ends (north toward the desk, south to the corner).
+  Drive down one and back up.
+- Note: where a car leaves the road or hits something you cannot see (the guards are invisible, 2 high); the hop at the
+  top of a ramp; whether a parked car has moved; the kid walking across the track; F on or under the track; anything
+  the track hides that you need to see (the reveal camera, the switch camera turns).

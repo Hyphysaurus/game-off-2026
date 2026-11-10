@@ -490,3 +490,34 @@
   stopped the car in D-0029), and the toy's own step-up is 0.3, so on foot every mat is a hop. A straight drive from the
   entry meets a mat after 4 units; the bedroom leg meets only the toy box. His call: kerb slopes on the mats, a cleared
   lane, or the playroom on foot.
+
+- **D-0048 (10 Nov, 11:2x) The playroom expressway: a raised loop of the pack's toy track, with stops.** His asks:
+  "create a racetrack loop (using the racetrack pieces) that connects every distinct quadrant of the room so that it can
+  be used to drive around as an expressway, have it raised above any clearance problems"; then "use some of the straight
+  toy track meshes and reproduce curvy ones where needed"; "proceed". Curved World (his tool) only bends the picture, not
+  the collider, and is not in this project, so the curves are real meshes. **Pieces:** straights are the Playroom pack's
+  flat `RoadLoop_02` (4.4 wide, road 3.34 between rails only 0.26 high) at x2.5; `Debug/TrackBender.cs` makes what the
+  pack lacks from that mesh: a 45 degree corner (the piece cut into 12 slices and bent, radius 35) left and right, and
+  copies with a rail pressed flat so two lanes sit side by side with a flush yellow stripe between. Made meshes are
+  saved in `Assets/_Imports/Generated/Expressway` (pack-derived, so git-ignored like the packs; UVCS carries them, and
+  the builder remakes them in place). `RoadLoop_03` looks the same from above but tapers 0.53 along its length: it was
+  the first pick and made a 1.3 step at every joint (caught by the road check, never played). **Layout**
+  (`Debug/CourseBuilder.Expressway.cs`, three tables: `XwLoop` corners, `XwStops`, constants): road at 8 (underside
+  6.56: over mats 0.73, books 3.9, blocks 5; under the kid's 10.5 step), one loop 779 units round, six corners, routed
+  between the stunt run and the fan on the east, south of the desk's ramps, north of the castle; 31 pieces on 34 toy-block
+  pillars; a collision-only guard 2 high over every kept rail (road + guard = 10, still under the kid's step).
+  **Stops, on the outer side:** Entry = a second lane beside the west run with a 9.1 degree ramp to the floor at each
+  end (the only ramps: one lands in the north-west, one in the south-west) and book steps up from beside the mouse hole;
+  Desk = a lay-by with book steps, north of the cut in front of the desk; Maze = the rail pressed flat on one piece after
+  the north-east bend, to step off (the fan and the sofa leave no room for a lane there); Wardrobe = a lay-by with book
+  steps on the east run's south end. A Cyber car waits on the Entry, Desk and Wardrobe lanes, nose clockwise (the order
+  entry, desk, maze, wardrobe); the two playroom rides of D-0047 on the floor are gone (the floor is mats and clutter).
+  Why steps and not four ramps: a ramp needs about 50 of floor in line with a lane and nothing lets one land beside the
+  maze or the wardrobe hole (fan, sofa, wall, mats); steps take 20. **Dressing** in the way is moved aside, never deleted
+  (38 piles at the first build: the hoop's ball, the basketball, a train station, cylinders, cubes, paper; a pile of
+  books moves as one; the room's named beats stay). **Checks at every build, in the log:** joints close (worst gap
+  0.004), nothing fixed stands in the road, 885 rays down onto every piece all land at the road's height, a car's worth
+  of air is clear down every lane. Runs inside Build (after the stunt run); batch `LandExpressway` (stills into
+  %TEMP%/sj_d0048_stills); menu Shift Jam > Build Expressway (playroom). Not driven by anyone yet. Open: guards are
+  invisible (a taller visible rail on the made pieces is the alternative); the carried shift will refuse to grow on or
+  under the deck; the reveal camera and the kid's walk across the track are unseen; lap gates on the loop are a later step.

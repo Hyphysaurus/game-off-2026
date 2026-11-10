@@ -15,7 +15,7 @@ namespace ShiftJam
     /// running it again deletes the previous Course container and rebuilds. Menu: Shift Jam / Build Course.
     /// Batch: -executeMethod ShiftJam.CourseBuilder.BuildAll. Editor only; nothing of this ships.
     /// </summary>
-    public static class CourseBuilder
+    public static partial class CourseBuilder
     {
         const string ScenePath = "Assets/_Game/Scenes/Greybox.unity";
         const string Pack = "Assets/_Imports/ithappy/Playroom";
@@ -62,6 +62,7 @@ namespace ShiftJam
             BuildPlayroom(r4, r6, dark, grass, glowMat, coreMat, out r4Entry, out wardrobeFront);
             r5Start = BuildWardrobe(r5, wood, glowMat, coreMat);
             BuildCarCourse();   // the stunt run lives in R4 too (D-0026); it parks the car at its start
+            BuildExpressway(r4);   // the raised loop round the room (D-0048), after everything it has to route round is standing
 
             // ---- portals between rooms ----
             // bedroom toy door -> R3 start (replace the old Goal with a Portal)
@@ -1196,8 +1197,7 @@ namespace ShiftJam
         static readonly (string name, string piece, string from, Vector3 off, float ahead, float aside, string toward)[] Rides =
         {
             ("Ride_Bedroom", "CyberCar06", "Room/Bedroom/StepBook_1", Vector3.left, 7f, 0f, "Room/Bedroom/Goal"),
-            ("Ride_PlayroomEntry", "CyberCar14", "Room/Course/R4_Playroom/Entry", Vector3.right, 20f, 8f, "Room/Course/R4_Playroom/CoreA_Grow"),
-            ("Ride_DeskFoot", "CyberCar05", "Room/Course/R4_Playroom/Ramp1", Vector3.back, 9f, 0f, "Room/Course/R4_Playroom/WardrobeHole"),
+            // the playroom's cars wait on the expressway's stops (D-0048, CourseBuilder.Expressway.cs): its floor is mats and clutter
         };
 
         /// <summary>

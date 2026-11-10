@@ -96,6 +96,7 @@ namespace ShiftJam
                 Log.AppendLine("R5 top -> wardrobe front, opens " + doors.Length + " doors");
             }
             PuzzleCues();
+            PlaceRides(course);
             EditorSceneManager.MarkAllScenesDirty();
             Log.AppendLine("built");
         }
@@ -1182,6 +1183,108 @@ namespace ShiftJam
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
             AssetDatabase.SaveAssets();
             Debug.Log("D-0046 LANDED\n" + Log);
+        }
+
+        // =====================================================================================
+        // Rides (D-0047): a Cyber car waits where each long toy walk starts
+        // =====================================================================================
+        const string CarPieces = "Assets/_Game/Prefabs/Pieces/Vehicles/";
+
+        /// <summary>The rides, one row each. <c>from</c> is the scene object the toy's walk starts at and <c>off</c> the way the
+        /// toy comes off it (world, flat). The car waits <c>ahead</c> units beyond that face and <c>aside</c> units to the right
+        /// of that way, its nose toward <c>toward</c>, the object the walk ends at. Add a row for another ride.</summary>
+        static readonly (string name, string piece, string from, Vector3 off, float ahead, float aside, string toward)[] Rides =
+        {
+            ("Ride_Bedroom", "CyberCar06", "Room/Bedroom/StepBook_1", Vector3.left, 7f, 0f, "Room/Bedroom/Goal"),
+            ("Ride_PlayroomEntry", "CyberCar14", "Room/Course/R4_Playroom/Entry", Vector3.right, 20f, 8f, "Room/Course/R4_Playroom/CoreA_Grow"),
+            ("Ride_DeskFoot", "CyberCar05", "Room/Course/R4_Playroom/Ramp1", Vector3.back, 9f, 0f, "Room/Course/R4_Playroom/WardrobeHole"),
+        };
+
+        /// <summary>
+        /// D-0047: parks a Cyber car (the Workshop's car pieces, as prefab instances) at the start of each long toy walk, under
+        /// Room/Course/Rides. Each spot is read from the scene's own objects (the <see cref="Rides"/> table), so it follows a
+        /// rebuilt room. A spot that something already stands in is nudged outward in a small spiral until the car fits.
+        /// Replaces the previous Rides; nothing else is touched.
+        /// </summary>
+        static void PlaceRides(Transform course)
+        {
+            var old = course.Find("Rides"); if (old != null) Object.DestroyImmediate(old.gameObject);
+            var rides = Child(course, "Rides");
+            foreach (var r in Rides)
+            {
+                var from = GameObject.Find(r.from); var toward = GameObject.Find(r.toward);
+                var asset = AssetDatabase.LoadAssetAtPath<GameObject>(CarPieces + r.piece + ".prefab");
+                if (from == null || toward == null || asset == null)
+                {
+                    Log.AppendLine($"RIDE SKIPPED {r.name}: " + (from == null ? "no " + r.from : toward == null ? "no " + r.toward : "no piece " + r.piece + " (run Shift Jam > Workshop > Build Combat & Vehicle Pieces)"));
+                    continue;
+                }
+                var fb = B(from);
+                Vector3 off = new Vector3(r.off.x, 0f, r.off.z).normalized, right = Vector3.Cross(Vector3.up, off);
+                float reach = Mathf.Abs(off.x) * fb.extents.x + Mathf.Abs(off.z) * fb.extents.z;   // from the object's middle to the face the toy leaves by
+                Vector3 want = new Vector3(fb.center.x, 0f, fb.center.z) + off * (reach + r.ahead) + right * r.aside;
+                Vector3 goal = toward.transform.position;
+
+                var car = (GameObject)PrefabUtility.InstantiatePrefab(asset, rides); car.name = r.name;
+                bool fits = false; Vector3 at = want; float ground = 0f;
+                for (int k = 0; k < 20 && !fits; k++)
+                {
+                    if (k > 0) { float a = k * 2.4f, rad = 14f * k / 19f; at = want + new Vector3(Mathf.Cos(a) * rad, 0f, Mathf.Sin(a) * rad); }
+                    Vector3 flat = new Vector3(goal.x - at.x, 0f, goal.z - at.z);
+                    car.transform.SetPositionAndRotation(at, flat.sqrMagnitude > 0.01f ? Quaternion.LookRotation(flat) : Quaternion.identity);
+                    fits = RideFits(car, out ground);
+                }
+                if (!fits)
+                {
+                    at = want; Vector3 flat = new Vector3(goal.x - at.x, 0f, goal.z - at.z);
+                    car.transform.SetPositionAndRotation(at, flat.sqrMagnitude > 0.01f ? Quaternion.LookRotation(flat) : Quaternion.identity);
+                    RideFits(car, out ground);
+                }
+                car.transform.position = new Vector3(at.x, ground + 0.02f, at.z);
+                float walk = new Vector3(goal.x - at.x, 0f, goal.z - at.z).magnitude; var cb = B(car);
+                Log.AppendLine($"{(fits ? "ride" : "RIDE BLOCKED (left at its first spot)")} {r.name} = {r.piece} at {car.transform.position} yaw {car.transform.eulerAngles.y:F0}, moved {(at - want).magnitude:F1} from its first spot, drawn {cb.size.x:F1} x {cb.size.y:F1} x {cb.size.z:F1}, {walk:F0} units to {toward.name}");
+            }
+            EditorSceneManager.MarkSceneDirty(course.gameObject.scene);
+        }
+
+        /// <summary>Whether the car stands free where it is: nothing solid inside its drawn box from just above the ground up
+        /// (thin things under 0.4, a mat or a sheet of paper, do not count; it rests on them). <paramref name="ground"/> is the
+        /// height of what is under its middle.</summary>
+        static bool RideFits(GameObject car, out float ground)
+        {
+            Physics.SyncTransforms();
+            var b = B(car);
+            ground = 0f;
+            foreach (var h in Physics.RaycastAll(new Vector3(b.center.x, b.max.y + 1f, b.center.z), Vector3.down, b.size.y + 3f, ~0, QueryTriggerInteraction.Ignore).OrderBy(h => h.distance))
+                if (!h.collider.transform.IsChildOf(car.transform)) { ground = h.point.y; break; }
+            Vector3 half = new Vector3(b.extents.x + 0.5f, Mathf.Max(0.1f, b.extents.y - 0.2f), b.extents.z + 0.5f);
+            Vector3 centre = new Vector3(b.center.x, b.min.y + 0.4f + half.y, b.center.z);
+            foreach (var c in Physics.OverlapBox(centre, half, Quaternion.identity, ~0, QueryTriggerInteraction.Ignore))
+                if (!c.transform.IsChildOf(car.transform)) return false;
+            return true;
+        }
+
+        /// <summary>Batch: -executeMethod ShiftJam.CourseBuilder.LandRides (no -nographics: it renders stills). D-0047 without a
+        /// full course rebuild: the rides in Greybox, saved, and two stills of each into %TEMP%/sj_d0047_stills.</summary>
+        public static void LandRides()
+        {
+            Log.Clear();
+            EditorSceneManager.OpenScene(ScenePath);
+            var course = GameObject.Find("Room/Course");
+            if (course == null) { Debug.LogError("D-0047: no Room/Course in " + ScenePath); EditorApplication.Exit(1); return; }
+            PlaceRides(course.transform);
+            EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
+            AssetDatabase.SaveAssets();
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "sj_d0047_stills"); System.IO.Directory.CreateDirectory(dir);   // not the project Temp: Unity empties it on exit
+            foreach (Transform car in course.transform.Find("Rides"))
+            {
+                Vector3 mid = car.position + Vector3.up * 1f;
+                Vector3 near = car.position + car.rotation * new Vector3(-6f, 4.5f, -10f);    // over the toy's shoulder, down the car's nose
+                Shot(dir + "/" + car.name + "_near.png", near, Quaternion.LookRotation(mid + car.forward * 6f - near), 60f, 1280, 720);
+                Vector3 far = car.position + car.rotation * new Vector3(-25f, 45f, -60f);     // the leg ahead of it
+                Shot(dir + "/" + car.name + "_far.png", far, Quaternion.LookRotation(mid + car.forward * 40f - far), 60f, 1280, 720);
+            }
+            Debug.Log("D-0047 LANDED: stills in " + dir + "\n" + Log);
         }
 
         /// <summary>

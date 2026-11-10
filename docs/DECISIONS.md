@@ -472,3 +472,21 @@
   holds still; once per thing per load; skipped when already within 22 degrees of view; it only turns, so it never
   enters a wall; started a frame late so the press that caused it finishes first. Placed by `CourseBuilder.PuzzleCues`
   (also at the end of every Build; batch `LandPuzzleCues`). Wording placeholder. Unseen: glint size and the turn.
+
+- **D-0047 (10 Nov, 09:3x) Rides: a Cyber car waits where each long toy walk starts.** His note: "traversing the rooms
+  as a toy can feel like a chore"; his pick: "skip the wooden cars and use the cars from the cyber car asset kit". The
+  numbers: toy sprint 8 u/s (walk 5.5) against rooms 260 and 390 across; a Cyber car tops out at 24 u/s. Foot speed stays
+  (R3's gaps are tuned to it and faster feet bring the flail back). `CourseBuilder.PlaceRides` puts the Workshop's own
+  car pieces (prefab instances) under Room/Course/Rides from a table (`CourseBuilder.Rides`: piece, the object the walk
+  starts at and the side the toy leaves it by, how far ahead/aside, the object the walk ends at; a row per ride). Each
+  spot is read from the scene's objects, the nose points at the walk's end, and a spot something stands in is nudged
+  outward until the car's drawn box is free (thin things under 0.4 do not count). Runs at the end of every Build; batch
+  `LandRides` (saves Greybox, stills into %TEMP%/sj_d0047_stills). Three rides: Ride_Bedroom = CyberCar06 west of the
+  book stack, 147 units from the toy door; Ride_PlayroomEntry = CyberCar14 by the mouse hole, 331 from core A;
+  Ride_DeskFoot = CyberCar05 at the foot of Ramp1, 278 from the wardrobe hole. Room portals do not fire for a seated
+  driver (the capsule is off): park at the door, E, walk in. The wooden ToyCar at the stunt run's start is untouched.
+  **Measured, and open:** the playroom's 24 foam mats stand 0.73 high (collider top 0.73); the Cyber cars' body boxes
+  start 0.38 to 0.45 above the floor, so a mat edge is a wall to them (the same height as the 0.68 ramp lip that
+  stopped the car in D-0029), and the toy's own step-up is 0.3, so on foot every mat is a hop. A straight drive from the
+  entry meets a mat after 4 units; the bedroom leg meets only the toy box. His call: kerb slopes on the mats, a cleared
+  lane, or the playroom on foot.

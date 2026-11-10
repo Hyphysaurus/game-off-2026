@@ -2,6 +2,21 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 10 Nov 2026 09:3x — RIDES (D-0047): three Cyber cars at the long toy walks — LANDED, UNPLAYED; the playroom's mats block them
+His "traversing the rooms as a toy can feel like a chore" + "use the cars from the cyber car asset kit". Builder code
+(`CourseBuilder.PlaceRides`, table `Rides`), placed by a hidden batch (`LandRides`; Greybox saved, checked for a cut
+save: clean; stills looked at). No build. Ride_Bedroom (pink CyberCar06) west of the book stack, nose at the toy door;
+Ride_PlayroomEntry (blue CyberCar14) by the mouse hole, nose at the maze; Ride_DeskFoot (gold CyberCar05) at the foot of
+the last ruler ramp, nose at the wardrobe hole. E = "Drive", E again gets out; park at a door and walk in.
+HIS PLAYTEST (editor, Greybox): bedroom, shrink on the bed, hop down the books: the pink car is a few steps west; drive
+to the toy door (the toy box stands on the straight line: steer round it), E, walk in. Playroom: the blue car is ahead
+and right of the mouse hole.
+**FOUND (measured by a temporary probe, deleted):** the 24 foam mats in the playroom are 0.73 high and the cars clear
+only 0.38 to 0.45, so a mat edge stops a car (4 units ahead of the entry car on the straight line); the toy on foot
+steps up 0.3, so every mat is a hop too. The bedroom leg is clear. **Open, his call:** kerb slopes on the mats (my
+pick), a cleared lane, or the playroom on foot. Also open: 2 shift charges (`ShiftSettings.maxCharges`), not changed.
+Review 10 Nov (two Sonnet readers, read-only): 89 commits unpushed; BACKLOG's "v1-v5 done" is stale (only v5 exists).
+
 ## 9 Nov 2026 15:4x — PUZZLE PIECES SHOW (D-0046): glints, problem hints, a camera turn to what a switch did — LANDED, UNSEEN
 His "its not obvious that we need to hit specific switches"; his "proceed with 1-3". Code `117f9d6` (editor + player
 compile 0 errors), placed by a hidden batch (6 glints, 2 hints, 1 dark core; Greybox saved, no cut save). No build.

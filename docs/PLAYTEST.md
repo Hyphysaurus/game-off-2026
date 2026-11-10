@@ -65,3 +65,12 @@ Space = jump, C = put down, LMB = toggle the carried light.
 - New Game: battery dark. Box core: battery lit + the hint once. F anywhere on open floor: shift, battery empties.
 - F with none: "No charge"; F mid-jump: "Feet on the ground first"; F as the toy in the skirting lane or by a wall:
   "No room to grow" (battery stays lit); F in the wardrobe: "Can't shift in here". Any core refills; a fall reset refills.
+
+## The rides (D-0047, 10 Nov)
+- Bedroom, as the toy at the foot of the books: a pink car a few steps west, nose toward the toy door. E → "Drive".
+  Stick drives, Space = handbrake, Shift = nitro, E gets out (it brakes first). The toy box is on the straight line.
+  At the toy door: get out and walk in (the door does not take a car).
+- Playroom: a blue car ahead and to the right of the mouse hole; a gold car at the foot of the last ruler ramp.
+  Known: the foam mats are taller than the cars' clearance. Note where a car stops dead, and whether the clutter makes
+  driving worse than walking.
+- As the kid: "Too big to drive". Note if walking over a parked car knocks it away from its spot.

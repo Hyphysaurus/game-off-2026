@@ -54,6 +54,10 @@ namespace ShiftJam
         [Tooltip("Closest and furthest zoom, as multiples of the distance.")] public Vector2 showroomZoom = new Vector2(0.5f, 2.5f);
         [Tooltip("Zoom change per wheel notch.")] public float showroomZoomStep = 0.1f;
 
+        [Header("Holding the road (loops, spirals, banked bends)")]
+        [Tooltip("How fast the view moves into, and out of, riding in the road's own frame, per second (4 = a quarter of a second).")] public float holdBlend = 4f;
+        [Tooltip("How closely that view follows the car's own turning, per second. Higher = stiffer and shows every bump; lower = smoother but it trails round a loop.")] public float holdFollow = 9f;
+
         [Header("Getting out")]
         [Tooltip("Seconds the view blends from the car back to the shoulder.")] public float leaveBlend = 0.35f;
     }

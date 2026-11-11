@@ -607,3 +607,21 @@
   **Checked, not played:** nothing in Player/, Shift/, Room/, Interaction/ or Core/ changed today except those two
   lines of ShiftCharge; no lift (Updraft, LaunchPad) is in the Raceway scene. What "floating upwards" was is not yet
   known: asked.
+
+- **D-0053 (10 Nov, 20:2x) A loop you drive straight through, and a camera that rides the road.** His second raceway
+  drive, after D-0052 made the loop possible: "not bad but it didnt feel very smooth, and we need some camera work for
+  the loops". **Smoothness, the cause found in the track:** the first loop simply drifted 16 sideways as it went round,
+  so the road slid out from under a car going straight and a wall carried it for most of the loop. `RwLoopPiece`: the
+  loop is now a strip wound at a slant (5.2 degrees) round a cylinder lying on its side; unrolled it is a straight
+  line, so a car that drives straight stays in its middle. Every eighth is the same shape (one mesh). It lets the road
+  out 16 to the side and 1.46 further on (`RwLoopForward`), which the circuit's closing straight takes up: closes to
+  0.001 and 0.00 degrees. Also: swept pieces are cut into 24 slices (was 14: under 2 degrees a facet); a hop on held
+  road is not a flight (`_airTime` cleared), so the loop no longer fires landing shakes, thumps and landing bursts.
+  **Camera** (`ShoulderCamera.VehicleView`): the upright chase view looks along the flat part of the car's travel,
+  which turns back on itself at the top of a loop. A vehicle can now say it holds the road (`IChaseHold.ChaseHolds`,
+  ArcadeCar: on or just off StickyTrack); while it does the camera rides in the road's own frame (behind the car, above
+  it by the road's up, rolling with it), blended with the upright view by `holdBlend` (4 a second) and following the
+  car's turning at `holdFollow` (9 a second; lower is smoother but trails). While the car is the right way up the
+  upright view keeps facing its nose, so coming off the held road blends into a view already behind the car. The same
+  view applies on the spiral and the banked hairpins (it leans with the bank). Mouse orbit is ignored while it holds.
+  Landed in his open editor with Play stopped, raceway rebuilt from the menu and saved. Unplayed.

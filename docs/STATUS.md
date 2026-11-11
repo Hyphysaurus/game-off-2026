@@ -2,6 +2,14 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 10 Nov 2026 20:2x — HE MADE THE LOOP ("not bad"); "didnt feel very smooth" + "camera work for the loops": D-0053 landed, UNPLAYED
+The D-0052 loop fix worked in his hands. D-0053: the loop is rebuilt as a slanted strip a car drives straight through
+(the old one rubbed the car along a wall), finer facets, no landing effects from hops on held road, and a chase camera
+that rides in the road's frame on the loop, the spiral and the banked hairpins. Editor recompiled (0 errors), raceway
+rebuilt from the menu through the bridge and saved: 45 pieces, closes to 0.001, road check passes. No build.
+ASKED: if it is still rough, where (loop, spiral, hairpins, straights, or the camera's shake in general).
+STILL OPEN from before: what floated upwards.
+
 ## 10 Nov 2026 19:4x — HIS FIRST RACEWAY DRIVE: the loop could not be made; fixed (D-0052), landed with Play stopped — UNPLAYED
 His notes: "not getting enough speed to do a full loop"; check the other traversal ("shrinking back to toy size and
 grounding on the floor rather than floating upwards"). Loop: cars fall at 60 (the props' gravity), the loop was sized

@@ -35,6 +35,9 @@ namespace ShiftJam
         private VehicleCameraSettings vehicle;
         private Transform _chase; private float _chaseYawOffset, _lastLookTime = -10f;
         private IChaseTarget _chaseInfo;
+        private IChaseHold _chaseHold;      // the same vehicle, if it can hold on to the road (null: it cannot)
+        private float _holdShare;           // 0 = the ordinary upright view, 1 = riding in the road's frame
+        private Quaternion _holdRot = Quaternion.identity; private bool _holdReady;   // the road's frame, eased
         private Vector3 _chaseCentreLocal;                     // the car's middle, in its own space
         private float _chaseLength = 1f, _chaseHeight = 1f;   // its size in world units, measured when the chase starts
         private Vector3 _aim, _aimVelocity, _lastChasePos;
@@ -246,6 +249,7 @@ namespace ShiftJam
             _lastLookTime = -10f; _aimReady = false; _yawVelocity = 0f;
             _overShare = 0f;
             _chaseInfo = vehicle != null ? vehicle.GetComponentInParent<IChaseTarget>() : null;
+            _chaseHold = _chaseInfo as IChaseHold; _holdShare = 0f; _holdReady = false;
             if (vehicle != null) MeasureChase();
         }
 
@@ -343,8 +347,42 @@ namespace ShiftJam
                 distance = Mathf.Min(distance, Mathf.Max(_chaseLength * v.minDistance, hit.distance));
             }
             Vector3 position = _aim + back * distance;
+            bool free = distance >= wanted - 1e-4f;
+
+            // On road the car holds on to (a loop, a spiral, a banked bend) the camera rides in the road's own frame: behind
+            // the car and above it by the ROAD's up, rolling with it. The upright view above looks along the flat part of the
+            // car's travel, which turns back on itself at the top of a loop; this one sees the loop from behind all the way
+            // round. The two are blended, so going on and coming off is one move.
+            bool holds = !showroom && _chaseHold != null && _chaseHold.ChaseHolds;
+            _holdShare = Mathf.MoveTowards(_holdShare, holds ? 1f : 0f, dt * Mathf.Max(0.1f, v.holdBlend));
+            if (_holdShare > 0f)
+            {
+                Vector3 roadUp = _chase.up;
+                Quaternion road = Quaternion.LookRotation(Quaternion.AngleAxis(_chaseYawOffset, roadUp) * _chase.forward, roadUp);
+                _holdRot = _holdReady && dt > 0f ? Quaternion.Slerp(_holdRot, road, 1f - Mathf.Exp(-Mathf.Max(0.1f, v.holdFollow) * dt)) : road;
+                _holdReady = true;
+                Quaternion held = _holdRot * Quaternion.Euler(_pitch, 0f, 0f);
+                Vector3 heldAim = centre + _holdRot * Vector3.up * (_chaseHeight * v.lookHeight), heldBack = held * Vector3.back;
+                float heldDistance = wanted;
+                count = Physics.SphereCastNonAlloc(heldAim, probe, heldBack, _hits, wanted, collisionMask, QueryTriggerInteraction.Ignore);
+                for (int i = 0; i < count; i++)
+                {
+                    var hit = _hits[i];
+                    if (hit.transform.IsChildOf(_chase) || (target != null && hit.transform.IsChildOf(target)) || ToyCar.OwnsBall(hit.rigidbody)) continue;
+                    heldDistance = Mathf.Min(heldDistance, Mathf.Max(_chaseLength * v.minDistance, hit.distance));
+                }
+                float k = _holdShare * _holdShare * (3f - 2f * _holdShare);
+                position = Vector3.Lerp(position, heldAim + heldBack * heldDistance, k);
+                rotation = Quaternion.Slerp(rotation, held, k);
+                free = free && heldDistance >= wanted - 1e-4f;
+                // while the car is the right way up the upright view keeps facing its nose, so coming off the held road
+                // blends into a view that is already behind the car
+                if (roadUp.y > 0.5f) { _yaw = _chase.eulerAngles.y + _chaseYawOffset; _yawVelocity = 0f; }
+            }
+            else _holdReady = false;
+
             // the shake goes on the finished pose; its sideways part only where the probe found the camera free room
-            AddShake(ref position, ref rotation, _chaseLength, distance >= wanted - 1e-4f ? probe : 0f, dt);
+            AddShake(ref position, ref rotation, _chaseLength, free ? probe : 0f, dt);
             transform.SetPositionAndRotation(position, rotation);
             if (_punchLeft > 0f) _punchLeft = Mathf.Max(0f, _punchLeft - dt);
             _camera.fieldOfView = baseFov + v.speedFov * _speedShare + v.boostFov * _overShare + PunchNow + FovOffset;

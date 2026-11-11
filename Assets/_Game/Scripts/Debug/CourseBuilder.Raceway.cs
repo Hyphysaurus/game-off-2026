@@ -24,7 +24,7 @@ namespace ShiftJam
 
         const float RwBase = 10f;          // the road's height on the level stretches: the toy walks underneath
         const float RwWall = 2f;           // the walls beside the road, above its surface (they show, unlike the playroom's guards)
-        const int RwSlices = 14;           // cuts along a swept piece: enough that a 45 degree bend reads as round
+        const int RwSlices = 24;           // cuts along a swept piece: under 2 degrees a facet on a 45 degree piece, so the springs do not feel them
 
         enum RwKind { Straight, Turn, Loop, Helix, Dive, Mark }
 
@@ -39,7 +39,9 @@ namespace ShiftJam
             /// into the bend by <paramref name="bank"/> degrees; the lean eases in over the first piece and out over the last.</summary>
             public static RwSeg Turn(float degrees, float radius, float bank) => new RwSeg(RwKind.Turn, degrees, radius, bank);
             /// <summary>A full vertical loop of <paramref name="radius"/> that comes out <paramref name="shift"/> to the
-            /// side of where it went in (negative = to the left), so the way out clears the way in.</summary>
+            /// side of where it went in (negative = to the left), so the way out clears the way in. The road is wound at a
+            /// slant, so a car that drives straight stays in the middle of it; it also comes out a little further on
+            /// (<see cref="RwLoopForward"/>).</summary>
             public static RwSeg Loop(float radius, float shift) => new RwSeg(RwKind.Loop, radius, shift);
             /// <summary>A spiral: <paramref name="turns"/> full turns (negative = to the left) at <paramref name="radius"/>,
             /// climbing <paramref name="risePerTurn"/> each turn, leaning in by <paramref name="bank"/>.</summary>
@@ -50,6 +52,13 @@ namespace ShiftJam
             public static RwSeg Mark(string tag) => new RwSeg(RwKind.Mark, tag: tag);
         }
 
+        /// <summary>How far forward of its way in a slanted loop lets the road out (a loop wound straight would be 0).</summary>
+        static float RwLoopForward(float radius, float shift)
+        {
+            float slant = Mathf.Asin(Mathf.Clamp(Mathf.Abs(shift) / (2f * Mathf.PI * radius), 0f, 0.9f));
+            return Mathf.Abs(shift) * Mathf.Tan(slant);
+        }
+
         /// <summary>How far forward a dive carries the road: the two curves plus the slope between them.</summary>
         static float RwDiveRun(float drop, float degrees, float radius)
         {
@@ -58,10 +67,10 @@ namespace ShiftJam
         }
 
         // ---- the circuit: anticlockwise, starting at the west end of the south straight, heading east ----
-        // The two long sides must be the same length for it to close. South: 150 of straight (the loop adds none).
-        // North: two 25s, the dive's run, and one straight that takes up what is left.
+        // The two long sides must be the same length for it to close. South: 150 of straight plus the little the slanted
+        // loop carries the road forward. North: two 25s, the dive's run, and one straight that takes up what is left.
         // The loop comes out 16 to the left, so the east hairpin's radius is 8 less than the west one's.
-        const float RwSide = 150f, RwLoopShift = 16f, RwWestRadius = 60f, RwClimb = 32f, RwDiveAngle = 30f, RwDiveRadius = 40f;
+        const float RwSide = 150f, RwLoopRadius = 28f, RwLoopShift = 16f, RwWestRadius = 60f, RwClimb = 32f, RwDiveAngle = 30f, RwDiveRadius = 40f;
         static readonly Vector3 RwStart = new Vector3(-75f, RwBase, -80f);
 
         static readonly RwSeg[] RwCircuit =
@@ -72,7 +81,7 @@ namespace ShiftJam
             RwSeg.Straight(50f),
             RwSeg.Mark("Boost"),
             RwSeg.Straight(25f),
-            RwSeg.Loop(28f, -RwLoopShift),
+            RwSeg.Loop(RwLoopRadius, -RwLoopShift),
             RwSeg.Straight(50f),
             RwSeg.Turn(-180f, RwWestRadius - RwLoopShift * 0.5f, 20f),
             RwSeg.Mark("Gate"),
@@ -82,7 +91,7 @@ namespace ShiftJam
             RwSeg.Straight(25f),
             RwSeg.Dive(RwClimb, RwDiveAngle, RwDiveRadius),
             RwSeg.Mark("Boost"),
-            RwSeg.Straight(RwSide - 50f - RwDiveRun(RwClimb, RwDiveAngle, RwDiveRadius)),
+            RwSeg.Straight(RwSide + RwLoopForward(RwLoopRadius, RwLoopShift) - 50f - RwDiveRun(RwClimb, RwDiveAngle, RwDiveRadius)),
             RwSeg.Mark("Gate"),
             RwSeg.Turn(-180f, RwWestRadius, 20f),
         };
@@ -184,7 +193,7 @@ namespace ShiftJam
                         break;
                     }
                     case RwKind.Loop:
-                        for (int i = 0; i < 8; i++) RwArc(layer, 45f, seg.A, seg.B / 8f, true);
+                        for (int i = 0; i < 8; i++) RwLoopPiece(layer, seg.A, seg.B);
                         break;
                     case RwKind.Dive:
                     {
@@ -326,6 +335,34 @@ namespace ShiftJam
             };
             RwSwept(layer, $"Arc_{degrees:F1}_R{radius:F1}_s{shift:F2}", "A", path, sticky);
             layer.Cursor.Level *= Quaternion.Euler(-degrees, 0f, 0f);
+        }
+
+        /// <summary>
+        /// One eighth of a loop a car can drive without steering. The road is a strip wound at a slant round a cylinder
+        /// lying on its side: on such a strip "straight on" stays in the middle (unrolled, it is a straight line), where a
+        /// loop that simply drifts sideways slides out from under a car going straight and rubs it along a wall all the way
+        /// round (his first drive, D-0053). Each eighth is the same shape, so one mesh serves. After eight the road points
+        /// the way it came in, <paramref name="shift"/> to the side and a little further on.
+        /// </summary>
+        static void RwLoopPiece(RwLayer layer, float radius, float shift)
+        {
+            if (Mathf.Abs(layer.Cursor.Roll) > 0.01f) Debug.LogError("Raceway: a loop needs a road that is not leaning; ease the lean out first.");
+            float r = radius / XwScale;
+            float slant = Mathf.Asin(Mathf.Clamp(Mathf.Abs(shift) / (2f * Mathf.PI * radius), 0f, 0.9f));
+            Vector3 ahead = Vector3.forward, aside = Vector3.right * (shift < 0f ? -1f : 1f), up = Vector3.up;
+            Vector3 round = Mathf.Cos(slant) * ahead - Mathf.Sin(slant) * aside;    // the way round the cylinder, at its foot
+            Vector3 along = Mathf.Sin(slant) * ahead + Mathf.Cos(slant) * aside;    // the cylinder's axis
+            TrackBender.Path path = (float t, out Vector3 position, out Quaternion turn) =>
+            {
+                float a = t * Mathf.PI * 0.25f;
+                position = along * (r * a * Mathf.Tan(slant)) + round * (r * Mathf.Sin(a)) + up * (r * (1f - Mathf.Cos(a)));
+                Vector3 tangent = Mathf.Cos(slant) * (Mathf.Cos(a) * round + Mathf.Sin(a) * up) + Mathf.Sin(slant) * along;
+                Vector3 normal = -Mathf.Sin(a) * round + Mathf.Cos(a) * up;
+                turn = Quaternion.LookRotation(tangent, normal);
+            };
+            RwSwept(layer, $"Loop_R{radius:F1}_s{shift:F2}", "L", path, true);
+            path(1f, out _, out Quaternion end);
+            layer.Cursor.Level *= end;
         }
 
         /// <summary>The path of a flat or climbing bend, measured from its own start: <paramref name="degrees"/> round

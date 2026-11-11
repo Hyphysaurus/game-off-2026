@@ -23,7 +23,7 @@ namespace ShiftJam
     /// its wheels are; DrivingFeel turns that into camera, sound, rumble and trails. The car itself plays none of it.
     /// </summary>
     [RequireComponent(typeof(Rigidbody), typeof(Damageable))]
-    public sealed class ArcadeCar : MonoBehaviour, IResettable, IBuildMoved, IChaseTarget, IBoostable, IDriftCharge
+    public sealed class ArcadeCar : MonoBehaviour, IResettable, IBuildMoved, IChaseTarget, IChaseHold, IBoostable, IDriftCharge
     {
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly BoostTuning DefaultBoost = new BoostTuning();
@@ -65,6 +65,7 @@ namespace ShiftJam
         private readonly RaycastHit[] _hits = new RaycastHit[8];
         private Collider _underKnown;       // the last thing a wheel stood on, and whether it is track the car holds on to
         private bool _underSticky;
+        private bool _holding;              // the last physics step found the car on, or just off, track it holds on to
         private AudioSource _oneShots;
         private CarBoost _boost;
         private CarFx _fx;
@@ -90,6 +91,8 @@ namespace ShiftJam
         public float TopSpeed => settings != null ? settings.TopSpeed * Scale : 0f;
         public float ChaseTopSpeed => TopSpeed;
         /// <summary>Any wheel touching the ground.</summary>
+        /// <summary>The car stands on, or hangs just off, track it holds on to (a loop, a spiral, a banked bend).</summary>
+        public bool ChaseHolds => _holding;
         public bool ChaseGrounded
         {
             get
@@ -505,7 +508,7 @@ namespace ShiftJam
         private void FixedUpdate()
         {
             if (settings == null || wheels.Length == 0) return;
-            if (_rb.isKinematic) { _boost.Halt(); _slip = 0f; _airTime = 0f; return; }   // parked on a lift or held: nothing to drive
+            if (_rb.isKinematic) { _boost.Halt(); _slip = 0f; _airTime = 0f; _holding = false; return; }   // parked on a lift or held: nothing to drive
             float dt = Time.fixedDeltaTime, s = Scale;
             float g = Mathf.Max(0.01f, -Physics.gravity.y);
             int n = wheels.Length, grounded = 0;
@@ -673,6 +676,7 @@ namespace ShiftJam
                 if (held != null)
                 {
                     holds = true;
+                    _airTime = 0f;   // a hop on road it holds on to is not a flight: no landing, no landing burst
                     // its weight still points at the road it hopped off, plus the piece's own pull to bring it back
                     _rb.AddForce(Vector3.up * g - up * (g + held.Pull * s), ForceMode.Acceleration);
                     _rb.AddTorque(-_rb.angularVelocity * 0.5f, ForceMode.Acceleration);
@@ -704,6 +708,7 @@ namespace ShiftJam
                 _rb.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
                 _rb.angularVelocity = Vector3.zero;
             }
+            _holding = holds;
             if (transform.position.y < _spawn.y - 80f * s) { WreckedNow?.Invoke(); Recover(); }
         }
 

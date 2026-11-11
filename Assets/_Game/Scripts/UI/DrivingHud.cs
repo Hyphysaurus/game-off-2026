@@ -9,16 +9,23 @@ namespace ShiftJam
     /// The driving HUD (D-0037). Bottom right while driving in Play (hidden in the garage menu, Build Mode and first
     /// person): the speed in scale km/h (units per second x 4.608: 1 unit = 2 cm and the toy car is about 1:64) inside an
     /// arc that fills with speed and warms to red near top speed and while boosting, the nitro bar with the Shift key, a
-    /// BOOST pop when a boost fires, and a small wind meter while the pull-back spring winds. Top right during a race and
+    /// BOOST pop when a boost fires, and a small wind meter while the pull-back spring winds. The arc runs past top speed
+    /// (dialSpan times it): the red zone is the stretch only a boost reaches, so the needle still moves there. When a
+    /// boost fires the dial rattles and the number flashes; two pips beside NITRO fill with the drift charge (cars with
+    /// IDriftCharge). Top right during a race and
     /// a while after it: the lap, lap time, best lap and gates, a toast for each lap, then FINISH and the total time.
-    /// Reads the car only through IChaseTarget and IBoostable, and the race through RaceState. Made by code at start like
+    /// Reads the car only through IChaseTarget, IBoostable and IDriftCharge, and the race through RaceState. Made by code at start like
     /// KeyHelp and lives across scenes. Fonts come from Resources/HUD (Shift Jam > UI > Make HUD Fonts), TMP's default
     /// when missing. It sorts under the scene HUD (order 0), so the screen fade and the start and end cards cover it.
     /// </summary>
     public sealed class DrivingHud : MonoBehaviour
     {
         private const int SortingOrder = -10;
-        private const float ArcDegrees = 270f, RedlineFrom = 0.85f;
+        private const float ArcDegrees = 270f;
+        private const int TicksPerTop = 8, MajorEvery = 4;   // tick marks per top speed's worth of arc; every fourth is long (0, half, top speed...)
+        private const float PipWidth = 20f, PipHeight = 8f, PipGap = 4f;   // the two drift pips beside NITRO
+        private const float RattleX = 61f, RattleY = 47f;   // how fast the dial's rattle swings each way, radians per second
+        private const float NumberSwell = 0.15f;            // the speed number grows by this share at the start of the rattle
         private const float DialSize = 250f, Width = 260f, NitroHeight = 64f, HealthHeight = 44f, Gap = 8f;
         private const float DialBase = NitroHeight + Gap + HealthHeight + Gap;   // the dial sits over the nitro and health panels
         private const int RoundRadius = 32;   // corner radius of the generated 9-slice sprite, pixels
@@ -30,6 +37,9 @@ namespace ShiftJam
         [SerializeField, Tooltip("Top speed when the vehicle does not report one, units per second.")] private float fallbackTopSpeed = 26f;
         [SerializeField, Range(0f, 1f), Tooltip("Share of top speed where the arc starts to warm.")] private float warmFrom = 0.6f;
         [SerializeField, Tooltip("Seconds the shown speed takes to settle (smooths bumps and landings).")] private float speedSmoothing = 0.08f;
+        [SerializeField, Min(1f), Tooltip("The arc is full at this many times top speed (nitro reaches 1.5). The part past top speed is the red zone. Read once, when the HUD is made.")] private float dialSpan = 1.5f;
+        [SerializeField, Tooltip("How far the dial rattles when a boost fires, canvas units. 0 = no rattle.")] private float dialShake = 7f;
+        [SerializeField, Tooltip("Seconds the rattle (and the number's flash) lasts.")] private float dialShakeSeconds = 0.35f;
 
         [Header("Colours")]
         [SerializeField] private Color accent = new Color(0.35f, 0.85f, 1f);       // BuildUiKit's cyan at full strength
@@ -54,7 +64,13 @@ namespace ShiftJam
 
         private Canvas _canvas;
         private CanvasGroup _drive, _badge, _wind, _race, _toast, _banner;
-        private RectTransform _badgeRt, _bannerRt, _nitroFillRt;
+        private RectTransform _badgeRt, _bannerRt, _nitroFillRt, _dialRt, _speedRt, _pipOneRt, _pipTwoRt;
+        private Vector2 _dialHome;
+        private bool _dialMoved;
+        private GameObject _driftPips;
+        private Image _pipOne, _pipTwo;
+        private IDriftCharge _drift;
+        private float _driftShown = -1f;
         private GameObject _nitroPanel, _healthPanel;
         private RectTransform _healthFillRt;
         private Image _healthFill, _shieldRim;
@@ -146,11 +162,12 @@ namespace ShiftJam
         private void Bind(Transform vehicle)
         {
             _vehicle = vehicle;
-            _chase = null; _boost = null; _hasLast = false;
+            _chase = null; _boost = null; _drift = null; _hasLast = false;
             if (vehicle != null)
             {
                 _chase = Find<IChaseTarget>(vehicle);
                 _boost = Find<IBoostable>(vehicle);
+                _drift = Find<IDriftCharge>(vehicle);   // the wooden car has none: no pips
                 if (_chase == null || _boost == null)
                     foreach (var car in ToyCar.All)   // the wooden car's physics ball is a separate object
                         if (car != null && car.Ball == vehicle)
@@ -170,6 +187,9 @@ namespace ShiftJam
             _windShown = -1; _windFull = false; _spendUntil = 0f;
             _wind.alpha = 0f; _badge.alpha = 0f;
             if (_nitroPanel.activeSelf != boost) _nitroPanel.SetActive(boost);
+            _driftShown = -1f;
+            if (_driftPips.activeSelf != (_drift != null)) _driftPips.SetActive(_drift != null);
+            SettleDial();
         }
 
         private static T Find<T>(Transform t) where T : class
@@ -187,6 +207,7 @@ namespace ShiftJam
             if (_chase != null && !Alive(_chase)) _chase = null;
             if (_boost != null && !Alive(_boost)) { _boost = null; _nitroPanel.SetActive(false); }
             if (_health != null && !Alive(_health)) { _health = null; _healthPanel.SetActive(false); }
+            if (_drift != null && !Alive(_drift)) { _drift = null; _driftPips.SetActive(false); }
 
             Vector3 velocity = _chase != null ? _chase.ChaseVelocity : Measured();
             float top = _chase != null && _chase.ChaseTopSpeed > 0.01f ? _chase.ChaseTopSpeed : fallbackTopSpeed;
@@ -196,13 +217,25 @@ namespace ShiftJam
 
             bool boosting = _boost != null && _boost.Boosting;
             float speed01 = _shownSpeed / top;
-            _arc.fillAmount = ArcDegrees / 360f * Mathf.Clamp01(speed01);
+            _arc.fillAmount = ArcDegrees / 360f * Mathf.Clamp01(speed01 / Mathf.Max(1f, dialSpan));   // the arc runs past top speed
             _arc.color = ArcColour(speed01, boosting, now);
-            _speed.color = boosting ? Color.Lerp(Color.white, warm, 0.35f) : Color.white;
 
             if (boosting && !_wasBoosting) _popAt = now;
             _wasBoosting = boosting;
             float t = now - _popAt;
+            // a boost firing: the dial rattles, the number flashes the boost colour and swells, all dying away together
+            float kick = dialShakeSeconds > 0f && t < dialShakeSeconds ? 1f - t / dialShakeSeconds : 0f;
+            kick *= kick;
+            Color number = boosting ? Color.Lerp(Color.white, warm, 0.35f) : Color.white;
+            _speed.color = kick > 0f ? Color.Lerp(number, boostColour, kick) : number;
+            if (kick > 0f)
+            {
+                _dialRt.anchoredPosition = _dialHome + new Vector2(Mathf.Sin(now * RattleX), Mathf.Cos(now * RattleY)) * (dialShake * kick);
+                _speedRt.localScale = Vector3.one * (1f + NumberSwell * kick);
+                _dialMoved = true;
+            }
+            else if (_dialMoved) SettleDial();
+
             if (t < boostPopSeconds)
             {
                 float hold = boostPopSeconds * 0.6f;
@@ -212,8 +245,37 @@ namespace ShiftJam
             else if (_badge.alpha > 0f) _badge.alpha = 0f;
 
             if (_boost != null) UpdateNitro(dt, now);
+            if (_drift != null) UpdateDrift(now);
             if (_health != null) UpdateHealth(dt, now);
             UpdateWind(_boost != null ? Mathf.Clamp01(_boost.Wind) : 0f, dt, now);
+        }
+
+        /// <summary>The dial and the number back where they belong after a boost's rattle.</summary>
+        private void SettleDial()
+        {
+            _dialMoved = false;
+            _dialRt.anchoredPosition = _dialHome;
+            _speedRt.localScale = Vector3.one;
+        }
+
+        /// <summary>The drift pips: the first fills (cyan) on the way to level one, the second (orange) on the way to
+        /// level two; both pulse once level two is banked. Letting go of the handbrake spends them.</summary>
+        private void UpdateDrift(float now)
+        {
+            float meter = Mathf.Clamp(_drift.DriftMeter, 0f, 2f);
+            bool full = meter >= 2f;
+            if (meter != _driftShown)
+            {
+                _driftShown = meter;
+                Vector2 max = _pipOneRt.anchorMax; max.x = Mathf.Clamp01(meter); _pipOneRt.anchorMax = max;
+                max = _pipTwoRt.anchorMax; max.x = Mathf.Clamp01(meter - 1f); _pipTwoRt.anchorMax = max;
+                _pipOne.enabled = meter > 0.02f;
+                _pipTwo.enabled = meter > 1.02f;
+            }
+            if (!_pipOne.enabled) return;
+            float pulse = full ? 0.5f + 0.5f * Mathf.Sin(now * 14f) : 0f;
+            _pipOne.color = Color.Lerp(accent, Color.white, 0.6f * pulse);
+            _pipTwo.color = Color.Lerp(boostColour, Color.white, 0.6f * pulse);
         }
 
         /// <summary>For a vehicle that does not report its speed: measured from how it moves.</summary>
@@ -440,13 +502,16 @@ namespace ShiftJam
 
             // the dial: speed arc over a dim track with a red zone, ticks, the number
             var dial = At("Dial", drive, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, DialBase), new Vector2(DialSize, DialSize));
+            _dialRt = dial; _dialHome = dial.anchoredPosition;
             Img("Back", dial, _disc, BuildUiKit.PanelColor, 0f);
             float start = (360f - ArcDegrees) * 0.5f, share = ArcDegrees / 360f;
+            float redFrom = 1f / Mathf.Max(1f, dialSpan);   // top speed's place on the arc: past it is the boost's stretch
             Arc("Track", dial, start, share, new Color(1f, 1f, 1f, 0.1f));
-            Arc("Redline", dial, start + ArcDegrees * RedlineFrom, share * (1f - RedlineFrom), new Color(hot.r, hot.g, hot.b, 0.4f));
+            if (redFrom < 1f) Arc("Redline", dial, start + ArcDegrees * redFrom, share * (1f - redFrom), new Color(hot.r, hot.g, hot.b, 0.4f));
             _arc = Arc("Speed", dial, start, 0f, accent);
             Img("Ticks", dial, _ticks, new Color(1f, 1f, 1f, 0.35f), 4f);
-            _speed = Label(At("Speed", dial, Centre, Centre, new Vector2(0f, 8f), new Vector2(200f, 100f)), 96f, true, TextAlignmentOptions.Capline, Color.white);
+            _speedRt = At("Speed", dial, Centre, Centre, new Vector2(0f, 8f), new Vector2(200f, 100f));
+            _speed = Label(_speedRt, 96f, true, TextAlignmentOptions.Capline, Color.white);
             _speed.SetText(_speedFormat, 0f);
             Label(At("Unit", dial, Centre, Centre, new Vector2(0f, -52f), new Vector2(120f, 28f)), 18f, false, TextAlignmentOptions.Capline, labelColour).SetText("km/h");
 
@@ -459,6 +524,12 @@ namespace ShiftJam
             _ready = Label(At("Ready", nitro, new Vector2(1f, 0f), new Vector2(1f, 0.5f), new Vector2(-14f, 44f), new Vector2(110f, 20f)), 15f, false, TextAlignmentOptions.CaplineRight, gold);
             _ready.SetText("READY");
             _ready.alpha = 0f;
+            // the drift charge: two pips between NITRO and READY
+            var pips = At("Drift", nitro, Vector2.zero, new Vector2(0f, 0.5f), new Vector2(140f, 44f), new Vector2(PipWidth * 2f + PipGap, PipHeight));
+            _driftPips = pips.gameObject;
+            _pipOne = Pip("One", pips, 0f, accent, out _pipOneRt);
+            _pipTwo = Pip("Two", pips, PipWidth + PipGap, boostColour, out _pipTwoRt);
+            _driftPips.SetActive(false);
             var bar = At("Bar", nitro, Vector2.zero, new Vector2(0f, 0.5f), new Vector2(74f, 22f), new Vector2(Width - 88f, 16f));
             Round(bar, new Color(1f, 1f, 1f, 0.1f), 8f);
             var area = BuildUiKit.Fill("Area", bar, 3f, 3f, 3f, 3f);
@@ -558,6 +629,17 @@ namespace ShiftJam
         private static RectTransform At(string name, Transform parent, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
             => BuildUiKit.Rect(name, parent, anchor, anchor, pivot, position, size);
 
+        /// <summary>One drift pip at <paramref name="x"/> in the pips' box: a dim slot and a fill that grows from its left.</summary>
+        private Image Pip(string name, RectTransform pips, float x, Color colour, out RectTransform fill)
+        {
+            var slot = At(name, pips, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(x, 0f), new Vector2(PipWidth, PipHeight));
+            Round(slot, new Color(1f, 1f, 1f, 0.12f), PipHeight * 0.5f);
+            fill = BuildUiKit.Rect("Fill", slot, Vector2.zero, new Vector2(0f, 1f), new Vector2(0f, 0.5f), Vector2.zero, Vector2.zero);
+            var img = Round(fill, colour, PipHeight * 0.5f);
+            img.enabled = false;
+            return img;
+        }
+
         private static CanvasGroup Group(RectTransform rt)
         {
             var group = rt.gameObject.AddComponent<CanvasGroup>();
@@ -636,10 +718,11 @@ namespace ShiftJam
             return Bake(name, size, px, Vector4.zero);
         }
 
-        /// <summary>Tick marks inside the ring along the speed arc: every 10%, longer at 0, 50 and 100%.</summary>
+        /// <summary>Tick marks inside the ring along the speed arc: TicksPerTop for each top speed's worth of arc, every
+        /// MajorEvery-th longer, so with the default span of 1.5 the long ones sit at 0, half, top speed and 1.5 times it.</summary>
         private Sprite Ticks(int size)
         {
-            const int count = 11;
+            int count = Mathf.Max(2, Mathf.RoundToInt(Mathf.Max(1f, dialSpan) * TicksPerTop) + 1);
             var px = new Color32[size * size];
             float c = size * 0.5f, outerR = c - 1f;
             float r0 = outerR * 0.71f, r0Major = outerR * 0.66f, r1 = outerR * 0.8f;
@@ -659,7 +742,7 @@ namespace ShiftJam
                     if (d2 > near && d2 < far)
                         for (int i = 0; i < count; i++)
                         {
-                            bool major = i % 5 == 0;
+                            bool major = i % MajorEvery == 0;
                             float along = dx * dirs[i].x + dy * dirs[i].y;
                             float across = Mathf.Abs(dx * dirs[i].y - dy * dirs[i].x);
                             float from = major ? r0Major : r0, w = major ? halfMajor : half;

@@ -101,3 +101,17 @@ Space = jump, C = put down, LMB = toggle the carried light.
 - Note: whether the car makes the loop and where it leaves it; scraping at the loop's bottom; the spiral at speed (do
   the walls hold you); the crest into the dive (how long you fly, how hard you land); gates you miss or clip; anything
   that stops you dead. F9 puts the cars back.
+
+## The driving pass (D-0051, 10 Nov)
+- Any Cyber car, best on the raceway. Hold forward from a stop: it should pull hard, then ease toward the top; the
+  view widens and sits lower as you speed up; wind rises; faint speed lines near the top.
+- Shift (nitro) or a boost pad: the view kicks wider, the camera shakes a little, lines turn stronger, the dial
+  rattles and runs into its red stretch.
+- Drift: at speed hold Space and steer. One pip lights by NITRO after about half a second, the second after a second
+  and a half; let go of Space and the car bursts forward. Skid sound and marks while sliding.
+- The dive: off the crest, steer in the air (stick tips and turns it; with Space held it rolls). Land flat with the
+  throttle on for a small burst; a thump and a shake by how hard you land.
+- The loop and the spiral: the car should stay on even if it hops. Note where it lets go.
+- Pad: hum with speed, buzz on boost and in a slide, a jolt on landing and on a hit. It must stop when you get out
+  and when you pause.
+- Note anything too strong or too weak, and say which; every number is in one of three settings files.

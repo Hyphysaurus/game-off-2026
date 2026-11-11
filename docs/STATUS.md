@@ -2,6 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 10 Nov 2026 19:2x — THE DRIVING PASS (D-0051) landed in his open editor (Play stopped): speed, camera, sound, rumble, trails, the loop hold — UNPLAYED
+His "stopped, didnt play yet, add in the latest additions and then i test". 14 script files copied in (5 changed, 8
+new, the raceway builder), editor recompiled with 0 errors, raceway rebuilt from the menu through the bridge (his
+ask) and saved: 45 pieces, checks pass, 32 pieces marked sticky. No build. Not played by anyone.
+HIS PLAYTEST (editor, Raceway.unity): docs/PLAYTEST.md "The driving pass". All feel numbers are first guesses.
+WATCH: top speed is now 32 everywhere (playroom loop, stunt run, Workshop): jumps go further, walls hurt more.
+
 ## 10 Nov 2026 18:3x — THE RACEWAY (D-0050): a separate room, one circuit with a loop, a spiral and a dive — LANDED, UNDRIVEN
 His "lacks juice, feels a bit slow, the course is very predictable and basic", "verticality as much as possible", then
 "feel free to build it in a separate room". New scene `Raceway.unity` (from the Workshop's scene; in the build list;
@@ -12,9 +19,7 @@ WHAT IS THERE: an orange circuit with yellow walls on pillars in the middle of a
 steps up, three cars), finish arch, boost pad, vertical loop, banked hairpin, a two-turn spiral to a deck at 42, a
 dive, the second hairpin. About 1340 units a lap.
 HIS PLAYTEST (editor): open Raceway.unity, Play; docs/PLAYTEST.md "The raceway".
-STILL COMING THIS SESSION: the driving pass (speed, camera, sound, trails, rumble: D-0051), being written outside the
-project by a second builder; the car's hold on sticky track goes in with it. Until then the loop is driven on plain
-physics (hold the throttle through it).
+The driving pass and the car's hold on sticky track landed the same evening (D-0051, above).
 
 ## 10 Nov 2026 14:1x — MAT BEDS (D-0049) after his first drive: the car "got stuck" on the mats — LANDED, UNDRIVEN
 HE DROVE the expressway for the first time (editor): took the gold car down the entry ramp and it

@@ -10,8 +10,11 @@ namespace ShiftJam
     /// the player has moved this frame, which is why it never jitters.
     /// All distances scale with the Shifter, so the framing feels the same at toy size.
     /// While a vehicle is driven it frames the car instead (D-0036, VehicleCameraSettings): its middle, by its own size,
-    /// trailing it a little, swinging in behind the way it travels, widening slightly with speed, slower in the air; in the
-    /// garage (menu up) right-drag, A/D and the wheel orbit and zoom round the parked car. Getting out blends back.
+    /// trailing it a little, swinging in behind the way it travels, slower in the air; with speed the view widens and the
+    /// camera moves in and flattens, more so past top speed (a boost); in the garage (menu up) right-drag, A/D and the
+    /// wheel orbit and zoom round the parked car. Getting out blends back.
+    /// <see cref="Shake"/> rattles the finished view for a moment and <see cref="PunchFov"/> kicks the field of view
+    /// (DrivingFeel calls them for boosts, landings and crashes).
     /// </summary>
     [RequireComponent(typeof(Camera))]
     public sealed class ShoulderCamera : MonoBehaviour
@@ -36,7 +39,13 @@ namespace ShiftJam
         private float _chaseLength = 1f, _chaseHeight = 1f;   // its size in world units, measured when the chase starts
         private Vector3 _aim, _aimVelocity, _lastChasePos;
         private bool _aimReady;
-        private float _yawVelocity, _speedShare, _showroomZoom = 1f;
+        private float _yawVelocity, _speedShare, _overShare, _showroomZoom = 1f;   // over: how far past top speed, 0..1
+        // feedback on top of the finished view: a decaying shake and a field-of-view kick
+        private const float PunchAttack = 0.2f;   // share of a punch's time spent swinging out (the rest eases back)
+        private const float ShakeRoom = 0.8f;     // share of the camera's known clearance a shake may move it through
+        private const float ShakeRoll = 0.5f;     // the roll part of a shake, against its tilt up-down and sideways
+        private float _shakeAmount, _shakeTime, _shakeLeft;
+        private float _punchDegrees, _punchTime, _punchLeft;
         private float _leave; private Vector3 _leavePos; private Quaternion _leaveRot;   // blending back to the shoulder
 
         private VehicleCameraSettings Vehicle
@@ -53,6 +62,71 @@ namespace ShiftJam
         public float Pitch => _pitch;
         /// <summary>Degrees added to the settings' field of view this frame. ShiftWarp punches it during a shift; 0 otherwise.</summary>
         public float FovOffset { get; set; }
+
+        /// <summary>What is left of the running shake, 0..1.</summary>
+        private float ShakeLevel
+        {
+            get
+            {
+                if (_shakeLeft <= 0f || _shakeTime <= 0f) return 0f;
+                float k = _shakeLeft / _shakeTime;
+                return _shakeAmount * k * k;
+            }
+        }
+
+        /// <summary>The field-of-view kick now, degrees: out fast, back slower.</summary>
+        private float PunchNow
+        {
+            get
+            {
+                if (_punchLeft <= 0f || _punchTime <= 0f) return 0f;
+                float p = 1f - _punchLeft / _punchTime;   // 0 at the start, 1 at the end
+                float k = p < PunchAttack ? p / PunchAttack : 1f - (p - PunchAttack) / (1f - PunchAttack);
+                return _punchDegrees * k * k * (3f - 2f * k);
+            }
+        }
+
+        /// <summary>
+        /// Rattles the view for <paramref name="seconds"/>, dying away. <paramref name="amount"/> runs 0..1 (1 = the
+        /// strongest the settings allow: VehicleCameraSettings.shakeOffset and shakeAngle). It is added after the camera
+        /// has found its place, mostly as a tilt; the small sideways part stays inside the camera's own clearance and is
+        /// dropped while a wall has pushed the camera in, so a shake never puts the view through anything. A weaker shake
+        /// never cuts a stronger one short.
+        /// </summary>
+        public void Shake(float amount, float seconds)
+        {
+            amount = Mathf.Clamp01(amount);
+            if (amount <= 0f || seconds <= 0f || amount < ShakeLevel) return;
+            _shakeAmount = amount; _shakeTime = seconds; _shakeLeft = seconds;
+        }
+
+        /// <summary>Kicks the field of view out by <paramref name="degrees"/> and eases it back over
+        /// <paramref name="seconds"/> (a boost starting). A smaller kick never cuts a bigger one short.</summary>
+        public void PunchFov(float degrees, float seconds)
+        {
+            if (degrees <= 0f || seconds <= 0f || degrees < PunchNow) return;
+            _punchDegrees = degrees; _punchTime = seconds; _punchLeft = seconds;
+        }
+
+        /// <summary>
+        /// The shake for this frame, added to a finished pose. <paramref name="unit"/> is the length shakeOffset is a share
+        /// of (the car's length, or the player's size on foot); <paramref name="clearance"/> is the free room known to be
+        /// round the camera (its probe's radius), 0 when a wall has pushed it in.
+        /// </summary>
+        private void AddShake(ref Vector3 position, ref Quaternion rotation, float unit, float clearance, float dt)
+        {
+            if (_shakeLeft <= 0f) return;
+            _shakeLeft = Mathf.Max(0f, _shakeLeft - dt);
+            float level = ShakeLevel;
+            if (level <= 0f) return;
+            var v = Vehicle;
+            float t = Time.unscaledTime * v.shakeFrequency;
+            float x = Mathf.PerlinNoise(t, 0.37f) * 2f - 1f, y = Mathf.PerlinNoise(0.71f, t) * 2f - 1f, z = Mathf.PerlinNoise(t, 7.13f) * 2f - 1f;
+            float reach = Mathf.Min(unit * v.shakeOffset * level, clearance * ShakeRoom);
+            if (reach > 0f) position += rotation * new Vector3(x * reach, y * reach, 0f);   // never along the view
+            float tilt = v.shakeAngle * level;
+            rotation *= Quaternion.Euler(y * tilt, x * tilt, z * tilt * ShakeRoll);
+        }
 
         private void Awake()
         {
@@ -149,10 +223,15 @@ namespace ShiftJam
                 // just got out: ease from the car's framing to the shoulder instead of cutting
                 _leave = Mathf.Max(0f, _leave - dt / Mathf.Max(0.01f, Vehicle.leaveBlend));
                 float k = _leave * _leave * (3f - 2f * _leave);
-                transform.SetPositionAndRotation(Vector3.Lerp(position, _leavePos, k), Quaternion.Slerp(rotation, _leaveRot, k));
+                position = Vector3.Lerp(position, _leavePos, k); rotation = Quaternion.Slerp(rotation, _leaveRot, k);
             }
-            else transform.SetPositionAndRotation(position, rotation);
-            _camera.fieldOfView = fov + FovOffset;
+            // a shake still running (thrown out of a wreck) dies away on foot too; tilt only while a wall or the blend
+            // from the car decides where the camera is
+            bool free = _leave <= 0f && distance >= wanted - 1e-4f;
+            AddShake(ref position, ref rotation, scale, free ? settings.collisionRadius * scale : 0f, dt);
+            transform.SetPositionAndRotation(position, rotation);
+            if (_punchLeft > 0f) _punchLeft = Mathf.Max(0f, _punchLeft - dt);
+            _camera.fieldOfView = fov + FovOffset + PunchNow;
             _camera.nearClipPlane = Mathf.Max(0.001f, settings.nearClip * scale);
         }
 
@@ -165,6 +244,7 @@ namespace ShiftJam
             if (vehicle != null) _leave = 0f;
             _chase = vehicle; _chaseYawOffset = yawOffset;
             _lastLookTime = -10f; _aimReady = false; _yawVelocity = 0f;
+            _overShare = 0f;
             _chaseInfo = vehicle != null ? vehicle.GetComponentInParent<IChaseTarget>() : null;
             if (vehicle != null) MeasureChase();
         }
@@ -194,7 +274,8 @@ namespace ShiftJam
         }
 
         /// <summary>The vehicle camera: aim at the car's middle (trailing it a little), swing in behind the way it travels when
-        /// the mouse rests, slower in the air, a touch wider and further at speed; the garage menu turns it into an orbit.</summary>
+        /// the mouse rests, slower in the air; wider, closer and flatter with speed, and more so past top speed (a boost);
+        /// the garage menu turns it into an orbit. The shake and the field-of-view kick go on last.</summary>
         private void VehicleView(Vector2 look, float baseFov, float dt)
         {
             var v = Vehicle;
@@ -212,8 +293,10 @@ namespace ShiftJam
 
             Vector3 flat = Vector3.ProjectOnPlane(velocity, Vector3.up);
             float top = _chaseInfo != null ? _chaseInfo.ChaseTopSpeed : _chaseLength * 6f;
-            float share = top > 1e-3f ? Mathf.Clamp01(flat.magnitude / top) : 0f;
+            float raw = top > 1e-3f ? flat.magnitude / top : 0f;   // 1 = top speed; a boost goes past it
+            float share = Mathf.Clamp01(raw);
             _speedShare = Mathf.MoveTowards(_speedShare, share, dt * 2f);
+            _overShare = Mathf.MoveTowards(_overShare, Mathf.InverseLerp(1f, Mathf.Max(1.01f, v.boostAt), raw), dt * Mathf.Max(0.1f, v.boostResponse));
 
             bool showroom = _menuHold;   // the garage menu is up and the car parked
             if (showroom) Showroom(look, v, dt);
@@ -239,24 +322,32 @@ namespace ShiftJam
                     bool grounded = _chaseInfo == null || _chaseInfo.ChaseGrounded;
                     float lag = Mathf.Max(0.01f, v.turnLag * (grounded ? 1f : Mathf.Max(1f, v.airTurnSlowdown)));
                     if (dt > 0f) _yaw = Mathf.SmoothDampAngle(_yaw, behind, ref _yawVelocity, lag, Mathf.Infinity, dt);
-                    _pitch = Mathf.MoveTowards(_pitch, v.pitch, v.pitchReturn * dt);
+                    // settles flatter (lower behind the car) as speed rises
+                    _pitch = Mathf.MoveTowards(_pitch, v.pitch - v.speedPitch * _speedShare - v.boostPitch * _overShare, v.pitchReturn * dt);
                 }
                 else _yawVelocity = 0f;
             }
 
             Quaternion rotation = Quaternion.Euler(_pitch, _yaw, 0f);
             Vector3 back = rotation * Vector3.back;
-            float wanted = _chaseLength * v.distance * (showroom ? _showroomZoom : 1f) * (1f + v.speedPullBack * _speedShare);
+            // closer as speed rises: with the wider view the car keeps its size while the room rushes past
+            float closer = Mathf.Max(0.3f, 1f - v.speedCloser * _speedShare - v.boostCloser * _overShare);
+            float wanted = _chaseLength * v.distance * (showroom ? _showroomZoom : closer);
             float distance = wanted;
-            int count = Physics.SphereCastNonAlloc(_aim, Mathf.Max(0.02f, _chaseHeight * 0.12f), back, _hits, wanted, collisionMask, QueryTriggerInteraction.Ignore);
+            float probe = Mathf.Max(0.02f, _chaseHeight * 0.12f);
+            int count = Physics.SphereCastNonAlloc(_aim, probe, back, _hits, wanted, collisionMask, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
             {
                 var hit = _hits[i];
                 if (hit.transform.IsChildOf(_chase) || (target != null && hit.transform.IsChildOf(target)) || ToyCar.OwnsBall(hit.rigidbody)) continue;
                 distance = Mathf.Min(distance, Mathf.Max(_chaseLength * v.minDistance, hit.distance));
             }
-            transform.SetPositionAndRotation(_aim + back * distance, rotation);
-            _camera.fieldOfView = baseFov + v.speedFov * _speedShare + FovOffset;
+            Vector3 position = _aim + back * distance;
+            // the shake goes on the finished pose; its sideways part only where the probe found the camera free room
+            AddShake(ref position, ref rotation, _chaseLength, distance >= wanted - 1e-4f ? probe : 0f, dt);
+            transform.SetPositionAndRotation(position, rotation);
+            if (_punchLeft > 0f) _punchLeft = Mathf.Max(0f, _punchLeft - dt);
+            _camera.fieldOfView = baseFov + v.speedFov * _speedShare + v.boostFov * _overShare + PunchNow + FovOffset;
             _camera.nearClipPlane = Mathf.Max(0.001f, _chaseLength * 0.02f);
         }
 

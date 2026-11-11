@@ -184,15 +184,15 @@ namespace ShiftJam
                         break;
                     }
                     case RwKind.Loop:
-                        for (int i = 0; i < 8; i++) RwArc(layer, 45f, seg.A, seg.B / 8f);
+                        for (int i = 0; i < 8; i++) RwArc(layer, 45f, seg.A, seg.B / 8f, true);
                         break;
                     case RwKind.Dive:
                     {
                         float rad = seg.B * Mathf.Deg2Rad, curves = 2f * seg.C * (1f - Mathf.Cos(rad));
-                        RwArc(layer, -seg.B, seg.C, 0f);
+                        RwArc(layer, -seg.B, seg.C, 0f, false);   // the crest is where the car is meant to fly
                         float slope = Mathf.Max(0f, seg.A - curves) / Mathf.Sin(rad);
                         if (slope > 1f) RwStraights(layer, slope, false);
-                        RwArc(layer, seg.B, seg.C, 0f);
+                        RwArc(layer, seg.B, seg.C, 0f, false);
                         break;
                     }
                     case RwKind.Mark:
@@ -281,7 +281,6 @@ namespace ShiftJam
                 var go = (GameObject)PrefabUtility.InstantiatePrefab(kit.Straight, layer.Parent); go.name = "S" + layer.Count++;
                 go.transform.localScale = new Vector3(XwScale, XwScale, stretch);
                 go.transform.SetPositionAndRotation(layer.Cursor.Pos - turn * new Vector3(0f, 0f, shape.Start * stretch), turn);
-                go.AddComponent<StickyTrack>();
                 bool right = !(openFirst && i == 0);
                 var walls = RwMesh(layer, right ? "Wall_Straight" : "Wall_Straight_LeftOnly", () => TrackBender.SweepWalls(shape, "walls", RwWall / XwScale, true, right, 2,
                     (float t, out Vector3 position, out Quaternion r) => { position = new Vector3(0f, 0f, shape.Length * t); r = Quaternion.identity; }, layer.RailUv));
@@ -306,15 +305,16 @@ namespace ShiftJam
             {
                 float roll0 = i == 0 ? 0f : lean, roll1 = i == count - 1 ? 0f : lean;
                 TrackBender.Path path = RwYawPath(each, r, pitch, roll0, roll1);
-                RwSwept(layer, $"Yaw_{each:F1}_R{radius:F1}_p{pitch:F2}_r{roll0:F0}_{roll1:F0}", "T", path);
+                RwSwept(layer, $"Yaw_{each:F1}_R{radius:F1}_p{pitch:F2}_r{roll0:F0}_{roll1:F0}", "T", path, bank > 0f || pitch != 0f);
                 layer.Cursor.Level *= Quaternion.Inverse(slope) * Quaternion.Euler(0f, each, 0f) * slope;
                 layer.Cursor.Roll = roll1;
             }
         }
 
         /// <summary>A curve in the upright plane: <paramref name="degrees"/> up (positive) or over and down (negative) at
-        /// <paramref name="radius"/>, drifting <paramref name="shift"/> to the side as it goes. The road must not be leaning.</summary>
-        static void RwArc(RwLayer layer, float degrees, float radius, float shift)
+        /// <paramref name="radius"/>, drifting <paramref name="shift"/> to the side as it goes. The road must not be leaning.
+        /// <paramref name="sticky"/> marks it as a piece the car holds on to (a loop).</summary>
+        static void RwArc(RwLayer layer, float degrees, float radius, float shift, bool sticky)
         {
             if (Mathf.Abs(layer.Cursor.Roll) > 0.01f) Debug.LogError("Raceway: an up-or-down curve needs a road that is not leaning; ease the lean out first.");
             float r = radius / XwScale, side = shift / XwScale;
@@ -324,7 +324,7 @@ namespace ShiftJam
                 position = new Vector3(side * t, Mathf.Sign(degrees) * r * (1f - Mathf.Cos(rad)), r * Mathf.Sin(rad));
                 turn = Quaternion.Euler(-a, 0f, 0f);
             };
-            RwSwept(layer, $"Arc_{degrees:F1}_R{radius:F1}_s{shift:F2}", "A", path);
+            RwSwept(layer, $"Arc_{degrees:F1}_R{radius:F1}_s{shift:F2}", "A", path, sticky);
             layer.Cursor.Level *= Quaternion.Euler(-degrees, 0f, 0f);
         }
 
@@ -348,7 +348,7 @@ namespace ShiftJam
 
         /// <summary>Sets a swept piece down at the cursor and moves the cursor's point to its end (the caller turns the
         /// cursor). The mesh and its walls are made once per shape and shared.</summary>
-        static void RwSwept(RwLayer layer, string key, string prefix, TrackBender.Path path)
+        static void RwSwept(RwLayer layer, string key, string prefix, TrackBender.Path path, bool sticky)
         {
             var kit = layer.Kit; Quaternion turn = layer.Cursor.Turn;
             var road = RwMesh(layer, key, () => TrackBender.Sweep(layer.Source, key, true, true, RwSlices, path));
@@ -359,7 +359,7 @@ namespace ShiftJam
             go.AddComponent<MeshCollider>().sharedMesh = road;
             go.transform.localScale = Vector3.one * XwScale;
             go.transform.SetPositionAndRotation(layer.Cursor.Pos, turn);
-            go.AddComponent<StickyTrack>();
+            if (sticky) go.AddComponent<StickyTrack>();   // the car holds on here (ArcadeCar's air step reads it)
             RwWalls(layer, go, walls, Vector3.zero);
             var piece = new RwPiece { Go = go, Start = layer.Cursor.Pos, StartTurn = turn };
             for (int k = 0; k < 5; k++)

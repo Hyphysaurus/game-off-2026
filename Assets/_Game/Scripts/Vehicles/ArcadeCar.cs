@@ -63,6 +63,8 @@ namespace ShiftJam
         private float _lastHurt = -99f;
         private readonly Dictionary<Damageable, float> _nextRam = new Dictionary<Damageable, float>();
         private readonly RaycastHit[] _hits = new RaycastHit[8];
+        private Collider _underKnown;       // the last thing a wheel stood on, and whether it is track the car holds on to
+        private bool _underSticky;
         private AudioSource _oneShots;
         private CarBoost _boost;
         private CarFx _fx;
@@ -507,6 +509,7 @@ namespace ShiftJam
             float dt = Time.fixedDeltaTime, s = Scale;
             float g = Mathf.Max(0.01f, -Physics.gravity.y);
             int n = wheels.Length, grounded = 0;
+            bool holds = false;   // a wheel stands on, or the car hangs just off, track it holds on to (StickyTrack)
             Vector3 up = transform.up, normal = Vector3.zero;
             float travel = settings.suspensionTravel * s;
 
@@ -520,6 +523,7 @@ namespace ShiftJam
                 if (!_contact[i]) { _offset[i] = -travel; continue; }
                 grounded++;
                 normal += hit.normal;
+                if (!holds && Sticky(hit.collider)) holds = true;
                 float compression = Mathf.Clamp(length - hit.distance, 0f, 2f * travel);
                 _offset[i] = compression - travel;
                 float vUp = Vector3.Dot(_rb.GetPointVelocity(hub), up);
@@ -547,6 +551,11 @@ namespace ShiftJam
             var tuning = Tuning;
 
             Vector3 ground = grounded > 0 ? (normal / grounded).normalized : Vector3.up;
+            // Sticky track (D-0050): on a loop, a spiral or a banked bend the car's weight presses onto the road, not toward
+            // the floor. The world's pull is cancelled and the same pull is put along the road's own down, so the springs
+            // carry what they carry on level ground and climbing costs no speed: a loop is driven at any pace. (The
+            // world's pull here is the props' gravity, 60: no speed the car has would carry it round a loop against that.)
+            if (holds) _rb.AddForce((Vector3.up - ground) * g, ForceMode.Acceleration);
             Vector3 fwd = Vector3.ProjectOnPlane(transform.forward, ground).normalized;
             Vector3 right = Vector3.Cross(ground, fwd);
             float speed = Vector3.Dot(v, fwd);
@@ -663,7 +672,9 @@ namespace ShiftJam
                 StickyTrack held = StickyTrack.Under(_rb.worldCenterOfMass, -up, s, _hits, transform);
                 if (held != null)
                 {
-                    _rb.AddForce(-up * (held.Pull * s), ForceMode.Acceleration);
+                    holds = true;
+                    // its weight still points at the road it hopped off, plus the piece's own pull to bring it back
+                    _rb.AddForce(Vector3.up * g - up * (g + held.Pull * s), ForceMode.Acceleration);
                     _rb.AddTorque(-_rb.angularVelocity * 0.5f, ForceMode.Acceleration);
                 }
                 else
@@ -684,7 +695,8 @@ namespace ShiftJam
             _steerVisual = Mathf.MoveTowards(_steerVisual, steer * settings.visualSteerAngle, 240f * dt);
 
             // Flipped and stuck: right it after a moment.
-            _upsideDown = Vector3.Dot(up, Vector3.up) < 0.3f && v.magnitude < 2f * s ? _upsideDown + dt : 0f;
+            // (not on track it holds on to: a car stopped at the top of a loop is where it should be)
+            _upsideDown = !holds && Vector3.Dot(up, Vector3.up) < 0.3f && v.magnitude < 2f * s ? _upsideDown + dt : 0f;
             if (_upsideDown > 1.5f)
             {
                 _upsideDown = 0f;
@@ -693,6 +705,15 @@ namespace ShiftJam
                 _rb.angularVelocity = Vector3.zero;
             }
             if (transform.position.y < _spawn.y - 80f * s) { WreckedNow?.Invoke(); Recover(); }
+        }
+
+        /// <summary>Whether what a wheel stands on is track the car holds on to. Looked up once per thing stood on.</summary>
+        private bool Sticky(Collider under)
+        {
+            if (under == _underKnown) return _underSticky;
+            _underKnown = under;
+            _underSticky = under != null && under.GetComponentInParent<StickyTrack>() != null;
+            return _underSticky;
         }
 
         private bool Probe(Vector3 origin, Vector3 dir, float length, out RaycastHit best)

@@ -27,6 +27,7 @@ namespace ShiftJam
         private Shifter _shifter; private PlayerMotor _motor; private PlayerInput _input; private CharacterController _controller;
         private ShiftChargeHud _hud;
         private float _readyAt, _lastGrounded = -10f;
+        private bool _free;   // this scene's shift costs no charge (TitleMenu.IsFreeShift)
         private static readonly Collider[] Hits = new Collider[32];
 
         public int Charges { get; private set; }
@@ -45,6 +46,7 @@ namespace ShiftJam
         {
             // A sandbox (the Workshop, the Raceway) is full from the start. The course starts empty; the first core fills it.
             Charges = TitleMenu.IsSandbox(SceneManager.GetActiveScene().name) ? Max : 0;
+            _free = TitleMenu.IsFreeShift(SceneManager.GetActiveScene().name);
             _hud = ShiftChargeHud.Create(this);
         }
 
@@ -97,7 +99,7 @@ namespace ShiftJam
 
             ShiftSize to = _shifter.Size == ShiftSize.Toy ? ShiftSize.Kid : ShiftSize.Toy;
             string refused =
-                Charges <= 0 ? Empty
+                Charges <= 0 && !_free ? Empty
                 : Time.time - _lastGrounded > GroundGrace ? NotGrounded
                 : NoShiftZone.Covering(transform.position) is { } zone ? zone.Message
                 : to == ShiftSize.Kid && !RoomToGrow() ? NoRoom
@@ -108,7 +110,7 @@ namespace ShiftJam
                 GameEvents.RaiseShiftRefused(_shifter, refused);
                 return;
             }
-            Charges--;
+            if (!_free) Charges--;
             _shifter.ShiftTo(to);
             if (_hud != null) _hud.Refresh();
         }

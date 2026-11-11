@@ -2,6 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 10 Nov 2026 19:4x — HIS FIRST RACEWAY DRIVE: the loop could not be made; fixed (D-0052), landed with Play stopped — UNPLAYED
+His notes: "not getting enough speed to do a full loop"; check the other traversal ("shrinking back to toy size and
+grounding on the floor rather than floating upwards"). Loop: cars fall at 60 (the props' gravity), the loop was sized
+for 9.81: on sticky track the car's weight now presses onto the road (ArcadeCar). Shift: the Raceway had one charge
+and no cores, so no way back to toy size: its shift is now free. Editor recompiled, 0 errors. No build.
+OPEN: what floated upwards (the toy, the kid or a car, and where). On-foot code is unchanged today.
+
 ## 10 Nov 2026 19:2x — THE DRIVING PASS (D-0051) landed in his open editor (Play stopped): speed, camera, sound, rumble, trails, the loop hold — UNPLAYED
 His "stopped, didnt play yet, add in the latest additions and then i test". 14 script files copied in (5 changed, 8
 new, the raceway builder), editor recompiled with 0 errors, raceway rebuilt from the menu through the bridge (his

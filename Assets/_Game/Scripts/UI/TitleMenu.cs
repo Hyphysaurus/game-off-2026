@@ -36,6 +36,9 @@ namespace ShiftJam
         /// <summary>A sandbox scene has no story to start: no title card, a full shift charge from the first frame.</summary>
         public static bool IsSandbox(string scene) => scene == WorkshopScene || scene == RacewayScene;
 
+        /// <summary>The Raceway is for driving: it has no cores to refill a charge, so the carried shift costs nothing there.</summary>
+        public static bool IsFreeShift(string scene) => scene == RacewayScene;
+
         /// <summary>The title is up (PauseMenu stays shut under it).</summary>
         public static bool IsOpen { get; private set; }
 

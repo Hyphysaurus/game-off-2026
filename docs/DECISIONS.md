@@ -590,3 +590,20 @@
   **Known effects, unplayed:** jumps carry about 1.8 x as far and a head-on wall hit costs 54 health (102 on nitro, of
   150); the playroom's loop, pads and the stunt run were tuned at 24; the wooden ToyCar gets the camera's look only;
   `KeyboardKeys` drives the same pad motors; KeyHelp does not list the drift boost or air control yet.
+
+- **D-0052 (10 Nov, 19:4x) On sticky track the car's weight presses onto the road; the Raceway's shift is free.**
+  His first drive of the raceway: "im not getting enough speed to do a full loop", and "make sure that all of our
+  other traversal is working normally (such as shrinking back to toy size and grounding on the floor rather than
+  floating upwards)". **The loop.** Cause, from the code: the cars fall under the world's gravity, and PlayerMotor
+  sets that to the props' gravity, 60 (`MovementSettings.propGravity`), not the 9.81 the loop was sized for. A loop of
+  radius 28 would need about 90 units a second at its foot; the car tops out at 32 (48 on nitro) and its pull fades
+  toward the top. Fix in `ArcadeCar.FixedUpdate`: when a wheel stands on a StickyTrack piece (looked up once per
+  collider), the world's pull is cancelled and the same pull is put along the road's own down, so the springs carry
+  what they do on level ground and climbing costs no speed; a car that hops off within the piece's reach keeps that
+  weight plus the piece's pull; the "flipped and stuck" reset does not fire on track the car holds on to. So the loop,
+  the spiral and the banked hairpins drive at any pace, upside down included. **The shift.** The Raceway is a sandbox
+  with one charge and no cores, so after growing there was no way to shrink back. `TitleMenu.IsFreeShift` (the
+  Raceway) makes the carried shift cost nothing there (`ShiftCharge`). The Workshop keeps its cores and its charge.
+  **Checked, not played:** nothing in Player/, Shift/, Room/, Interaction/ or Core/ changed today except those two
+  lines of ShiftCharge; no lift (Updraft, LaunchPad) is in the Raceway scene. What "floating upwards" was is not yet
+  known: asked.

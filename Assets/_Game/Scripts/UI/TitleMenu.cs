@@ -26,11 +26,15 @@ namespace ShiftJam
         private static void Spawn()
         {
             if (GameObject.Find("Player") == null || FindFirstObjectByType<TitleMenu>() != null) return;
-            if (SceneManager.GetActiveScene().name == WorkshopScene) return;   // the Workshop is a sandbox: straight in
+            if (IsSandbox(SceneManager.GetActiveScene().name)) return;   // the Workshop and the Raceway are sandboxes: straight in
             new GameObject("TitleMenu").AddComponent<TitleMenu>();
         }
 
         public const string WorkshopScene = "Workshop";
+        public const string RacewayScene = "Raceway";
+
+        /// <summary>A sandbox scene has no story to start: no title card, a full shift charge from the first frame.</summary>
+        public static bool IsSandbox(string scene) => scene == WorkshopScene || scene == RacewayScene;
 
         /// <summary>The title is up (PauseMenu stays shut under it).</summary>
         public static bool IsOpen { get; private set; }
@@ -155,7 +159,9 @@ namespace ShiftJam
             MenuButton("New Game", y, NewGame); y -= 0.085f;
             for (int i = 0; i < SaveGame.Slots; i++) { int k = i; _slots[i] = MenuButton("Slot", y, () => PickSlot(k), 560f, 30); y -= 0.058f; }
             y -= 0.025f;
-            MenuButton("Workshop", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); }); y -= 0.065f;
+            // The two sandboxes share a row, like Options and Quit below.
+            MenuButton("Workshop", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); }, 185f, 40f, -97.5f);
+            MenuButton("Raceway", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(RacewayScene); }, 185f, 40f, 97.5f); y -= 0.065f;
             // Options and Quit share the last row (a full row more would run into the hint line).
             _optionsButton = MenuButton("Options", y, OpenOptions, 185f, 40f, -97.5f);
             MenuButton("Quit", y, Quit, 185f, 40f, 97.5f);

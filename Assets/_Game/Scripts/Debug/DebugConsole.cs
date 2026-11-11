@@ -163,6 +163,7 @@ namespace ShiftJam
                     case "core": Say(PocketCore.Summon()); break;
                     case "shot": Shot(); break;
                     case "workshop": Time.timeScale = 1f; SceneManager.LoadScene(TitleMenu.WorkshopScene); break;
+                    case "raceway": Time.timeScale = 1f; SceneManager.LoadScene(TitleMenu.RacewayScene); break;
                     case "course": Time.timeScale = 1f; SceneManager.LoadScene("Greybox"); break;
                     case "reveal": { var rv = FindFirstObjectByType<RoomReveal>(); if (rv != null) { rv.Play(true); Say("reveal"); } else Say("no reveal in the scene"); break; }
                     case "save":

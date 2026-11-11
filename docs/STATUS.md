@@ -2,6 +2,20 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 10 Nov 2026 18:3x — THE RACEWAY (D-0050): a separate room, one circuit with a loop, a spiral and a dive — LANDED, UNDRIVEN
+His "lacks juice, feels a bit slow, the course is very predictable and basic", "verticality as much as possible", then
+"feel free to build it in a separate room". New scene `Raceway.unity` (from the Workshop's scene; in the build list;
+title menu button + `raceway` console command). New: `Debug/CourseBuilder.Raceway.cs`, `TrackBender.Sweep` /
+`SweepWalls`, `Vehicles/StickyTrack.cs`. Built by a hidden batch (`LandRaceway`; scene saved, checked for a cut save:
+clean; stills looked at). No build. The build's own checks pass (675 road rays, lanes clear, circuit closes to 0.002).
+WHAT IS THERE: an orange circuit with yellow walls on pillars in the middle of an 8 x 8 tile room: start straight (book
+steps up, three cars), finish arch, boost pad, vertical loop, banked hairpin, a two-turn spiral to a deck at 42, a
+dive, the second hairpin. About 1340 units a lap.
+HIS PLAYTEST (editor): open Raceway.unity, Play; docs/PLAYTEST.md "The raceway".
+STILL COMING THIS SESSION: the driving pass (speed, camera, sound, trails, rumble: D-0051), being written outside the
+project by a second builder; the car's hold on sticky track goes in with it. Until then the loop is driven on plain
+physics (hold the throttle through it).
+
 ## 10 Nov 2026 14:1x — MAT BEDS (D-0049) after his first drive: the car "got stuck" on the mats — LANDED, UNDRIVEN
 HE DROVE the expressway for the first time (editor): took the gold car down the entry ramp and it
 beached in the gap between two mats. No other note yet (bends, guards, ramp crest, steps: not reported either way).

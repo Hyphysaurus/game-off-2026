@@ -43,8 +43,8 @@ namespace ShiftJam
 
         private void Start()
         {
-            // The Workshop is a sandbox: full from the start. The course starts empty; the first core fills it.
-            Charges = SceneManager.GetActiveScene().name == TitleMenu.WorkshopScene ? Max : 0;
+            // A sandbox (the Workshop, the Raceway) is full from the start. The course starts empty; the first core fills it.
+            Charges = TitleMenu.IsSandbox(SceneManager.GetActiveScene().name) ? Max : 0;
             _hud = ShiftChargeHud.Create(this);
         }
 

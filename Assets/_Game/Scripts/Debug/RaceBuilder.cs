@@ -24,8 +24,8 @@ namespace ShiftJam
 
         // Toy units (the toy is 1.8 tall; a Cyber car is 3.8 long and 2.1 wide, the wooden car 10.8 long and 4.2 wide).
         private const int GateCount = 8;             // RaceGate_1 .. RaceGate_8
-        private const float GateOpening = 7f;        // clear width between a gate's posts (the pack's is 5.55: x1.26)
-        private const float FinishOpening = 20f;     // the start/finish straight is wider (the pack's is 39.7: x0.5)
+        internal const float GateOpening = 7f;        // clear width between a gate's posts (the pack's is 5.55: x1.26)
+        internal const float FinishOpening = 20f;     // the start/finish straight is wider (the pack's is 39.7: x0.5)
         private const float TvHeight = 26f;          // the pack's is 50.4 (x0.52): its screens come out 14 x 6
         private const float PodiumHeight = 6f;       // the pack's block is 20.9 tall and as wide (x0.29)
         private const float TriggerDepth = 4f;       // along the way through: a fast car never skips it

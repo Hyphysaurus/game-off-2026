@@ -91,3 +91,13 @@ Space = jump, C = put down, LMB = toggle the carried light.
 - Drive a car off a ramp and straight over a group of mats: it should roll up the edge, cross the seams between mats
   without dropping a wheel, and roll off the far side. Try an edge at speed and a corner of the group.
 - Walk the toy onto a mat: no hop needed now. Note anything that looks like floating at the mat's edge.
+
+## The raceway (D-0050, 10 Nov)
+- Open `Assets/_Game/Scenes/Raceway.unity` and press Play (no title card: it is a sandbox). From the course, the title
+  menu has a Raceway button, and the console has `raceway`.
+- You start on the floor south of the start straight. Up the book steps (nine hops), E on a car.
+- One lap, anticlockwise: finish arch, boost pad, the loop (keep the throttle down), the banked hairpin, gate 1, the
+  spiral up two turns, gate 2 on the high deck, the dive, boost pad, gate 3, the second hairpin, the line.
+- Note: whether the car makes the loop and where it leaves it; scraping at the loop's bottom; the spiral at speed (do
+  the walls hold you); the crest into the dive (how long you fly, how hard you land); gates you miss or clip; anything
+  that stops you dead. F9 puts the cars back.

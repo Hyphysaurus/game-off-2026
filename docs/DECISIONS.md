@@ -536,3 +536,27 @@
   the playroom is dressed) and inside the Workshop room build; menu Shift Jam > Add Mat Beds (open scenes); batch
   `LandMatBeds` (Greybox + Workshop, saved). The walking toy now walks onto mats without a hop. Tune: `MatBedSkirt`.
   Written outside the project and compiled with Unity's compiler while he was in Play; landed after he closed the editor.
+
+- **D-0050 (10 Nov, 18:3x) The Raceway: a room of its own with a circuit that has height in it.** His words after
+  driving the playroom loop: the racing "lacks juice, it feels a bit slow, the course is very predictable and basic...
+  a complex track or sets of tracks, incorporating verticality as much as possible"; then "feel free to build it in a
+  separate room". **Scene:** `Raceway.unity`, made once by copying the Workshop scene (its player, camera, Build Mode,
+  F9 reset) and replacing the Workshop's room with a "Raceway" root; in the build list; a sandbox like the Workshop
+  (`TitleMenu.IsSandbox`: no title card, shift charge full); a "Raceway" button beside "Workshop" on the title menu and
+  a `raceway` console command. The room's shell is now one shared helper (`SandboxShell`). **Track kit:**
+  `TrackBender.Sweep` carries the pack's flat straight along any path (a position and a turn for each share of the
+  piece), `SweepWalls` makes the walls beside it (one mesh: the collider and, on the raceway, visible yellow walls 2
+  high), so one function gives banked bends, a climbing spiral, crests, dips and loops. `Debug/CourseBuilder.Raceway.cs`
+  lays a circuit from a list of segments (`RwCircuit`: Straight, Turn with a lean that eases in and out, Loop with a
+  sideways shift, Helix, Dive, Mark) from a start pose, keeping the road's lean apart from its heading so a banked bend
+  turns about the upright. Made meshes in `Assets/_Imports/Generated/Raceway` (git-ignored). **The first circuit**
+  (anticlockwise, road at 10): start straight with book steps and three Cyber cars, the finish arch, a boost pad, a
+  vertical loop (radius 28, out 16 to the left), a 180 degree hairpin leaning 20 degrees, gate 1, a two-turn spiral
+  (radius 40) up 32 to a deck at 42, gate 2, a 30 degree dive back to 10, a boost pad, gate 3, the second hairpin.
+  45 pieces, about 1340 units a lap. The two long sides are kept equal in the table itself (one straight is what is
+  left after the dive's run) so it closes: the build reports a gap of 0.002 and 0.2 degrees. **Checks at every build:**
+  675 rays onto the road along each piece's own down (so the loop and the banks are tested the right way up), a car's
+  worth of clear air above every sample, the closing gap. All pass; nobody has driven it. `Vehicles/StickyTrack.cs`
+  marks every raceway piece: the car reads it once the driving pass lands (D-0051), so a hop on the loop does not turn
+  the car upright. **Open:** the upper coil of the spiral has no pillars (the lower coil is under it); at 32 units a
+  second the loop's bottom loads the springs about 4.7 g (a wider loop is one number); only one circuit so far.

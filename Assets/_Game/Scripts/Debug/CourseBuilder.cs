@@ -1460,16 +1460,10 @@ namespace ShiftJam
         // Workshop/Layout (everything there is movable in Build Mode). The player starts in the middle as the toy.
         const float WorkshopHalf = 260f;
 
-        [MenuItem("Shift Jam/Workshop/Build Workshop Room")]
-        public static void BuildWorkshopRoom()
+        /// <summary>The shell of a sandbox room (the Workshop, the Raceway): an 8 x 8 tile floor, Wall_01 walls, corner
+        /// pillars, no ceiling so a camera can look in from above, and three warm lights.</summary>
+        static void SandboxShell(Transform shell, Vector3 c, float h)
         {
-            var scene = SceneManager.GetActiveScene();
-            if (scene.name != "Workshop") { Debug.LogError("Open Workshop.unity first (this builds into the active scene)."); return; }
-            Log.Clear();
-            var oldRoot = GameObject.Find("Workshop"); if (oldRoot != null) Object.DestroyImmediate(oldRoot);
-            var root = new GameObject("Workshop").transform;
-            var shell = Child(root, "Shell"); var layout = Child(root, "Layout");
-            Vector3 c = Vector3.zero; float h = WorkshopHalf;
             for (int i = 0; i < 8; i++) for (int j = 0; j < 8; j++)
                 Spawn("Floor_01", "Floor", shell, c + new Vector3(-h + 32.5f + i * 65f, 0, -h + 32.5f + j * 65f), Vector3.zero, 1f);
             for (int i = 0; i < 8; i++)
@@ -1485,6 +1479,19 @@ namespace ShiftJam
             PointLight("RoomLight", shell, c + new Vector3(0, 140f, 0), 650f, 4f, new Color(1f, 0.93f, 0.82f), true);
             PointLight("FillNW", shell, c + new Vector3(-150f, 120f, 150f), 380f, 1.5f, new Color(1f, 0.9f, 0.75f));
             PointLight("FillSE", shell, c + new Vector3(150f, 120f, -150f), 380f, 1.5f, new Color(1f, 0.9f, 0.75f));
+        }
+
+        [MenuItem("Shift Jam/Workshop/Build Workshop Room")]
+        public static void BuildWorkshopRoom()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (scene.name != "Workshop") { Debug.LogError("Open Workshop.unity first (this builds into the active scene)."); return; }
+            Log.Clear();
+            var oldRoot = GameObject.Find("Workshop"); if (oldRoot != null) Object.DestroyImmediate(oldRoot);
+            var root = new GameObject("Workshop").transform;
+            var shell = Child(root, "Shell"); var layout = Child(root, "Layout");
+            Vector3 c = Vector3.zero; float h = WorkshopHalf;
+            SandboxShell(shell, c, h);
 
             // starter furniture along the walls, the middle left open for building
             GameObject Against(string prefab, string name, Vector3 at, float yaw)

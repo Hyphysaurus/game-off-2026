@@ -23,6 +23,8 @@ namespace ShiftJam
         const string TraversalPieces = "Assets/_Game/Prefabs/Pieces/Traversal/";
 
         const float RwBase = 10f;          // the road's height on the level stretches: the toy walks underneath
+        const float RwWiden = 1.5f;        // the road between the rails, as a multiple of the pack piece's (8.4 wide at 1): 1.5 = 12.5. The rails keep their size.
+        const float RwGateTall = 1.6f;     // a gate or the finish arch is stretched across the road, but grows no taller than this times its own size
         const float RwWall = 2f;           // the walls beside the road, above its surface (they show, unlike the playroom's guards)
         const int RwSlices = 24;           // cuts along a swept piece: under 2 degrees a facet on a 45 degree piece, so the springs do not feel them
 
@@ -70,8 +72,9 @@ namespace ShiftJam
         // ---- the circuit: anticlockwise, starting at the west end of the south straight, heading east ----
         // The two long sides must be the same length for it to close. South: 150 of straight plus the little the slanted
         // loop carries the road forward. North: two 25s, the dive's run, and one straight that takes up what is left.
-        // The loop comes out 16 to the left, so the east hairpin's radius is 8 less than the west one's.
-        const float RwSide = 150f, RwLoopRadius = 28f, RwLoopShift = 16f, RwWestRadius = 60f, RwClimb = 32f, RwDiveAngle = 30f, RwDiveRadius = 40f;
+        // The loop comes out RwLoopShift to the left (it must clear the road's own width: checked at build), so the east
+        // hairpin's radius is half of that less than the west one's.
+        const float RwSide = 150f, RwLoopRadius = 28f, RwLoopShift = 20f, RwWestRadius = 60f, RwClimb = 32f, RwDiveAngle = 30f, RwDiveRadius = 40f;
         static readonly Vector3 RwStart = new Vector3(-75f, RwBase, -80f);
 
         static readonly RwSeg[] RwCircuit =
@@ -85,10 +88,10 @@ namespace ShiftJam
             RwSeg.Mark("Boost"),
             RwSeg.Straight(25f),
             RwSeg.Loop(RwLoopRadius, -RwLoopShift),
-            RwSeg.Straight(25f),
-            RwSeg.Mark("Gate"),            // on open road: after the hairpin the spiral's first turn passes right over this spot
             RwSeg.Mark("Cones"),
-            RwSeg.Straight(25f),
+            RwSeg.Straight(40f),
+            RwSeg.Mark("Gate"),            // on open road, well past the loop and clear of the spiral beside this straight;
+            RwSeg.Straight(10f),           // after the hairpin the spiral's first turn passes right over the road
             RwSeg.Turn(-180f, RwWestRadius - RwLoopShift * 0.5f, 20f),
             RwSeg.Mark("Stars"),
             RwSeg.Straight(25f),
@@ -122,6 +125,8 @@ namespace ShiftJam
         sealed class RwLayer
         {
             public XwKit Kit; public Mesh Source; public Vector2 RailUv; public Transform Parent;
+            public TrackBender.Shape Shape;      // the piece as laid here: the pack's, with its road widened by RwWiden (mesh units)
+            public float Half, RoadHalf;         // half the whole width, and half the road between the rails, in room units
             public RwCursor Cursor = new RwCursor();
             public readonly List<RwPiece> Pieces = new List<RwPiece>();
             public readonly Dictionary<string, Mesh> Meshes = new Dictionary<string, Mesh>();
@@ -183,6 +188,8 @@ namespace ShiftJam
             // ---- lay the circuit ----
             var filter = kit.Straight.GetComponentInChildren<MeshFilter>();
             var layer = new RwLayer { Kit = kit, Source = filter.sharedMesh, RailUv = TrackBender.RailUv(filter.sharedMesh), Parent = track };
+            layer.Shape = TrackBender.Widened(kit.Shape, RwWiden); layer.Half = layer.Shape.OuterHalf * XwScale; layer.RoadHalf = layer.Shape.RoadHalf * XwScale;
+            if (RwLoopShift < layer.Half * 2f + 1f) Debug.LogError($"Raceway: the loop comes out {RwLoopShift} to the side but the track is {layer.Half * 2f:F1} wide: its way out would run into its way in. Raise RwLoopShift.");
             layer.Cursor.Pos = RwStart; layer.Cursor.Level = Quaternion.LookRotation(Vector3.right);
             Vector3 startPos = layer.Cursor.Pos; Quaternion startTurn = layer.Cursor.Turn;
             int gate = 0; bool openStart = false;
@@ -206,7 +213,7 @@ namespace ShiftJam
                         for (int i = 0; i < 8; i++)
                         {
                             RwLoopPiece(layer, seg.A, seg.B);
-                            if (i == 3) RwPickup(pickups, "NitroStar", layer.Cursor.Pos + layer.Cursor.Turn * Vector3.up * 1.3f, layer.Cursor.Turn);   // one at the very top
+                            if (i == 3) RwPickup(pickups, "NitroStar", layer.Cursor.Pos + layer.Cursor.Turn * Vector3.up * 0.02f, layer.Cursor.Turn);   // one at the very top
                         }
                         break;
                     case RwKind.Dive:
@@ -223,7 +230,7 @@ namespace ShiftJam
                         {
                             openStart = true;   // the first piece has no wall on the outside: the steps arrive there
                             Vector3 fwd = layer.Cursor.Turn * Vector3.forward, right = layer.Cursor.Turn * Vector3.right;
-                            XwBookSteps(props, "Steps", layer.Cursor.Pos + fwd * 12f + right * kit.Half, -right, RwBase);
+                            XwBookSteps(props, "Steps", layer.Cursor.Pos + fwd * 12f + right * layer.Half, -right, RwBase);
                             string[] rides = { "CyberCar14", "CyberCar05", "CyberCar09" };
                             for (int i = 0; i < rides.Length; i++)
                             {
@@ -266,10 +273,10 @@ namespace ShiftJam
 
             // ---- is the road really there, the right way up, with a car's worth of air above it ----
             Physics.SyncTransforms();
-            int rays = 0, holes = 0, blocked = 0; float worst = 0f, roadHalf = kit.Shape.RoadHalf * XwScale;
+            int rays = 0, holes = 0, blocked = 0; float worst = 0f, roadHalf = layer.RoadHalf;
             const float laneHigh = 2.15f;   // from 0.45 over the road (a car's clearance) to 2.6 (over its roof)
             var blockedBy = new List<string>();
-            int clipped = 0; float outerHalf = kit.Half, slab = kit.Shape.Depth * XwScale;
+            int clipped = 0; float outerHalf = layer.Half, slab = kit.Shape.Depth * XwScale;
             for (int index = 0; index < layer.Pieces.Count; index++)
             {
                 var piece = layer.Pieces[index];
@@ -327,22 +334,27 @@ namespace ShiftJam
 
         // ---------- laying ----------
 
-        /// <summary>Straight pieces for <paramref name="length"/>: whole pieces, stretched a little to fit. They are the
-        /// pack's own prefab, with a wall each side (not on the right of the first one when <paramref name="openFirst"/>).</summary>
+        /// <summary>Straight pieces for <paramref name="length"/>: whole pieces, stretched a little to fit. Each is the
+        /// pack's straight with its road widened (one shared mesh), with a wall each side (not on the right of the first
+        /// one when <paramref name="openFirst"/>).</summary>
         static void RwStraights(RwLayer layer, float length, bool openFirst)
         {
-            var kit = layer.Kit; var shape = kit.Shape;
+            var kit = layer.Kit; var shape = layer.Shape;
             int count = Mathf.Max(1, Mathf.RoundToInt(length / kit.PieceLength)); float each = length / count, stretch = each / shape.Length;
+            TrackBender.Path straight = (float t, out Vector3 position, out Quaternion r) => { position = new Vector3(0f, 0f, shape.Length * t); r = Quaternion.identity; };
             for (int i = 0; i < count; i++)
             {
                 Quaternion turn = layer.Cursor.Turn;
-                var go = (GameObject)PrefabUtility.InstantiatePrefab(kit.Straight, layer.Parent); go.name = "S" + layer.Count++;
+                var road = RwMesh(layer, "Straight", () => TrackBender.Sweep(layer.Source, "straight", true, true, 2, straight, RwWiden));
+                var go = new GameObject("S" + layer.Count++); go.transform.SetParent(layer.Parent, false);
+                go.AddComponent<MeshFilter>().sharedMesh = road;
+                go.AddComponent<MeshRenderer>().sharedMaterial = kit.Material;
+                go.AddComponent<MeshCollider>().sharedMesh = road;
                 go.transform.localScale = new Vector3(XwScale, XwScale, stretch);
-                go.transform.SetPositionAndRotation(layer.Cursor.Pos - turn * new Vector3(0f, 0f, shape.Start * stretch), turn);
+                go.transform.SetPositionAndRotation(layer.Cursor.Pos, turn);
                 bool right = !(openFirst && i == 0);
-                var walls = RwMesh(layer, right ? "Wall_Straight" : "Wall_Straight_LeftOnly", () => TrackBender.SweepWalls(shape, "walls", RwWall / XwScale, true, right, 2,
-                    (float t, out Vector3 position, out Quaternion r) => { position = new Vector3(0f, 0f, shape.Length * t); r = Quaternion.identity; }, layer.RailUv));
-                RwWalls(layer, go, walls, new Vector3(0f, 0f, shape.Start));
+                var walls = RwMesh(layer, right ? "Wall_Straight" : "Wall_Straight_LeftOnly", () => TrackBender.SweepWalls(shape, "walls", RwWall / XwScale, true, right, 2, straight, layer.RailUv));
+                RwWalls(layer, go, walls, Vector3.zero);
                 var piece = new RwPiece { Go = go, Start = layer.Cursor.Pos, StartTurn = turn };
                 for (int k = 0; k < 5; k++) piece.Samples.Add((layer.Cursor.Pos + turn * new Vector3(0f, 0f, each * (0.1f + 0.2f * k)), turn));
                 layer.Pieces.Add(piece);
@@ -437,8 +449,8 @@ namespace ShiftJam
         static void RwSwept(RwLayer layer, string key, string prefix, TrackBender.Path path, bool sticky)
         {
             var kit = layer.Kit; Quaternion turn = layer.Cursor.Turn;
-            var road = RwMesh(layer, key, () => TrackBender.Sweep(layer.Source, key, true, true, RwSlices, path));
-            var walls = RwMesh(layer, key + "_Walls", () => TrackBender.SweepWalls(kit.Shape, key + "_Walls", RwWall / XwScale, true, true, RwSlices, path, layer.RailUv));
+            var road = RwMesh(layer, key, () => TrackBender.Sweep(layer.Source, key, true, true, RwSlices, path, RwWiden));
+            var walls = RwMesh(layer, key + "_Walls", () => TrackBender.SweepWalls(layer.Shape, key + "_Walls", RwWall / XwScale, true, true, RwSlices, path, layer.RailUv));
             var go = new GameObject(prefix + layer.Count++); go.transform.SetParent(layer.Parent, false);
             go.AddComponent<MeshFilter>().sharedMesh = road;
             go.AddComponent<MeshRenderer>().sharedMaterial = kit.Material;
@@ -479,7 +491,7 @@ namespace ShiftJam
                     parent += "/" + part;
                 }
             }
-            string file = key.Replace('.', '_').Replace('-', 'm'), path = RwMeshDir + "/" + file + ".asset";
+            string file = (key + "_w" + RwWiden.ToString("F2")).Replace('.', '_').Replace('-', 'm'), path = RwMeshDir + "/" + file + ".asset";   // one asset per shape and width
             Mesh made = make(); made.name = file;
             var existing = AssetDatabase.LoadAssetAtPath<Mesh>(path);
             if (existing == null) AssetDatabase.CreateAsset(made, path);
@@ -496,9 +508,11 @@ namespace ShiftJam
             var asset = prefab != null ? AssetDatabase.LoadAssetAtPath<GameObject>(TraversalPieces + prefab + ".prefab") : null;
             if (asset == null) { Log.AppendLine($"  NO PIECE for mark {tag} ({prefab}): run Shift Jam > Workshop > Build Race Pieces / Build Boost Pieces"); return; }
             var go = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent); go.name = tag + (tag == "Gate" ? gate.ToString() : "");
-            float clear = layer.Kit.Half * 2f + 1.5f;
-            if (tag == "Finish") go.transform.localScale = Vector3.one * (clear / RaceBuilder.FinishOpening);
-            else if (tag == "Gate") go.transform.localScale = Vector3.one * (clear / RaceBuilder.GateOpening);
+            float clear = layer.Half * 2f + 1.5f;
+            // as wide as the road needs, but no taller than RwGateTall times its own size: a gate scaled evenly to span a wide
+            // road stands tall enough to reach the loop and the spiral beside it (the clip check caught that, D-0056)
+            float wide = clear / (tag == "Finish" ? RaceBuilder.FinishOpening : RaceBuilder.GateOpening), tall = Mathf.Min(wide, RwGateTall);
+            if (tag == "Finish" || tag == "Gate") go.transform.localScale = new Vector3(wide, tall, tall);
             go.transform.SetPositionAndRotation(layer.Cursor.Pos + layer.Cursor.Turn * Vector3.up * 0.03f, layer.Cursor.Turn);
         }
 
@@ -516,30 +530,30 @@ namespace ShiftJam
             Vector3 On(float across, float along, float up = 0f) => at + turn * new Vector3(across, up, along);
             switch (tag)
             {
-                case "Stars":   // three nitro stars weaving across the lane
-                    foreach (var (across, along) in new[] { (-1.8f, 8f), (0f, 15f), (1.8f, 22f) }) RwPickup(pickups, "NitroStar", On(across, along, 1.3f), turn);
+                case "Stars":   // three nitro stars weaving across the lane (the piece stands on the road: its star floats above its own base)
+                    foreach (var (across, along) in new[] { (-0.45f, 8f), (0f, 15f), (0.45f, 22f) }) RwPickup(pickups, "NitroStar", On(across * layer.RoadHalf, along, 0.02f), turn);
                     break;
                 case "Heart":
-                    RwPickup(pickups, "RepairHeart", On(0f, 9f, 1.3f), turn);
+                    RwPickup(pickups, "RepairHeart", On(0f, 9f, 0.02f), turn);
                     break;
                 case "Cones":   // a slalom
-                    for (int i = 0; i < 4; i++) RwLoose(smash, CyberTrackProps + "Cone_0" + (1 + i % 4) + ".prefab", "Cone", On((i % 2 == 0 ? -1f : 1f) * 2.3f, 4f + i * 5f), turn, 0f, 0.15f);
+                    for (int i = 0; i < 4; i++) RwLoose(smash, CyberTrackProps + "Cone_0" + (1 + i % 4) + ".prefab", "Cone", On((i % 2 == 0 ? -1f : 1f) * layer.RoadHalf * 0.5f, 4f + i * 5f), turn, 0f, 0.15f);
                     break;
                 case "Tyres":   // a stack at each edge, narrowing the road into the bend
                     foreach (float side in new[] { -1f, 1f })
-                        for (int i = 0; i < 2; i++) RwLoose(smash, CyberTrackProps + "Barrier_Wheel_0" + (1 + i) + ".prefab", "Tyres", On(side * 3.1f, -8f - i * 2.2f), turn, 0f, 0.4f);
+                        for (int i = 0; i < 2; i++) RwLoose(smash, CyberTrackProps + "Barrier_Wheel_0" + (1 + i) + ".prefab", "Tyres", On(side * (layer.RoadHalf - 1.1f), -8f - i * 2.2f), turn, 0f, 0.4f);
                     break;
-                case "Stack":   // a wall of blocks across the lane: four, three, two
+                case "Stack":   // a wall of blocks right across the lane, three rows, each one block shorter
                 {
                     string[] cubes = { "Color_Cube_01", "Color_Cube_03" };
-                    float size = 0f; int n = 0;
+                    const float size = 1.5f, gap = 0.08f;   // the pack's colour cube
+                    int across = Mathf.Max(3, Mathf.FloorToInt((layer.RoadHalf * 2f - 0.8f) / (size + gap))), n = 0;
                     for (int row = 0; row < 3; row++)
-                        for (int i = 0; i < 4 - row; i++)
+                        for (int i = 0; i < across - row; i++)
                         {
                             var asset = RwPlayroomPrefab(cubes[n++ % cubes.Length]); if (asset == null) continue;
                             var cube = (GameObject)PrefabUtility.InstantiatePrefab(asset, smash); cube.name = "Block";
-                            if (size <= 0f) size = Mathf.Max(0.5f, B(cube).size.y);
-                            RwSet(cube, On((i - (3 - row) * 0.5f) * (size + 0.08f), 12f), turn, row * size);
+                            RwSet(cube, On((i - (across - 1 - row) * 0.5f) * (size + gap), 12f), turn, row * size);
                             Push(cube, Pushable.Weight.Light, 0.12f);
                         }
                     break;
@@ -549,7 +563,7 @@ namespace ShiftJam
                     {
                         var asset = AssetDatabase.LoadAssetAtPath<GameObject>(CyberTrackProps + "Flag_0" + (1 + i % 2) + ".prefab"); if (asset == null) continue;
                         var flag = (GameObject)PrefabUtility.InstantiatePrefab(asset, props); flag.name = "Flag";
-                        RwSet(flag, On(-(layer.Kit.Shape.RoadHalf + (layer.Kit.Shape.OuterHalf - layer.Kit.Shape.RoadHalf) * 0.5f) * XwScale, 3f + i * 8f), turn, RwWall);
+                        RwSet(flag, On(-(layer.RoadHalf + (layer.Half - layer.RoadHalf) * 0.5f), 3f + i * 8f), turn, RwWall);
                     }
                     break;
                 default:

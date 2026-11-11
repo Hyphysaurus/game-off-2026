@@ -548,7 +548,7 @@ namespace ShiftJam
         private sealed class CarExtras
         {
             public GameObject BoostFx, DriftFx, DamageSmoke;
-            public AudioClip BoostClip, WindClip, LaunchClip, EngineClip;
+            public AudioClip BoostClip, WindClip, LaunchClip;
         }
 
         private static CarExtras LoadCarExtras() => new CarExtras
@@ -557,7 +557,6 @@ namespace ShiftJam
             DriftFx = Load(CyberDemo + "DriftFX.prefab"),
             DamageSmoke = Load(PlayroomFx + "FX_Smoke_Small.prefab"),   // bonnet smoke when badly hurt (D-0038)
             BoostClip = Clip(ToySounds + "Steam_Burst.wav"),     // the nitro whoosh
-            EngineClip = Clip(ToySounds + "Toy_Truck_Drive_Loop.wav"),   // a small motor running: the car's engine, pitched by speed (his ear decides)
             WindClip = Clip(PropSounds + "Safe_Dial_v1.wav"),    // a dial's clicking ratchet: the toy's key being wound (his ear decides)
             LaunchClip = Clip(ToySounds + "Spring_Boing.wav"),   // the spring let go
         };
@@ -578,18 +577,18 @@ namespace ShiftJam
             Put(so, "windKey", windKey);
             if (car is ArcadeCar) Put(so, "damageSmokePrefab", x.DamageSmoke);   // the wooden car takes no damage
             so.ApplyModifiedPropertiesWithoutUndo();
-            if (car is ArcadeCar arcade) FitEngine(arcade, x.EngineClip);
+            if (car is ArcadeCar arcade) FitEngine(arcade);
         }
 
         /// <summary>The car's engine: a looping AudioSource on a child named Engine, which ArcadeCar starts when someone drives
-        /// and pitches by speed. Heard in the world (3D), full within a few car lengths. Safe to call again.</summary>
-        private static void FitEngine(ArcadeCar car, AudioClip clip)
+        /// and pitches by speed. It carries no clip: the car gives it ArcadeCarSettings.engineClip or the hum made by code
+        /// (the pack's motor loops whirr above 1 kHz and cannot hum). Heard in the world (3D). Safe to call again.</summary>
+        private static void FitEngine(ArcadeCar car)
         {
-            if (clip == null) return;
             var holder = car.transform.Find("Engine");
             if (holder == null) { holder = new GameObject("Engine").transform; holder.SetParent(car.transform, false); }
             if (!holder.TryGetComponent(out AudioSource source)) source = holder.gameObject.AddComponent<AudioSource>();
-            source.clip = clip; source.loop = true; source.playOnAwake = false;
+            source.clip = null; source.loop = true; source.playOnAwake = false;
             source.spatialBlend = 1f; source.dopplerLevel = 0f; source.rolloffMode = AudioRolloffMode.Linear;
             source.minDistance = CarLength * 2f; source.maxDistance = CarLength * 40f;
             Set(car, "engine", source);
@@ -600,8 +599,6 @@ namespace ShiftJam
         [MenuItem("Shift Jam/Workshop/Refit Cars (engine sound, body clearance)")]
         public static void RefitCars()
         {
-            var clip = LoadCarExtras().EngineClip;
-            if (clip == null) Debug.LogWarning("[Workshop] No engine clip found: cars keep no engine sound.");
             int cars = 0, raised = 0, engines = 0;
             foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { PieceVehicles }))
             {
@@ -622,7 +619,7 @@ namespace ShiftJam
                             Debug.Log($"[Workshop] {root.name}: body raised from {bottom:F2} to {BodyClearance:F2} over the ground.");
                         }
                     }
-                    if (clip != null) { FitEngine(car, clip); engines++; }
+                    FitEngine(car); engines++;
                     PrefabUtility.SaveAsPrefabAsset(root, path);
                 }
                 finally { PrefabUtility.UnloadPrefabContents(root); }

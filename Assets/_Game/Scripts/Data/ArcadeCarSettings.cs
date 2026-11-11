@@ -86,8 +86,9 @@ namespace ShiftJam
         public float windSquat = 0.35f;
 
         [Header("Engine sound")]
+        [Tooltip("The engine's looping sound. Empty = a low hum made by code (ProceduralClips.Engine); drop a loop here to use a recording instead.")] public AudioClip engineClip;
         [Tooltip("Engine loop pitch standing still (x) and at top speed (y).")] public Vector2 enginePitch = new Vector2(0.7f, 1.6f);
-        [Tooltip("Engine loop volume standing still (x) and at top speed (y).")] public Vector2 engineVolume = new Vector2(0.25f, 0.6f);
+        [Tooltip("Engine loop volume standing still (x) and at top speed (y).")] public Vector2 engineVolume = new Vector2(0.2f, 0.45f);
         [Tooltip("Pitch added for each top speed's worth of speed past the top (a 1.5x boost adds half of this), so a boost is heard.")] public float engineOverPitch = 0.6f;
 
         /// <summary>The car's real top speed at scale 1, before boosts: maxSpeed x topSpeedScale.</summary>

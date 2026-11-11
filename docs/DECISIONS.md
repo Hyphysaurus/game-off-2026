@@ -659,3 +659,22 @@
   `ArcadeCarSettings.smashMass` 1.5: a loose body no heavier than that is felt (shake, rumble) but does not damage
   the car. Not in this pass: arrow boards, a coin counter, the crowd, the countdown, moving things (items 4 to 7).
   Landed with Play stopped through the bridge; raceway rebuilt, stills looked at, saved. Unplayed.
+
+- **D-0056 (10 Nov, 21:1x) A wider road, an engine that hums, pickups on the road.** His notes: "the star props are
+  slightly too high", "the driving sound still needs work", "is there a way to WIDEN the tracks?". **Width:**
+  `TrackBender.Sweep` takes a `widen` factor: the road between the rails is stretched, the rails move out unchanged
+  (`TrackBender.Widened` gives the resulting shape). The raceway uses `RwWiden` 1.5: road 12.5 wide (was 8.4), whole
+  track 15.2. Its straights are now made the same way as its bends (one shared mesh), not pack prefab instances. The
+  loop's way out must clear the wider track: `RwLoopShift` 20 (was 16), checked at build. Gates and the finish are
+  stretched across the road but grow no taller than `RwGateTall` 1.6 x their own size: scaled evenly, gate 1 reached
+  a loop piece and the spiral (the clip check reported it at the first wide build); gate 1 also moved 15 further from
+  the loop. Dressing follows the width (the block wall is 7, 6, 5 across). **Engine:** measured the pack's four motor
+  loops: none has energy under 1 kHz (they whirr; the truck loop also swings 6 x in level over 1.6 s), so no pitch
+  makes one hum. `ProceduralClips.Engine()`: one second of a tone at 80 Hz with its half, 1.5, 2, 3, 4, 5, 6 and 8
+  times parts (all whole Hz, so it loops), pressed into a soft clip, a little low noise under it; one clip shared by
+  all cars. ArcadeCar gives its engine source `ArcadeCarSettings.engineClip` if one is set, else that hum; the piece's
+  source carries no clip (Refit Cars run again). Volume 0.2 to 0.45 (was 0.25 to 0.6). Not heard by me. **Pickups:**
+  the NitroStar and RepairHeart pieces stand on the ground and float their own model 1.05 above their base; I had set
+  them 1.3 above the road (stars 2.4 up, base plates in the air). They now stand on the road. Editor was closed:
+  landed and rebuilt headless (`RefitCars`, `LandRaceway`), stills looked at. 46 pieces, closes to 0.000, 0 in the
+  lane, 0 clips. Unplayed.

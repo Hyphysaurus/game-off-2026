@@ -180,6 +180,8 @@ namespace ShiftJam
             if (wheels.Length > 0) _rb.centerOfMass = new Vector3(0f, hubY / wheels.Length + centreOfMassHeight, AverageZ());
             _sizedAt = Scale;
             _oneShots = gameObject.AddComponent<AudioSource>(); _oneShots.playOnAwake = false; _oneShots.spatialBlend = 1f;
+            // the engine source on the piece carries no sound of its own: the settings name a recording, or the hum is made
+            if (engine != null) engine.clip = settings != null && settings.engineClip != null ? settings.engineClip : ProceduralClips.Engine();
             _boost = new CarBoost(Tuning);
             _rearAxle = RearAxle(out _);
             _midZ = AverageZ();

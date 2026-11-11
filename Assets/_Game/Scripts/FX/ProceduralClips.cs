@@ -3,8 +3,8 @@ using UnityEngine;
 namespace ShiftJam
 {
     /// <summary>
-    /// Sounds made from numbers at run time, so driving has a wind, a tyre skid and a landing thump without any audio
-    /// file: filtered noise for the two loops (their ends are blended so they repeat without a click) and a falling
+    /// Sounds made from numbers at run time, so driving has an engine hum, a wind, a tyre skid and a landing thump without
+    /// any audio file: filtered noise for the two loops (their ends are blended so they repeat without a click) and a falling
     /// low tone with a puff of noise for the thump. DrivingSound makes each once, when first needed, and frees them.
     /// The numbers below shape the sounds themselves (they are the "recording"); how loud and at what pitch they play
     /// is DrivingFeelSettings.
@@ -30,6 +30,45 @@ namespace ShiftJam
         private const float ThumpSeconds = 0.3f;
         private const float ThumpFrom = 120f, ThumpTo = 45f, ThumpFall = 25f, ThumpDecay = 14f;
         private const float KnockCut = 400f, KnockDecay = 45f, KnockMix = 0.5f;
+
+        // engine: a low hum with an uneven edge. Every part is a whole number of Hz, so one second of it closes on itself.
+        // (The pack's motor loops have nothing under 1 kHz: they whirr, and no pitch makes them hum. Measured, D-0056.)
+        private const int EngineBase = 80;            // Hz at pitch 1: the car plays it from 0.7 (idling) to 1.6 and beyond
+        private const float EngineGrit = 1.5f;        // how hard the sum is pressed into a soft clip: more = rougher
+        private const float EngineRumble = 0.08f;     // low noise mixed under the tone
+        private static readonly (float multiple, float level)[] EngineParts =
+        {
+            (0.5f, 0.35f),   // half the firing rate: the lope that makes it an engine and not a tone
+            (1f, 1f), (1.5f, 0.22f), (2f, 0.6f), (3f, 0.4f), (4f, 0.26f), (5f, 0.15f), (6f, 0.1f), (8f, 0.05f),
+        };
+        private static AudioClip _engine;
+
+        /// <summary>A one-second loop of a small engine humming, shared by every car (made once, kept).</summary>
+        public static AudioClip Engine()
+        {
+            if (_engine != null) return _engine;
+            int n = Rate;   // one second
+            var data = new float[n];
+            float total = 0f; foreach (var part in EngineParts) total += part.level;
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / Rate, sum = 0f;
+                for (int k = 0; k < EngineParts.Length; k++)
+                    sum += EngineParts[k].level * Mathf.Sin(2f * Mathf.PI * EngineBase * EngineParts[k].multiple * t + k * 0.9f);
+                data[i] = (float)System.Math.Tanh(EngineGrit * sum / total);
+            }
+            // a little low rumble under it, looped without a click like the wind
+            int blend = Mathf.RoundToInt(0.1f * Rate);
+            var raw = new float[n + blend];
+            var random = new System.Random(11);
+            float cut = OnePole(260f), low = 0f;
+            for (int i = 0; i < raw.Length; i++) { low += cut * ((float)random.NextDouble() * 2f - 1f - low); raw[i] = low; }
+            var rumble = Loop(raw, n, blend);
+            float most = 1e-6f; for (int i = 0; i < n; i++) most = Mathf.Max(most, Mathf.Abs(rumble[i]));
+            for (int i = 0; i < n; i++) data[i] += EngineRumble * rumble[i] / most;
+            _engine = Clip("Engine (generated)", data);
+            return _engine;
+        }
 
         /// <summary>A two-second loop of rushing air.</summary>
         public static AudioClip Wind()

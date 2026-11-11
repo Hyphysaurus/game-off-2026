@@ -2,6 +2,14 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 10 Nov 2026 21:1x — D-0056 landed headless (he had closed the editor): wider road (x1.5), generated engine hum, pickups on the road — UNPLAYED
+His notes on D-0055: stars too high; driving sound still needs work; can the tracks be widened. Road 12.5 wide (one
+number, `RwWiden`), loop shift 20, gates no taller than 1.6 x; engine = a hum made by code (the pack's motor loops have
+nothing under 1 kHz); pickups stand on the road. Refit Cars + LandRaceway ran in batch; checks pass; stills looked at.
+No build. Editor left closed (not relaunched without his word).
+HIS EAR: the engine hum, the wind, the jump thump. NEXT: his drive; items 4-7 if he wants them; F9 does not put the
+smashed blocks back; KeyHelp entries for drift and air control. STILL OPEN: what floated upwards.
+
 ## 10 Nov 2026 21:0x — D-0055 landed: jump sound, engine hum, the green car's clearance, raceway dressing (items 1-3) — UNPLAYED
 His notes: jump squeak annoying; driving sounds like ocean waves; the green dragster catches on the loop; of the seven
 additions offered, "1-3 works for now" (fast iteration, permanent passes later). Landed with Play stopped (bridge):

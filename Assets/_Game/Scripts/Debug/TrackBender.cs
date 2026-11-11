@@ -104,9 +104,11 @@ namespace ShiftJam
         /// A copy of the straight piece carried along <paramref name="path"/>: each cross-section of the piece is set down
         /// where the path says, facing the way the path says. Rails that are not kept are pressed flat as in
         /// <see cref="Make"/>. The piece is cut into <paramref name="slices"/> first so the result follows the path
-        /// smoothly. Positions are in the mesh's own units.
+        /// smoothly. Positions are in the mesh's own units. <paramref name="widen"/> stretches the road between the rails by
+        /// that factor and moves the rails out with it, unchanged in size (see <see cref="Widened"/> for the shape that
+        /// results).
         /// </summary>
-        public static Mesh Sweep(Mesh source, string name, bool keepLeftRail, bool keepRightRail, int slices, Path path)
+        public static Mesh Sweep(Mesh source, string name, bool keepLeftRail, bool keepRightRail, int slices, Path path, float widen = 1f)
         {
             Shape shape = Measure(source);
             var pos = new List<Vector3>(source.vertices);
@@ -129,7 +131,13 @@ namespace ShiftJam
             for (int i = 0; i < pos.Count; i++)
             {
                 path(Mathf.Clamp01(pos[i].z / shape.Length), out Vector3 at, out Quaternion turn);
-                pos[i] = at + turn * new Vector3(pos[i].x, pos[i].y, 0f);
+                float across = pos[i].x;
+                if (widen != 1f)
+                {
+                    float off = Mathf.Abs(across);   // the road part stretches; whatever lies beyond it (a rail) only moves out
+                    across = Mathf.Sign(across) * (Mathf.Min(off, shape.RoadHalf) * widen + Mathf.Max(0f, off - shape.RoadHalf));
+                }
+                pos[i] = at + turn * new Vector3(across, pos[i].y, 0f);
                 nrm[i] = turn * nrm[i];
             }
             var mesh = new Mesh { name = name };
@@ -188,6 +196,14 @@ namespace ShiftJam
             mesh.SetTriangles(tris, 0);
             mesh.RecalculateBounds();
             return mesh;
+        }
+
+        /// <summary>What <paramref name="shape"/> measures after <see cref="Sweep"/> has widened its road by
+        /// <paramref name="widen"/>: a wider road, rails of the same size further out.</summary>
+        public static Shape Widened(Shape shape, float widen)
+        {
+            float road = shape.RoadHalf * widen;
+            return new Shape(road, road + (shape.OuterHalf - shape.RoadHalf), shape.Start, shape.Length, shape.Depth);
         }
 
         /// <summary>The palette colour of the source piece's rail: the UV of its highest point beyond the road's edge.</summary>

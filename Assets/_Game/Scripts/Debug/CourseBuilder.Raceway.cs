@@ -48,7 +48,8 @@ namespace ShiftJam
             public static RwSeg Helix(float turns, float radius, float risePerTurn, float bank) => new RwSeg(RwKind.Helix, turns, radius, risePerTurn, bank);
             /// <summary>Down by <paramref name="drop"/>: over a crest, down a slope of <paramref name="degrees"/>, and level again; both curves at <paramref name="radius"/>.</summary>
             public static RwSeg Dive(float drop, float degrees, float radius) => new RwSeg(RwKind.Dive, drop, degrees, radius);
-            /// <summary>Something set down here: "Start", "Finish", "Gate" or "Boost".</summary>
+            /// <summary>Something set down here: "Start", "Finish", "Gate", "Boost", or a piece of dressing on the straight
+            /// that follows (<see cref="RwDress"/>): "Stars", "Heart", "Cones", "Tyres", "Stack", "Flags".</summary>
             public static RwSeg Mark(string tag) => new RwSeg(RwKind.Mark, tag: tag);
         }
 
@@ -76,24 +77,31 @@ namespace ShiftJam
         static readonly RwSeg[] RwCircuit =
         {
             RwSeg.Mark("Start"),
+            RwSeg.Mark("Flags"),
             RwSeg.Straight(25f),
             RwSeg.Mark("Finish"),
+            RwSeg.Mark("Stars"),
             RwSeg.Straight(50f),
             RwSeg.Mark("Boost"),
             RwSeg.Straight(25f),
             RwSeg.Loop(RwLoopRadius, -RwLoopShift),
             RwSeg.Straight(25f),
             RwSeg.Mark("Gate"),            // on open road: after the hairpin the spiral's first turn passes right over this spot
+            RwSeg.Mark("Cones"),
             RwSeg.Straight(25f),
             RwSeg.Turn(-180f, RwWestRadius - RwLoopShift * 0.5f, 20f),
+            RwSeg.Mark("Stars"),
             RwSeg.Straight(25f),
             RwSeg.Helix(-2f, 40f, RwClimb * 0.5f, 10f),
             RwSeg.Mark("Gate"),
+            RwSeg.Mark("Stack"),
             RwSeg.Straight(25f),
             RwSeg.Dive(RwClimb, RwDiveAngle, RwDiveRadius),
             RwSeg.Mark("Boost"),
+            RwSeg.Mark("Heart"),
             RwSeg.Straight(RwSide + RwLoopForward(RwLoopRadius, RwLoopShift) - 50f - RwDiveRun(RwClimb, RwDiveAngle, RwDiveRadius)),
             RwSeg.Mark("Gate"),
+            RwSeg.Mark("Tyres"),
             RwSeg.Turn(-180f, RwWestRadius, 20f),
         };
 
@@ -154,6 +162,7 @@ namespace ShiftJam
             var kit = XwMakeKit(); if (kit == null) return;
             var root = new GameObject("Raceway").transform;
             Transform shell = Child(root, "Shell"), scenery = Child(root, "Scenery"), track = Child(root, "Track"), props = Child(root, "Props"), pillars = Child(root, "Pillars"), cars = Child(root, "Cars");
+            Transform smash = Child(root, "Smash"), pickups = Child(root, "Pickups");   // loose things to drive through; things to collect
             SandboxShell(shell, Vector3.zero, WorkshopHalf);
 
             // plain furniture against the walls, as the room the track was laid out in
@@ -194,7 +203,11 @@ namespace ShiftJam
                         break;
                     }
                     case RwKind.Loop:
-                        for (int i = 0; i < 8; i++) RwLoopPiece(layer, seg.A, seg.B);
+                        for (int i = 0; i < 8; i++)
+                        {
+                            RwLoopPiece(layer, seg.A, seg.B);
+                            if (i == 3) RwPickup(pickups, "NitroStar", layer.Cursor.Pos + layer.Cursor.Turn * Vector3.up * 1.3f, layer.Cursor.Turn);   // one at the very top
+                        }
                         break;
                     case RwKind.Dive:
                     {
@@ -222,7 +235,8 @@ namespace ShiftJam
                             var player = GameObject.Find("Player");
                             if (player != null) player.transform.SetPositionAndRotation(layer.Cursor.Pos + fwd * 12f + right * 52f - Vector3.up * (RwBase - 0.3f), Quaternion.LookRotation(-right));
                         }
-                        else RwProp(layer, props, seg.Tag, ref gate);
+                        else if (seg.Tag == "Finish" || seg.Tag == "Gate" || seg.Tag == "Boost") RwProp(layer, props, seg.Tag, ref gate);
+                        else RwDress(layer, smash, pickups, props, seg.Tag);
                         break;
                 }
             }
@@ -276,7 +290,7 @@ namespace ShiftJam
                         {
                             Transform t = c.transform;
                             if (t.IsChildOf(piece.Go.transform) || t.IsChildOf(before) || t.IsChildOf(after) || t.IsChildOf(cars)) continue;
-                            var who = t; while (who.parent != null && who.parent != props && who.parent != scenery && who.parent != track && who.parent != pillars) who = who.parent;
+                            var who = t; while (who.parent != null && who.parent != props && who.parent != scenery && who.parent != track && who.parent != pillars && who.parent != smash && who.parent != pickups) who = who.parent;
                             string line = $"  CLIPS: {who.name} stands in the body or a wall of {piece.Go.name}";
                             if (!blockedBy.Contains(line)) { blockedBy.Add(line); Log.AppendLine(line); clipped++; }
                         }
@@ -298,7 +312,8 @@ namespace ShiftJam
                     // passes over or beside it (gate 1's top came up through the spiral's first turn: D-0054).
                     foreach (var c in Physics.OverlapBox(sample.at + up * (0.45f + laneHigh * 0.5f), new Vector3(roadHalf - 0.15f, laneHigh * 0.5f, 1.2f), sample.turn, ~0, QueryTriggerInteraction.Ignore))
                     {
-                        if (c.transform.IsChildOf(cars) || c.transform.IsChildOf(piece.Go.transform)) continue;
+                        // the parked racers, and what was put in the lane on purpose (cones, blocks, pickups), are let off
+                        if (c.transform.IsChildOf(cars) || c.transform.IsChildOf(smash) || c.transform.IsChildOf(pickups) || c.transform.IsChildOf(piece.Go.transform)) continue;
                         var who = c.transform; while (who.parent != null && who.parent != props && who.parent != scenery && who.parent != track && who.parent != pillars) who = who.parent;
                         string line = $"  LANE BLOCKED on {piece.Go.name} by {who.name}";
                         if (!blockedBy.Contains(line)) { blockedBy.Add(line); Log.AppendLine(line); }
@@ -487,6 +502,109 @@ namespace ShiftJam
             go.transform.SetPositionAndRotation(layer.Cursor.Pos + layer.Cursor.Turn * Vector3.up * 0.03f, layer.Cursor.Turn);
         }
 
+        // ---------- dressing (D-0055: a fast pass; a permanent one comes later) ----------
+
+        const string CyberTrackProps = "Assets/_Imports/ithappy/Modular_Cyber_Racing_Cars/Prefabs/Track Props/";
+        const string InteractablePieces = "Assets/_Game/Prefabs/Pieces/Interactables/";
+
+        /// <summary>What a mark puts on the straight that follows it, measured from the cursor: across the road (right is
+        /// positive) and along it. Loose things go under Smash (light: a car drives through them and is not hurt),
+        /// pickups under Pickups, fixed things under Props.</summary>
+        static void RwDress(RwLayer layer, Transform smash, Transform pickups, Transform props, string tag)
+        {
+            Vector3 at = layer.Cursor.Pos; Quaternion turn = layer.Cursor.Turn;
+            Vector3 On(float across, float along, float up = 0f) => at + turn * new Vector3(across, up, along);
+            switch (tag)
+            {
+                case "Stars":   // three nitro stars weaving across the lane
+                    foreach (var (across, along) in new[] { (-1.8f, 8f), (0f, 15f), (1.8f, 22f) }) RwPickup(pickups, "NitroStar", On(across, along, 1.3f), turn);
+                    break;
+                case "Heart":
+                    RwPickup(pickups, "RepairHeart", On(0f, 9f, 1.3f), turn);
+                    break;
+                case "Cones":   // a slalom
+                    for (int i = 0; i < 4; i++) RwLoose(smash, CyberTrackProps + "Cone_0" + (1 + i % 4) + ".prefab", "Cone", On((i % 2 == 0 ? -1f : 1f) * 2.3f, 4f + i * 5f), turn, 0f, 0.15f);
+                    break;
+                case "Tyres":   // a stack at each edge, narrowing the road into the bend
+                    foreach (float side in new[] { -1f, 1f })
+                        for (int i = 0; i < 2; i++) RwLoose(smash, CyberTrackProps + "Barrier_Wheel_0" + (1 + i) + ".prefab", "Tyres", On(side * 3.1f, -8f - i * 2.2f), turn, 0f, 0.4f);
+                    break;
+                case "Stack":   // a wall of blocks across the lane: four, three, two
+                {
+                    string[] cubes = { "Color_Cube_01", "Color_Cube_03" };
+                    float size = 0f; int n = 0;
+                    for (int row = 0; row < 3; row++)
+                        for (int i = 0; i < 4 - row; i++)
+                        {
+                            var asset = RwPlayroomPrefab(cubes[n++ % cubes.Length]); if (asset == null) continue;
+                            var cube = (GameObject)PrefabUtility.InstantiatePrefab(asset, smash); cube.name = "Block";
+                            if (size <= 0f) size = Mathf.Max(0.5f, B(cube).size.y);
+                            RwSet(cube, On((i - (3 - row) * 0.5f) * (size + 0.08f), 12f), turn, row * size);
+                            Push(cube, Pushable.Weight.Light, 0.12f);
+                        }
+                    break;
+                }
+                case "Flags":   // along the inner wall of the start straight (the steps arrive on the outer side)
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var asset = AssetDatabase.LoadAssetAtPath<GameObject>(CyberTrackProps + "Flag_0" + (1 + i % 2) + ".prefab"); if (asset == null) continue;
+                        var flag = (GameObject)PrefabUtility.InstantiatePrefab(asset, props); flag.name = "Flag";
+                        RwSet(flag, On(-(layer.Kit.Shape.RoadHalf + (layer.Kit.Shape.OuterHalf - layer.Kit.Shape.RoadHalf) * 0.5f) * XwScale, 3f + i * 8f), turn, RwWall);
+                    }
+                    break;
+                default:
+                    Log.AppendLine("  UNKNOWN MARK " + tag);
+                    break;
+            }
+        }
+
+        static GameObject RwPlayroomPrefab(string name)
+        {
+            foreach (var g in AssetDatabase.FindAssets(name + " t:Prefab", new[] { Pack }))
+            {
+                string p = AssetDatabase.GUIDToAssetPath(g);
+                if (System.IO.Path.GetFileNameWithoutExtension(p) == name) return AssetDatabase.LoadAssetAtPath<GameObject>(p);
+            }
+            Log.AppendLine("  MISSING prefab " + name);
+            return null;
+        }
+
+        /// <summary>Stands a thing on the road at <paramref name="on"/> (a point on the road's surface), its lowest point
+        /// <paramref name="lift"/> above it, its middle over that point. For level road.</summary>
+        static void RwSet(GameObject go, Vector3 on, Quaternion turn, float lift)
+        {
+            go.transform.SetPositionAndRotation(on, turn);
+            var b = B(go);
+            go.transform.position += new Vector3(on.x - b.center.x, on.y + lift + 0.02f - b.min.y, on.z - b.center.z);
+        }
+
+        /// <summary>A loose, light thing in the lane: a car drives through it (ArcadeCarSettings.smashMass).</summary>
+        static void RwLoose(Transform parent, string assetPath, string name, Vector3 on, Quaternion turn, float lift, float mass)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+            if (asset == null) { Log.AppendLine("  MISSING prefab " + assetPath); return; }
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent); go.name = name;
+            RwSet(go, on, turn, lift);
+            Push(go, Pushable.Weight.Light, mass);
+        }
+
+        static void RwPickup(Transform parent, string piece, Vector3 at, Quaternion turn)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(InteractablePieces + piece + ".prefab");
+            if (asset == null) { Log.AppendLine($"  NO PIECE {piece} (run Shift Jam > Workshop > Build Boost Pieces)"); return; }
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent); go.name = piece;
+            go.transform.SetPositionAndRotation(at, turn);
+        }
+
+        [MenuItem("Shift Jam/Raceway/Render Raceway Stills")]
+        public static void RacewayStillsMenu()
+        {
+            if (SceneManager.GetActiveScene().path != RacewayScenePath) { Debug.LogError("Open Raceway.unity first."); return; }
+            Log.Clear();
+            RacewayStills();
+            Debug.Log("RACEWAY STILLS\n" + Log);
+        }
+
         // ---------- stills ----------
 
         static void RacewayStills()
@@ -504,6 +622,10 @@ namespace ShiftJam
                 ("dive", new Vector3(-60f, 30f, 120f), new Vector3(-20f, 24f, 40f)),
                 ("start", RwStart + new Vector3(-22f, 9f, -34f), RwStart + new Vector3(25f, 2f, 0f)),
                 ("toy_at_steps", RwStart + new Vector3(12f, -RwBase + 2.2f, -52f), RwStart + new Vector3(12f, -2f, 0f)),
+                ("dress_start", RwStart + new Vector3(-4f, 5f, -1f), RwStart + new Vector3(40f, 1f, 0f)),
+                ("dress_cones", new Vector3(46f, RwBase + 4f, -66f), new Vector3(66f, RwBase + 0.5f, -64f)),
+                ("dress_stack", new Vector3(60f, RwBase + RwClimb + 4f, 42f), new Vector3(38f, RwBase + RwClimb + 1f, 40f)),
+                ("dress_heart", new Vector3(-40f, RwBase + 5f, 43f), new Vector3(-64f, RwBase + 1f, 40f)),
             };
             foreach (var v in views) Shot(dir + "/" + v.name + ".png", v.eye, Quaternion.LookRotation(v.at - v.eye), 60f, 1280, 720);
             Log.AppendLine("stills in " + dir);

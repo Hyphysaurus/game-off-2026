@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 10 Nov 2026 21:0x — D-0055 landed: jump sound, engine hum, the green car's clearance, raceway dressing (items 1-3) — UNPLAYED
+His notes: jump squeak annoying; driving sounds like ocean waves; the green dragster catches on the loop; of the seven
+additions offered, "1-3 works for now" (fast iteration, permanent passes later). Landed with Play stopped (bridge):
+jump = a soft thump; every car has an engine loop and the wind is thinned; 5 car bodies raised to 0.36 (menu Refit
+Cars); raceway dressed with flags, cones, a block wall, tyre stacks, nitro stars and a heart; light loose props do not
+damage the car. Raceway rebuilt, checks pass, stills looked at, saved. No build.
+HIS EAR decides the three sounds (none heard by me). NEXT if he wants: items 4-7 (countdown and finish ceremony,
+moving scenery, a crowd, jumps), arrow boards on the bends, a coin counter. STILL OPEN: what floated upwards.
+
 ## 10 Nov 2026 20:3x — "WAY BETTER" (the slanted loop + road camera, D-0053, played); gate 1 clipped the spiral: D-0054 landed, UNPLAYED
 His third drive: the loop and the camera are "way better". His still: gate 1's arch came up through the spiral's first
 turn. D-0054: the build's checks now cover the whole lane, the road's body and walls, and whole pillars (and were shown

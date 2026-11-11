@@ -53,8 +53,8 @@ namespace ShiftJam
         [Header("Wind (a noise loop made in code unless a clip is given)")]
         [Tooltip("Optional loop to use instead of the generated wind.")] public AudioClip windClip;
         [Tooltip("Share of top speed where the wind starts to be heard.")] public float windFrom = 0.25f;
-        [Range(0f, 1f), Tooltip("Wind volume at top speed.")] public float windVolume = 0.3f;
-        [Range(0f, 1f), Tooltip("Volume added at a full boost's speed.")] public float windBoostVolume = 0.25f;
+        [Range(0f, 1f), Tooltip("Wind volume at top speed.")] public float windVolume = 0.12f;
+        [Range(0f, 1f), Tooltip("Volume added at a full boost's speed.")] public float windBoostVolume = 0.15f;
         [Tooltip("Wind pitch standing still (x) and at a full boost's speed (y).")] public Vector2 windPitch = new Vector2(0.7f, 1.5f);
 
         [Header("Tyre skid (a noise loop made in code unless a clip is given)")]

@@ -49,9 +49,9 @@ MonoBehaviour:
     volume: 0.45
     pitchSpread: 0.05
   jump:
-    clip: {fileID: 8300000, guid: ebe5ced26fc0f974b9dea74e0d3009ea, type: 3}
-    volume: 0.3
-    pitchSpread: 0.08
+    clip: {fileID: 8300000, guid: 4f5e19874b5caf944ad15f7b00799398, type: 3}
+    volume: 0.2
+    pitchSpread: 0.12
   land:
     clip: {fileID: 8300000, guid: bc8f06db2fa92474897cd8a7fed1fd07, type: 3}
     volume: 0.5

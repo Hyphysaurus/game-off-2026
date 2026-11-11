@@ -14,10 +14,11 @@ namespace ShiftJam
         private const int Rate = 22050;             // samples a second: plenty for noise and a thump, half the memory
         private const float Peak = 0.9f;            // every clip is scaled so its loudest sample is this
 
-        // wind: noise with the hiss and the rumble taken off, swelling slowly
+        // wind: a thin, steady rush of air. The first version kept the low band (140 to 900 Hz) and swelled slowly, which
+        // with no engine under it sounded like surf (his ear, D-0055): the band sits higher now and barely swells.
         private const float WindSeconds = 2f, WindBlend = 0.2f;
-        private const float WindHighCut = 900f, WindLowCut = 140f;   // Hz kept between
-        private const float WindGust = 0.22f;                         // how much the slow swell moves the level
+        private const float WindHighCut = 2600f, WindLowCut = 500f;  // Hz kept between
+        private const float WindGust = 0.04f;                         // how much the slow swell moves the level
 
         // skid: noise ringing at two pitches, with a fast flutter (rubber chattering on the floor)
         private const float SkidSeconds = 1f, SkidBlend = 0.1f;

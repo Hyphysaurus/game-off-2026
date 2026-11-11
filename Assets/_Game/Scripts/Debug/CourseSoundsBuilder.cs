@@ -43,8 +43,9 @@ namespace ShiftJam
             Fill(ref sounds.goal, "UI/Win_v1.wav", 0.8f, 0f, ref filled);
             // The Shift key refused (D-0045): the pack's shortest error blip (0.67 s), kept under the other cues.
             Fill(ref sounds.refused, "UI/Error_v3.wav", 0.45f, 0.05f, ref filled);
-            // The player: a small squeak for a hop, a wooden tock for a landing from higher than its own jump.
-            Fill(ref sounds.jump, "Toys/Toy_Squeak_Single_v2.wav", 0.3f, 0.08f, ref filled);
+            // The player: a soft thump for a hop (a book closing; the toy squeak wore thin within a minute: his ear, D-0055),
+            // a wooden tock for a landing from higher than its own jump.
+            Fill(ref sounds.jump, "Props/Book_Close.wav", 0.2f, 0.12f, ref filled);
             Fill(ref sounds.land, "Toys/Chess_Fall_v2.wav", 0.5f, 0.1f, ref filled);
             if (sounds.ambience == null)
             {

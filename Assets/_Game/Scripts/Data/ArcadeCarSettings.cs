@@ -65,6 +65,7 @@ namespace ShiftJam
         [Tooltip("Impact speed INTO the surface (units per second at scale 1, along the contact normal) below which a crash does nothing.")] public float crashMinSpeed = 14f;
         [Tooltip("Impacts softer than this (same measure) are not reported to the feedback (camera shake, rumble). No damage is involved.")] public float feelMinImpact = 4f;
         public float crashDamagePerSpeed = 3f;
+        [Tooltip("Loose things no heavier than this (cones, toy blocks) are driven through: felt, but they do not damage the car. Another car weighs 4.")] public float smashMass = 1.5f;
         [Tooltip("Speed above which hitting something with health hurts it.")] public float ramMinSpeed = 5f;
         public float ramDamagePerSpeed = 6f;
         public float ramMaxDamage = 80f;

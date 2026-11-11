@@ -835,7 +835,10 @@ namespace ShiftJam
                 _nextImpactFeel = Time.time + 0.1f;
                 Crashed?.Invoke(impact);
             }
-            if (impact > settings.crashMinSpeed && Time.time >= _nextCrash)
+            // Loose, light things (cones, a wall of toy blocks) are there to be driven through: the hit is felt (the shake
+            // and rumble above) but it does not hurt the car.
+            bool smashed = c.rigidbody != null && !c.rigidbody.isKinematic && c.rigidbody.mass <= settings.smashMass;
+            if (!smashed && impact > settings.crashMinSpeed && Time.time >= _nextCrash)
             {
                 _nextCrash = Time.time + 0.35f;
                 DropDrift();   // a crash that hurts ends the slide's charge

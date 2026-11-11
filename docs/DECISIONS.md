@@ -637,3 +637,25 @@
   Shown to work before the fix: with gate 1 still in place it reported "LANE BLOCKED on T26 by Gate1". **The fix:**
   gate 1 stands half-way along the straight between the loop and the first hairpin, on open road. After it: 0 in the
   lane, 0 clips, circuit closes to 0.001. Landed in his open editor with Play stopped (bridge), saved. Unplayed.
+
+- **D-0055 (10 Nov, 21:0x) Sounds by his ear, a car that scraped, and a first dressing pass on the raceway.** His
+  notes while driving: the jump "is a squeak, kind of annoying"; "the cars driving sounds like ocean waves, not a car
+  hum"; "the green dragster seems to get caught on the floor when driving up the loop but the other two dont"; and, to
+  a list of seven things the packs could add, "1-3 works for now, im focusing mostly on fast iteration so longer, more
+  permanent passes can come later". **Jump:** CourseSounds.jump is the pack's Book_Close at 0.2 (was Toy_Squeak_Single
+  at 0.3); the builder's default follows. Not heard by me. **Engine:** found in the files: no car piece had an engine
+  sound at all (`engine: {fileID: 0}`), so the only running sound was the driving pass's generated wind, a low band
+  with a slow swell = surf. Every ArcadeCar piece now carries an "Engine" AudioSource (the pack's
+  Toy_Truck_Drive_Loop, 3D, pitched by speed as ArcadeCar already did), and the wind is a thin steady rush (band 500
+  to 2600 Hz, swell 0.04, volume 0.12 + 0.15 on boost; was 140 to 900, 0.22, 0.3 + 0.25). **The green car**
+  (CyberCar09): its body box started at its lowest wheel hub, 0.22 over the ground against 0.36 to 0.37 for the other
+  two. `WorkshopPieces.BodyClearance` 0.36 is now the floor for every car's body (MakeDrivable). Both car changes were
+  applied to the built pieces by a new menu, Shift Jam > Workshop > Refit Cars (25 cars, 5 bodies raised: CyberCar09
+  and 15, ToyRacer01, 03 and 07; nothing else on a piece touched). **Dressing, a fast pass** (`RwDress`, marks in the
+  circuit table): three flags on the start straight's inner wall; nitro stars in threes after the finish and after the
+  first hairpin, one at the very top of the loop; a slalom of four cones after gate 1; a wall of nine toy blocks on
+  the high deck; a repair heart after the dive; tyre stacks at each edge into the last hairpin. Loose things live
+  under Raceway/Smash, pickups under Raceway/Pickups (the lane check lets both off; the clip check does not).
+  `ArcadeCarSettings.smashMass` 1.5: a loose body no heavier than that is felt (shake, rumble) but does not damage
+  the car. Not in this pass: arrow boards, a coin counter, the crowd, the countdown, moving things (items 4 to 7).
+  Landed with Play stopped through the bridge; raceway rebuilt, stills looked at, saved. Unplayed.

@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 10 Nov 2026 21:1x — CHECKPOINT, he is in Godot, Unity closed: D-0057 (arrows, tyre stacks, F9 resets loose props, KeyHelp) — UNPLAYED
+Everything from D-0050 to D-0057 is committed locally; nothing since D-0054 has been driven (he drove D-0052 to
+D-0054). Raceway as it stands: road 12.5 wide, loop, two banked hairpins, spiral, dive; flags, cone slalom, block
+wall, tyre stacks, road arrows, nitro stars, a heart; generated engine hum; a camera that rides the road on held track.
+WAITING ON HIM: a drive of the raceway (width, hum, wind, jump thump, stars' height, the green car on the loop);
+which of items 4-7 next (countdown and finish ceremony, moving scenery, a crowd, jumps); what "floated upwards".
+NOT DONE: the playroom expressway is still 8.4 wide with invisible guards and was tuned at top speed 24; a coin
+counter; a push of the ~100 local commits (his).
+
 ## 10 Nov 2026 21:1x — D-0056 landed headless (he had closed the editor): wider road (x1.5), generated engine hum, pickups on the road — UNPLAYED
 His notes on D-0055: stars too high; driving sound still needs work; can the tracks be widened. Road 12.5 wide (one
 number, `RwWiden`), loop shift 20, gates no taller than 1.6 x; engine = a hum made by code (the pack's motor loops have

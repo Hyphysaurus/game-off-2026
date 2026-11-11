@@ -141,6 +141,8 @@ namespace ShiftJam
             Line(sb, Kb("Move"), "Drive and steer", Pad("Move"));
             Line(sb, Kb("Jump"), "Handbrake and drift (Cyber cars), hop (wooden car)", Pad("Jump"));
             Line(sb, Kb("Sprint"), "Nitro: drifts, air time, stars and boost pads fill it", Pad("Sprint"));
+            Line(sb, "Hold " + Kb("Jump") + " in a slide", "Charge a drift boost (two pips); let go to fire it", "Hold " + Pad("Jump"));
+            Line(sb, "In the air: " + Kb("Move"), "Tip and turn the car; with " + Kb("Jump") + " held, roll it", Pad("Move"));
             Line(sb, "Stopped: W, then hold " + Kb("Jump"), "Wind up; let go of " + Kb("Jump") + " to launch", "Up, then hold " + Pad("Jump"));
             Line(sb, Kb("Interact"), "Get out", Pad("Interact"));
             Line(sb, Kb("Look"), "Look around; the camera swings back behind", Pad("Look"));

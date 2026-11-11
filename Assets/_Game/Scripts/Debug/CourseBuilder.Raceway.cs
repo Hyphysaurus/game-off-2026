@@ -51,7 +51,8 @@ namespace ShiftJam
             /// <summary>Down by <paramref name="drop"/>: over a crest, down a slope of <paramref name="degrees"/>, and level again; both curves at <paramref name="radius"/>.</summary>
             public static RwSeg Dive(float drop, float degrees, float radius) => new RwSeg(RwKind.Dive, drop, degrees, radius);
             /// <summary>Something set down here: "Start", "Finish", "Gate", "Boost", or a piece of dressing on the straight
-            /// that follows (<see cref="RwDress"/>): "Stars", "Heart", "Cones", "Tyres", "Stack", "Flags".</summary>
+            /// that follows (<see cref="RwDress"/>): "Stars", "Heart", "Cones", "Stack", "Flags"; or on the straight just
+            /// laid: "Tyres", "Arrows".</summary>
             public static RwSeg Mark(string tag) => new RwSeg(RwKind.Mark, tag: tag);
         }
 
@@ -92,6 +93,7 @@ namespace ShiftJam
             RwSeg.Straight(40f),
             RwSeg.Mark("Gate"),            // on open road, well past the loop and clear of the spiral beside this straight;
             RwSeg.Straight(10f),           // after the hairpin the spiral's first turn passes right over the road
+            RwSeg.Mark("Arrows"),
             RwSeg.Turn(-180f, RwWestRadius - RwLoopShift * 0.5f, 20f),
             RwSeg.Mark("Stars"),
             RwSeg.Straight(25f),
@@ -105,6 +107,7 @@ namespace ShiftJam
             RwSeg.Straight(RwSide + RwLoopForward(RwLoopRadius, RwLoopShift) - 50f - RwDiveRun(RwClimb, RwDiveAngle, RwDiveRadius)),
             RwSeg.Mark("Gate"),
             RwSeg.Mark("Tyres"),
+            RwSeg.Mark("Arrows"),
             RwSeg.Turn(-180f, RwWestRadius, 20f),
         };
 
@@ -519,6 +522,7 @@ namespace ShiftJam
         // ---------- dressing (D-0055: a fast pass; a permanent one comes later) ----------
 
         const string CyberTrackProps = "Assets/_Imports/ithappy/Modular_Cyber_Racing_Cars/Prefabs/Track Props/";
+        const float RwTyreThick = 0.43f;   // one of the pack's tyres lying flat (measured)
         const string InteractablePieces = "Assets/_Game/Prefabs/Pieces/Interactables/";
 
         /// <summary>What a mark puts on the straight that follows it, measured from the cursor: across the road (right is
@@ -539,9 +543,21 @@ namespace ShiftJam
                 case "Cones":   // a slalom
                     for (int i = 0; i < 4; i++) RwLoose(smash, CyberTrackProps + "Cone_0" + (1 + i % 4) + ".prefab", "Cone", On((i % 2 == 0 ? -1f : 1f) * layer.RoadHalf * 0.5f, 4f + i * 5f), turn, 0f, 0.15f);
                     break;
-                case "Tyres":   // a stack at each edge, narrowing the road into the bend
+                case "Tyres":   // two stacks of four tyres at each edge of the straight just laid, narrowing the road into the bend
                     foreach (float side in new[] { -1f, 1f })
-                        for (int i = 0; i < 2; i++) RwLoose(smash, CyberTrackProps + "Barrier_Wheel_0" + (1 + i) + ".prefab", "Tyres", On(side * (layer.RoadHalf - 1.1f), -8f - i * 2.2f), turn, 0f, 0.4f);
+                        for (int stack = 0; stack < 2; stack++)
+                            for (int k = 0; k < 4; k++)
+                                RwLoose(smash, CyberTrackProps + "Barrier_Wheel_0" + (1 + (stack * 4 + k) % 8) + ".prefab", "Tyre", On(side * (layer.RoadHalf - 1f - stack * 1.2f), -6f - stack * 1.4f), turn, k * RwTyreThick, 0.3f);
+                    break;
+                case "Arrows":   // three chevrons painted on the straight just laid, pointing on into the bend
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var asset = AssetDatabase.LoadAssetAtPath<GameObject>(CyberTrackProps + "Arrow_0" + (3 + i % 2) + ".prefab"); if (asset == null) continue;
+                        var arrow = (GameObject)PrefabUtility.InstantiatePrefab(asset, props); arrow.name = "Arrow";
+                        arrow.transform.localScale = Vector3.one * 1.5f;
+                        // the pack's chevron points along its own -Z (seen in a still), and it is a flat decal: laid just clear of the road
+                        arrow.transform.SetPositionAndRotation(On(0f, -18f + i * 6f, 0.04f), turn * Quaternion.Euler(0f, 180f, 0f));
+                    }
                     break;
                 case "Stack":   // a wall of blocks right across the lane, three rows, each one block shorter
                 {
@@ -555,6 +571,7 @@ namespace ShiftJam
                             var cube = (GameObject)PrefabUtility.InstantiatePrefab(asset, smash); cube.name = "Block";
                             RwSet(cube, On((i - (across - 1 - row) * 0.5f) * (size + gap), 12f), turn, row * size);
                             Push(cube, Pushable.Weight.Light, 0.12f);
+                            cube.AddComponent<LooseProp>();
                         }
                     break;
                 }
@@ -600,6 +617,7 @@ namespace ShiftJam
             var go = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent); go.name = name;
             RwSet(go, on, turn, lift);
             Push(go, Pushable.Weight.Light, mass);
+            go.AddComponent<LooseProp>();   // F9 stands it back up
         }
 
         static void RwPickup(Transform parent, string piece, Vector3 at, Quaternion turn)
@@ -640,6 +658,7 @@ namespace ShiftJam
                 ("dress_cones", new Vector3(46f, RwBase + 4f, -66f), new Vector3(66f, RwBase + 0.5f, -64f)),
                 ("dress_stack", new Vector3(60f, RwBase + RwClimb + 4f, 42f), new Vector3(38f, RwBase + RwClimb + 1f, 40f)),
                 ("dress_heart", new Vector3(-40f, RwBase + 5f, 43f), new Vector3(-64f, RwBase + 1f, 40f)),
+                ("dress_arrows", new Vector3(-62f, RwBase + 14f, 52f), new Vector3(-72f, RwBase, 40f)),
             };
             foreach (var v in views) Shot(dir + "/" + v.name + ".png", v.eye, Quaternion.LookRotation(v.at - v.eye), 60f, 1280, 720);
             Log.AppendLine("stills in " + dir);

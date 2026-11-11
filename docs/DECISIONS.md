@@ -678,3 +678,14 @@
   them 1.3 above the road (stars 2.4 up, base plates in the air). They now stand on the road. Editor was closed:
   landed and rebuilt headless (`RefitCars`, `LandRaceway`), stills looked at. 46 pieces, closes to 0.000, 0 in the
   lane, 0 clips. Unplayed.
+
+- **D-0057 (10 Nov, 21:1x) The rest of the fast dressing pass: road arrows, real tyre stacks, F9 puts smashed things back.**
+  His "feel free to continue editing" (Unity closed, he in Godot). Looked at the Cyber pack's track props in a row
+  first (a temporary probe, deleted): the "arrows" are flat chevrons for the road (no height, no collider; they point
+  along their own -Z), a "wheel barrier" is ONE tyre lying flat (1.0 across, 0.43 thick), barriers 1 to 3 are barrels,
+  4 and 5 striped fence panels. So: mark "Arrows" paints three chevrons (x1.5) on the straight into each hairpin;
+  "Tyres" is now two stacks of four loose tyres at each edge (D-0055 had set down two single tyres a side);
+  `Room/LooseProp.cs` (IResettable) remembers where a loose prop stood, and the builder puts it on every cone, tyre and
+  block, so WorkshopReset's F9 stands the slalom, the stacks and the block wall back up. KeyHelp lists the drift boost
+  and air control. Rebuilt headless (`LandRaceway`): 46 pieces, closes to 0.000, 0 in the lane, 0 clips; stills looked
+  at (chevrons point the way the boost pad's do). Unplayed.

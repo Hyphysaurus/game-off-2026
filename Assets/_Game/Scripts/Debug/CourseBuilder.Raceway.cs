@@ -82,9 +82,10 @@ namespace ShiftJam
             RwSeg.Mark("Boost"),
             RwSeg.Straight(25f),
             RwSeg.Loop(RwLoopRadius, -RwLoopShift),
-            RwSeg.Straight(50f),
+            RwSeg.Straight(25f),
+            RwSeg.Mark("Gate"),            // on open road: after the hairpin the spiral's first turn passes right over this spot
+            RwSeg.Straight(25f),
             RwSeg.Turn(-180f, RwWestRadius - RwLoopShift * 0.5f, 20f),
-            RwSeg.Mark("Gate"),
             RwSeg.Straight(25f),
             RwSeg.Helix(-2f, 40f, RwClimb * 0.5f, 10f),
             RwSeg.Mark("Gate"),
@@ -238,6 +239,9 @@ namespace ShiftJam
                 Vector3 under = piece.Start - up * (depth + 0.05f);
                 if (!Physics.Raycast(under, Vector3.down, out RaycastHit hit, 400f, ~0, QueryTriggerInteraction.Ignore) || !hit.collider.transform.IsChildOf(shell)) continue;
                 float height = under.y - hit.point.y; if (height < 1f) continue;
+                // the whole pillar must stand free, not only its middle line: another stretch of road may pass beside it
+                float girth = XwPillarWidth * 0.5f;
+                if (height > 2f * girth + 1f && Physics.CheckCapsule(hit.point + Vector3.up * (girth + 0.4f), under - Vector3.up * (girth + 0.3f), girth, ~0, QueryTriggerInteraction.Ignore)) continue;
                 var pillar = Spawn(XwPillar, "Pillar", pillars, hit.point, Vector3.zero, 1f);
                 foreach (var body in pillar.GetComponentsInChildren<Rigidbody>()) Object.DestroyImmediate(body);
                 var size = B(pillar).size;
@@ -249,10 +253,33 @@ namespace ShiftJam
             // ---- is the road really there, the right way up, with a car's worth of air above it ----
             Physics.SyncTransforms();
             int rays = 0, holes = 0, blocked = 0; float worst = 0f, roadHalf = kit.Shape.RoadHalf * XwScale;
-            foreach (var piece in layer.Pieces)
+            const float laneHigh = 2.15f;   // from 0.45 over the road (a car's clearance) to 2.6 (over its roof)
+            var blockedBy = new List<string>();
+            int clipped = 0; float outerHalf = kit.Half, slab = kit.Shape.Depth * XwScale;
+            for (int index = 0; index < layer.Pieces.Count; index++)
+            {
+                var piece = layer.Pieces[index];
+                // its neighbours butt against it; everything else that touches its body or walls is a clip
+                Transform before = layer.Pieces[(index - 1 + layer.Pieces.Count) % layer.Pieces.Count].Go.transform, after = layer.Pieces[(index + 1) % layer.Pieces.Count].Go.transform;
                 foreach (var sample in piece.Samples)
                 {
                     Vector3 up = sample.turn * Vector3.up, right = sample.turn * Vector3.right;
+                    // inside the slab (not its skin: pillars meet its underside, the steps lap its lip) and inside each wall
+                    var bodies = new (Vector3 centre, Vector3 half)[]
+                    {
+                        (sample.at - up * (slab * 0.5f), new Vector3(outerHalf - 0.75f, slab * 0.5f - 0.3f, 1.2f)),
+                        (sample.at + up * (RwWall * 0.5f + 0.1f) - right * (roadHalf + (outerHalf - roadHalf) * 0.5f), new Vector3((outerHalf - roadHalf) * 0.5f - 0.2f, RwWall * 0.5f - 0.2f, 1.2f)),
+                        (sample.at + up * (RwWall * 0.5f + 0.1f) + right * (roadHalf + (outerHalf - roadHalf) * 0.5f), new Vector3((outerHalf - roadHalf) * 0.5f - 0.2f, RwWall * 0.5f - 0.2f, 1.2f)),
+                    };
+                    foreach (var body in bodies)
+                        foreach (var c in Physics.OverlapBox(body.centre, body.half, sample.turn, ~0, QueryTriggerInteraction.Ignore))
+                        {
+                            Transform t = c.transform;
+                            if (t.IsChildOf(piece.Go.transform) || t.IsChildOf(before) || t.IsChildOf(after) || t.IsChildOf(cars)) continue;
+                            var who = t; while (who.parent != null && who.parent != props && who.parent != scenery && who.parent != track && who.parent != pillars) who = who.parent;
+                            string line = $"  CLIPS: {who.name} stands in the body or a wall of {piece.Go.name}";
+                            if (!blockedBy.Contains(line)) { blockedBy.Add(line); Log.AppendLine(line); clipped++; }
+                        }
                     foreach (float across in new[] { -0.5f, 0f, 0.5f })
                     {
                         rays++;
@@ -266,13 +293,20 @@ namespace ShiftJam
                         }
                         if (!found) holes++;
                     }
-                    foreach (var c in Physics.OverlapBox(sample.at + up * 1.3f, new Vector3(1.1f, 0.85f, 1.2f), sample.turn, ~0, QueryTriggerInteraction.Ignore))
+                    // the whole lane between the walls, from a car's clearance to well over its roof. Only the parked racers
+                    // are let off: an arch or a pad must leave the lane clear too, on its own piece and on any piece that
+                    // passes over or beside it (gate 1's top came up through the spiral's first turn: D-0054).
+                    foreach (var c in Physics.OverlapBox(sample.at + up * (0.45f + laneHigh * 0.5f), new Vector3(roadHalf - 0.15f, laneHigh * 0.5f, 1.2f), sample.turn, ~0, QueryTriggerInteraction.Ignore))
                     {
-                        if (c.transform.IsChildOf(cars) || c.transform.IsChildOf(props)) continue;   // parked racers, arches and pads belong there
-                        blocked++; Log.AppendLine($"  LANE BLOCKED on {piece.Go.name} by {c.name}"); break;
+                        if (c.transform.IsChildOf(cars) || c.transform.IsChildOf(piece.Go.transform)) continue;
+                        var who = c.transform; while (who.parent != null && who.parent != props && who.parent != scenery && who.parent != track && who.parent != pillars) who = who.parent;
+                        string line = $"  LANE BLOCKED on {piece.Go.name} by {who.name}";
+                        if (!blockedBy.Contains(line)) { blockedBy.Add(line); Log.AppendLine(line); }
+                        blocked++; break;
                     }
                 }
-            Log.AppendLine($"  road check: {rays} rays, {holes} missed or off the road's height (worst {worst:F3}), {blocked} places with something in the lane; pillars {stood}");
+            }
+            Log.AppendLine($"  road check: {rays} rays, {holes} missed or off the road's height (worst {worst:F3}), {blocked} places with something in the lane, {clipped} things standing in the road's body or walls; pillars {stood}");
             EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
         }
 

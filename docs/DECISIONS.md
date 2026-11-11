@@ -625,3 +625,15 @@
   upright view keeps facing its nose, so coming off the held road blends into a view already behind the car. The same
   view applies on the spiral and the banked hairpins (it leans with the bank). Mouse orbit is ignored while it holds.
   Landed in his open editor with Play stopped, raceway rebuilt from the menu and saved. Unplayed.
+
+- **D-0054 (10 Nov, 20:3x) Nothing may stand in the road: gate 1 moved, and the build checks for it.** His third
+  raceway drive: "way better", and a still of a grey and pink shape coming up through the road on the spiral: "make
+  sure there are no clipping issues like this". It was gate 1's arch: the gate stood just after the first hairpin, and
+  the spiral's first turn passes over that spot about 14 above the road. The build's lane check had been told to let
+  race pieces off ("arches and pads belong there"), so it said nothing. **The check now** (every build, in the log):
+  (1) the whole lane between the walls, from a car's clearance to well over its roof, must be free of everything
+  except the parked racers, on every piece; (2) nothing but a piece's own neighbours may stand inside its slab or its
+  walls; (3) a pillar is stood only where the whole pillar is free, not just its middle line (one fewer pillar: 25).
+  Shown to work before the fix: with gate 1 still in place it reported "LANE BLOCKED on T26 by Gate1". **The fix:**
+  gate 1 stands half-way along the straight between the loop and the first hairpin, on open road. After it: 0 in the
+  lane, 0 clips, circuit closes to 0.001. Landed in his open editor with Play stopped (bridge), saved. Unplayed.

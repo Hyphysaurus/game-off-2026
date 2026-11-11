@@ -2,6 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 10 Nov 2026 20:3x — "WAY BETTER" (the slanted loop + road camera, D-0053, played); gate 1 clipped the spiral: D-0054 landed, UNPLAYED
+His third drive: the loop and the camera are "way better". His still: gate 1's arch came up through the spiral's first
+turn. D-0054: the build's checks now cover the whole lane, the road's body and walls, and whole pillars (and were shown
+to catch the fault before it was fixed); gate 1 moved to the straight after the loop. Raceway rebuilt from the menu
+through the bridge and saved: 0 in the lane, 0 clips. No build.
+STILL OPEN: what floated upwards; tuning of the feel numbers by his word.
+
 ## 10 Nov 2026 20:2x — HE MADE THE LOOP ("not bad"); "didnt feel very smooth" + "camera work for the loops": D-0053 landed, UNPLAYED
 The D-0052 loop fix worked in his hands. D-0053: the loop is rebuilt as a slanted strip a car drives straight through
 (the old one rubbed the car along a wall), finer facets, no landing effects from hops on held road, and a chase camera

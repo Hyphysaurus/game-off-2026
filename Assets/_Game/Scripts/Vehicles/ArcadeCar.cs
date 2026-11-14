@@ -78,6 +78,12 @@ namespace ShiftJam
         private float _airTime;             // seconds since a wheel last touched (0 on the ground)
         private float _midZ;                // car space: wheels behind this are rear wheels
         private float _nextImpactFeel;      // Crashed is raised at most ten times a second
+        private Vector3 _stepVelocity;      // the velocity at the start of the last physics step (what a hit came in at)
+        private Vector3 _groundUp = Vector3.up;   // the road's up under the wheels in the last step (world up in the air)
+        private float _wallUntil = -1f;     // physics time until which a wall's knock is settled (D-0058)
+        private Vector3 _wallAlong;         // the way along the wall the last glance sent the car (zero: no glance to align to)
+        private Vector3 _wallSide;          // the last wall's face, pointing out toward the car
+        private bool _driftChance, _driftHeld;
 
         public bool Occupied => _driver != null;
         public bool Wrecked => _health != null && _health.Dead;
@@ -130,6 +136,8 @@ namespace ShiftJam
         public float AirTime => _airTime;
         public int DriftLevel => _drift.Level;
         public float DriftMeter => _drift.Charge;
+        public bool DriftChance => _driftChance;
+        public bool DriftHeld => _driftHeld;
         /// <summary>How many wheels the car has (the index range of the Wheel* calls).</summary>
         public int WheelCount => _rest != null ? _rest.Length : 0;
         /// <summary>Wheel <paramref name="i"/> touched the ground in the last physics step.</summary>
@@ -510,7 +518,7 @@ namespace ShiftJam
         private void FixedUpdate()
         {
             if (settings == null || wheels.Length == 0) return;
-            if (_rb.isKinematic) { _boost.Halt(); _slip = 0f; _airTime = 0f; _holding = false; return; }   // parked on a lift or held: nothing to drive
+            if (_rb.isKinematic) { _boost.Halt(); _slip = 0f; _airTime = 0f; _holding = false; _driftChance = _driftHeld = false; return; }   // parked on a lift or held: nothing to drive
             float dt = Time.fixedDeltaTime, s = Scale;
             float g = Mathf.Max(0.01f, -Physics.gravity.y);
             int n = wheels.Length, grounded = 0;
@@ -556,6 +564,7 @@ namespace ShiftJam
             var tuning = Tuning;
 
             Vector3 ground = grounded > 0 ? (normal / grounded).normalized : Vector3.up;
+            _stepVelocity = v; _groundUp = ground;
             // Sticky track (D-0050): on a loop, a spiral or a banked bend the car's weight presses onto the road, not toward
             // the floor. The world's pull is cancelled and the same pull is put along the road's own down, so the springs
             // carry what they carry on level ground and climbing costs no speed: a loop is driven at any pace. (The
@@ -610,10 +619,14 @@ namespace ShiftJam
             // Drift boost: a held handbrake slide banks a level; letting go of the handbrake fires it as a burst (the
             // usual Boost path: a weaker burst never cuts a stronger one, one whoosh). Anything else drops the charge.
             var drift = settings.drift;
+            _driftChance = _driftHeld = false;
             if (!driving || ForceBrake || winding || drift == null) _drift.Cancel();
             else
             {
                 bool charging = grounded > 0 && _slip > drift.minSlip && speed > drift.minSpeed * top;
+                // the cue (D-0058): fast enough that a slide would charge, the wheel turned hard, the handbrake not yet down
+                _driftChance = !handbrake && grounded > 0 && speed > drift.minSpeed * top * 1.5f && Mathf.Abs(steer) > 0.6f;
+                _driftHeld = handbrake && _drift.Charge > 0f;
                 int paid = _drift.Step(dt, drift, handbrake, charging);
                 if (paid == 2) Boost(drift.levelTwoBoost, drift.levelTwoSeconds);
                 else if (paid == 1) Boost(drift.levelOneBoost, drift.levelOneSeconds);
@@ -659,7 +672,19 @@ namespace ShiftJam
                 float yawRate = steer * settings.steerRate * Mathf.Deg2Rad * steerSpeed * (handbrake ? 1.3f : 1f);
                 Vector3 av = _rb.angularVelocity;
                 float current = Vector3.Dot(av, ground);
-                _rb.angularVelocity = av + ground * ((yawRate - current) * Mathf.Min(1f, 10f * dt) * share);
+                float follow = Mathf.Min(1f, 10f * dt);
+                // Just off a wall (D-0058): the spin the hit gave the body is taken away at once (that sudden twist was
+                // the jerk), and after a glance a nose still pointing into the wall eases round along it.
+                if (Time.fixedTime < _wallUntil)
+                {
+                    follow = 1f;
+                    if (_wallAlong != Vector3.zero && speed > 0f && Vector3.Dot(fwd, _wallAlong) > 0.3f && Vector3.Dot(fwd, _wallSide) < 0f)   // only a nose still turned INTO the wall
+                    {
+                        float off = Vector3.SignedAngle(fwd, Vector3.ProjectOnPlane(_wallAlong, ground), ground);
+                        if (Mathf.Abs(off) < 70f) yawRate += off * Mathf.Deg2Rad / Mathf.Max(0.02f, settings.wallAlignSeconds);
+                    }
+                }
+                _rb.angularVelocity = av + ground * ((yawRate - current) * follow * share);
 
                 // A little downforce at speed keeps it on the track over crests. Measured against maxSpeed (the base, not
                 // the scaled top), so the pull at any given speed is what it was before the top speed went up.
@@ -832,21 +857,90 @@ namespace ShiftJam
             // A crash is how hard the car hit INTO the surface (the speed along the contact normal), not its whole speed:
             // rolling onto a ramp or scraping a wall barely counts, a head-on hit or a hard flat landing does (D-0038).
             float impact = Impact(c) / s;
-            if (impact > settings.feelMinImpact && Time.time >= _nextImpactFeel)
+            // Loose, light things (cones, a wall of toy blocks) are there to be driven through: the hit is felt, but only
+            // as a tap (D-0058: a cone used to shake the camera like a crash), and it does not hurt the car.
+            bool smashed = c.rigidbody != null && !c.rigidbody.isKinematic && c.rigidbody.mass <= settings.smashMass;
+            // A wall hit at a shallow angle glances (D-0058): the car slides on along it, felt half as hard, unhurt.
+            bool glanced = !smashed && Glance(c, true);
+            float felt = smashed ? Mathf.Min(impact, settings.smashFeel) : glanced ? impact * 0.5f : impact;
+            if (felt > settings.feelMinImpact && Time.time >= _nextImpactFeel)
             {
                 _nextImpactFeel = Time.time + 0.1f;
-                Crashed?.Invoke(impact);
+                Crashed?.Invoke(felt);
             }
-            // Loose, light things (cones, a wall of toy blocks) are there to be driven through: the hit is felt (the shake
-            // and rumble above) but it does not hurt the car.
-            bool smashed = c.rigidbody != null && !c.rigidbody.isKinematic && c.rigidbody.mass <= settings.smashMass;
-            if (!smashed && impact > settings.crashMinSpeed && Time.time >= _nextCrash)
+            if (!smashed && !glanced && impact > settings.crashMinSpeed && Time.time >= _nextCrash)
             {
                 _nextCrash = Time.time + 0.35f;
                 DropDrift();   // a crash that hurts ends the slide's charge
                 _health.Hit(new DamageInfo((impact - settings.crashMinSpeed) * settings.crashDamagePerSpeed, Vector3.zero, transform.position, c.transform));
                 Play(crashClip, Mathf.Clamp01(impact / (settings.crashMinSpeed * 2f)), 1.1f);
             }
+        }
+
+        /// <summary>Rubbing along a wall: kept sliding along it, off its face, with the knock's spin taken away.</summary>
+        private void OnCollisionStay(Collision c)
+        {
+            if (settings == null) return;
+            if (c.rigidbody != null && !c.rigidbody.isKinematic) return;   // things that move: the physics as it is
+            Glance(c, false);
+        }
+
+        /// <summary>
+        /// The wall rule (D-0058). A box body that touches a wall at an angle is caught by a corner: the physics stops the
+        /// speed into the wall, scrubs the rest and twists the car, which read as a hard, unnatural jerk. Here, for
+        /// anything fixed (no rigidbody, or a kinematic one) whose face stands up from the road: on the first touch
+        /// (<paramref name="first"/>) a hit shallower than settings.wallGlanceAngle keeps its speed along the wall less a
+        /// little scrape (settings.wallScrapeLoss, more the steeper it was) and is given settings.wallPushOff back off the
+        /// face; while it rubs, nothing heads into the wall. Either way, for settings.wallSettle the steering takes away
+        /// the spin the knock gave and eases a nose still pointing into the wall round along it (FixedUpdate). Returns
+        /// true for a glance (the caller does not count it as a crash). Steeper hits are left to the physics: crashes.
+        /// </summary>
+        private bool Glance(Collision c, bool first)
+        {
+            if (Wrecked || _rb.isKinematic || settings.wallGlanceAngle <= 0f) return false;
+            if (c.rigidbody != null && !c.rigidbody.isKinematic) return false;
+            int n = c.contactCount;
+            if (n == 0) return false;
+            Vector3 up = _groundUp, face = Vector3.zero;
+            for (int i = 0; i < n; i++) face += c.GetContact(i).normal;
+            face.Normalize();
+            if (Mathf.Abs(Vector3.Dot(face, up)) > 0.6f) return false;   // a floor, a ramp or a ceiling, not a wall
+            Vector3 side = Vector3.ProjectOnPlane(face, up).normalized;     // out of the wall, toward the car
+            if (side == Vector3.zero) return false;
+            float s = Scale;
+            _wallSide = side;
+            _wallUntil = Time.fixedTime + settings.wallSettle;
+
+            Vector3 now = _rb.linearVelocity;
+            Vector3 nowUp = Vector3.Project(now, up), nowFlat = now - nowUp;
+            float push = settings.wallPushOff * s;
+            if (!first)
+            {
+                // rubbing: whatever still heads into the wall, or hugs it, comes off it at the push-off speed
+                float outward = Vector3.Dot(nowFlat, side);
+                if (outward < push) _rb.linearVelocity = nowFlat + side * (push - outward) + nowUp;
+                Vector3 sliding = nowFlat - side * outward;   // the nose eases along the way it slides
+                if (sliding.sqrMagnitude > s * s) _wallAlong = sliding.normalized;
+                return true;
+            }
+
+            _wallAlong = Vector3.zero;   // a new touch: only a glance below sets a way to align to
+            Vector3 came = Vector3.ProjectOnPlane(_stepVelocity, up);   // what the car brought into the wall
+            float speed = came.magnitude;
+            if (speed < 1f * s) return true;   // a nudge at a crawl: settled, nothing to keep
+            float into = -Vector3.Dot(came, side);
+            if (into <= 0f) return true;       // already moving off the wall: only the spin needs settling
+            float sin = into / speed, most = Mathf.Sin(settings.wallGlanceAngle * Mathf.Deg2Rad);
+            if (sin > most) { _wallAlong = Vector3.zero; return false; }   // too steep: a crash
+            Vector3 along = came + side * into;   // the part of its way that runs along the wall
+            if (along.sqrMagnitude < 1e-6f) return true;
+            float keep = speed * (1f - settings.wallScrapeLoss * (sin / Mathf.Max(1e-4f, most)));
+            Vector3 alongDir = along.normalized;
+            // keep the faster of what the physics left and what the glance keeps: never slower than the plain physics
+            float left = Mathf.Max(0f, Vector3.Dot(nowFlat, alongDir));
+            _rb.linearVelocity = alongDir * Mathf.Max(left, keep) + side * push + nowUp;
+            _wallAlong = alongDir;
+            return true;
         }
 
         /// <summary>The fastest closing speed along any contact's normal, world units per second.</summary>

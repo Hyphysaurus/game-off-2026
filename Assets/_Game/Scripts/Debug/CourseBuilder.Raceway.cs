@@ -23,8 +23,8 @@ namespace ShiftJam
         const string TraversalPieces = "Assets/_Game/Prefabs/Pieces/Traversal/";
 
         const float RwBase = 10f;          // the road's height on the level stretches: the toy walks underneath
-        const float RwWiden = 1.5f;        // the road between the rails, as a multiple of the pack piece's (8.4 wide at 1): 1.5 = 12.5. The rails keep their size.
-        const float RwGateTall = 1.6f;     // a gate or the finish arch is stretched across the road, but grows no taller than this times its own size
+        const float RwWiden = 2.25f;       // the road between the rails, as a multiple of the pack piece's (8.4 wide at 1): 2.25 = 18.9, about eight car widths (a car is 2.17), room for a pack of four racing side by side (D-0058; 1.5 = 12.5 was cramped). The rails keep their size.
+        const float RwGateTall = 0.8f;   // D-0058: was 1.6. At the 2.25 road gate 1 (on the straight under the spiral) reached the spiral overhead at 1.6 and 1.2; 0.8 = 5.4 m: clear     // a gate or the finish arch is stretched across the road, but grows no taller than this times its own size
         const float RwWall = 2f;           // the walls beside the road, above its surface (they show, unlike the playroom's guards)
         const int RwSlices = 24;           // cuts along a swept piece: under 2 degrees a facet on a 45 degree piece, so the springs do not feel them
 
@@ -75,7 +75,7 @@ namespace ShiftJam
         // loop carries the road forward. North: two 25s, the dive's run, and one straight that takes up what is left.
         // The loop comes out RwLoopShift to the left (it must clear the road's own width: checked at build), so the east
         // hairpin's radius is half of that less than the west one's.
-        const float RwSide = 150f, RwLoopRadius = 28f, RwLoopShift = 20f, RwWestRadius = 60f, RwClimb = 32f, RwDiveAngle = 30f, RwDiveRadius = 40f;
+        const float RwSide = 150f, RwLoopRadius = 28f, RwLoopShift = 27f, RwWestRadius = 60f, RwClimb = 32f, RwDiveAngle = 30f, RwDiveRadius = 40f;
         static readonly Vector3 RwStart = new Vector3(-75f, RwBase, -80f);
 
         static readonly RwSeg[] RwCircuit =
@@ -511,7 +511,9 @@ namespace ShiftJam
             var asset = prefab != null ? AssetDatabase.LoadAssetAtPath<GameObject>(TraversalPieces + prefab + ".prefab") : null;
             if (asset == null) { Log.AppendLine($"  NO PIECE for mark {tag} ({prefab}): run Shift Jam > Workshop > Build Race Pieces / Build Boost Pieces"); return; }
             var go = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent); go.name = tag + (tag == "Gate" ? gate.ToString() : "");
-            float clear = layer.Half * 2f + 1.5f;
+            // the gap between the posts: the walls plus room for the posts' own thickness, which grows with the stretch
+            // (D-0058: at the 2.25 road a fixed 1.5 put the stretched posts into the walls)
+            float clear = layer.Half * 2f + 1.5f + 0.1f * layer.Half;
             // as wide as the road needs, but no taller than RwGateTall times its own size: a gate scaled evenly to span a wide
             // road stands tall enough to reach the loop and the spiral beside it (the clip check caught that, D-0056)
             float wide = clear / (tag == "Finish" ? RaceBuilder.FinishOpening : RaceBuilder.GateOpening), tall = Mathf.Min(wide, RwGateTall);

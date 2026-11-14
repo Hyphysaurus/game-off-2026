@@ -2,6 +2,17 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 14 Nov 2026 09:3x — D-0058 from his raceway drive (walls glance, cones tap, drift cues, road 18.9 wide) — UNPLAYED
+His drive of D-0055..D-0057: "pretty fun"; notes = jerk on walls/cones, drift prompts, lanes cramped. All three built
+(D-0058), compiled and the raceway rebuilt headless (Unity closed: he went to NectarRush): 0 in the lane, 0 clips.
+TO PLAY (Raceway.unity): (1) scrape a wall at a shallow angle, then hit one head-on (glance vs crash); (2) drive
+through the cones (a tap, no lurch); (3) take a hairpin fast with the wheel turned: DRIFT pill + tick, then hold
+Space: sparks, rising whirr, a chime at each level, RELEASE! at two; (4) the width (18.9) and the gates' lower
+arches (0.8 cap, the finish arch too). Numbers to tune: ArcadeCarSettings "Walls", DrivingFeelSettings "Drift cues".
+HIS CALLS: AI rival cars for a 4-car race (none exist; online 8-player is not realistic before 1 Dec); chevron signs
+before bends (left out); items 4-7. Other changes in his tree left uncommitted (fonts, PadGlow/PocketCoreGlow mats,
+an ERP folder, UnityConnectSettings): not mine.
+
 ## 10 Nov 2026 21:1x — CHECKPOINT, he is in Godot, Unity closed: D-0057 (arrows, tyre stacks, F9 resets loose props, KeyHelp) — UNPLAYED
 Everything from D-0050 to D-0057 is committed locally; nothing since D-0054 has been driven (he drove D-0052 to
 D-0054). Raceway as it stands: road 12.5 wide, loop, two banked hairpins, spiral, dive; flags, cone slalom, block

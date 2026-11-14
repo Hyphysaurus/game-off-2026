@@ -134,6 +134,60 @@ namespace ShiftJam
             return Clip("Thump (generated)", data);
         }
 
+        // drift cues (D-0058): a bright buzzing whirr for a charging slide (whole Hz, so one second loops on itself), a
+        // two-partial bell for a banked level, and a short soft blip for "you can drift here"
+        private const int ChargeBase = 330;            // Hz at pitch 1 (the cue plays it from 0.8 to 1.6 as the charge builds)
+        private const int ChargeWobble = 12;           // times a second the whirr pulses
+        private const float ChimeSeconds = 0.6f, ChimeTone = 1318.5f, ChimeDecay = 7f;   // E6, ringing out
+        private const float TickSeconds = 0.07f, TickTone = 2200f, TickDecay = 60f;
+
+        /// <summary>A one-second loop of a bright, pulsing whirr: a slide charging.</summary>
+        public static AudioClip DriftCharge()
+        {
+            int n = Rate;
+            var data = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / Rate, sum = 0f;
+                for (int k = 1; k <= 6; k++) sum += Mathf.Sin(2f * Mathf.PI * ChargeBase * k * t) / k;   // a soft saw
+                float pulse = 0.75f + 0.25f * Mathf.Sin(2f * Mathf.PI * ChargeWobble * t);
+                data[i] = (float)System.Math.Tanh(1.2f * sum) * pulse;
+            }
+            return Clip("Drift charge (generated)", data);
+        }
+
+        /// <summary>A short bell: a drift level banked.</summary>
+        public static AudioClip Chime()
+        {
+            int n = Mathf.RoundToInt(ChimeSeconds * Rate), tail = Rate / 100;
+            var data = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / Rate;
+                float attack = Mathf.Clamp01(t * 400f);   // a few milliseconds in, so it does not click
+                float v = Mathf.Sin(2f * Mathf.PI * ChimeTone * t) + 0.45f * Mathf.Sin(2f * Mathf.PI * ChimeTone * 2.76f * t) * Mathf.Exp(-6f * t);
+                v *= attack * Mathf.Exp(-ChimeDecay * t);
+                if (i >= n - tail) v *= (float)(n - 1 - i) / tail;
+                data[i] = v;
+            }
+            return Clip("Drift chime (generated)", data);
+        }
+
+        /// <summary>A tiny soft blip: a drift could start here.</summary>
+        public static AudioClip Tick()
+        {
+            int n = Mathf.RoundToInt(TickSeconds * Rate), tail = Rate / 200;
+            var data = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / Rate;
+                float v = Mathf.Sin(2f * Mathf.PI * TickTone * t * (1f - 2f * t)) * Mathf.Clamp01(t * 2000f) * Mathf.Exp(-TickDecay * t);
+                if (i >= n - tail) v *= (float)(n - 1 - i) / tail;
+                data[i] = v;
+            }
+            return Clip("Drift tick (generated)", data);
+        }
+
         /// <summary>The smoothing step of a simple low-pass filter that starts cutting at <paramref name="hz"/>.</summary>
         private static float OnePole(float hz) => 1f - Mathf.Exp(-2f * Mathf.PI * hz / Rate);
 

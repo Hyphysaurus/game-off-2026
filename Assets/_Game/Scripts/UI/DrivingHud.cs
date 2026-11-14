@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace ShiftJam
@@ -71,6 +72,15 @@ namespace ShiftJam
         private Image _pipOne, _pipTwo;
         private IDriftCharge _drift;
         private float _driftShown = -1f;
+        // the drift cue (D-0058): DRIFT (with the key, the first few times) when a drift could start; RELEASE! at level two
+        private const int DriftHintTimes = 5;   // drifts banked before the key stops being named
+        private CanvasGroup _cue;
+        private RectTransform _cueRt;
+        private Image _cuePill;
+        private TextMeshProUGUI _cueText;
+        private int _cueMode, _driftsBanked, _lastLevel;
+        private float _cueAt;
+        private bool _cuePad;
         private GameObject _nitroPanel, _healthPanel;
         private RectTransform _healthFillRt;
         private Image _healthFill, _shieldRim;
@@ -188,6 +198,7 @@ namespace ShiftJam
             _wind.alpha = 0f; _badge.alpha = 0f;
             if (_nitroPanel.activeSelf != boost) _nitroPanel.SetActive(boost);
             _driftShown = -1f;
+            _cueMode = 0; _cue.alpha = 0f; _lastLevel = 0;
             if (_driftPips.activeSelf != (_drift != null)) _driftPips.SetActive(_drift != null);
             SettleDial();
         }
@@ -207,7 +218,7 @@ namespace ShiftJam
             if (_chase != null && !Alive(_chase)) _chase = null;
             if (_boost != null && !Alive(_boost)) { _boost = null; _nitroPanel.SetActive(false); }
             if (_health != null && !Alive(_health)) { _health = null; _healthPanel.SetActive(false); }
-            if (_drift != null && !Alive(_drift)) { _drift = null; _driftPips.SetActive(false); }
+            if (_drift != null && !Alive(_drift)) { _drift = null; _driftPips.SetActive(false); _cue.alpha = 0f; }
 
             Vector3 velocity = _chase != null ? _chase.ChaseVelocity : Measured();
             float top = _chase != null && _chase.ChaseTopSpeed > 0.01f ? _chase.ChaseTopSpeed : fallbackTopSpeed;
@@ -245,7 +256,7 @@ namespace ShiftJam
             else if (_badge.alpha > 0f) _badge.alpha = 0f;
 
             if (_boost != null) UpdateNitro(dt, now);
-            if (_drift != null) UpdateDrift(now);
+            if (_drift != null) { UpdateDrift(now); UpdateCue(dt, now); }
             if (_health != null) UpdateHealth(dt, now);
             UpdateWind(_boost != null ? Mathf.Clamp01(_boost.Wind) : 0f, dt, now);
         }
@@ -276,6 +287,45 @@ namespace ShiftJam
             float pulse = full ? 0.5f + 0.5f * Mathf.Sin(now * 14f) : 0f;
             _pipOne.color = Color.Lerp(accent, Color.white, 0.6f * pulse);
             _pipTwo.color = Color.Lerp(boostColour, Color.white, 0.6f * pulse);
+        }
+
+        /// <summary>The drift cue under the middle of the screen (D-0058): DRIFT while a drift could start (naming the key,
+        /// SPACE or A by the device last used, until DriftHintTimes drifts have banked), RELEASE! pulsing orange while
+        /// level two waits to be let go. It pops in, and fades out with the rest of the driving HUD.</summary>
+        private void UpdateCue(float dt, float now)
+        {
+            int level = _drift.DriftLevel;
+            if (level >= 1 && _lastLevel == 0) _driftsBanked++;
+            _lastLevel = level;
+            int mode = _drift.DriftHeld && level >= 2 ? 2 : _drift.DriftChance ? 1 : 0;
+            bool pad = UsingPad();
+            if (mode != 0 && (mode != _cueMode || pad != _cuePad))
+            {
+                if (mode != _cueMode) _cueAt = now;
+                _cueMode = mode; _cuePad = pad;
+                if (mode == 2) { _cueText.SetText("RELEASE!"); _cuePill.color = boostColour; _cueText.color = Color.white; }
+                else
+                {
+                    _cueText.SetText(_driftsBanked < DriftHintTimes ? (pad ? "DRIFT  <size=70%>HOLD A</size>" : "DRIFT  <size=70%>HOLD SPACE</size>") : "DRIFT");
+                    _cuePill.color = BuildUiKit.PanelColor; _cueText.color = accent;
+                }
+            }
+            else if (mode == 0) _cueMode = 0;
+            float target = mode != 0 ? 1f : 0f;
+            _cue.alpha = Mathf.MoveTowards(_cue.alpha, target, (target > 0f ? 12f : 4f) * dt) * Mathf.Min(1f, _drive.alpha + 0.001f);
+            if (_cue.alpha <= 0f) return;
+            float t = now - _cueAt;
+            float pulse = _cueMode == 2 ? 1f + 0.06f * Mathf.Sin(now * 16f) : 1f;
+            _cueRt.localScale = Vector3.one * (Punch(t, 0.25f) * pulse);
+        }
+
+        /// <summary>The pad was touched more lately than the keyboard.</summary>
+        private static bool UsingPad()
+        {
+            var pad = Gamepad.current;
+            if (pad == null) return false;
+            var keys = Keyboard.current;
+            return keys == null || pad.lastUpdateTime > keys.lastUpdateTime;
         }
 
         /// <summary>For a vehicle that does not report its speed: measured from how it moves.</summary>
@@ -560,6 +610,14 @@ namespace ShiftJam
             boostText.fontStyle = FontStyles.Bold;
             boostText.SetText("BOOST!");
             _badge = Group(_badgeRt);
+
+            // the drift cue, low in the middle of the screen (D-0058)
+            _cueRt = At("DriftCue", canvas, new Vector2(0.5f, 0f), Centre, new Vector2(0f, 190f), new Vector2(380f, 58f));
+            _cuePill = Round(_cueRt, BuildUiKit.PanelColor, 29f);
+            _cueText = Label(_cueRt, 32f, false, TextAlignmentOptions.Capline, accent);
+            _cueText.fontStyle = FontStyles.Bold;
+            _cueText.richText = true;
+            _cue = Group(_cueRt);
 
             // the wind meter, left of the dial, while the pull-back spring winds
             var wind = At("Wind", drive, Vector2.zero, Centre, new Vector2(-64f, DialBase + DialSize * 0.4f), new Vector2(100f, 100f));

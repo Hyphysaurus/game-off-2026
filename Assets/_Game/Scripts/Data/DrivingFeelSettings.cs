@@ -33,7 +33,7 @@ namespace ShiftJam
         [Header("Crash (by the speed into the surface)")]
         [Tooltip("Softer knocks than this do nothing (the car itself reports nothing under ArcadeCarSettings.feelMinImpact).")] public float crashFrom = 5f;
         [Tooltip("A hit this hard or harder is full strength.")] public float crashFull = 24f;
-        [Range(0f, 1f), Tooltip("Camera shake at a full-strength crash.")] public float crashShake = 1f;
+        [Range(0f, 1f), Tooltip("Camera shake at a full-strength crash. A crash's strength is squared before it shakes (D-0058), so knocks and glances barely move the camera and only real crashes do.")] public float crashShake = 0.7f;
         public float crashShakeSeconds = 0.45f;
 
         [Header("Speed lines (screen overlay)")]
@@ -69,6 +69,18 @@ namespace ShiftJam
         [Range(0f, 1f), Tooltip("Volume at a full-strength landing.")] public float landVolume = 0.8f;
         [Range(0f, 0.3f), Tooltip("Each thump's pitch is 1 plus or minus up to this.")] public float landPitchSpread = 0.08f;
         [Tooltip("How fast the loops' volumes follow, per second.")] public float soundFade = 6f;
+
+        [Header("Drift cues (D-0058; sounds made in code unless a clip is given)")]
+        [Tooltip("Optional one-shot for 'you can drift here' (fast, wheel turned hard, not drifting yet).")] public AudioClip driftChanceClip;
+        [Range(0f, 1f)] public float driftChanceVolume = 0.35f;
+        [Tooltip("Least seconds between two 'you can drift' ticks.")] public float driftChanceGap = 2.5f;
+        [Tooltip("Optional loop for a charging slide; its pitch climbs with the charge.")] public AudioClip driftChargeClip;
+        [Range(0f, 1f)] public float driftChargeVolume = 0.22f;
+        [Tooltip("Charging loop's pitch at the start of a slide (x) and at level two (y).")] public Vector2 driftChargePitch = new Vector2(0.8f, 1.6f);
+        [Tooltip("Optional one-shot when a drift level is banked (played higher for level two).")] public AudioClip driftLevelClip;
+        [Range(0f, 1f)] public float driftLevelVolume = 0.55f;
+        [Tooltip("Sparks a second from each rear wheel at a full charge (fewer while it builds). 0 = no sparks.")] public float sparkRate = 90f;
+        [Tooltip("Spark colour while a slide charges toward level one.")] public Color sparkChargeColour = new Color(1f, 0.95f, 0.75f, 1f);
 
         [Header("Controller rumble")]
         [Tooltip("Off = the pad never rumbles while driving.")] public bool rumble = true;

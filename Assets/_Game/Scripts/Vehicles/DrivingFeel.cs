@@ -23,6 +23,10 @@ namespace ShiftJam
         public int DriftLevel;
         /// <summary>The drift charge as a number, 0..2: above 0 as soon as a slide starts to charge.</summary>
         public float DriftMeter;
+        /// <summary>A drift could start now: fast, the wheel turned hard, the handbrake not yet down (D-0058).</summary>
+        public bool DriftChance;
+        /// <summary>The handbrake is held over a charge that is building or banked.</summary>
+        public bool DriftHeld;
     }
 
     /// <summary>
@@ -43,6 +47,7 @@ namespace ShiftJam
         private DrivingSound _sound;
         private DrivingRumble _rumble;
         private CarTrails _trails;
+        private DriftCues _cues;
 
         private Transform _vehicle;
         private ArcadeCar _car;
@@ -65,10 +70,12 @@ namespace ShiftJam
             _sound = Part<DrivingSound>("DrivingSound");
             _rumble = Part<DrivingRumble>("DrivingRumble");
             _trails = Part<CarTrails>("CarTrails");
+            _cues = Part<DriftCues>("DriftCues");
             _lines.Setup(_settings);
             _sound.Setup(_settings);
             _rumble.Setup(_settings);
             _trails.Setup(_settings);
+            _cues.Setup(_settings);
         }
 
         private T Part<T>(string label) where T : Component
@@ -101,6 +108,8 @@ namespace ShiftJam
                 state.Sliding = _car.Sliding;
                 state.DriftLevel = _car.DriftLevel;
                 state.DriftMeter = _car.DriftMeter;
+                state.DriftChance = _car.DriftChance;
+                state.DriftHeld = _car.DriftHeld;
             }
 
             float dt = Time.unscaledDeltaTime;
@@ -108,6 +117,7 @@ namespace ShiftJam
             _sound.Tick(state, dt);
             _rumble.Tick(state, dt);
             _trails.Tick(state, _live ? _car : null);
+            _cues.Tick(state, _live ? _car : null, dt);
         }
 
         /// <summary>Follows a new driven vehicle (null: nobody drives). Only an ArcadeCar gets the feel.</summary>
@@ -118,6 +128,7 @@ namespace ShiftJam
                 _car.BoostStarted -= OnBoostStarted;
                 _car.Landed -= OnLanded;
                 _car.Crashed -= OnCrashed;
+                _car.DriftLevelChanged -= OnDriftLevel;
             }
             _vehicle = vehicle;
             _car = vehicle != null ? vehicle.GetComponentInParent<ArcadeCar>() : null;
@@ -125,11 +136,13 @@ namespace ShiftJam
             _live = false;
             if (_rumble != null) _rumble.Stop();   // the driver got out (or changed car): the motors rest
             if (_trails != null) _trails.Bind(_car);
+            if (_cues != null) _cues.Bind(_car);
             if (_car == null) return;
             _camera = FindFirstObjectByType<ShoulderCamera>();   // once per getting in, as the seat does
             _car.BoostStarted += OnBoostStarted;
             _car.Landed += OnLanded;
             _car.Crashed += OnCrashed;
+            _car.DriftLevelChanged += OnDriftLevel;
         }
 
         // The car raises these from its physics step; they only set a few numbers, the parts play them out in Update.
@@ -162,8 +175,16 @@ namespace ShiftJam
             if (!_live) return;
             float k = Mathf.InverseLerp(_settings.crashFrom, Mathf.Max(_settings.crashFrom + 0.01f, _settings.crashFull), impact);
             if (k <= 0f) return;
-            if (_camera != null) _camera.Shake(_settings.crashShake * k, _settings.crashShakeSeconds);
-            _rumble.Kick(_settings.rumbleCrash * k);
+            // squared (D-0058): a knock or a glance barely moves the camera; a real crash still lands hard
+            if (_camera != null) _camera.Shake(_settings.crashShake * k * k, _settings.crashShakeSeconds);
+            _rumble.Kick(_settings.rumbleCrash * k * k);
+        }
+
+        private void OnDriftLevel(int level)
+        {
+            if (!_live || level <= 0) return;
+            _cues.Banked(level);
+            _rumble.Kick(_settings.rumbleBoostKick * 0.4f * level);
         }
     }
 }

@@ -66,6 +66,14 @@ namespace ShiftJam
         [Tooltip("Impacts softer than this (same measure) are not reported to the feedback (camera shake, rumble). No damage is involved.")] public float feelMinImpact = 4f;
         public float crashDamagePerSpeed = 3f;
         [Tooltip("Loose things no heavier than this (cones, toy blocks) are driven through: felt, but they do not damage the car. Another car weighs 4.")] public float smashMass = 1.5f;
+        [Tooltip("The most a loose, light thing (smashMass) is felt as, same measure as the impact (crash feel starts at 5, full at 24): a cone is a tap, never a crash (D-0058).")] public float smashFeel = 7f;
+
+        [Header("Walls (D-0058)")]
+        [Range(0f, 80f), Tooltip("Hits on a wall (anything fixed and upright) shallower than this many degrees glance: the car slides along it, keeps most of its speed and is not hurt. Steeper hits are crashes. 0 = off.")] public float wallGlanceAngle = 40f;
+        [Range(0f, 1f), Tooltip("Share of its speed a glance at the steepest glancing angle costs (less for shallower ones).")] public float wallScrapeLoss = 0.2f;
+        [Tooltip("Speed the wall gives back outward on a glance, units per second at scale 1, so the car comes off it instead of rubbing.")] public float wallPushOff = 1.2f;
+        [Tooltip("Seconds after touching a wall during which the spin the hit gave is taken away and the nose eases along the wall.")] public float wallSettle = 0.25f;
+        [Tooltip("Seconds the nose takes to turn along the wall after a glance. Lower = snappier.")] public float wallAlignSeconds = 0.18f;
         [Tooltip("Speed above which hitting something with health hurts it.")] public float ramMinSpeed = 5f;
         public float ramDamagePerSpeed = 6f;
         public float ramMaxDamage = 80f;

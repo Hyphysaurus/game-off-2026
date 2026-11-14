@@ -689,3 +689,34 @@
   block, so WorkshopReset's F9 stands the slalom, the stacks and the block wall back up. KeyHelp lists the drift boost
   and air control. Rebuilt headless (`LandRaceway`): 46 pieces, closes to 0.000, 0 in the lane, 0 clips; stills looked
   at (chevrons point the way the boost pad's do). Unplayed.
+
+- **D-0058 (14 Nov, 09:3x) His 14 Nov raceway drive: walls and cones felt jerky, drift cues wanted, the lanes still cramped.**
+  His words: "racing is pretty fun", but "getting caught on the walls or hitting the walls or even a cone has a
+  significant jerk feel ... unnatural or exaggerated"; "drift prompts, either as visual, audio, or both"; "the lanes
+  also still feel a bit cramped" (4 or 8 cars free-for-all). Plan given, his "proceed for all three".
+  **Walls:** a box body touching a wall at an angle was caught by a corner: the physics stopped its speed into the wall,
+  scrubbed the rest and twisted the car, and the steering eased that twist back over a few frames. `ArcadeCar.Glance`:
+  for anything fixed (no rigidbody or kinematic) whose face stands up from the road, a hit shallower than
+  `wallGlanceAngle` (40) keeps its speed along the wall less `wallScrapeLoss` (0.2 at 40 degrees, less when
+  shallower), gets `wallPushOff` (1.2) back off the face, and is not a crash (no damage, felt half as hard); while it
+  rubs (OnCollisionStay) nothing heads into the wall. For `wallSettle` (0.25 s) after any wall touch the yaw is set to
+  what the stick asks at once (the knock's spin is gone) and a nose still pointing into the wall eases along it over
+  `wallAlignSeconds` (0.18). Steeper hits are crashes as before. Moving things (cars, cones) keep plain physics.
+  **Cones:** every hit used to report its full closing speed, so a 0.15 kg cone at speed 30 shook the camera as hard
+  as a head-on crash (shake 1.0 for 0.45 s plus a full rumble). Loose light things now report at most `smashFeel`
+  (7: a tap); the crash shake and rumble are squared (`DrivingFeel.OnCrashed`) and `crashShake` is 0.7.
+  **Drift cues:** `IDriftCharge.DriftChance` (on the ground, faster than 1.5x the drift's minimum, stick past 0.6, the
+  handbrake not yet down) and `DriftHeld`. HUD (`DrivingHud.UpdateCue`): a pill low in the middle of the screen,
+  "DRIFT  HOLD SPACE" (or "HOLD A" when the pad was used last) until five drifts have banked, then "DRIFT"; "RELEASE!"
+  pulsing orange while level two waits. `FX/DriftCues.cs` (a DrivingFeel part): a soft tick when the chance opens
+  (at most every 2.5 s), a whirr that climbs in pitch while a slide charges, a chime per banked level (higher for two),
+  a rumble kick per level, and sparks from the rear wheels while the handbrake holds a charge (pale, then cyan, then
+  orange: the trails' colours). Sounds generated (`ProceduralClips.DriftCharge/Chime/Tick`), each replaceable by a
+  clip in DrivingFeelSettings; the Asset Library's UI chimes were not auditioned (his ear first).
+  **Width:** road 12.5 -> 18.9 (`RwWiden` 2.25; a car is 2.17 wide, so about eight across); `RwLoopShift` 20 -> 27 so
+  the loop's way out clears its way in. Gate 1, on the straight the spiral passes over, reached the spiral at the
+  wider arch; tried at 22, 32, and past the hairpin (each clipped the loop, the spiral or the hairpin's walls): the
+  arches' height cap `RwGateTall` 1.6 -> 0.8 (5.4 m over the road) fixed it in place. The gates' post room grows with
+  the road (`clear` + 0.1 x half width). Rebuilt headless (LandRaceway): 46 pieces, closes to 0.000, 0 in the lane,
+  0 clips, stills looked at. 🔴 There are no rival cars: the parked racers are props (no AI, no netcode); a 4 or 8 car
+  race is a new feature, his call. Unplayed.

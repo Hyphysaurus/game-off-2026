@@ -34,6 +34,11 @@ namespace ShiftJam
         int DriftLevel { get; }
         /// <summary>The charge as a number from 0 to 2: the level reached plus the share of the way to the next.</summary>
         float DriftMeter { get; }
+        /// <summary>A drift could start now (D-0058): driven on the ground, fast enough to charge, the wheel turned hard
+        /// into a bend, the handbrake not yet down. The HUD's DRIFT prompt and the cue's tick read it.</summary>
+        bool DriftChance { get; }
+        /// <summary>The handbrake is held while a charge builds or waits to be let go (the HUD's RELEASE cue).</summary>
+        bool DriftHeld { get; }
     }
 
     /// <summary>

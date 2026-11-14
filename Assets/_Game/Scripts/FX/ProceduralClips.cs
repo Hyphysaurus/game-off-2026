@@ -134,26 +134,33 @@ namespace ShiftJam
             return Clip("Thump (generated)", data);
         }
 
-        // drift cues (D-0058): a bright buzzing whirr for a charging slide (whole Hz, so one second loops on itself), a
+        // drift cues (D-0058): a soft spark crackle for a charging slide (D-0058b: it was a whirr, his "siren"), a
         // two-partial bell for a banked level, and a short soft blip for "you can drift here"
-        private const int ChargeBase = 330;            // Hz at pitch 1 (the cue plays it from 0.8 to 1.6 as the charge builds)
-        private const int ChargeWobble = 12;           // times a second the whirr pulses
         private const float ChimeSeconds = 0.6f, ChimeTone = 1318.5f, ChimeDecay = 7f;   // E6, ringing out
         private const float TickSeconds = 0.07f, TickTone = 2200f, TickDecay = 60f;
 
-        /// <summary>A one-second loop of a bright, pulsing whirr: a slide charging.</summary>
+        /// <summary>A one-second loop of soft spark crackle (D-0058b, replacing a whirr he heard as a siren): sparse tiny
+        /// clicks of bright noise, each dying in a few milliseconds, at uneven gaps. No tone, so pitch changes do not wail.</summary>
         public static AudioClip DriftCharge()
         {
             int n = Rate;
             var data = new float[n];
-            for (int i = 0; i < n; i++)
+            var random = new System.Random(5);
+            float high = OnePole(3000f), low = 0f;
+            int at = 0;
+            while (at < n - 200)
             {
-                float t = (float)i / Rate, sum = 0f;
-                for (int k = 1; k <= 6; k++) sum += Mathf.Sin(2f * Mathf.PI * ChargeBase * k * t) / k;   // a soft saw
-                float pulse = 0.75f + 0.25f * Mathf.Sin(2f * Mathf.PI * ChargeWobble * t);
-                data[i] = (float)System.Math.Tanh(1.2f * sum) * pulse;
+                at += 120 + random.Next(700);                  // about 50 crackles a second, unevenly spaced
+                float loud = 0.3f + 0.7f * (float)random.NextDouble();
+                int length = 40 + random.Next(90);             // 2 to 6 ms
+                for (int k = 0; k < length && at + k < n; k++)
+                {
+                    float white = (float)random.NextDouble() * 2f - 1f;
+                    low += high * (white - low);
+                    data[at + k] += (white - low) * loud * Mathf.Exp(-6f * k / length);   // the noise above ~3 kHz, dying
+                }
             }
-            return Clip("Drift charge (generated)", data);
+            return Clip("Drift crackle (generated)", data);
         }
 
         /// <summary>A short bell: a drift level banked.</summary>

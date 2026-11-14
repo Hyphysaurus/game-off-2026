@@ -74,9 +74,9 @@ namespace ShiftJam
         [Tooltip("Optional one-shot for 'you can drift here' (fast, wheel turned hard, not drifting yet).")] public AudioClip driftChanceClip;
         [Range(0f, 1f)] public float driftChanceVolume = 0.35f;
         [Tooltip("Least seconds between two 'you can drift' ticks.")] public float driftChanceGap = 2.5f;
-        [Tooltip("Optional loop for a charging slide; its pitch climbs with the charge.")] public AudioClip driftChargeClip;
-        [Range(0f, 1f)] public float driftChargeVolume = 0.22f;
-        [Tooltip("Charging loop's pitch at the start of a slide (x) and at level two (y).")] public Vector2 driftChargePitch = new Vector2(0.8f, 1.6f);
+        [Tooltip("Optional loop for a charging slide (the default is a soft generated spark crackle).")] public AudioClip driftChargeClip;
+        [Range(0f, 1f), Tooltip("The charging loop's volume at level two; it starts at 40% of this and grows with the charge. 0 = silent (the chimes still play).")] public float driftChargeVolume = 0.14f;
+        [Tooltip("Charging loop's pitch at the start of a slide (x) and at level two (y). Keep them close: a wide climb wails like a siren (D-0058b).")] public Vector2 driftChargePitch = new Vector2(1f, 1.12f);
         [Tooltip("Optional one-shot when a drift level is banked (played higher for level two).")] public AudioClip driftLevelClip;
         [Range(0f, 1f)] public float driftLevelVolume = 0.55f;
         [Tooltip("Sparks a second from each rear wheel at a full charge (fewer while it builds). 0 = no sparks.")] public float sparkRate = 90f;

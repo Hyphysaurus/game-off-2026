@@ -720,3 +720,10 @@
   the road (`clear` + 0.1 x half width). Rebuilt headless (LandRaceway): 46 pieces, closes to 0.000, 0 in the lane,
   0 clips, stills looked at. 🔴 There are no rival cars: the parked racers are props (no AI, no netcode); a 4 or 8 car
   race is a new feature, his call. Unplayed.
+- **D-0058b (14 Nov, 09:5x) The charging whirr is gone: "lets remove the annoying siren sound from the drift, i do
+  like the ping sounds tho".** The loop (a soft saw at 330 Hz, its pitch climbing 0.8 to 1.6 with the charge) read as
+  a siren. Now `ProceduralClips.DriftCharge` is a soft spark crackle: sparse 2 to 6 ms clicks of noise above ~3 kHz,
+  about 50 a second at uneven gaps, no tone. It plays at 40% of `driftChargeVolume` (0.14) at the slide's start,
+  growing to full at level two; pitch 1.0 to 1.12 only. The chimes ("pings") and the tick are unchanged.
+  `driftChargeVolume` 0 silences it. Compiled in his open editor (out of Play). Unheard.
+

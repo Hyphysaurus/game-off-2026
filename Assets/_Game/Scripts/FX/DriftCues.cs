@@ -6,7 +6,7 @@ namespace ShiftJam
     /// <summary>
     /// The drift boost's cues (D-0058, his "drift prompts, visual or audio or both"): a soft tick when a drift could
     /// start (fast, the wheel turned hard into a bend, the handbrake not yet down; at most every driftChanceGap seconds),
-    /// a whirr whose pitch climbs while a slide charges, a chime as each level banks (higher for level two), and sparks
+    /// a soft spark crackle that grows while a slide charges (D-0058b: was a whirr that climbed like a siren), a chime as each level banks (higher for level two), and sparks
     /// from the rear wheels while the handbrake holds a charge: pale while building, cyan at level one, orange at level
     /// two (the trails' colours). The HUD's DRIFT / RELEASE words are DrivingHud's. Sounds are flat (the driver's own)
     /// and made in code (ProceduralClips) unless DrivingFeelSettings gives a clip. The sparks are ParticleSystems made at
@@ -71,10 +71,10 @@ namespace ShiftJam
             }
             _wasChance = chance;
 
-            // the charging whirr climbs with the charge
+            // the charging crackle grows a little with the charge
             float meter = live ? Mathf.Clamp(state.DriftMeter, 0f, 2f) : 0f;
             bool charging = live && state.DriftHeld && meter > 0f;
-            Follow(charging ? s.driftChargeVolume : 0f, Mathf.Lerp(s.driftChargePitch.x, s.driftChargePitch.y, meter * 0.5f), dt);
+            Follow(charging ? s.driftChargeVolume * (0.4f + 0.3f * meter) : 0f, Mathf.Lerp(s.driftChargePitch.x, s.driftChargePitch.y, meter * 0.5f), dt);
 
             // sparks from the rear wheels on the ground while the handbrake holds a charge
             for (int k = 0; k < _sparkWheel.Count && k < _sparks.Count; k++)

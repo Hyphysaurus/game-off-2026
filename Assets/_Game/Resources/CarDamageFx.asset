@@ -1,0 +1,112 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc29ee1760aa4754592b7b0509513e4f, type: 3}
+  m_Name: CarDamageFx
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.CarDamageFxSettings
+  lightSmokeBelow: 0.5
+  darkSmokeBelow: 0.3
+  sparksBelow: 0.15
+  spitEvery: {x: 0.35, y: 1.1}
+  lightSmoke: {fileID: 1182352879735434, guid: 00e97aa45c126a94d94df8ca2a3bb241, type: 3}
+  darkSmoke: {fileID: 1277371255116320, guid: 1134ea02ea10de94b8f6bc48116442e2, type: 3}
+  spitSparks: {fileID: 5724799227821769488, guid: 20339093db9987044bcc227f46d139e9, type: 3}
+  hitSparks: {fileID: 5724799227821769488, guid: 20339093db9987044bcc227f46d139e9, type: 3}
+  bigHitSparks: {fileID: 5908345270883229263, guid: 4dfa0ff0aab394246a7656007f1826a4, type: 3}
+  bigHit: 26
+  flecks: {x: 3, y: 8, z: 16}
+  fleckSize: {x: 0.05, y: 0.12}
+  fleckFallback: {r: 0.85, g: 0.3, b: 0.2, a: 1}
+  fleckMaterial: {fileID: 2100000, guid: 92e69071aacc9484fbdda3e2e0602526, type: 2}
+  partChance: 0.6
+  wreckParts: 3
+  partLife: 3
+  partNames:
+  - Spoiler
+  - Bumper
+  - FogLight
+  - Headlight
+  - Pipe
+  - Turbine
+  wreckSparks: {fileID: 12146140294241523, guid: 83944fc6f233ce44cbd4b5996505404b, type: 3}
+  wreckSmoke: {fileID: 6414445561076637631, guid: 0e6ac7cf58b220f4ab5a63bb2248853d, type: 3}
+  knock:
+  - {fileID: 8300000, guid: 531e568d77e517042bfdc9ab9c2377e3, type: 3}
+  - {fileID: 8300000, guid: d8814f59821178942b2c8b12c8fa029c, type: 3}
+  - {fileID: 8300000, guid: eaa076e046dbe96419f890a0e6d6612b, type: 3}
+  - {fileID: 8300000, guid: eb39ff7a7d2e7cd4881a4c4cdff29712, type: 3}
+  crash:
+  - {fileID: 8300000, guid: e935dc8056aaeb1469b3883d738cd40f, type: 3}
+  - {fileID: 8300000, guid: 166044003769e1e478e307aee0136dc3, type: 3}
+  - {fileID: 8300000, guid: 521a88e5b371fa640b05eb2dd3c51e30, type: 3}
+  - {fileID: 8300000, guid: a6008370c6445f0409cd726b7bcb4fb7, type: 3}
+  bigCrash:
+  - {fileID: 8300000, guid: 48383a61f5e681649902fc45586961cd, type: 3}
+  - {fileID: 8300000, guid: c13eb8f3f4bbcf344bae3e72e624a9f9, type: 3}
+  - {fileID: 8300000, guid: 77ddcd71fc4e5bd478d36f6928bd82d6, type: 3}
+  - {fileID: 8300000, guid: 1341db6aec1940a47afae40660710525, type: 3}
+  wreck:
+  - {fileID: 8300000, guid: a68d0c3604c3608489a15fc63a283d6c, type: 3}
+  - {fileID: 8300000, guid: 62fbff1501bf21447ac6f651c5eb2e9b, type: 3}
+  - {fileID: 8300000, guid: 28e29db753cb43d46a1e138f3c5d3c04, type: 3}
+  - {fileID: 8300000, guid: 7e99c6fcc4959b5489dcf6ed2a1097fc, type: 3}
+  volume: 0.85
+  paints:
+  - mesh: Car_01
+    colour: {r: 0.80915415, g: 0.14834785, b: 0.47583497, a: 1}
+  - mesh: Car_02
+    colour: {r: 0.06130023, g: 0.5428236, b: 0.43999863, a: 1}
+  - mesh: Car_03
+    colour: {r: 1, g: 0.77715844, b: 0.089732744, a: 1}
+  - mesh: Car_04
+    colour: {r: 0.18027316, g: 0.6639929, b: 0.58818793, a: 1}
+  - mesh: Car_05
+    colour: {r: 0.99998885, g: 0.7235731, b: 0.03616494, a: 1}
+  - mesh: Car_06
+    colour: {r: 0.854689, g: 0.40929267, b: 0.65961224, a: 1}
+  - mesh: Car_07
+    colour: {r: 0.16067776, g: 0.38601553, b: 0.57313097, a: 1}
+  - mesh: Car_08
+    colour: {r: 0.37488165, g: 0.39236832, b: 0.39837986, a: 1}
+  - mesh: Car_09
+    colour: {r: 0.23569375, g: 0.24040498, b: 0.2410412, a: 1}
+  - mesh: Car_10
+    colour: {r: 0.25909993, g: 0.2567835, b: 0.26046252, a: 1}
+  - mesh: Car_11
+    colour: {r: 1, g: 0.8000562, b: 0.21569827, a: 1}
+  - mesh: Car_12
+    colour: {r: 0.60953593, g: 0.7890468, b: 0.29848844, a: 1}
+  - mesh: Car_13
+    colour: {r: 0.446344, g: 0.100580096, b: 0.5744253, a: 1}
+  - mesh: Car_14
+    colour: {r: 0.09771968, g: 0.34016782, b: 0.7206682, a: 1}
+  - mesh: Car_15
+    colour: {r: 0.12775609, g: 0.63744605, b: 0.5426473, a: 1}
+  - mesh: car_1_001
+    colour: {r: 0.9031896, g: 0.5902681, b: 0.389926, a: 1}
+  - mesh: car_2_001
+    colour: {r: 0.8830823, g: 0.7546459, b: 0.16912836, a: 1}
+  - mesh: car_3_001
+    colour: {r: 0.8197245, g: 0.31312627, b: 0.44246802, a: 1}
+  - mesh: car_4_001
+    colour: {r: 0.1299236, g: 0.27943322, b: 0.63561, a: 1}
+  - mesh: car_5_001
+    colour: {r: 0.8695449, g: 0.41883078, b: 0.023950767, a: 1}
+  - mesh: car_6_001
+    colour: {r: 0.06199665, g: 0.41089422, b: 0.7166579, a: 1}
+  - mesh: car_7_001
+    colour: {r: 0.9058632, g: 0.602372, b: 0.09992128, a: 1}
+  - mesh: car_8_001
+    colour: {r: 0.7499455, g: 0.16349512, b: 0.16349512, a: 1}
+  - mesh: car_9_001
+    colour: {r: 0.8879111, g: 0.47308528, b: 0.03703225, a: 1}
+  - mesh: car_10_001
+    colour: {r: 0.2986168, g: 0.22892632, b: 0.6215907, a: 1}

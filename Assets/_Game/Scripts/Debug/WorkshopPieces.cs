@@ -33,7 +33,6 @@ namespace ShiftJam
         private const string CyberDemo = "Assets/_Imports/ithappy/Modular_Cyber_Racing_Cars/Demonstration/Demonstration_Prefabs/";
         private const string ToySounds = "Assets/_Imports/ithappy/Playroom/Playroom_Sound_FX/Toys/";
         private const string PropSounds = "Assets/_Imports/ithappy/Playroom/Playroom_Sound_FX/Props/";
-        private const string PlayroomFx = "Assets/_Imports/ithappy/Playroom/VFX/FX_Prefabs/";
 
         private enum Kind { Melee, Blaster }
 
@@ -547,7 +546,7 @@ namespace ShiftJam
         /// sounds.</summary>
         private sealed class CarExtras
         {
-            public GameObject BoostFx, DriftFx, DamageSmoke;
+            public GameObject BoostFx, DriftFx;
             public AudioClip BoostClip, WindClip, LaunchClip;
         }
 
@@ -555,7 +554,6 @@ namespace ShiftJam
         {
             BoostFx = Load(CyberDemo + "BoostFX.prefab"),
             DriftFx = Load(CyberDemo + "DriftFX.prefab"),
-            DamageSmoke = Load(PlayroomFx + "FX_Smoke_Small.prefab"),   // bonnet smoke when badly hurt (D-0038)
             BoostClip = Clip(ToySounds + "Steam_Burst.wav"),     // the nitro whoosh
             WindClip = Clip(PropSounds + "Safe_Dial_v1.wav"),    // a dial's clicking ratchet: the toy's key being wound (his ear decides)
             LaunchClip = Clip(ToySounds + "Spring_Boing.wav"),   // the spring let go
@@ -575,7 +573,6 @@ namespace ShiftJam
             Put(so, "windClip", x.WindClip);
             Put(so, "launchClip", x.LaunchClip);
             Put(so, "windKey", windKey);
-            if (car is ArcadeCar) Put(so, "damageSmokePrefab", x.DamageSmoke);   // the wooden car takes no damage
             so.ApplyModifiedPropertiesWithoutUndo();
             if (car is ArcadeCar arcade) FitEngine(arcade);
         }
@@ -768,7 +765,7 @@ namespace ShiftJam
             Set(cannon, "boreDepth", (mb.max.z - BoreBottom) * k);
             Set(cannon, "barrelVisual", barrelModel);
             SetArray(cannon, "solid", solid);
-            Set(cannon, "smokePrefab", Load(PlayroomFx + "FX_Smoke_Small.prefab"));
+            Set(cannon, "smokePrefab", Load(CarDamageFxBuilder.CannonSmoke));   // D-0059: the Playroom smoke drew pink in URP
             Set(cannon, "loadClip", Clip(ToySounds + "Chess_Drop_In_Box.wav"));   // dropped into the barrel
             Set(cannon, "fuseClip", Clip(ToySounds + "Star_Light_On.wav"));       // a rising shimmer while the fuse burns
             Set(cannon, "boomClip", Clip(ToySounds + "Toy_Tank_Shot_v1.wav"));    // a toy tank's shot

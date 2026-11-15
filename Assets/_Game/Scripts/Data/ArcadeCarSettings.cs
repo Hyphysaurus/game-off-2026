@@ -81,7 +81,6 @@ namespace ShiftJam
         [Tooltip("Seconds a wreck sits smoking before it is put back at its start, repaired. 0 = never.")] public float wreckRespawn = 5f;
         [Tooltip("Mending while driving (D-0038): seconds without a hit before health starts to climb back.")] public float regenDelay = 4f;
         [Tooltip("Mending while driving: share of full health mended per second.")] public float regenPerSecond = 0.05f;
-        [Tooltip("Smoke from the bonnet below this share of full health, thicker as it drops, thick while wrecked.")] [Range(0f, 1f)] public float smokeBelow = 0.3f;
 
         [Header("Seat")]
         [Tooltip("Above this speed (units per second at scale 1) E brakes first and lets you out once slow.")] public float maxExitSpeed = 5f;

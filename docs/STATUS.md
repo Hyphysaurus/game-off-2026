@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 15 Nov 2026 13:4x — D-0059 damage effects (smoke, sparks, flecks, knock sounds, loose parts, wreck burst) — UNPLAYED
+The pink squares were the Playroom smoke (missing material, built-in shaders). Polygon Arsenal's URP upgrade imported
+headless; new CarDamageFx on every car (D-0059), set by Resources/CarDamageFx (menu Shift Jam > Workshop > Build Car
+Damage FX re-makes it). Compiled, built headless, 0 pink materials, 25 car paints baked. Unity left closed.
+TO PLAY: (1) crash head-on into a wall a few times: sparks, paint chips, a metal clash; light smoke under half health,
+dark under 30%, spitting sparks under 15%; (2) a really hard hit (26+): a part (spoiler, bumper...) flies off; (3) wreck
+it: burst, crash, parts off; after the tow every part is back; (4) cones and glances: a soft knock only. Tune in
+Resources/CarDamageFx (thresholds, fleck counts, part chance, volume; sounds swappable there).
+NEXT (Part 2, plan approved): Fraggo pre-cut bodies for the wreck (Fraggo is in, at Assets/Unluck Software, ignored by
+git). HIS CALLS still open: AI rivals after this.
+Left alone in his tree: Packages/manifest.json + lock (animation rigging, cinemachine, postprocessing, shadergraph,
+from his 14 Nov imports), fonts/mats/ERP as before.
+
 ## 14 Nov 2026 09:3x — D-0058 from his raceway drive (walls glance, cones tap, drift cues, road 18.9 wide) — UNPLAYED
 His drive of D-0055..D-0057: "pretty fun"; notes = jerk on walls/cones, drift prompts, lanes cramped. All three built
 (D-0058), compiled and the raceway rebuilt headless (Unity closed: he went to NectarRush): 0 in the lane, 0 clips.

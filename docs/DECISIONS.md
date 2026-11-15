@@ -727,3 +727,32 @@
   growing to full at level two; pitch 1.0 to 1.12 only. The chimes ("pings") and the tick are unchanged.
   `driftChargeVolume` 0 silences it. Compiled in his open editor (out of Play). Unheard.
 
+
+- **D-0059 (15 Nov, 13:4x) Taking damage, seen and heard (Part 1 of the damage and wreck plan; Part 2 = Fraggo).**
+  His ask: "vfx and sfx for taking damage and a wreck, its currently emitting pink squares". Cause of the pink: the
+  bonnet smoke was the Playroom pack's FX_Smoke_Small, whose material is missing and whose pack shaders are built-in
+  pipeline. He imported Polygon Arsenal (base pack, 15 Nov); its own URP upgrade package (Upgrades/, the vendor's
+  step) was imported headless, so its effects draw in URP. New: `CarDamageFx` (FX), added by every ArcadeCar in Start,
+  set by `Resources/CarDamageFx` (`CarDamageFxSettings`), written by Shift Jam > Workshop > Build Car Damage FX
+  (`CarDamageFxBuilder`, batch-safe).
+  - Smoke: Polygon Arsenal SmokeRisingBright below 50% health, SmokeRisingDark below 30% and while wrecked (rises
+    straight up whatever the car does); SparkDirectionalSmall spits from the bonnet every 0.35 to 1.1 s below 15%.
+  - Hits: `ArcadeCar.Struck` (new) reports every felt hit and every hurting one, with its point and face, BEFORE the
+    damage is taken. A tap (cone, glance, soft bump): a few sparks off fixed things only, 3 flecks, a dull knock. A
+    crash: sparks, 8 flecks, a light metal clash. A big one (felt 26+): bigger sparks, 16 flecks, a strong clash, and a
+    60% chance one of the car's add-on parts (spoiler, bumpers, lights, pipe, turbine, by name) comes off: its renderers
+    hide, a copy tumbles away with the car's speed, lies 3 s and shrinks. At most 16 loose parts in the scene. Damage from
+    elsewhere (darts, another car's ram) comes from the Damageable, one show per frame.
+  - Wreck: SparkExplosionNormal + SmokeExplosionDark, 32 flecks, a strong clash plus a "Powerful" impact, 3 parts off.
+    Repair and reset put every part back.
+  - Flecks: cube chips in the car's paint (20% bare die-cast grey), bouncing on the floor. The paint is baked per body
+    mesh: the colour covering most of the car in its catalog render (Art/Thumbs), read unshaded from the body texture.
+    A mesh-only bake was tried first and misread car 13 (purple read grey) and car 01; the render wins. Known miss:
+    ToyRacer05 (purple tractor) flecks orange, from its wheels.
+  - Sounds (die-cast, his default): Case Portman Forge & Fantasy: Impact_Dull 01-04 (taps), Impact_Clash_Light 01-04
+    (crashes), Impact_Clash_Strong 01-04 (big), Impact_Powerful 01-04 (wreck), copied to `_Imports/CasePortman/CarImpacts`
+    (git-ignored: no redistribution). Pitch lower and louder the harder the hit. Picked by name: his ear decides.
+  - Removed: the car's unused crashClip and its one-shot source, `damageSmokePrefab`, CarFx's smoke,
+    `ArcadeCarSettings.smokeBelow`. The car cannon's puff (also FX_Smoke_Small, also pink) is now SmokeExplosionBright.
+  - The builder's pink check: every named effect's materials are URP-drawable (0 failures).
+  - Not played: compiled and built headless; nothing has been seen or heard in Play.

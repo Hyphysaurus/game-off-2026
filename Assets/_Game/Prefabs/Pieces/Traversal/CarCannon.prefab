@@ -339,7 +339,7 @@ MonoBehaviour:
   carLength: 3.8
   ownGravity: 25
   landingGrace: 0.75
-  smokePrefab: {fileID: 4258998459985370294, guid: 546820d03daa7d34bbc9e88650d2f7bd, type: 3}
+  smokePrefab: {fileID: 7381760930260317775, guid: 196bd896de1fc6c45ad43b572affa333, type: 3}
   puffCount: 14
   puffSeconds: 2.5
   puffSpeed: 6

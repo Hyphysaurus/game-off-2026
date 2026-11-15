@@ -23,12 +23,6 @@ namespace ShiftJam
         private readonly ParticleSystem[] _boost, _drift;
         private readonly AudioSource _loop, _shot;
         private float _keyAngle;
-        private Transform _smokeRoot;
-        private Vector3 _smokeScale;
-        private ParticleSystem[] _smoke;
-        private float[] _smokeRates;
-        private float _smokeLevel = -1f;
-        private const float SmokeSize = 0.12f;   // the Playroom smoke is room-sized: a wisp on a toy car
 
         public CarFx(Transform car, GameObject boostPrefab, GameObject driftPrefab, Transform windKey, Vector3 windKeyAxis, bool sounds)
         {
@@ -96,48 +90,6 @@ namespace ShiftJam
                 a.minDistance = 2f * s;
                 a.maxDistance = 60f * s;
             }
-        }
-
-        /// <summary>Bonnet smoke for a hurt car (D-0038): any looping smoke prefab, slowed, made to trail in the world, short-lived.</summary>
-        public void AddSmoke(GameObject prefab)
-        {
-            _smoke = Make(prefab, "Smoke", out _smokeRoot, out _smokeScale);
-            if (_smoke == null) return;
-            _smokeRates = new float[_smoke.Length];
-            for (int i = 0; i < _smoke.Length; i++)
-            {
-                var main = _smoke[i].main;
-                main.simulationSpace = ParticleSystemSimulationSpace.World;   // it trails behind a moving car
-                main.startLifetime = new ParticleSystem.MinMaxCurve(1.2f, 2.2f);
-                _smokeRates[i] = _smoke[i].emission.rateOverTimeMultiplier;
-            }
-        }
-
-        /// <summary>The bonnet smoke goes to <paramref name="bonnet"/> (car space), sized like the other effects.</summary>
-        public void PlaceSmoke(Vector3 bonnet, float length, float fxScale)
-        {
-            if (_smokeRoot == null) return;
-            float k = Mathf.Max(0.01f, fxScale * length / PackCarLength);
-            _smokeRoot.localPosition = bonnet;
-            _smokeRoot.localRotation = Quaternion.identity;
-            _smokeRoot.localScale = _smokeScale * (k * SmokeSize);
-        }
-
-        /// <summary>Bonnet smoke: 0 = none, up to 1 = thick (a wreck). Cheap to call every frame.</summary>
-        public void Smoke(float amount)
-        {
-            if (_smoke == null) return;
-            if (Mathf.Abs(amount - _smokeLevel) < 0.02f && (amount > 0f) == (_smokeLevel > 0f)) return;
-            _smokeLevel = amount;
-            bool on = amount > 0.001f;
-            if (on)
-                for (int i = 0; i < _smoke.Length; i++)
-                {
-                    if (_smoke[i] == null) continue;
-                    var emission = _smoke[i].emission;
-                    emission.rateOverTimeMultiplier = _smokeRates[i] * Mathf.Lerp(0.06f, 0.3f, amount);
-                }
-            Switch(_smoke, on);
         }
 
         /// <summary>Per frame: flames while boosting, smoke while sliding on the ground, the spring's creak while it winds,

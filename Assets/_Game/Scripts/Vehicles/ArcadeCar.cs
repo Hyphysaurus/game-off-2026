@@ -35,13 +35,11 @@ namespace ShiftJam
         [SerializeField, Tooltip("Centre of mass height above the wheel hubs, units at scale 1 (low = hard to roll).")] private float centreOfMassHeight = 0f;
         [Header("Feedback (all optional)")]
         [SerializeField, Tooltip("Looped engine sound; pitch follows speed.")] private AudioSource engine;
-        [SerializeField] private AudioClip crashClip;
         [SerializeField, Tooltip("Played while wrecked.")] private ParticleSystem wreckSmoke;
         [SerializeField] private Color wreckTint = new Color(0.25f, 0.22f, 0.2f);
         [Header("Boosts (all optional)")]
         [SerializeField, Tooltip("Exhaust flames while boosting (the Cyber pack's BoostFX), made at the rear at run time.")] private GameObject boostFxPrefab;
         [SerializeField, Tooltip("Tyre smoke while sliding (the Cyber pack's DriftFX), made across the rear axle at run time.")] private GameObject driftFxPrefab;
-        [SerializeField, Tooltip("Smoke from the bonnet when badly hurt and while wrecked (the Playroom pack's FX_Smoke_Small), made at run time.")] private GameObject damageSmokePrefab;
         [SerializeField, Tooltip("A wind-up key that turns while the pull-back spring winds.")] private Transform windKey;
         [SerializeField, Tooltip("The axis the key turns about, in the key's own space.")] private Vector3 windKeyAxis = Vector3.up;
         [SerializeField, Tooltip("Played when a burst starts and when nitro lights.")] private AudioClip boostClip;
@@ -66,9 +64,9 @@ namespace ShiftJam
         private Collider _underKnown;       // the last thing a wheel stood on, and whether it is track the car holds on to
         private bool _underSticky;
         private bool _holding;              // the last physics step found the car on, or just off, track it holds on to
-        private AudioSource _oneShots;
         private CarBoost _boost;
         private CarFx _fx;
+        private CarDamageFx _damageFx;
         private Vector3 _rearAxle;          // car space, at hub height: where the wind presses down
         private float _slip;                // sideways speed as a share of top speed (0 in the air)
         private bool _heldOutside, _wasNitro;   // held: Hold(true) has it (the cannon)
@@ -123,6 +121,9 @@ namespace ShiftJam
         /// units per second at scale 1. Softer hits than settings.feelMinImpact are not reported; damage starts at
         /// settings.crashMinSpeed. At most ten a second.</summary>
         public event Action<float> Crashed;
+        /// <summary>Raised on every hit felt (as Crashed) and every hit that hurts, BEFORE the damage is taken, with where it
+        /// landed: CarDamageFx shows and plays it (D-0059).</summary>
+        public event Action<CarImpact> Struck;
         /// <summary>Raised when a burst takes (a pad, the launch, a drift or landing boost) and when nitro lights, with its
         /// top speed multiplier.</summary>
         public event Action<float> BoostStarted;
@@ -187,7 +188,6 @@ namespace ShiftJam
             }
             if (wheels.Length > 0) _rb.centerOfMass = new Vector3(0f, hubY / wheels.Length + centreOfMassHeight, AverageZ());
             _sizedAt = Scale;
-            _oneShots = gameObject.AddComponent<AudioSource>(); _oneShots.playOnAwake = false; _oneShots.spatialBlend = 1f;
             // the engine source on the piece carries no sound of its own: the settings name a recording, or the hum is made
             if (engine != null) engine.clip = settings != null && settings.engineClip != null ? settings.engineClip : ProceduralClips.Engine();
             _boost = new CarBoost(Tuning);
@@ -199,8 +199,10 @@ namespace ShiftJam
         {
             // After every Awake (the Damageable has listed its renderers, so a hit's flash never tints the flames).
             _fx = new CarFx(transform, boostFxPrefab, driftFxPrefab, windKey, windKeyAxis, boostClip != null || windClip != null || launchClip != null);
-            _fx.AddSmoke(damageSmokePrefab);
             PlaceFx();
+            // smoke, sparks, flecks, knock sounds and loose parts for the hurt car (D-0059); a Build Mode copy has one already
+            if (!TryGetComponent(out _damageFx)) _damageFx = gameObject.AddComponent<CarDamageFx>();
+            _damageFx.Bind(this);
         }
 
         private float AverageZ()
@@ -235,7 +237,6 @@ namespace ShiftJam
             if (!BuildBounds.Local(transform, out Bounds b)) b = new Bounds(Vector3.zero, Vector3.one);
             Vector3 axle = RearAxle(out float r);
             _fx.Place(new Vector3(b.center.x, axle.y, b.min.z), new Vector3(b.center.x, axle.y - 0.5f * r, axle.z), b.size.z, Tuning.fxScale);
-            _fx.PlaceSmoke(new Vector3(b.center.x, b.center.y + b.extents.y * 0.35f, b.max.z - b.size.z * 0.2f), b.size.z, Tuning.fxScale);
         }
 
         /// <summary>The car's own renderers, hidden ones too: not effects (a Build Mode copy carries the original's) and not
@@ -308,7 +309,6 @@ namespace ShiftJam
         {
             _wreckedAt = Time.time;
             if (wreckSmoke != null) wreckSmoke.Play();
-            Play(crashClip, 1f, 0.8f);
             if (_boost != null) _boost.Halt();
             DropDrift();
             WreckedNow?.Invoke();
@@ -352,6 +352,7 @@ namespace ShiftJam
                 if (r > 1e-4f) _radius[i] = r;
             }
             PlaceFx();
+            if (_damageFx != null) _damageFx.Place();
         }
 
         /// <summary>
@@ -808,22 +809,11 @@ namespace ShiftJam
                     bool sliding = _slip > tuning.driftMinSlip && ChaseGrounded;
                     _fx.Tick(dt, _boost.Boosting, sliding, _boost.WindGrowing, _boost.Wind, _boost.Launching, tuning.keySpin, windClip);
                 }
-                _fx.Smoke(SmokeAmount());
             }
 
             // Mending while driving (D-0038): after a few seconds without a hit, health climbs back.
             if (settings != null && _driver != null && !Wrecked && _health.Health < _health.MaxHealth && Time.time - _lastHurt >= settings.regenDelay)
                 _health.Heal(_health.MaxHealth * settings.regenPerSecond * dt);
-        }
-
-        /// <summary>Bonnet smoke: none when healthy, a wisp under settings.smokeBelow of full health that thickens as it drops,
-        /// thick while wrecked.</summary>
-        private float SmokeAmount()
-        {
-            if (_health == null || settings == null) return 0f;
-            if (Wrecked) return 1f;
-            float share = _health.Health / Mathf.Max(1f, _health.MaxHealth);
-            return share < settings.smokeBelow ? Mathf.Lerp(0.2f, 0.8f, 1f - share / Mathf.Max(0.01f, settings.smokeBelow)) : 0f;
         }
 
         private void OnCollisionEnter(Collision c)
@@ -863,17 +853,29 @@ namespace ShiftJam
             // A wall hit at a shallow angle glances (D-0058): the car slides on along it, felt half as hard, unhurt.
             bool glanced = !smashed && Glance(c, true);
             float felt = smashed ? Mathf.Min(impact, settings.smashFeel) : glanced ? impact * 0.5f : impact;
-            if (felt > settings.feelMinImpact && Time.time >= _nextImpactFeel)
+            bool hurts = !smashed && !glanced && !Wrecked && impact > settings.crashMinSpeed && Time.time >= _nextCrash;
+            bool feels = felt > settings.feelMinImpact && Time.time >= _nextImpactFeel;
+            if (feels)
             {
                 _nextImpactFeel = Time.time + 0.1f;
                 Crashed?.Invoke(felt);
             }
-            if (!smashed && !glanced && impact > settings.crashMinSpeed && Time.time >= _nextCrash)
+            Vector3 hitPoint = transform.position, face = Vector3.up;
+            if ((feels || hurts) && c.contactCount > 0)
+            {
+                hitPoint = Vector3.zero; face = Vector3.zero;
+                int n = c.contactCount;
+                for (int i = 0; i < n; i++) { var contact = c.GetContact(i); hitPoint += contact.point; face += contact.normal; }
+                hitPoint /= n;
+                face = face.sqrMagnitude > 1e-6f ? face.normalized : Vector3.up;
+            }
+            // shown first (the hit's sparks and sound), then taken: the damage's own report is then known to be this hit
+            if (feels || hurts) Struck?.Invoke(new CarImpact(hurts ? impact : felt, hitPoint, face, hurts, c.rigidbody == null || c.rigidbody.isKinematic));
+            if (hurts)
             {
                 _nextCrash = Time.time + 0.35f;
                 DropDrift();   // a crash that hurts ends the slide's charge
-                _health.Hit(new DamageInfo((impact - settings.crashMinSpeed) * settings.crashDamagePerSpeed, Vector3.zero, transform.position, c.transform));
-                Play(crashClip, Mathf.Clamp01(impact / (settings.crashMinSpeed * 2f)), 1.1f);
+                _health.Hit(new DamageInfo((impact - settings.crashMinSpeed) * settings.crashDamagePerSpeed, Vector3.zero, hitPoint, c.transform));
             }
         }
 
@@ -952,13 +954,6 @@ namespace ShiftJam
             float most = 0f;
             for (int i = 0; i < n; i++) most = Mathf.Max(most, Mathf.Abs(Vector3.Dot(rv, c.GetContact(i).normal)));
             return most;
-        }
-
-        private void Play(AudioClip clip, float volume, float pitch)
-        {
-            if (clip == null || _oneShots == null) return;
-            _oneShots.pitch = pitch;
-            _oneShots.PlayOneShot(clip, volume);
         }
     }
 }

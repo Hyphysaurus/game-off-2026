@@ -132,6 +132,7 @@ namespace ShiftJam
             sb.Append('\n');
             Line(sb, Kb("Previous") + " / " + Kb("Next"), "Previous / next weapon", Pad("Previous") + " / " + Pad("Next"));
             Line(sb, "Q", "Drop the weapon", "D-pad down");
+            Line(sb, "T", "Next ammo: darts, paint (Colour Corner)", "D-pad up");
             Line(sb, "Esc", "Pause: resume, options, back to the title, quit", "Start");
             Line(sb, "R", "Restart, on the end card");
             Line(sb, "H", "This list", "View");

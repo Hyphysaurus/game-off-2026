@@ -1,0 +1,278 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1b603dbf3908c344ae27583b676b320, type: 3}
+  m_Name: PaintSettings
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.PaintSettings
+  fillColours:
+  - {r: 1, g: 0.25, b: 0.55, a: 1}
+  - {r: 0.2, g: 0.8, b: 1, a: 1}
+  - {r: 1, g: 0.85, b: 0.15, a: 1}
+  - {r: 0.5, g: 0.9, b: 0.25, a: 1}
+  - {r: 1, g: 0.5, b: 0.1, a: 1}
+  - {r: 0.65, g: 0.4, b: 1, a: 1}
+  shellColours:
+  - {r: 0.96, g: 0.93, b: 0.82, a: 1}
+  - {r: 1, g: 0.78, b: 0.1, a: 1}
+  - {r: 1, g: 0.55, b: 0.1, a: 1}
+  - {r: 1, g: 0.2, b: 0.6, a: 1}
+  - {r: 0.6, g: 0.95, b: 0.2, a: 1}
+  - {r: 0.35, g: 0.7, b: 1, a: 1}
+  - {r: 0.08, g: 0.08, b: 0.1, a: 1}
+  shellHueApart: 0.12
+  shellPlainBelow: 0.25
+  shellFallback: {r: 0.96, g: 0.93, b: 0.82, a: 1}
+  realDiameter: 0.02
+  shellStrength: 10
+  strengthSpread: 0.15
+  softStrength: 2
+  breakRange: {x: 0.5, y: 1.5}
+  minBreakSpeed: 2
+  skips: 1
+  mostSkips: 2
+  skipKeepIn: 0.35
+  skipKeepAlong: 0.8
+  skipLift: 1
+  damageScale: 1
+  knockScale: 1
+  realDrag: 0
+  airDensity: 1.2
+  dragCoefficient: 0.47
+  ballDensity: 1180
+  trailLength: 0.9
+  trailWidth: 0.035
+  trailAlpha: 0.6
+  hitMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  fillDensity: 1120
+  fillViscosity: 0.1
+  surfaceTension: 0.045
+  contactAngle: 45
+  spreadScale: 1.6
+  slowestSpread: 0.5
+  splatLife: 45
+  fadeTime: 3
+  families:
+  - name: head
+    drawnAt: 90
+    anchor: 0.5
+    looks:
+    - albedo: {fileID: 2800000, guid: 66af6b9c28d781a4591c5a061313471d, type: 3}
+      normal: {fileID: 2800000, guid: 47d52fcb0d2bc754a8eb11685398d57b, type: 3}
+    - albedo: {fileID: 2800000, guid: d6fc3d178362207418c5c7fd9014a321, type: 3}
+      normal: {fileID: 2800000, guid: 3ef21f7f0ddfce548a6a785c969e701f, type: 3}
+    - albedo: {fileID: 2800000, guid: 12aa4530ca00ad646ac5ee577ff54acf, type: 3}
+      normal: {fileID: 2800000, guid: 148224b917dc773428e022ef711cd723, type: 3}
+    - albedo: {fileID: 2800000, guid: 25175977f1b21804898687dce9ee8ef9, type: 3}
+      normal: {fileID: 2800000, guid: 9b552914ea66b8742aeb45196e7bc613, type: 3}
+  - name: a60
+    drawnAt: 60
+    anchor: 0.44
+    looks:
+    - albedo: {fileID: 2800000, guid: d1d6b5bcc24e3394da6710aaeba9d968, type: 3}
+      normal: {fileID: 2800000, guid: fae469934ec49904694fd414363924ae, type: 3}
+    - albedo: {fileID: 2800000, guid: 7cb580b45e8e5b246bbb9f98c19bc929, type: 3}
+      normal: {fileID: 2800000, guid: e48802699396c9040872c3d4469608c4, type: 3}
+    - albedo: {fileID: 2800000, guid: f8fca680b8be56844a924b6b398bb088, type: 3}
+      normal: {fileID: 2800000, guid: f250478d73271854bb793e6684bf3f8f, type: 3}
+    - albedo: {fileID: 2800000, guid: 78b93331f1a18e5469a89a5a14e31a5a, type: 3}
+      normal: {fileID: 2800000, guid: 8603b7cd774c9404c8758b26d94a2446, type: 3}
+  - name: a35
+    drawnAt: 35
+    anchor: 0.38
+    looks:
+    - albedo: {fileID: 2800000, guid: c5d729f808ec5be41bc082d9aa3260bb, type: 3}
+      normal: {fileID: 2800000, guid: 484807d36be704e4baca9825d40db4ea, type: 3}
+    - albedo: {fileID: 2800000, guid: c26e96b710070004b8e5ca11f07b6943, type: 3}
+      normal: {fileID: 2800000, guid: e3719e6dcb4b3a64ab848d94ca44ee14, type: 3}
+    - albedo: {fileID: 2800000, guid: ac180d126a63d0444b97f3ecb50cccee, type: 3}
+      normal: {fileID: 2800000, guid: 1a5d42256271d694289d530e2171e96f, type: 3}
+    - albedo: {fileID: 2800000, guid: 5aaa100337505b24b938e14e58a3c14d, type: 3}
+      normal: {fileID: 2800000, guid: c2c904195d585564cacc1233c4162801, type: 3}
+  - name: a15
+    drawnAt: 15
+    anchor: 0.3
+    looks:
+    - albedo: {fileID: 2800000, guid: 79372fc8b619c1e449ffbfe99ccc4691, type: 3}
+      normal: {fileID: 2800000, guid: 1306c44bef8ae5b49ac1649212c96f3e, type: 3}
+    - albedo: {fileID: 2800000, guid: f3b2b18581e6c4b47ae962488e8d0f04, type: 3}
+      normal: {fileID: 2800000, guid: 02c9a9ac7101acd42952e67a1b793eed, type: 3}
+    - albedo: {fileID: 2800000, guid: f8130444f44fd3d4080f4bae92540b2d, type: 3}
+      normal: {fileID: 2800000, guid: 37d124764e25a45468c37339cde9ff3c, type: 3}
+    - albedo: {fileID: 2800000, guid: 190e0acfed7fbaf4fb95bff3ba7b770e, type: 3}
+      normal: {fileID: 2800000, guid: 7e2bca7704707264e8af0a141429a3df, type: 3}
+  soft:
+    name: soft
+    drawnAt: 0
+    anchor: 0.5
+    looks:
+    - albedo: {fileID: 2800000, guid: 0e440cc77652ceb4681e72a86861b814, type: 3}
+      normal: {fileID: 2800000, guid: d7335bf3b136a4c4ba8d5933ff1902dc, type: 3}
+    - albedo: {fileID: 2800000, guid: 103a665e1a1626d49a76ba8e1cc7afad, type: 3}
+      normal: {fileID: 2800000, guid: 8ed4aac90e802604ab6b8ce8f11914c6, type: 3}
+    - albedo: {fileID: 2800000, guid: 065c8ccb2e57db04fbc0507802e02f10, type: 3}
+      normal: {fileID: 2800000, guid: b98bd7bce8163e24e9d946422ca106f3, type: 3}
+    - albedo: {fileID: 2800000, guid: 368587322d7bef042b75af73f665c32d, type: 3}
+      normal: {fileID: 2800000, guid: 5cd6eefa31f7f054e8289523a9d4a830, type: 3}
+  coreShare: 0.36
+  softScale: 0.6
+  richSpeed: 18
+  richRange: {x: 0.6, y: 1.4}
+  flattest: 8
+  squareOn: 85
+  spreadStart: 0.35
+  spreadTime: 0.08
+  flakesShare: 1.2
+  flakesDrawOrder: 1
+  depth: 0.4
+  reachUp: 0.05
+  reachIn: 0.7
+  reachBall: 0.02
+  leastReach: {x: 0.01, y: 0.005, z: 0.004}
+  farSideRays: 8
+  farSideStep: 0.001
+  angleFade: {x: 0, y: 62}
+  skipMark:
+    albedo: {fileID: 2800000, guid: 2877b0048f224fe468596c58768dddc0, type: 3}
+    normal: {fileID: 0}
+  markWidth: 1.2
+  markLongest: 6
+  drops:
+  - albedo: {fileID: 2800000, guid: 1d601315abb207343b15a96661c5d957, type: 3}
+    normal: {fileID: 2800000, guid: 22c4318c935a81b4a8df7029a7bcca6f, type: 3}
+  - albedo: {fileID: 2800000, guid: 4eb598aaac6915246af53ab7c7490389, type: 3}
+    normal: {fileID: 2800000, guid: 9684e74a1213c2b43ac89a89d7b2a824, type: 3}
+  - albedo: {fileID: 2800000, guid: da3746b7e1b2f07489158df9fa9467c2, type: 3}
+    normal: {fileID: 2800000, guid: 27adad0bc7c417a4b9055ec08b24914b, type: 3}
+  - albedo: {fileID: 2800000, guid: 8649cf58608ad7443bb2c96d41ac7762, type: 3}
+    normal: {fileID: 2800000, guid: d7499268f4481164fb875fe80bb3c9ed, type: 3}
+  - albedo: {fileID: 2800000, guid: 0acbca536d14d3d4786e917ae5c2f1cd, type: 3}
+    normal: {fileID: 2800000, guid: 85ec5e303a2051f47bf5c256409f83f6, type: 3}
+  - albedo: {fileID: 2800000, guid: ab8a77b88a8b5824caf1d8e67c80a723, type: 3}
+    normal: {fileID: 2800000, guid: 801ff26f60b30e24580acc47b05253e0, type: 3}
+  dropCoreShare: 0.36
+  spatterCount: {x: 5, y: 12}
+  spatterOut: {x: 0.6, y: 1.5}
+  spatterSize: {x: 0.07, y: 0.2}
+  spatterStretch: {x: 1, y: 2.6}
+  spatterLean: 0.5
+  spatterSpreadSlow: 1.5
+  spatterDelay: 0.05
+  softSpatter: 0.4
+  dropCount: {x: 6, y: 14}
+  fullSpraySpeed: 40
+  dropSize: {x: 0.1, y: 0.26}
+  dropCarry: {x: 0.3, y: 0.7}
+  dropOut: {x: 0.08, y: 0.25}
+  dropUp: {x: 0.04, y: 0.12}
+  softDrops: 0.5
+  mostDropsInAir: 256
+  dropFlight: 1.5
+  dropGravity: 9.8
+  dropLift: 0.002
+  runs:
+  - albedo: {fileID: 2800000, guid: e8f5514489e0ced46a4c158647dd61ab, type: 3}
+    normal: {fileID: 2800000, guid: 0a9b945d1158f6d49af19b96baaa1df8, type: 3}
+  - albedo: {fileID: 2800000, guid: 60d218bfaa02f134382f6381724e736a, type: 3}
+    normal: {fileID: 2800000, guid: 382d324dfbf6d3c4ca5691d9768efe4c, type: 3}
+  - albedo: {fileID: 2800000, guid: 5bab768a440ea56458a3f673642aa091, type: 3}
+    normal: {fileID: 2800000, guid: 731feda6e1357b94bb85831bd0f8b713, type: 3}
+  - albedo: {fileID: 2800000, guid: debabbec49411034ea1c3cd8a9c3441c, type: 3}
+    normal: {fileID: 2800000, guid: 88ea4bb5e57267b4ab52a6f614adc22e, type: 3}
+  runSteepness: 0.5
+  runOverhang: 0.6
+  runCount: {x: 1, y: 3}
+  runShape: 4
+  runLength: {x: 0.5, y: 0.88}
+  runTime: {x: 1, y: 2.5}
+  runStart: 0.85
+  runFan: 35
+  runJitter: 8
+  runDelay: 0.3
+  runThinnest: 0.001
+  flakes:
+  - albedo: {fileID: 2800000, guid: 87fa49d027ce9c7489fc4c3575061fdc, type: 3}
+    normal: {fileID: 0}
+  - albedo: {fileID: 2800000, guid: a6efd26878d14ff4eb1f7f1344cb8907, type: 3}
+    normal: {fileID: 0}
+  - albedo: {fileID: 2800000, guid: 60dd8f06b77433441bf03ff0eb841813, type: 3}
+    normal: {fileID: 0}
+  mostPaint: 560
+  mostDrops: 300
+  pushedFade: 0.5
+  pushedDropFade: 0.15
+  burstAmount: 22
+  burstSpeed: 5
+  burstSize: 0.04
+  burstBall: 0.12
+  burstGravity: 9
+  burstSeconds: 0.45
+  burstCone: 60
+  burstLeast: {x: 0.4, y: 0.5}
+  mistShare: 1.25
+  mistSpeed: 1.6
+  mistSize: 1.4
+  mostBits: 600
+  decalMaterial: {fileID: 2100000, guid: 2ab3d556feeaf7840b7cd382b81278ab, type: 2}
+  wetGloss: 0.85
+  normalBlend: 1
+  drawDistance: 1000
+  beadMesh: {fileID: 10200, guid: 0000000000000000e000000000000000, type: 0}
+  dropMaterial: {fileID: 2100000, guid: b91f8a3c37b15c0408337d54c4d988ed, type: 2}
+  bitsMaterial: {fileID: 2100000, guid: 79363e4619618fd488b0d4a65adef56e, type: 2}
+  fireClips:
+  - {fileID: 8300000, guid: 4b9d4e90203553e44847057023a7ac0b, type: 3}
+  - {fileID: 8300000, guid: 52ca08a4fedeb93409159f5877bae2bf, type: 3}
+  hitClips:
+  - {fileID: 8300000, guid: 713d86bf97ea94f498fd7269a4b102e2, type: 3}
+  - {fileID: 8300000, guid: 89f82223e3e2356488522c1eaa126929, type: 3}
+  - {fileID: 8300000, guid: d98a8372244851c4ebe5e870c058bd94, type: 3}
+  pitchSpread: 1.1
+  hitVolume: 1
+  soundInRoom: 0.6
+  greyableShader: {fileID: 4800000, guid: 6c6371f9450977c4fbc7a5336d2c82f4, type: 3}
+  grey: {r: 0.62, g: 0.62, b: 0.66, a: 1}
+  greyPull: 0.45
+  sizePerHit: 4
+  hitsRange: {x: 1, y: 6}
+  flash: {x: 0.4, y: 1}
+  flashGain: 1.6
+  flashSeconds: 0.5
+  saturation: {x: 0.7, y: 1.1}
+  light: {x: 0.7, y: 1.25}
+  doneShare: 0.999
+  confetti:
+  - {r: 1, g: 0.3, b: 0.5, a: 1}
+  - {r: 0.2, g: 0.8, b: 1, a: 1}
+  - {r: 1, g: 0.85, b: 0.2, a: 1}
+  - {r: 0.5, g: 0.9, b: 0.3, a: 1}
+  restoredBurst: {x: 18, y: 7, z: 0.12, w: 0.7}
+  finishedBurst: {x: 10, y: 8, z: 0.14, w: 0.9}
+  restoreClip: {fileID: 8300000, guid: bb981aedbb2255a4bb61a05502dabe95, type: 3}
+  finishedClip: {fileID: 8300000, guid: b8f41631a36ba6e4abcf272857241b28, type: 3}
+  smudgeSeconds: 3
+  smudgePerSecond: 0.12
+  roam: 24
+  walkSpeed: 1.1
+  turnSpeed: 6
+  reachGap: 1.4
+  leastColour: 0.05
+  nearestChoices: 4
+  feelAhead: 1.6
+  feelHeight: 1
+  avoidSeconds: 0.9
+  avoidLean: 1.5
+  stuck: {x: 0.5, y: 2.5}
+  hitPause: 0.4
+  downSeconds: 6
+  toppleSeconds: 0.3
+  soldierGravity: 25

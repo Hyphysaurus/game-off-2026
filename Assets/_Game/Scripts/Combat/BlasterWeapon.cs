@@ -30,6 +30,8 @@ namespace ShiftJam
 
         private readonly RaycastHit[] _hits = new RaycastHit[16];
         private float _nextFire, _kick;
+        private WeaponHolder _beltOf;   // whose AmmoBelt was looked up
+        private AmmoBelt _belt;         // the holder's choice of ammo, if it carries one
 
         public override Quaternion PoseRotation => Quaternion.Euler(-kickAngle * _kick, 0f, 0f);
         public override Vector3 PosePosition => Vector3.back * (kickBack * _kick);
@@ -45,7 +47,11 @@ namespace ShiftJam
 
         private bool TryFire()
         {
-            if (Holder == null || projectile == null || Time.time < _nextFire) return false;
+            if (Holder == null || Time.time < _nextFire) return false;
+            // What leaves the barrel: the holder's chosen ammo (AmmoBelt: darts, paint...), else this blaster's own.
+            if (_beltOf != Holder) { _beltOf = Holder; Holder.TryGetComponent(out _belt); }
+            Projectile shot = _belt != null ? _belt.Shot(projectile) : projectile;
+            if (shot == null) return false;
             _nextFire = Time.time + interval;
             float scale = Scale;
 
@@ -80,11 +86,12 @@ namespace ShiftJam
             if (dir.sqrMagnitude < 1e-6f) dir = look;
             dir.Normalize();
             for (int p = 0; p < pellets; p++)
-                Projectile.Fire(projectile, from, Spread(dir), damage, knockback, scale, Holder.transform, Holder.FirstPersonBodyRoot);
+                Projectile.Fire(shot, from, Spread(dir), damage, knockback, scale, Holder.transform, Holder.FirstPersonBodyRoot);
 
             _kick = 1f;
             Holder.Punch(new Vector2(-viewPunch.x, Random.Range(-viewPunch.y, viewPunch.y)));
-            Holder.PlayClip(fireClip, Random.Range(1.05f, 1.25f));
+            AudioClip ammoClip = _belt != null ? _belt.FireClip() : null;
+            Holder.PlayClip(ammoClip != null ? ammoClip : fireClip, Random.Range(1.05f, 1.25f));
             return true;
         }
 

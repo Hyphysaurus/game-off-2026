@@ -7,8 +7,10 @@ namespace ShiftJam
     /// A swept toy shot (foam dart, pellet): sphere-casts its path each frame so it never tunnels, hurts what it hits
     /// (Damageable) or shoves it (Rigidbody, player), and goes back to a pool instead of being destroyed. Everything about
     /// it (speed, radius, drop, shove) is multiplied by the shooter's scale, so a kid's shots are kid-sized.
+    /// Another kind of ammo (the paint ball) extends this and changes only what happens at a hit: it can glance off
+    /// before the hit counts (Deflects) and leave something behind after it (OnLanded).
     /// </summary>
-    public sealed class Projectile : MonoBehaviour
+    public class Projectile : MonoBehaviour
     {
         [SerializeField, Tooltip("Units per second at scale 1.")] private float speed = 40f;
         [SerializeField, Tooltip("Hit radius, units at scale 1.")] private float radius = 0.06f;
@@ -65,9 +67,33 @@ namespace ShiftJam
             transform.localScale = _baseScale * _scale;
             gameObject.SetActive(true);
             Live.Add(this);
+            OnLaunched();
         }
 
-        private void Recycle()
+        // ---------- for other kinds of ammo ----------
+
+        /// <summary>The shot's velocity, world units per second.</summary>
+        protected Vector3 Velocity { get => _velocity; set => _velocity = value; }
+        /// <summary>The shooter's scale this shot was fired at.</summary>
+        protected float ShotScale => _scale;
+        /// <summary>The shot's hit radius, world units.</summary>
+        protected float HitRadius => radius * _scale;
+        /// <summary>Who fired it (never hit), and the first-person body or car it was in.</summary>
+        protected Transform Owner => _owner;
+        protected Transform OwnerAlt => _ownerAlt;
+        /// <summary>Multiplies this shot's damage and shove (an ammo's own share of the weapon's).</summary>
+        protected void ScaleHit(float damage, float knock) { _damage *= damage; _knock *= knock; }
+        /// <summary>The shot has just been fired: position, velocity and scale are set.</summary>
+        protected virtual void OnLaunched() { }
+        /// <summary>Each frame before the shot moves, after its drop: an ammo may change Velocity (air drag).</summary>
+        protected virtual void BeforeMove(float dt) { }
+        /// <summary>Asked just before a hit counts. Return true if the shot glanced off (after setting its own Velocity and
+        /// position for the way on) or is simply spent (after calling Recycle): then nothing is hit.</summary>
+        protected virtual bool Deflects(in RaycastHit hit, Vector3 point) => false;
+        /// <summary>The hit has counted (damage and shove are done); the shot goes back to its pool right after.</summary>
+        protected virtual void OnLanded(in RaycastHit hit, Vector3 point) { }
+
+        protected void Recycle()
         {
             gameObject.SetActive(false);
             Live.Remove(this);
@@ -84,6 +110,7 @@ namespace ShiftJam
             if (dt <= 0f) return;
             if (Time.time >= _expires) { Recycle(); return; }
             _velocity += Vector3.down * (drop * _scale * dt);
+            BeforeMove(dt);
             Vector3 step = _velocity * dt;
             float distance = step.magnitude;
             if (distance < 1e-6f) return;
@@ -100,10 +127,12 @@ namespace ShiftJam
             {
                 var hit = _hits[best];
                 Vector3 point = hit.distance > 0f ? hit.point : transform.position;
+                if (Deflects(hit, point)) return;
                 Vector3 shove = (dir + Vector3.up * 0.3f) * (_knock * _scale);
                 var health = Damageable.Find(hit.collider);
                 if (health != null) health.Hit(new DamageInfo(_damage, shove, point, _owner));
                 else Knockback.Apply(hit.collider.gameObject, shove, point);
+                OnLanded(hit, point);
                 Recycle();
                 return;
             }

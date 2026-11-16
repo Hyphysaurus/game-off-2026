@@ -32,6 +32,7 @@ namespace ShiftJam
 
         private readonly RaycastHit[] _hits = new RaycastHit[16];
         private Transform _hand, _shoulder;
+        private PlayerBody _wears;   // the body in use: its palm replaces the carryable's (measured for the old rig)
         private CharacterController _body;
         private int _layer = -1;
         private float _armWeight;
@@ -55,6 +56,7 @@ namespace ShiftJam
             if (input == null) input = GetComponent<PlayerInput>();
             if (shifter == null) shifter = GetComponent<Shifter>();
             _body = GetComponent<CharacterController>();
+            _wears = GetComponent<PlayerBody>();
             if (holdPoint == null) holdPoint = transform;
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (animator != null)
@@ -300,7 +302,7 @@ namespace ShiftJam
             Vector3 forward = _shoulder != null ? (_hand.position - _shoulder.position) : _hand.up;
             if (forward.sqrMagnitude < 1e-6f) forward = transform.forward;
             rot = Quaternion.LookRotation(forward.normalized, Vector3.up) * Held.GripRotation;
-            pos = _hand.TransformPoint(Held.GripPalm) - rot * Vector3.Scale(_gripRight, Held.transform.lossyScale);
+            pos = _hand.TransformPoint(_wears != null ? _wears.Palm(Held.GripPalm) : Held.GripPalm) - rot * Vector3.Scale(_gripRight, Held.transform.lossyScale);
         }
 
         /// <summary>Flat across the front of the body at carry height, its near edge a gap ahead of the body.</summary>

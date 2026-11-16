@@ -144,7 +144,7 @@ namespace ShiftJam
                     case "fly":
                         // only on foot in play: Build Mode, first person and the car seats own the motor and capsule
                         // while they are on, and switching them back on under those fights them (D-0030)
-                        if (GameMode.Current != GameMode.Mode.Play) { Say("fly: back to play first (F3 / F4 off)"); break; }
+                        if (GameMode.Current != GameMode.Mode.Play) { Say("fly: back to play first (F3 / V off)"); break; }
                         if (!_fly && (!_motor.enabled || !_cc.enabled)) { Say("fly: not while driving or waking up"); break; }
                         _fly = !_fly; _motor.enabled = !_fly; _cc.enabled = !_fly;
                         if (!_fly) _motor.Warp(_player.transform.position, _player.transform.rotation);

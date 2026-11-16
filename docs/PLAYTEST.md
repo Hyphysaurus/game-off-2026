@@ -2,7 +2,7 @@
 
 How to use: play it top to bottom once without fixing anything. Note the step number and one line per thing that
 is wrong ("7: prompt says X", "12: fell through"). Expected prompts are in quotes; E = Interact, Shift = sprint,
-Space = jump, C = put down, LMB = toggle the carried light.
+Space = jump, X = put down (C crouches since D-0064), LMB = toggle the carried light.
 
 ## Before Play
 - Open Greybox.unity. Hierarchy has Room/Course with R3_SkirtingRun, R4_Playroom, R5_Wardrobe, R6_Window.
@@ -15,7 +15,7 @@ Space = jump, C = put down, LMB = toggle the carried light.
 ## R2 Bedroom (kid)
 3. Camera sits about 2.9 m back with a 70° view, not inside the walls. Look at the real door: E → "Locked".
 4. Shelf on the west wall, switch above it: E → "Press". Across the room the toy door swings open and a light comes on.
-5. Pick up the flashlight (E → "Pick up"): it sits in the right hand, head forward, LMB toggles. C puts it down.
+5. Pick up the flashlight (E → "Pick up"): it sits in the right hand, head forward, LMB toggles. X puts it down.
 6. Jump onto the bed, E on the core → "Shift: shrink". You are a toy on the mattress.
 7. Hop box → books → floor (each drop under 14 units: no respawn). Walk to the open toy door at the south wall.
 
@@ -34,8 +34,8 @@ Space = jump, C = put down, LMB = toggle the carried light.
     maze NE with a glow inside (core A), race track centre, castle south of it, sofa east, wardrobe SE with a safe in
     front and a glowing hole behind. The floor is cluttered on purpose; note anything that blocks a path you need.
 16. Walk the maze to core A: E → "Shift: grow". (Sandbag walls are 2 high: a toy cannot hop them.)
-17. Kid: the safe. E → "Pick up". Carry it a few steps and C to put it down. The hole behind it is now clear.
-18. The ruler lies near the desk. E → "Pick up", carry, C to put it down on the desk edge. (Optional now: the way down
+17. Kid: the safe. E → "Pick up". Carry it a few steps and X to put it down. The hole behind it is now clear.
+18. The ruler lies near the desk. E → "Pick up", carry, X to put it down on the desk edge. (Optional now: the way down
     exists without it; note where it lands anyway.)
 19. Core B on the desk: E → "Shift: shrink". You are a toy on the desk (the desk top is a checkpoint).
 20. Down: hop from the desk's south edge onto the two-box stack (24), then the single box (12), then the floor. Each

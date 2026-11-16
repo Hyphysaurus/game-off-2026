@@ -2,6 +2,38 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 16 Nov 2026 14:3x — THE PLAYER IS THE TEST ROOM'S PLAYER: Playroom body, crouch, roll, block, punch, kick (D-0064, Stage A of the player port) — NOT PLAYED
+His "lets finish the player port now". Headless only: built by one batch (`Shift Jam > Player > Build Player Port`),
+checked by temporary play probes (deleted), looked at in stills. Stage B (the cameras) is the next entry up when it lands.
+- **Body:** the Playroom Male (beanie, yellow top) in every scene; the Female (hair bun, blue hoodie) under Pause or
+  Title > Options > Body, shown from the next scene load. The test room's own player is the Female. The Funny
+  Characters body is off the Player (its files are untouched).
+- **New files:** `Player/PlayerBody`, `PlayerStance` (crouch), `PlayerMoves` (roll, punch, kick, block, reactions,
+  death), `PlayerStrike` (the hit), `PlayerHurt` (block and roll protection, reactions, death then Respawn),
+  `PlayerAnimation` (legs, strafes, one-shots, the look-around); `Data/PlayerBodySettings`, `PlayerMoveSettings`;
+  `Debug/PlayerPortBuilder*.cs`; `Animation/PlayerMale.controller`, `PlayerFemale.controller`;
+  `Resources/PlayerBody.asset` (measured, rewritten by the builder) and `Resources/PlayerMoves.asset` (his to tune).
+- **Keys changed:** C is crouch now (put-down moved to X); X also holsters or draws; Q is block (drop the weapon moved
+  to Z); V is first person (was F4); Left Ctrl rolls; right mouse aims or kicks. H shows them all.
+TO PLAY (Workshop, then the course):
+1. Walk and sprint. The legs run at 1.35x and 1.6x; the feet slide (matched would be 2.7x and 3.9x). Judge the look.
+2. Hold C: crouch and crouch-walk. Walk under something low, let go: he stays down, Space does nothing, he stands when clear.
+3. Left Ctrl: the roll, with and without a direction held. It carries about three body widths.
+4. With empty hands (X holsters a weapon): left mouse punches, right mouse kicks. Hit a practice target, a soldier, a loose prop.
+5. Hold Q: block. Let a soldier hit you while blocking (half damage) and while not (a flinch; a knife hit is the heavy one).
+6. Die to a soldier: he falls, and two seconds later the usual respawn cut.
+7. Stand still 8 seconds: he looks around.
+8. E on a prop, carry it, X sets it down. Drive a car. Shift (F). V for first person and back.
+9. New Game on the course: the wake-up in the toy box (he now gets up from lying face down).
+TUNE: `Resources/PlayerMoves.asset` (crouch, roll distance and protection, block share, punch and kick reach, damage and
+shove, reaction locks, respawn wait, the look-around wait); `Resources/PlayerBody.asset` > Max Playback (the legs' cap;
+the rest of that asset is measured and rewritten by the builder).
+FOR HIS EYE: the leg speed and slide; the crouch pose (arms out, the pack's clip); the block (a 3.5 s acted clip played
+once and held, as in the test room); the carry: with a 0.6 box the hands end 0.27 short of its sides (the new arms are
+shorter); the wake-up; whether the Male or the Female should be the default.
+KNOWN: the moves are third person only; no strike sounds or hit marker yet; a kid's punch lands at a kid's chest
+height, over small props.
+
 ## 16 Nov 2026 09:4x — D-0063 PAINT: the test room's paint ball, splats and the Colour Corner are in Shift Jam — UNPLAYED
 First piece of the testing-zone merge (his "lets bring it over to unity for now"). Ported from the Godot test room with
 its numbers: the paint ball (a shell that breaks or skips by its speed into the surface), the splat (spread formula,

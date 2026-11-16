@@ -25,21 +25,22 @@ Inspector reference or an event.
 interaction reach all multiply by it. Jump timing stays the same at both sizes because height and gravity
 scale together. The blend between sizes is geometric (even growth to the eye), eased by a curve.
 
-## Animator contract (built by hand in the editor)
-Parameters: `Speed` float, `Grounded` bool, `VerticalVelocity` float.
-Base layer: **Locomotion** blend tree on `Speed` — Idle at 0, Walk at 0.5, Run at 1 (all three clips at
-speed 1). Two sub-machines, JumpIdle and JumpRun, each start / middle / end. Leaving the ground always
-uses the run branch (D-0007; the idle branch is kept in the file, unused); `VerticalVelocity` > 0.5 (a jump) enters
-the *start* clip part-way in (offset 0.3 / 0.2, speed 2.5 / 2) so the crouch is skipped, anything else
-(a fall) goes straight to the *middle* loop. Landing (`Grounded` true) while moving blends into
-Locomotion in 0.15 s; landing still plays the *end* clip at speed 2, which any stick input or a new jump
-cuts short. Every return is a direct transition to Locomotion (no Exit node), so the blend tree never
-restarts. `Grounded` sent to the Animator is steadied by `groundedGrace` (0.1 s) against the capsule's
-one-frame flicker; a jump clears it at once. Timings: D-0006.
+## Animator contract (built by `PlayerPortBuilder`, D-0064; never by hand)
+One controller per body (`PlayerMale`, `PlayerFemale`), from the Playroom clips' copies. Parameters: `Speed` float,
+`Grounded` bool, `VerticalVelocity` float (the motor writes these); `MoveX`, `MoveZ` (own units a second against the
+body's facing), `Crouched`, `Pace` (the legs' playback) and `MoveSpeed` (a one-shot's playback) from `PlayerAnimation`.
+Base layer: **Locomotion** and **Crouch** are 2D blend trees on `MoveX` / `MoveZ`, each clip placed at the speed it
+covers ground at; **Air** (the jump loop), **Fall**, **Land**; the one-shots **Roll, Punch, Kick, Block, HitLight,
+HitHeavy, Death, Fidget**, started and ended by code; **Wake** (the death backwards). A take-off (`VerticalVelocity`
+> 0.5) blends straight to Air, a walk-off to Fall; landing while moving blends to Locomotion, landing still plays Land
+from its touch-down. Layers 1 and 2 are **Arms** (one arm holding) and **Carry** (two arms, IK pass), as on the old
+body. `Grounded` sent to the Animator is steadied by `groundedGrace` (0.1 s). The old `PlayerAnimator.controller`
+(D-0006, D-0007) is no longer on the Player.
 
 ## Input contract
-The template `InputSystem_Actions` asset, Player map: Move, Look, Jump, Sprint, Interact. Interact carries a
-Hold interaction in the asset; `PlayerInput` listens to `started`, so E is a press.
+The template `InputSystem_Actions` asset, Player map: Move, Look, Jump, Sprint, Interact, Attack, Shift, Previous, Next,
+and since D-0064 Crouch, Holster, Aim, Dodge, Block. Interact carries a Hold interaction in the asset; `PlayerInput`
+listens to `started`, so E is a press. `PlayerInput` is still the only script that turns them into intents.
 
 ## Folders
 `_Game` ours (Scripts by feature, Data, Prefabs, Animation, Scenes, Input, Materials, UI). `_Imports` bought

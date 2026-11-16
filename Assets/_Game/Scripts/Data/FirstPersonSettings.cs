@@ -40,6 +40,9 @@ namespace ShiftJam
         [Header("View")]
         [Tooltip("HL2-style field of view: horizontal degrees on a 4:3 screen (90). Wider screens keep the same vertical angle and see more at the sides.")]
         public float fieldOfView = 90f;
+        [Tooltip("Field of view while a drawn weapon is aimed (Aim held), the same kind of degrees. A weapon's own Sight Field Of View overrides it. The test room narrows 80 to 50.")]
+        public float aimFieldOfView = 56f;
+        [Tooltip("How quickly the view narrows and widens again. Higher is snappier.")] public float aimBlend = 8f;
         public float mouseSensitivity = 0.1f;
         public float padSensitivity = 200f;
         public bool invertY;

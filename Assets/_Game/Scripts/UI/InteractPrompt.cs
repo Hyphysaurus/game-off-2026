@@ -10,7 +10,7 @@ namespace ShiftJam
         [SerializeField] private TMP_Text label;
         [SerializeField] private string keyName = "E";
         [SerializeField, Tooltip("Optional. Shown when nothing is in reach but something is carried.")] private Carrier carrier;
-        [SerializeField] private string heldHint = "LMB  Light     C  Put down";
+        [SerializeField] private string heldHint = "LMB  Light     X  Put down";
 
         private void Update()
         {

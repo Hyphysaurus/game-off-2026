@@ -135,7 +135,8 @@ namespace ShiftJam
                 Set(health, "invulnerability", 0.6f);
                 Set(health, "refillAfterDeath", 1f);
                 var respawn = player.GetComponent<Respawn>();
-                if (respawn != null) UnityEventTools.AddVoidPersistentListener(health.OnDiedEvent, respawn.Reset);
+                // With the ported player PlayerHurt plays the fall and asks the Respawn itself (D-0064).
+                if (respawn != null && player.GetComponent<PlayerHurt>() == null) UnityEventTools.AddVoidPersistentListener(health.OnDiedEvent, respawn.Reset);
             }
             if (Object.FindFirstObjectByType<WorkshopReset>() == null)
             {
@@ -144,7 +145,7 @@ namespace ShiftJam
                 Undo.RegisterCreatedObjectUndo(go, "Workshop Reset");
             }
             EditorSceneManager.MarkSceneDirty(player.scene);
-            Debug.Log("[Workshop] Player wired: FirstPersonMode (F4), WeaponHolder, Damageable (death = Respawn.Reset), SafeGround; WorkshopReset (F9) in the scene. Save the scene.");
+            Debug.Log("[Workshop] Player wired: FirstPersonMode (V), WeaponHolder, Damageable (death = the fall, then Respawn), SafeGround; WorkshopReset (F9) in the scene. Save the scene.");
         }
 
         // ---------- pieces ----------

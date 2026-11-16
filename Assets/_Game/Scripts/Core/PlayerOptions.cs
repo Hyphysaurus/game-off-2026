@@ -11,11 +11,12 @@ namespace ShiftJam
     public static class PlayerOptions
     {
         public const float MinLook = 0.25f, MaxLook = 3f, LookStep = 0.25f, VolumeStep = 0.1f;
-        private const string LookKey = "opt.lookScale", InvertKey = "opt.invertY", VolumeKey = "opt.volume";
+        private const string LookKey = "opt.lookScale", InvertKey = "opt.invertY", VolumeKey = "opt.volume", BodyKey = "opt.body";
 
         private static bool _loaded;
         private static float _look = 1f, _volume = 1f;
         private static bool _invert;
+        private static int _body;
 
         /// <summary>Multiplies the mouse and stick look speed (1 = as designed).</summary>
         public static float LookScale
@@ -43,6 +44,14 @@ namespace ShiftJam
             }
         }
 
+        /// <summary>Which body the player wears, by its place in PlayerBodySettings (0 = Male, 1 = Female). PlayerBody
+        /// reads it when a scene loads.</summary>
+        public static int Body
+        {
+            get { Load(); return _body; }
+            set { Load(); _body = Mathf.Max(0, value); PlayerPrefs.SetInt(BodyKey, _body); PlayerPrefs.Save(); }
+        }
+
         /// <summary>Unity remembers the window mode itself between runs; this only switches it.</summary>
         public static bool Fullscreen
         {
@@ -64,6 +73,7 @@ namespace ShiftJam
             _look = Mathf.Clamp(PlayerPrefs.GetFloat(LookKey, 1f), MinLook, MaxLook);
             _invert = PlayerPrefs.GetInt(InvertKey, 0) == 1;
             _volume = Mathf.Clamp01(PlayerPrefs.GetFloat(VolumeKey, 1f));
+            _body = Mathf.Max(0, PlayerPrefs.GetInt(BodyKey, 0));
         }
     }
 }

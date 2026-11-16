@@ -22,6 +22,13 @@ namespace ShiftJam
         private Vector2 _punch, _punchVelocity;
         private float _bobPhase, _bobWeight;
         private float _hurtAlpha, _hurtAt = -10f;
+        private float _fov = -1f;   // the field of view now, in the settings' own degrees (eases between plain and aimed)
+
+        /// <summary>True while a drawn weapon is aimed: the view narrows. FirstPersonMode sets it every frame.</summary>
+        public bool Aiming { get; set; }
+        /// <summary>The aimed weapon's own field of view, settings' degrees; 0 = the settings' aim field of view. The hook
+        /// for a gun whose sight comes to the eye.</summary>
+        public float SightFieldOfView { get; set; }
 
         public float Yaw { get; private set; }
         public float Pitch { get; private set; }
@@ -36,6 +43,7 @@ namespace ShiftJam
             Yaw = yaw;
             Pitch = Mathf.Clamp(pitch, -_s.maxPitch, _s.maxPitch);
             _punch = _punchVelocity = Vector2.zero;
+            _fov = -1f;
             transform.rotation = Quaternion.Euler(0f, Yaw, 0f);
         }
 
@@ -105,7 +113,9 @@ namespace ShiftJam
                 _body.transform.position + Vector3.up * (_body.EyeHeight + bob),
                 Quaternion.Euler(Pitch + _punch.x, Yaw + _punch.y, 0f));
             // HL2's 90 is horizontal on 4:3; keep that vertical angle on any screen.
-            _camera.fieldOfView = 2f * Mathf.Atan(Mathf.Tan(_s.fieldOfView * 0.5f * Mathf.Deg2Rad) * 0.75f) * Mathf.Rad2Deg;
+            float wanted = Aiming ? (SightFieldOfView > 0f ? SightFieldOfView : _s.aimFieldOfView) : _s.fieldOfView;
+            _fov = _fov < 0f ? wanted : Mathf.Lerp(_fov, wanted, 1f - Mathf.Exp(-_s.aimBlend * dt));
+            _camera.fieldOfView = 2f * Mathf.Atan(Mathf.Tan(_fov * 0.5f * Mathf.Deg2Rad) * 0.75f) * Mathf.Rad2Deg;
             _camera.nearClipPlane = Mathf.Max(0.0005f, _s.nearClip * scale);
         }
     }

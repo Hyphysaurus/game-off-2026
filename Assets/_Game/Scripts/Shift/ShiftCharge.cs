@@ -96,6 +96,8 @@ namespace ShiftJam
             if (!_shifter.enabled || _shifter.Shifting || Time.time < _readyAt || Time.timeScale <= 0f) return;
             if (GameMode.Current != GameMode.Mode.Play || PauseMenu.IsOpen || TitleMenu.IsOpen || DebugConsole.IsOpen) return;
             if (_motor == null || !_motor.enabled || _controller == null || !_controller.enabled) return;
+            var moves = GetComponent<PlayerMoves>();   // no size shift mid-roll (or mid-punch, block, hit)
+            if (moves != null && !moves.Free) return;
 
             ShiftSize to = _shifter.Size == ShiftSize.Toy ? ShiftSize.Kid : ShiftSize.Toy;
             string refused =

@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7acee866c35fb3e46828a8c2bf94bca5, type: 3}
+  m_Name: PlayerBody
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.PlayerBodySettings
+  bodies:
+  - name: Male
+    child: Body_Male
+    fit: 0.99041337
+    lift: 0.0013577353
+    palm: {x: -0.010238275, y: 0.08000302, z: 0.004031797}
+    walk: 1.1308576
+    walkBack: 0.8770164
+    strafe: 0.59083354
+    run: 2.0334945
+    runBack: 1.6940753
+    runSide: 1.9636021
+    crouch: 1.0459174
+    crouchBack: 0.82680005
+    crouchSide: 0.8377093
+    roll: 2.0416667
+    punch: 1.2083334
+    kick: 2
+    block: 3.5
+    hitLight: 1.9166667
+    hitHeavy: 1.625
+    death: 3.5833335
+    fidget: 9.375
+    punchContact: 0.55833334
+    kickContact: 0.4
+  - name: Female
+    child: Body_Female
+    fit: 0.99041337
+    lift: -0.00019525025
+    palm: {x: -0.010238083, y: 0.08000313, z: 0.004031799}
+    walk: 1.1308577
+    walkBack: 0.8770164
+    strafe: 0.59083354
+    run: 2.0334945
+    runBack: 1.6940753
+    runSide: 1.9636021
+    crouch: 1.0459174
+    crouchBack: 0.82680005
+    crouchSide: 0.8377093
+    roll: 2.0416667
+    punch: 1.2083334
+    kick: 2
+    block: 3.5
+    hitLight: 1.9166667
+    hitHeavy: 1.625
+    death: 3.5833335
+    fidget: 9.375
+    punchContact: 0.55833334
+    kickContact: 0.4
+  maxPlayback: 1.6
+  bodyHeight: 1.8489019

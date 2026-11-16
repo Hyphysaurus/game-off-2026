@@ -44,6 +44,9 @@ namespace ShiftJam
         public float MaxHealth => maxHealth;
         public bool Dead => Health <= 0f;
         public bool Protected => Time.time < _safeUntil;
+        /// <summary>Share of every hit that is taken (1 = all of it). The player's block lowers it; 0 turns hits away
+        /// like protection does (the middle of a dodge roll).</summary>
+        public float DamageScale { get; set; } = 1f;
         /// <summary>The Inspector's death event, for editor tools that wire it.</summary>
         public UnityEvent OnDiedEvent => onDied;
         /// <summary>Raised after a hit is taken.</summary>
@@ -75,10 +78,11 @@ namespace ShiftJam
         public void Protect(float seconds) => _safeUntil = Mathf.Max(_safeUntil, Time.time + seconds);
 
         /// <summary>Takes the hit. False when it was ignored (dead, protected or nothing to take).</summary>
-        public bool Hit(in DamageInfo hit)
+        public bool Hit(in DamageInfo dealt)
         {
-            if (Dead || hit.Amount <= 0f) return false;
-            if (Protected) { Blocked?.Invoke(hit); return false; }
+            if (Dead || dealt.Amount <= 0f) return false;
+            if (Protected || DamageScale <= 0f) { Blocked?.Invoke(dealt); return false; }
+            var hit = new DamageInfo(dealt.Amount * DamageScale, dealt.Knock, dealt.Point, dealt.Source);
             Health = Mathf.Max(0f, Health - hit.Amount);
             _safeUntil = Time.time + invulnerability;
             Flash();

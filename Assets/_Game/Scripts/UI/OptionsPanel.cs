@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace ShiftJam
 {
     /// <summary>
-    /// The Options screen (D-0044): look speed, invert Y, volume, fullscreen, Back. One is made by each menu that offers
+    /// The Options screen (D-0044): look speed, invert Y, volume, fullscreen, the player's body, Back. One is made by each menu that offers
     /// it (the title and the pause menu); the menu hides itself, calls Open with what to do on the way back, and this
     /// panel saves every change straight into PlayerOptions. Esc, the pad's B or Start also go back. Built in code like
     /// TitleMenu, with mouse, keyboard and pad navigation through the scene's EventSystem.
@@ -16,7 +16,7 @@ namespace ShiftJam
     public sealed class OptionsPanel : MonoBehaviour
     {
         private GameObject _root;
-        private TMP_Text _look, _invert, _volume, _fullscreen;
+        private TMP_Text _look, _invert, _volume, _fullscreen, _body;
         private Button _first;
         private Action _onClose;
         private bool _fullscreenWanted;
@@ -65,6 +65,13 @@ namespace ShiftJam
             _invert.text = PlayerOptions.InvertY ? "On" : "Off";
             _volume.text = $"{Mathf.RoundToInt(PlayerOptions.Volume * 100f)}%";
             _fullscreen.text = (_fullscreenWanted ? "On" : "Off") + (Application.isEditor ? " <size=60%><alpha=#88>(built game only)" : "");
+            if (_body != null)
+            {
+                // The body is swapped when a scene loads: say so while the picked one is not the one on screen.
+                var worn = FindFirstObjectByType<PlayerBody>();
+                bool waits = worn != null && worn.Index != Mathf.Clamp(PlayerOptions.Body, 0, Mathf.Max(0, PlayerBody.Count - 1));
+                _body.text = PlayerBody.NameOf(PlayerOptions.Body) + (waits ? " <size=60%><alpha=#88>(from the next load)" : "");
+            }
         }
 
         // ------------------------------------------------------------------ building the canvas
@@ -78,7 +85,7 @@ namespace ShiftJam
             MenuKit.Rect("Dim", _root.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero).gameObject.AddComponent<Image>().color = new Color(0.03f, 0.03f, 0.06f, 0.8f);
             MenuKit.Text("Title", _root.transform, "<b>OPTIONS</b>", 64, new Vector2(0.5f, 0.78f), new Vector2(900, 90));
 
-            float y = 0.62f;
+            float y = 0.66f;
             _first = Stepper("Mouse sensitivity", y, out _look,
                 () => { PlayerOptions.LookScale -= PlayerOptions.LookStep; Refresh(); },
                 () => { PlayerOptions.LookScale += PlayerOptions.LookStep; Refresh(); }); y -= 0.09f;
@@ -87,7 +94,13 @@ namespace ShiftJam
                 () => { PlayerOptions.Volume -= PlayerOptions.VolumeStep; Refresh(); },
                 () => { PlayerOptions.Volume += PlayerOptions.VolumeStep; Refresh(); }); y -= 0.09f;
             // Screen.fullScreen changes at the end of the frame, so the label shows the asked-for state.
-            Toggle("Fullscreen", y, out _fullscreen, () => { _fullscreenWanted = !_fullscreenWanted; PlayerOptions.Fullscreen = _fullscreenWanted; Refresh(); }); y -= 0.12f;
+            Toggle("Fullscreen", y, out _fullscreen, () => { _fullscreenWanted = !_fullscreenWanted; PlayerOptions.Fullscreen = _fullscreenWanted; Refresh(); }); y -= 0.09f;
+            // Only where there is more than one body to pick (after the player port's builder has run).
+            if (PlayerBody.Count > 1)
+            {
+                Toggle("Body", y, out _body, () => { PlayerOptions.Body = (PlayerOptions.Body + 1) % PlayerBody.Count; Refresh(); }); y -= 0.09f;
+            }
+            y -= 0.03f;
             MenuKit.Button(_root.transform, "Back", new Vector2(0.5f, y), 0f, 380f, 40f, Close);
             MenuKit.Text("Hint", _root.transform, "Esc / B to go back · changes save as you make them", 22, new Vector2(0.5f, 0.05f), new Vector2(900, 40)).alpha = 0.6f;
             _root.SetActive(false);

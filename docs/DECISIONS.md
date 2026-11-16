@@ -944,3 +944,60 @@
     colours, the corner grey and then coloured. The paint's hue matches the ball's; it is duller and darker than
     the ball's colour while the corner is grey. Not seen at all: the title button, the readout, the streak in
     flight, the sounds, first person, the kid's size.
+- **D-0064 (16 Nov, 14:3x) The player is the test room's player: the Playroom body, its moves, its keys (Stage A of the player port).**
+  His words: "examine the testing zone shift characters and mechanics, thats what we need in Shift" and "the play room
+  models Male and Female work better with what we've designed in testing zone"; "proceed" on the plan; "lets finish the
+  player port now". Stage B (the cameras) is D-0065.
+  - **Body.** The Playroom Male is the player, the Female is the other pick: Options > Body, kept in PlayerOptions, swapped
+    when a scene next loads (`Player/PlayerBody.cs`). The pack's `Character_02` is the man (beanie) and `Character_01` the
+    woman (hair bun): the test room's own player is `Character_01`, the woman. Both are fitted to the height the old
+    body was drawn at (1.849, soles to top): fit 0.990. The Funny Characters body is off the Player in all four scenes;
+    its files are untouched.
+  - **Speeds and scale stay Shift Jam's.** Walk 5.5, sprint 8, jump 2.0, the 1.8 capsule: measured before and after
+    through the real keys, the same (below). The run clip serves both gaits. It covers 2.03 a second at 1x, so matched
+    feet would need 2.7x walking and 3.9x sprinting; his call: cap the legs at 1.6x (`PlayerBody.maxPlayback`) and accept
+    the slide. My addition: below sprint the playback rises evenly from 1x to the cap, so walking (1.35x) and sprinting
+    (1.6x) do not look the same. The walk clip only shows below the run clip's own speed (a pad's half stick).
+  - **Clips.** The pack's clips do not loop and leave travel, height and turn as root motion. The builder makes copies
+    under git-ignored `_Imports/ShiftJam/PlayerClips` with loop on, turn and height kept in the pose, travel left out
+    (the motor moves the body); the jump loop takes its height from the feet (as shipped it floats a body height up).
+    The pack's own files are not changed. No crouch idle in the pack: made as the test room's was, the crouch walk's
+    first frame held with a slow breath in the hips (2.4 s).
+  - **One controller per body, built by code** (`PlayerPortBuilder`, AnimatorController API): Locomotion and Crouch are
+    blend trees over the way the body moves against its facing (so it can step sideways and backwards while aiming);
+    Air, Fall, Land; the one-shot moves; Wake (the death played backwards; a backwards state counts time from the clip's
+    end, measured, so WakeUp starts at 0.1); then the old Arms and Carry layers with the old masks and pose clips.
+  - **Moves, the test room's rules, lengths in body heights (the 1.8 capsule).** Crouch: hold; capsule 1.5; 1.65 a second
+    (my number: the crouch clip at the cap, feet matched); stays down under something low and stands by itself when
+    clear; no jump without headroom (`PlayerStance`). Dodge roll: 1.77 body heights in 1.36 s, the way the stick points,
+    no cooldown (as there). Punch and kick with empty hands: a hit ball at the test room's reach, landing at the clip's
+    contact moment measured on the bones (punch 0.56 of the clip, kick 0.40); damage 10 and 20 (mine: the room's 1 and 2
+    against its 5-health dummy, times 10); the shove grows by the square root of the size. Block: held, stands still.
+    (`PlayerMoves`, `PlayerStrike`.) Not while carrying; no shift, grab or core mid-move.
+  - **Hurt.** The test room's player has no health, so its block and roll protect from nothing. His call for Shift Jam:
+    the block lets half of a hit through (`blockDamage` 0.5), the middle 60 % of a roll turns hits away
+    (`Damageable.DamageScale`, set by `PlayerHurt`). A hit plays the light reaction, a quarter of full health or more the
+    heavy one; control is locked for 0.3 / 0.6 s, then the stick ends it (my numbers: the full clips would stun-lock
+    under dart fire). Death: the fall, then the existing Respawn after 2 s (mine); the scenes' "died -> Respawn.Reset" is
+    removed so the fall can play. In first person or a car the respawn is at once, as before.
+  - **Keys** (the test room's): C crouch, Left Ctrl roll, Q block, left mouse fire or punch, right mouse aim or kick,
+    X put down what is carried or holster / draw, V first person. Moved: put-down from C to X, drop the weapon from Q to
+    Z (mine), first person from F4 to V. Pad: LT aim / kick, RT roll, LB block, R3 crouch, B put down + holster; first
+    person has no pad button (it never had one). New actions in the input asset: Holster, Aim, Dodge, Block.
+  - **Scenes** (by the builder; there is no Player prefab): in Greybox, Workshop, Raceway and Colour Corner the old body
+    is off, `Body_Male` and `Body_Female` are on, PlayerBody / PlayerStance / PlayerMoves / PlayerAnimation / PlayerHurt
+    are added, WakeUp starts at 0.1, first person is on V; Greybox also gets FirstPersonMode; the other three lose the
+    onDied call.
+  - **Checked in headless play** (temporary probes, deleted; real keys through a virtual keyboard, punch and kick
+    through `PlayerMoves.TryPunch / TryKick` because a hidden run cannot capture the mouse): 71 of 71 at toy and kid.
+    Walk 5.500, sprint 8.000, jump 1.99 high and 0.798 s, before and after. Roll 1.77 body heights. Punch and kick land
+    0.45 s and 0.53 s after the press, take 10 and 20, shove a 1-mass target off at 4.0 and 9.0 (kid: 23.7 and 53.0).
+    Block: 20 takes 10. Death, respawn at the checkpoint. Wake-up, shift, launch, car seat, first person and back. All
+    four scenes 0 errors; the raceway race starts on R. **Seen failing first:** with the settings wrong on purpose 30
+    checks failed (capsule 1.8, roll 0.50, hits landing mid-roll, punch and kick missing, block taking 20, no heavy
+    reaction, no fidget, no respawn, legs at 4.15x); the wake-up check failed for real (it began standing) until the
+    0.1 fix; the first bodies were fitted by the head bone (1.66 tall) and failed the builder's own check.
+  - **Not as in the test room, or short:** the moves are third person only (first person keeps its own body, crouch and
+    jump); no strike sounds, puffs or hit marker yet; carrying a 0.6 box the wrists end 0.27 short of their marks (the
+    new arms are shorter than the old carry asks; D-0042 accepted 0.3 on a pillow): `ThirdPersonGrab`'s carry numbers
+    want his eye. Unseen in motion: everything; stills only.

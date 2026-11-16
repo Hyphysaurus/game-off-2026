@@ -121,8 +121,13 @@ namespace ShiftJam
             Line(sb, Kb("Sprint"), "Run", Pad("Sprint"));
             Line(sb, Kb("Interact"), "Use, pick up, get in, shift at a core", Pad("Interact"));
             Line(sb, Kb("Shift"), "Shift anywhere: uses the charge, cores refill it", Pad("Shift"));
-            Line(sb, Kb("Attack"), "Use what you hold, fire", Pad("Attack"));
-            Line(sb, Kb("Crouch"), "Put down what you hold", Pad("Crouch"));
+            Line(sb, Kb("Attack"), "Fire, use what you hold; punch with empty hands", Pad("Attack"));
+            Line(sb, Kb("Aim"), "Aim a drawn weapon; kick with empty hands", Pad("Aim"));
+            Line(sb, Kb("Crouch"), "Crouch (hold)", Pad("Crouch"));
+            Line(sb, Kb("Dodge"), "Dodge roll", Pad("Dodge"));
+            Line(sb, Kb("Block"), "Block (hold)", Pad("Block"));
+            Line(sb, Kb("Holster"), "Put down what you hold; holster or draw the weapon", Pad("Holster"));
+            Line(sb, "V", "First person on / off");
             sb.Append('\n');
             Header(sb, "GRAB (aim at a prop)");
             Line(sb, Kb("Interact"), "Grab; again to set it down where the footprint shows", Pad("Interact"));
@@ -131,7 +136,7 @@ namespace ShiftJam
             Line(sb, "R or Right click + mouse", "Turn it", "LB");
             sb.Append('\n');
             Line(sb, Kb("Previous") + " / " + Kb("Next"), "Previous / next weapon", Pad("Previous") + " / " + Pad("Next"));
-            Line(sb, "Q", "Drop the weapon", "D-pad down");
+            Line(sb, "Z", "Drop the weapon", "D-pad down");
             Line(sb, "T", "Next ammo: darts, paint (Colour Corner)", "D-pad up");
             Line(sb, "Esc", "Pause: resume, options, back to the title, quit", "Start");
             Line(sb, "R", "Restart, on the end card");
@@ -161,14 +166,16 @@ namespace ShiftJam
             Line(sb, "Mouse wheel", "Zoom (off the menu)");
             Set(1, sb);
 
-            Header(sb, "FIRST PERSON (Workshop)");
-            Line(sb, "F4 or Esc", "Leave first person");
+            Header(sb, "FIRST PERSON");
+            Line(sb, "V or Esc", "Leave first person");
             Line(sb, Kb("Interact"), "Grab a prop, use, take a weapon", Pad("Interact"));
             Line(sb, Kb("Attack"), "Throw, fire, swing", Pad("Attack"));
             Line(sb, "R or Right click + mouse", "Turn what you hold", "LB");
             Line(sb, "Mouse wheel", "Turn what you hold");
             Line(sb, Kb("Previous") + " / " + Kb("Next"), "Previous / next weapon", Pad("Previous") + " / " + Pad("Next"));
-            Line(sb, "Q", "Drop the weapon", "D-pad down");
+            Line(sb, Kb("Aim"), "Aim a drawn weapon (the view narrows)", Pad("Aim"));
+            Line(sb, Kb("Holster"), "Holster or draw the weapon", Pad("Holster"));
+            Line(sb, "Z", "Drop the weapon", "D-pad down");
             Line(sb, Kb("Crouch"), "Crouch", Pad("Crouch"));
             Line(sb, Kb("Jump") + ", " + Kb("Sprint"), "Jump, run", Pad("Jump") + ", " + Pad("Sprint"));
             Set(2, sb);

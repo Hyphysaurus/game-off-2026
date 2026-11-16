@@ -6,7 +6,9 @@ namespace ShiftJam
 {
     /// <summary>
     /// The only script that knows about devices. It turns the Input System asset's "Player" map into
-    /// intents the rest of the game reads: Move, Sprint, a look delta, and Jump / Interact presses.
+    /// intents the rest of the game reads: Move, Sprint, a look delta, and Jump / Interact presses. On foot the keys
+    /// follow the test room: C crouch (hold), Left Ctrl dodge roll, Q block (hold), left mouse fire or punch, right mouse
+    /// aim or kick, X put down what is carried or holster / draw, Z drop the weapon.
     /// A car reads it as its driver (ICarDriver: Move, JumpHeld and Sprint, as they are).
     /// </summary>
     public sealed class PlayerInput : MonoBehaviour, ICarDriver
@@ -16,7 +18,7 @@ namespace ShiftJam
 
         private InputActionAsset _instance;
         private InputActionMap _player;
-        private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop, _previous, _next, _shift;
+        private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop, _previous, _next, _shift, _crouch, _aim, _dodge, _block;
         // Workshop extras the asset has no actions for: made here so this stays the only script that knows devices.
         private InputAction _dropWeapon, _scroll, _rotate;
         private Vector2 _mouseLook;   // pixels moved since the last read
@@ -33,12 +35,21 @@ namespace ShiftJam
         public event Action Interact;
         /// <summary>Raised once per press of the Attack action: use whatever is carried (the flashlight's switch).</summary>
         public event Action UseHeld;
-        /// <summary>Raised once per press of the Crouch action: put the carried thing down.</summary>
+        /// <summary>Raised once per press of the Holster action (X, pad B): put the carried thing down; with empty hands
+        /// the WeaponHolder holsters or draws.</summary>
         public event Action Drop;
         /// <summary>True while Attack is held: automatic weapons keep firing.</summary>
         public bool AttackHeld => _use != null && _use.IsPressed();
-        /// <summary>True while Crouch is held: the first-person body ducks.</summary>
-        public bool CrouchHeld => _drop != null && _drop.IsPressed();
+        /// <summary>True while Crouch is held (C, pad R3): the player crouches, in third and first person.</summary>
+        public bool CrouchHeld => _crouch != null && _crouch.IsPressed();
+        /// <summary>True while Aim is held (right mouse, pad LT): a drawn weapon aims.</summary>
+        public bool AimHeld => _aim != null && _aim.IsPressed();
+        /// <summary>Raised once per press of the Aim action: with empty hands it is the kick.</summary>
+        public event Action AimPressed;
+        /// <summary>True while Block is held (Q, pad LB).</summary>
+        public bool BlockHeld => _block != null && _block.IsPressed();
+        /// <summary>Raised once per press of the Dodge action (Left Ctrl, pad RT): the dodge roll.</summary>
+        public event Action Dodge;
         /// <summary>True while the rotate key (R or the right mouse button) is held: the first-person grab turns the held thing.</summary>
         public bool RotateHeld => _rotate != null && _rotate.IsPressed();
         /// <summary>Mouse wheel notches this frame (+1 up, -1 down), 0 when still.</summary>
@@ -47,7 +58,7 @@ namespace ShiftJam
         public event Action Previous, Next;
         /// <summary>Raised once per press of the Shift action (F, pad RB): the carried shift (ShiftCharge).</summary>
         public event Action Shift;
-        /// <summary>Raised on Q: drop the weapon in hand.</summary>
+        /// <summary>Raised on Z (pad: D-pad down): drop the weapon in hand.</summary>
         public event Action DropWeapon;
 
         private void Awake()
@@ -60,11 +71,15 @@ namespace ShiftJam
             _sprint = _player.FindAction("Sprint", true);
             _interact = _player.FindAction("Interact", true);
             _use = _player.FindAction("Attack", true);
-            _drop = _player.FindAction("Crouch", true);
+            _drop = _player.FindAction("Holster", true);
+            _crouch = _player.FindAction("Crouch", true);
+            _aim = _player.FindAction("Aim", true);
+            _dodge = _player.FindAction("Dodge", true);
+            _block = _player.FindAction("Block", true);
             _previous = _player.FindAction("Previous", true);
             _next = _player.FindAction("Next", true);
             _shift = _player.FindAction("Shift", true);
-            _dropWeapon = new InputAction("DropWeapon", InputActionType.Button, "<Keyboard>/q");
+            _dropWeapon = new InputAction("DropWeapon", InputActionType.Button, "<Keyboard>/z");
             _dropWeapon.AddBinding("<Gamepad>/dpad/down");
             _scroll = new InputAction("Scroll", InputActionType.Value, "<Mouse>/scroll/y");
             _rotate = new InputAction("RotateHeld", InputActionType.Button, "<Keyboard>/r");
@@ -78,6 +93,8 @@ namespace ShiftJam
             _interact.started += OnInteract;
             _use.performed += OnUse;
             _drop.performed += OnDrop;
+            _aim.performed += OnAim;
+            _dodge.performed += OnDodge;
             _look.performed += OnLook;
             _look.canceled += OnLook;
             _previous.performed += OnPrevious;
@@ -100,6 +117,8 @@ namespace ShiftJam
             _interact.started -= OnInteract;
             _use.performed -= OnUse;
             _drop.performed -= OnDrop;
+            _aim.performed -= OnAim;
+            _dodge.performed -= OnDodge;
             _look.performed -= OnLook;
             _look.canceled -= OnLook;
             _mouseLook = _stickLook = Vector2.zero;
@@ -115,6 +134,8 @@ namespace ShiftJam
         private void OnInteract(InputAction.CallbackContext _) => Interact?.Invoke();
         private void OnUse(InputAction.CallbackContext _) => UseHeld?.Invoke();
         private void OnDrop(InputAction.CallbackContext _) => Drop?.Invoke();
+        private void OnAim(InputAction.CallbackContext _) => AimPressed?.Invoke();
+        private void OnDodge(InputAction.CallbackContext _) => Dodge?.Invoke();
         private void OnPrevious(InputAction.CallbackContext _) => Previous?.Invoke();
         private void OnNext(InputAction.CallbackContext _) => Next?.Invoke();
         private void OnShift(InputAction.CallbackContext _) => Shift?.Invoke();

@@ -6,7 +6,9 @@ namespace ShiftJam
 {
     /// <summary>
     /// The player's weapons. Carries up to a few (taken from WeaponPickups with E), shows the one in hand, fires it with
-    /// Attack (tap, or hold for automatic), cycles with Previous / Next (1 / 2) and drops it with Q. The kid's carry wins:
+    /// Attack (tap, or hold for automatic), cycles with Previous / Next (1 / 2), holsters or draws it with X and drops it
+    /// with Z. Holstered, the hands are empty (the player punches and kicks). Aim (right mouse) is held with a weapon
+    /// drawn: the camera comes in and the body faces the aim. The kid's carry wins:
     /// while the Carrier holds something (the flashlight), Attack is the carried thing's and the weapon is put away; in
     /// first person, while the hands hold a prop, Attack throws it instead.
     /// Third person: the weapon sits in the right hand (the arm raised through the Animator's Arms layer, like the Carrier).
@@ -38,6 +40,19 @@ namespace ShiftJam
         private PhysicsGrabber _fpHands;
         private ThirdPersonGrab _grab;   // the third-person grab: a held prop fills the hands, and its throw is not a shot
         private bool _waitRelease;   // Attack is still down from a click the hands used (a throw): no automatic fire yet
+        private PlayerBody _wears;   // the body in use: its palm replaces the one measured for the old rig
+        private int _handsFullFrame = -10;   // the last frame the hands held something: that press put it down, it does not holster
+
+        /// <summary>False while the weapon is holstered (X): it is carried but put away, and the hands are empty.</summary>
+        public bool Drawn { get; private set; } = true;
+        /// <summary>True with a weapon drawn and in the hand: the camera goes over the shoulder, Attack fires.</summary>
+        public bool Armed => isActiveAndEnabled && Drawn && Current != null && !HandsFull;
+        /// <summary>True while a drawn weapon is aimed (Aim held): the camera comes in, the body faces the aim.</summary>
+        public bool AimHeld => Armed && !Locked && input != null && input.AimHeld && Time.timeScale > 0f;
+        /// <summary>The player's moves set this while one is under way (a roll, a block, a hit, dead): no firing, the arm comes down.</summary>
+        public bool Locked { get; set; }
+        /// <summary>The drawn weapon's own field of view while aimed in first person; 0 = it has none.</summary>
+        public float SightFieldOfView => Armed ? Current.SightFieldOfView : 0f;
 
         public Weapon Current => _current >= 0 && _current < _weapons.Count ? _weapons[_current] : null;
         public int Count => _weapons.Count;
@@ -61,6 +76,7 @@ namespace ShiftJam
             if (shifter == null) shifter = GetComponent<Shifter>();
             if (carrier == null) carrier = GetComponent<Carrier>();
             _grab = GetComponent<ThirdPersonGrab>();
+            _wears = GetComponent<PlayerBody>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (animator != null)
             {
@@ -79,13 +95,13 @@ namespace ShiftJam
         private void OnEnable()
         {
             if (input == null) return;
-            input.UseHeld += OnAttack; input.Previous += OnPrevious; input.Next += OnNext; input.DropWeapon += OnDropWeapon;
+            input.UseHeld += OnAttack; input.Previous += OnPrevious; input.Next += OnNext; input.DropWeapon += OnDropWeapon; input.Drop += OnHolster;
             ShowCurrent();
         }
 
         private void OnDisable()
         {
-            if (input != null) { input.UseHeld -= OnAttack; input.Previous -= OnPrevious; input.Next -= OnNext; input.DropWeapon -= OnDropWeapon; }
+            if (input != null) { input.UseHeld -= OnAttack; input.Previous -= OnPrevious; input.Next -= OnNext; input.DropWeapon -= OnDropWeapon; input.Drop -= OnHolster; }
             if (Current != null) { Current.Cancel(); Current.gameObject.SetActive(false); }   // seated, or the player is off
             if (animator != null && _layer >= 0 && carrier != null && carrier.Held == null) animator.SetLayerWeight(_layer, 0f);
             _arm = 0f;
@@ -132,6 +148,7 @@ namespace ShiftJam
             SetViewModel(weapon, FirstPerson);
             _weapons.Add(weapon);
             _current = _weapons.Count - 1;
+            Drawn = true;   // a weapon just taken is in the hand
             ShowCurrent();
             Pose();
             return weapon;
@@ -159,6 +176,24 @@ namespace ShiftJam
         }
 
         private void OnDropWeapon() { if (CanAct() && Current != null && !Current.Busy) Drop(Current); }
+
+        /// <summary>X with empty hands: put the weapon away, or take it out again. The same key puts down what is carried;
+        /// a press that did that (the hands were full this frame or the last) does not also holster.</summary>
+        private void OnHolster()
+        {
+            if (HandsFull || _handsFullFrame >= Time.frameCount - 1) return;
+            if (Current == null || Current.Busy || !CanAct()) return;
+            SetDrawn(!Drawn);
+        }
+
+        /// <summary>Holsters (false) or draws (true) the weapon in hand.</summary>
+        public void SetDrawn(bool drawn)
+        {
+            if (drawn == Drawn) return;
+            Drawn = drawn;
+            if (!drawn && Current != null) Current.Cancel();
+            ShowCurrent();
+        }
         private void OnPrevious() => Cycle(-1);
         private void OnNext() => Cycle(1);
 
@@ -173,13 +208,14 @@ namespace ShiftJam
             if (index == _current) return;
             if (Current != null) { Current.Cancel(); Current.gameObject.SetActive(false); }
             _current = index;
+            Drawn = true;   // picking a weapon takes it out
             ShowCurrent();
         }
 
         private void ShowCurrent()
         {
             for (int i = 0; i < _weapons.Count; i++)
-                if (_weapons[i] != null) _weapons[i].gameObject.SetActive(i == _current && isActiveAndEnabled && !HandsFull);
+                if (_weapons[i] != null) _weapons[i].gameObject.SetActive(i == _current && isActiveAndEnabled && !HandsFull && Drawn);
         }
 
         private bool HandsFull => (carrier != null && carrier.Held != null) || (_grab != null && _grab.Holding);
@@ -187,7 +223,7 @@ namespace ShiftJam
         /// <summary>Attack belongs to us: on foot, in Play or first person, mouse captured, hands free.</summary>
         private bool CanAct()
         {
-            if (!isActiveAndEnabled || Time.timeScale <= 0f || HandsFull) return false;
+            if (!isActiveAndEnabled || Time.timeScale <= 0f || HandsFull || Locked) return false;
             if (GameMode.Current == GameMode.Mode.Build) return false;
             if (Cursor.lockState != CursorLockMode.Locked) return false;   // that click was to capture the mouse
             if (_fpHands != null && _fpHands.BusyThisFrame) return false;    // the click threw the held prop
@@ -198,7 +234,7 @@ namespace ShiftJam
         private void OnAttack()
         {
             var w = Current;
-            if (w == null || !CanAct()) return;
+            if (w == null || !Drawn || !CanAct()) return;
             FaceAim();
             w.TriggerPressed();
         }
@@ -214,7 +250,8 @@ namespace ShiftJam
         private void Update()
         {
             var w = Current;
-            bool visible = w != null && !HandsFull;
+            if (HandsFull) _handsFullFrame = Time.frameCount;
+            bool visible = w != null && !HandsFull && Drawn;
             if (w != null && w.gameObject.activeSelf != visible) { if (!visible) w.Cancel(); w.gameObject.SetActive(visible); }
             bool held = input != null && input.AttackHeld;
             if (!held) _waitRelease = false;
@@ -224,7 +261,7 @@ namespace ShiftJam
             // The arm reaches out while a weapon is in hand. The Carrier writes its own weight earlier this frame: keep the larger.
             if (animator != null && _layer >= 0)
             {
-                _arm = Mathf.MoveTowards(_arm, visible && !FirstPerson ? 1f : 0f, Time.deltaTime / 0.15f);
+                _arm = Mathf.MoveTowards(_arm, visible && !FirstPerson && !Locked ? 1f : 0f, Time.deltaTime / 0.15f);
                 if (_arm > 0f) animator.SetLayerWeight(_layer, Mathf.Max(animator.GetLayerWeight(_layer), _arm));
             }
         }
@@ -254,7 +291,7 @@ namespace ShiftJam
                 frame = Quaternion.LookRotation(flat.normalized, Vector3.up);
             }
             Quaternion r = frame * w.PoseRotation * w.HandRotation;
-            Vector3 grip = _hand != null ? _hand.TransformPoint(palm) : transform.position + Vector3.up * (chestHeight * s) + transform.right * (0.3f * s) + transform.forward * (0.3f * s);
+            Vector3 grip = _hand != null ? _hand.TransformPoint(_wears != null ? _wears.Palm(palm) : palm) : transform.position + Vector3.up * (chestHeight * s) + transform.right * (0.3f * s) + transform.forward * (0.3f * s);
             w.transform.SetPositionAndRotation(grip + r * ((w.HandOffset + w.PosePosition) * s), r);
         }
 

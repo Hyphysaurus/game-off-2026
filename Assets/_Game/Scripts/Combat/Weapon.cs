@@ -17,10 +17,13 @@ namespace ShiftJam
         [SerializeField, Tooltip("First person: where the grip sits in camera space, units at scale 1.")] private Vector3 viewOffset = new Vector3(0.22f, -0.22f, 0.45f);
         [SerializeField, Tooltip("First person: extra turn in camera space.")] private Vector3 viewEuler;
         [SerializeField, Tooltip("Blasters point where the camera looks; melee weapons follow the body.")] private bool aimsWithView = true;
+        [SerializeField, Tooltip("Field of view while this weapon is aimed in first person, degrees (a scope zooms further). 0 = the first-person settings' aim field of view.")] private float sightFieldOfView;
 
         public string DisplayName => displayName;
         public WeaponHolder Holder { get; private set; }
         public bool AimsWithView => aimsWithView;
+        /// <summary>This weapon's own field of view while aimed in first person; 0 = none of its own.</summary>
+        public float SightFieldOfView => sightFieldOfView;
         public Quaternion HandRotation => Quaternion.Euler(handEuler);
         public Vector3 HandOffset => handOffset;
         public Vector3 ViewOffset => viewOffset;

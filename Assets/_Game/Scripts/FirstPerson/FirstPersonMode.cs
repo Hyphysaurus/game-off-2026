@@ -5,7 +5,8 @@ using UnityEngine.InputSystem;
 namespace ShiftJam
 {
     /// <summary>
-    /// Owns GameMode.FirstPerson. F4 toggles it, Escape goes back to Play. Entering builds (once) a Half-Life-2-style body
+    /// Owns GameMode.FirstPerson. V toggles it anywhere on foot, Escape goes back to Play. Aim (right mouse) with a
+    /// weapon drawn narrows the view. Entering builds (once) a Half-Life-2-style body
     /// where the player stands, at the player's size, looking where the shoulder camera looked; the third-person player is
     /// parked (motor, capsule, interactor, carrier and camera off, renderers hidden) and follows the body invisibly, so
     /// whatever asks "where is the player" still gets the right answer. Leaving puts the player where the body stands.
@@ -17,7 +18,7 @@ namespace ShiftJam
         [SerializeField] private FirstPersonSettings settings;
         [SerializeField, Tooltip("Found on this object if empty.")] private PlayerInput input;
         [SerializeField, Tooltip("The shoulder camera to hand over from. Found in the scene if empty.")] private ShoulderCamera shoulderCamera;
-        [SerializeField] private Key toggleKey = Key.F4;
+        [SerializeField] private Key toggleKey = Key.V;
 
         /// <summary>The mode while first person is on; null otherwise. Enemies aim at its Body.</summary>
         public static FirstPersonMode Active { get; private set; }
@@ -29,6 +30,7 @@ namespace ShiftJam
         private Carrier _carrier;
         private WeaponHolder _holder;
         private Damageable _health;
+        private PlayerMoves _moves;
         private GameObject _rig;
         private FirstPersonBody _body;
         private FirstPersonLook _look;
@@ -51,6 +53,7 @@ namespace ShiftJam
             _carrier = GetComponent<Carrier>();
             _holder = GetComponent<WeaponHolder>();
             _health = GetComponent<Damageable>();
+            _moves = GetComponent<PlayerMoves>();
         }
 
         private void OnEnable()
@@ -94,7 +97,7 @@ namespace ShiftJam
         /// <summary>On foot and free: not driving, not in a menu or a cutscene, not mid-shift.</summary>
         private bool CanEnter =>
             settings != null && _motor != null && _motor.enabled && _cc != null && _cc.enabled && input != null && input.enabled
-            && (_shifter == null || !_shifter.Shifting) && Time.timeScale > 0f;
+            && (_shifter == null || !_shifter.Shifting) && (_moves == null || _moves.Free) && Time.timeScale > 0f;
 
         private void Update()
         {
@@ -107,6 +110,13 @@ namespace ShiftJam
                     else if (CanEnter || GameMode.Current == GameMode.Mode.Build) GameMode.Set(GameMode.Mode.FirstPerson);
                 }
                 else if (_inside && k.escapeKey.wasPressedThisFrame) GameMode.Set(GameMode.Mode.Play);
+            }
+
+            if (_inside && _holder != null)
+            {
+                // Aim held with a weapon out (not while the hands hold a prop: right mouse turns that): the view narrows.
+                _look.Aiming = _holder.AimHeld && _hands.Held == null;
+                _look.SightFieldOfView = _holder.SightFieldOfView;
             }
 
             // Entering waits a frame, so whichever mode we came from has finished handing the player back.

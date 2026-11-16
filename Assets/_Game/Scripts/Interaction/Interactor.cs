@@ -78,6 +78,9 @@ namespace ShiftJam
 
         private void OnInteract()
         {
+            // Mid-move (a roll, a punch, a block, a hit) the hands are busy: no grabbing, no cores (no size shift mid-roll).
+            var moves = GetComponent<PlayerMoves>();   // plain form: Fast Script Reload breaks `TryGetComponent(out ...) &&`
+            if (moves != null && !moves.Free) return;
             if (grab != null && grab.isActiveAndEnabled && grab.TryUse()) return;   // set down what is held, or grab what is aimed at
             Target?.Interact(this);
         }

@@ -50,6 +50,26 @@ namespace ShiftJam
         /// <summary>Raised on landing with the fall speed at impact in the player's own units a second (the world speed over its size, taken as it fell).</summary>
         public event Action<float> Landed;
 
+        // What the moves ask of the motor (PlayerStance and PlayerMoves write these; left alone they change nothing).
+        /// <summary>Top speed in the player's own units a second (a crouch); infinity = the motor's own walk and sprint.</summary>
+        public float SpeedCap { get; set; } = float.PositiveInfinity;
+        /// <summary>No jump: no headroom over a crouch, or a move is under way. A press meanwhile is dropped.</summary>
+        public bool JumpLocked { get; set; }
+        /// <summary>The stick is ignored: the body stands its ground (a block, a strike, a hit, dead).</summary>
+        public bool SteerLocked { get; set; }
+        /// <summary>Sprint is ignored (aim is held).</summary>
+        public bool SprintLocked { get; set; }
+        /// <summary>The sideways velocity is this, world units a second, whatever the stick says (a dodge roll).</summary>
+        public Vector3? Drive { get; set; }
+        /// <summary>The body turns to this heading instead of the way it travels (aiming: it steps sideways and backwards).</summary>
+        public float? FaceYaw { get; set; }
+        /// <summary>The body's sideways velocity, world units a second.</summary>
+        public Vector3 PlanarVelocity => _planar;
+        /// <summary>The fastest the body runs, own units a second (the legs' playback is worked out against it).</summary>
+        public float SprintSpeed => settings.sprintSpeed;
+        /// <summary>The camera the stick is read against.</summary>
+        public Transform View => cameraTransform;
+
         private void Awake()
         {
             _controller = GetComponent<CharacterController>();
@@ -102,17 +122,19 @@ namespace ShiftJam
             if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
             forward.Normalize();
             Vector3 right = Vector3.Cross(Vector3.up, forward);
-            Vector2 move = input.Move;
+            Vector2 move = SteerLocked || Drive.HasValue ? Vector2.zero : input.Move;
             Vector3 wish = forward * move.y + right * move.x;
             bool steering = wish.sqrMagnitude > 0.0001f;
 
             // Horizontal speed eases toward the target instead of snapping: that is the "weight".
-            float topSpeed = (input.Sprint ? settings.sprintSpeed : settings.walkSpeed) * scale;
+            float topSpeed = Mathf.Min(input.Sprint && !SprintLocked ? settings.sprintSpeed : settings.walkSpeed, SpeedCap) * scale;
             float rate = (steering ? settings.acceleration : settings.deceleration) * scale;
             if (!Grounded) rate *= settings.airControl;
-            _planar = Vector3.MoveTowards(_planar, wish * topSpeed, rate * dt);
+            _planar = Drive ?? Vector3.MoveTowards(_planar, wish * topSpeed, rate * dt);
 
-            if (steering)
+            if (FaceYaw.HasValue)
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0f, FaceYaw.Value, 0f), settings.turnSpeed * dt);
+            else if (steering)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(wish, Vector3.up), settings.turnSpeed * dt);
 
             // Vertical: a small downward push while grounded keeps isGrounded steady on slopes and steps.
@@ -121,7 +143,8 @@ namespace ShiftJam
 
             bool mayJump = Time.time - _lastGroundedTime <= settings.coyoteTime;
             bool wantsJump = Time.time - _jumpPressedTime <= settings.jumpBuffer;
-            if (mayJump && wantsJump)
+            if (JumpLocked) _jumpPressedTime = -10f;
+            else if (mayJump && wantsJump)
             {
                 _vertical = Mathf.Sqrt(2f * gravity * settings.jumpHeight * scale);
                 _jumpPressedTime = -10f;

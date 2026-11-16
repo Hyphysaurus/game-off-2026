@@ -6,7 +6,7 @@ namespace ShiftJam
     /// Which way the game is being played right now. Play = the toy/kid on foot (or driving); Build = the Workshop's
     /// management-game camera and placement tools; FirstPerson = the Half-Life-2-style body. Whoever owns a mode listens
     /// to Changed and switches itself on or off; nobody reaches into another mode's objects.
-    /// Hotkeys (set by the owners): F3 toggles Build, F4 toggles FirstPerson; Escape leaves either back to Play.
+    /// Hotkeys (set by the owners): F3 toggles Build, V toggles FirstPerson; Escape leaves either back to Play.
     /// </summary>
     public static class GameMode
     {

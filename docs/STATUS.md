@@ -6,8 +6,10 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
 Part 2 of the damage plan. Shift Jam > Workshop > Build Car Wrecks cut all 25 car bodies into 9 pieces each with
 Fraggo (run headless; every body's pieces add up to 100.0% of its surface). On a wreck the body breaks up: 7 pieces
 fly at the car's speed, 2 stay as the dark hulk, the 4 wheels pop off and bounce, the rest of the car is hidden; the
-tow (5 s), a repair or F9 puts the car back whole and the pieces shrink away. Checked headless on the Workshop's 5
-cars (a play probe, since deleted) and in stills (docs/stills/wreck_*.png). Unity left closed.
+tow (5 s), a repair or F9 puts the car back whole and the pieces shrink away. Checked headless: a play probe wrecked
+all 25 car pieces in turn (25 of 25 pass, no errors; probe deleted) and stills were looked at (docs/stills/wreck_*.png).
+Unity left closed. 07:1x: the paint bake made safe against no-graphics runs (D-0060, last point); the 25 chip
+colours are unchanged; the tractor's chips stay orange (20% of its body is orange-red, the rest reads as grey).
 TO PLAY (Workshop or Raceway): (1) wreck a car at speed: the pieces should carry on the way the car was going;
 (2) wreck one standing still (darts or ram it): pieces burst outward; (3) wait 5 s: the car is towed back whole;
 (4) look at the cut faces (the car's paint, darker) and at the hulk left behind. Tune in Resources/CarDamageFx under

@@ -12,6 +12,7 @@ namespace ShiftJam
     /// (Data/DamageFleck), bakes every car piece's paint colour from its body mesh and texture, points the car cannon's
     /// puff at the new smoke, and checks every effect it names for materials URP cannot draw. Tuning on an existing asset
     /// is kept; the picks, the material and the paints are rewritten. Batch: -executeMethod ShiftJam.CarDamageFxBuilder.Build
+    /// (WITHOUT -nographics: the paint bake reads textures through the graphics card; with it the old paints are kept)
     /// </summary>
     public static class CarDamageFxBuilder
     {
@@ -22,6 +23,10 @@ namespace ShiftJam
         private const string PA = "Assets/Polygon Arsenal/Prefabs/Environment/";
         private const string Sounds = "Assets/_Imports/CasePortman/CarImpacts/";
         private const string Thumbs = "Assets/_Game/Art/Thumbs/Pieces_Vehicles_";   // Build Catalog's renders of each piece
+
+        private const float SeenShare = 0.13f;   // a hue must cover this share of the car in its render to count
+        private const float BodyShare = 0.06f;   // ...and this share of the body mesh to be the body's paint
+        private const float BodyFar = 3f;         // a later seen hue takes over only with this many times the first one's share of the body
 
         public const string CannonSmoke = PA + "Smoke/Explosion/SmokeExplosionBright.prefab";
         private const string LightSmoke = PA + "Smoke/Rising/SmokeRisingBright.prefab";
@@ -53,7 +58,11 @@ namespace ShiftJam
             fx.bigCrash = Clips("Impact_Clash_Strong_");
             fx.wreck = Clips("Impact_Powerful_");
             fx.fleckMaterial = MakeFleckMaterial();
-            fx.paints = BakePaints();
+            // The bake reads each car's texture through the graphics card: a run with -nographics reads blanks, and
+            // every car would get its render's washed-out colour. Such a run keeps the paints it found.
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
+                Debug.LogWarning($"DAMAGEFX no graphics device (-nographics): the {fx.paints.Count} baked paints are kept, not re-read");
+            else fx.paints = BakePaints();
             EditorUtility.SetDirty(fx);
 
             var cannon = PrefabUtility.LoadPrefabContents(Cannon);
@@ -139,11 +148,11 @@ namespace ShiftJam
                     if (root.GetComponent<ArcadeCar>() == null) continue;
                     var body = CarDamageFx.BodyOf(root.transform);
                     if (body == null || body.sharedMesh == null || !seen.Add(body.sharedMesh.name)) continue;
-                    int seen0 = SeenHue(Thumbs + System.IO.Path.GetFileNameWithoutExtension(path) + ".png", out Color shaded);
-                    if (Paint(body, seen0, shaded, out Color colour))
+                    var hues = SeenHues(Thumbs + System.IO.Path.GetFileNameWithoutExtension(path) + ".png");
+                    if (Paint(body, hues, out Color colour, out string from))
                     {
                         paints.Add(new CarDamageFxSettings.Paint { mesh = body.sharedMesh.name, colour = colour });
-                        Debug.Log($"DAMAGEFX paint {System.IO.Path.GetFileNameWithoutExtension(path)} body {body.sharedMesh.name} #{ColorUtility.ToHtmlStringRGB(colour)} (from {(seen0 == -2 ? "mesh" : seen0 == -1 ? "render: grey" : "render")})");
+                        Debug.Log($"DAMAGEFX paint {System.IO.Path.GetFileNameWithoutExtension(path)} body {body.sharedMesh.name} #{ColorUtility.ToHtmlStringRGB(colour)} (from {from})");
                     }
                     else Debug.LogWarning($"DAMAGEFX no paint read for {path} ({body.sharedMesh.name})");
                 }
@@ -152,17 +161,16 @@ namespace ShiftJam
             return paints;
         }
 
-        /// <summary>The hue bucket (0..17, or -1 for grey) covering most of the car in its render, and that bucket's
-        /// shaded colour; -2 when there is no render. A hue has to cover a good share of the car to count: a grey car with
-        /// coloured trim stays grey.</summary>
-        private static int SeenHue(string path, out Color shaded)
+        /// <summary>The hues the car shows in its render, most seen first: each a hue bucket (0..17) and that bucket's
+        /// shaded colour. A hue has to cover a good share of the car to count; a car with none that does (a grey car
+        /// with coloured trim) gives one entry, bucket -1, grey. Null when there is no render.</summary>
+        private static List<(int hue, Color shaded)> SeenHues(string path)
         {
-            shaded = Color.grey;
-            if (!System.IO.File.Exists(path)) return -2;
+            if (!System.IO.File.Exists(path)) return null;
             var tex = new Texture2D(2, 2);
             try
             {
-                if (!tex.LoadImage(System.IO.File.ReadAllBytes(path))) return -2;
+                if (!tex.LoadImage(System.IO.File.ReadAllBytes(path))) return null;
                 var px = tex.GetPixels32();
                 var bg = px[0];
                 var buckets = new Dictionary<int, (int n, Vector3 sum)>();
@@ -176,14 +184,23 @@ namespace ShiftJam
                     buckets[key] = (b.n + 1, b.sum + new Vector3(c.r, c.g, c.b));
                     total++;
                 }
-                if (total == 0) return -2;
-                int best = -1, most = 0;
-                foreach (var kv in buckets) if (kv.Key >= 0 && kv.Value.n > most) { most = kv.Value.n; best = kv.Key; }
-                if (most < total * 0.13f) best = -1;
-                if (!buckets.TryGetValue(best, out var won)) return -2;
-                Vector3 mean = won.sum / won.n;
-                shaded = new Color(mean.x, mean.y, mean.z, 1f);
-                return best;
+                if (total == 0) return null;
+                var seen = new List<(int hue, Color shaded)>();
+                var ranked = new List<KeyValuePair<int, (int n, Vector3 sum)>>(buckets);
+                ranked.Sort((a, b) => b.Value.n.CompareTo(a.Value.n));
+                foreach (var kv in ranked)
+                {
+                    if (kv.Key < 0 || kv.Value.n < total * SeenShare) continue;
+                    Vector3 mean = kv.Value.sum / kv.Value.n;
+                    seen.Add((kv.Key, new Color(mean.x, mean.y, mean.z, 1f)));
+                }
+                if (seen.Count == 0)
+                {
+                    if (!buckets.TryGetValue(-1, out var grey)) return null;
+                    Vector3 mean = grey.sum / grey.n;
+                    seen.Add((-1, new Color(mean.x, mean.y, mean.z, 1f)));
+                }
+                return seen;
             }
             finally { Object.DestroyImmediate(tex); }
         }
@@ -194,12 +211,13 @@ namespace ShiftJam
             return sat < 0.25f || val < 0.2f ? -1 : Mathf.Clamp(Mathf.FloorToInt(hue * 18f), 0, 17);
         }
 
-        /// <summary>The body's paint from its texture: the bucket <paramref name="seen"/> names (or, with no render
-        /// (-2), the one covering most of the mesh). With nothing of that bucket on the mesh, the render's colour
-        /// brightened, as its lighting darkened it.</summary>
-        private static bool Paint(MeshFilter body, int seen, Color shaded, out Color colour)
+        /// <summary>The body's paint from its texture: the most seen hue of the render (<paramref name="seen"/>) that the
+        /// BODY itself wears on a fair share of its surface (the render also shows the wheels: a tractor's big orange
+        /// wheels must not paint its purple body's chips), or with no render the hue covering most of the mesh. With
+        /// none of the render's hues on the body, the render's top colour brightened, as its lighting darkened it.</summary>
+        private static bool Paint(MeshFilter body, List<(int hue, Color shaded)> seen, out Color colour, out string from)
         {
-            colour = Color.white;
+            colour = Color.white; from = "nothing";
             var mesh = body.sharedMesh;
             var renderer = body.GetComponent<MeshRenderer>();
             var uv = mesh.uv;
@@ -231,30 +249,49 @@ namespace ShiftJam
                 }
             }
             if (total <= 0f) return false;
-            int best = seen;
-            if (seen >= 0)
+            int best = -1;
+            if (seen == null)
             {
-                // lighting shifts a hue a little: the render's bucket or a neighbour, whichever the texture has most of
                 float most = 0f;
-                for (int d = -1; d <= 1; d++)
-                {
-                    int k = (seen + d + 18) % 18;
-                    if (buckets.TryGetValue(k, out var near) && near.area > most) { most = near.area; best = k; }
-                }
-            }
-            if (seen == -2)
-            {
-                best = -1; float most = 0f;
                 foreach (var kv in buckets)
                     if (kv.Key >= 0 && kv.Value.area > most) { most = kv.Value.area; best = kv.Key; }
                 if (best < 0 || most < total * 0.1f) best = -1;
+                if (!buckets.TryGetValue(best, out var own) || own.area <= 0f) return false;
+                from = "mesh";
             }
-            if (!buckets.TryGetValue(best, out var hit) || hit.area <= 0f)
+            else
             {
-                if (seen == -2) return false;
-                Color.RGBToHSV(shaded, out float h, out float sat, out float v);
-                colour = Color.HSVToRGB(h, sat, Mathf.Max(v, best >= 0 ? 0.8f : 0.55f));
-                return true;
+                bool found = false;
+                if (seen[0].hue < 0) { best = -1; found = buckets.TryGetValue(-1, out var grey) && grey.area > 0f; from = "render: grey"; }
+                else
+                {
+                    // Each seen hue's share of the body: the render's bucket or a neighbour (lighting shifts a hue a
+                    // little), whichever the texture has most of. The most seen hue is the paint, unless the body
+                    // wears another seen hue far more: then the most seen one is mostly the wheels'.
+                    int pick = -1; float picked = 0f, first = 0f; string shares = "";
+                    for (int i = 0; i < seen.Count; i++)
+                    {
+                        float most = 0f; int at = -1;
+                        for (int d = -1; d <= 1; d++)
+                        {
+                            int k = (seen[i].hue + d + 18) % 18;
+                            if (buckets.TryGetValue(k, out var near) && near.area > most) { most = near.area; at = k; }
+                        }
+                        shares += $"{(i > 0 ? ", " : "")}hue {seen[i].hue} {most / total:P0}";
+                        if (i == 0) first = most;
+                        bool takes = i == 0 ? most >= total * BodyShare : most >= total * BodyShare && most >= first * BodyFar && most > picked;
+                        if (takes) { pick = i; picked = most; best = at; }
+                    }
+                    found = pick >= 0;
+                    from = (pick <= 0 ? "render" : $"render's hue {pick + 1}: the body wears it far more than the first") + $"; body shares: {shares}";
+                }
+                if (!found)
+                {
+                    Color.RGBToHSV(seen[0].shaded, out float h, out float sat, out float v);
+                    colour = Color.HSVToRGB(h, sat, Mathf.Max(v, seen[0].hue >= 0 ? 0.8f : 0.55f));
+                    from = "render's colour, brightened: none of its hues is on the body";
+                    return true;
+                }
             }
             Vector3 mean = buckets[best].sum / buckets[best].area;
             colour = new Color(mean.x, mean.y, mean.z, 1f);

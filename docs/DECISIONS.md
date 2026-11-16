@@ -791,7 +791,17 @@
   - Checked headless: a temporary play probe wrecked each of the Workshop's 5 cars in turn (3 Cyber, 2 racers): the
     pieces' box matched the body's to 0.00%, 7 flew + 2 stayed + 4 wheels each, every piece moved and came to rest on
     the floor, a repair showed every hidden part again and the pieces were gone 0.6 s later; no errors from the game.
-    The other 20 bodies were cut and area-checked but not broken in play. Stills looked at (docs/stills/wreck_*.png,
-    not in git). Probe deleted.
+    Stills looked at (docs/stills/wreck_*.png, not in git). A second probe (16 Nov 07:1x) put each of the 25 car
+    pieces where a Workshop car stood and wrecked it: 25 of 25 pass, 0 errors. Probes deleted.
+    Found by it: ToyRacer03 pops no wheels and ToyRacer06 three (the car's own wheel list holds that many drawn
+    wheels; the rest are hidden with the body); CyberCar09 pops six.
   - Not played. Seen in the stills, for his eye: the bodies are hollow shells, so some cut faces are flat panels with
     ragged edges; the pieces spread about 1 to 3 car lengths (gravity is 60).
+  - **Paint bake (16 Nov 07:1x), from the "known miss" of D-0059.** The bake now reads every hue the render shows
+    (13% of the car or more), not only the top one, and lets a later hue take over when the body mesh wears it 3
+    times as much as the first (so wheels cannot paint a body's chips); the log line gives each hue's share of the
+    body. All 25 paints came out as before. The tractor (ToyRacer05) keeps orange chips, and that is right by the
+    numbers: orange-red is the only strong colour in its render and covers 20% of its body mesh; the body's dark
+    navy reads as grey. If its chips should be navy, that is one colour typed into Resources/CarDamageFx > paints.
+    🔴 The bake reads textures through the graphics card: run with -nographics it read blanks and washed out all
+    25 colours (seen today, put right). The builder now keeps the old paints in such a run and says so.

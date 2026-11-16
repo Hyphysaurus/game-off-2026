@@ -11,7 +11,8 @@ namespace ShiftJam
     /// At zero health it is a smoking wreck that throws its driver out and, after a while, is towed to a free Garage bay if
     /// the scene has one (else put back at its start).
     /// Flipped over and stuck, it rights itself. Everything is in units at car scale 1 and scales with the transform.
-    /// The car knows nothing about players: a CarSeat feeds it a PlayerInput.
+    /// The car knows nothing about players: whoever drives it is an ICarDriver (a CarSeat hands it the player's
+    /// PlayerInput, a race hands a rival's car a RivalDriver), read the same way, through the same physics.
     /// Boosts (D-0037, IBoostable): bursts from pads, gates and the launch raise the top speed and push along the nose;
     /// Sprint (Shift) burns the nitro meter, which slides, air time and pickups fill; stopped, the handbrake (Jump) with
     /// forward held winds a pull-back spring (the car squats back) and letting go of Jump launches. Nothing boosts while
@@ -48,7 +49,7 @@ namespace ShiftJam
 
         private Rigidbody _rb;
         private Damageable _health;
-        private PlayerInput _driver;
+        private ICarDriver _driver;
         private Renderer[] _renderers;
         private MaterialPropertyBlock _block;
         private Vector3[] _rest;            // hub rest positions, car space
@@ -298,11 +299,18 @@ namespace ShiftJam
         private void OnDisable() { _health.Died -= OnDied; _health.Damaged -= OnHurt; }
         private void OnHurt(DamageInfo _) => _lastHurt = Time.time;
 
-        /// <summary>Hands the car to a driver's input, or takes it back with null.</summary>
-        public void Drive(PlayerInput input)
+        /// <summary>Hands the car to a driver (the player's input, a rival), or takes it back with null.</summary>
+        public void Drive(ICarDriver input)
         {
             _driver = input;
             if (input == null) { ForceBrake = false; DropDrift(); }
+        }
+
+        /// <summary>A driver whose object has been destroyed has let go. (Behind an interface a plain "is it null" no
+        /// longer asks Unity whether the object still exists, as it did when the driver was always a PlayerInput.)</summary>
+        private void DropLostDriver()
+        {
+            if (_driver is UnityEngine.Object driver && driver == null) Drive(null);
         }
 
         private void OnDied(DamageInfo _)
@@ -518,6 +526,7 @@ namespace ShiftJam
 
         private void FixedUpdate()
         {
+            DropLostDriver();
             if (settings == null || wheels.Length == 0) return;
             if (_rb.isKinematic) { _boost.Halt(); _slip = 0f; _airTime = 0f; _holding = false; _driftChance = _driftHeld = false; return; }   // parked on a lift or held: nothing to drive
             float dt = Time.fixedDeltaTime, s = Scale;
@@ -765,6 +774,7 @@ namespace ShiftJam
         private void Update()
         {
             float dt = Time.deltaTime;
+            DropLostDriver();
             if (wheels == null) return;
             Vector3 v = _rb.linearVelocity;
             float along = Vector3.Dot(v, transform.forward);

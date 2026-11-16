@@ -7,8 +7,9 @@ namespace ShiftJam
     /// <summary>
     /// The only script that knows about devices. It turns the Input System asset's "Player" map into
     /// intents the rest of the game reads: Move, Sprint, a look delta, and Jump / Interact presses.
+    /// A car reads it as its driver (ICarDriver: Move, JumpHeld and Sprint, as they are).
     /// </summary>
-    public sealed class PlayerInput : MonoBehaviour
+    public sealed class PlayerInput : MonoBehaviour, ICarDriver
     {
         [SerializeField, Tooltip("The project's InputSystem_Actions asset. A private copy is made at runtime.")]
         private InputActionAsset actions;

@@ -11,6 +11,8 @@ namespace ShiftJam
     /// last safe ground. A wreck throws the driver out at once, with a moment of protection.
     /// While seated, Sprint (Shift) burns the car's nitro and, stopped, Jump + forward winds its pull-back launch (ArcadeCar).
     /// Getting in and out sets <see cref="Driving.Vehicle"/> (the driving HUD and the race read it).
+    /// A car a rival is driving cannot be got into. In a race with a field the race keeps the driver in a wrecked car
+    /// (<see cref="KeepDriverInWreck"/>): it puts the car back on the road itself.
     /// </summary>
     [RequireComponent(typeof(ArcadeCar))]
     public sealed class CarSeat : MonoBehaviour, IInteractable
@@ -36,6 +38,9 @@ namespace ShiftJam
         public bool Occupied => _driver != null;
         /// <summary>The seated player, or null.</summary>
         public Transform Driver => _driver;
+        /// <summary>Set by a race for the player's car (RaceGrid): a wreck does not throw the driver out, because the race
+        /// puts the car back on the road, whole, with the driver still in it.</summary>
+        public bool KeepDriverInWreck { get; set; }
 
         private void Awake()
         {
@@ -68,7 +73,7 @@ namespace ShiftJam
 
         public string PromptFor(Interactor who)
         {
-            if (Occupied || who == null || GameMode.Current != GameMode.Mode.Play) return null;
+            if (Occupied || _car.Occupied || who == null || GameMode.Current != GameMode.Mode.Play) return null;   // the car's own Occupied: a rival has it
             if (_car.Wrecked) return "Wrecked";
             if (TooBig(who)) return "Too big to drive";
             var carrier = who.GetComponent<Carrier>();
@@ -78,7 +83,7 @@ namespace ShiftJam
 
         public void Interact(Interactor who)
         {
-            if (Occupied || who == null || _car.Wrecked || TooBig(who) || GameMode.Current != GameMode.Mode.Play) return;
+            if (Occupied || _car.Occupied || who == null || _car.Wrecked || TooBig(who) || GameMode.Current != GameMode.Mode.Play) return;
             var carrier = who.GetComponent<Carrier>();
             if (carrier != null && carrier.Held != null) return;
             _driver = who.transform;
@@ -123,7 +128,7 @@ namespace ShiftJam
             _wantsOut = true;
         }
 
-        private void OnWreck() { if (Occupied) GetOut(true); }
+        private void OnWreck() { if (Occupied && !KeepDriverInWreck) GetOut(true); }
 
         private void Update()
         {

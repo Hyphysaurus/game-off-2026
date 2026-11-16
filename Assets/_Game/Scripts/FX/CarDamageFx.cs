@@ -11,14 +11,15 @@ namespace ShiftJam
     /// a crash or a big crash by how hard it was; a big hit may knock one of the car's add-on parts off (it tumbles away
     /// and shrinks), and the wreck throws a burst, a few parts and the loudest sound. Hits that come from elsewhere (a
     /// dart, a ram from another car) are taken from the Damageable. Repairs and resets put the parts back.
+    /// The wreck also breaks the body into its pre-cut pieces (CarWreck, D-0060) where the body has been cut.
     /// The car adds this in Start and calls Bind, then Place whenever its parts change. Effects scale with the car's
     /// drawn length (the pack's effects are sized for a real car about 4 long).
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class CarDamageFx : MonoBehaviour
     {
-        private const string Prefix = "DamageFx ";
-        private const float PackCarLength = 4f;      // Polygon Arsenal's effects are sized for a real car about this long
+        internal const string Prefix = "DamageFx ";   // every object the damage effects add to a car starts with this
+        internal const float PackCarLength = 4f;      // Polygon Arsenal's effects are sized for a real car about this long
         private const float PackGravity = 9.81f;     // ...under real gravity
         private const int MostLooseParts = 16;       // across every car: older parts are not tidied early, new ones are skipped
 
@@ -38,7 +39,9 @@ namespace ShiftJam
         private float _nextSpit;
         private int _shownFrame = -1;                 // the frame a hit was last shown (a collision and its damage arrive together)
         private readonly List<Transform> _parts = new List<Transform>();
-        private readonly List<Renderer> _knocked = new List<Renderer>();
+        // Kept by Unity so a Build Mode copy of a car with parts off knows what it has to show again.
+        [SerializeField, HideInInspector] private List<Renderer> knocked = new List<Renderer>();
+        private CarWreck _wreck;
         private bool _lightOn, _darkOn;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -75,7 +78,10 @@ namespace ShiftJam
             _health.Damaged += OnDamaged;
             _health.Died += OnDied;
             _health.Restored += OnRestored;
+            if (!TryGetComponent(out _wreck)) _wreck = gameObject.AddComponent<CarWreck>();
             Place();
+            // a copy made of a car with parts off or in pieces (Build Mode) starts whole, unless it is a wreck itself
+            if (!_health.Dead) { PutPartsBack(); _wreck.Mend(); }
         }
 
         private void Unbind()
@@ -170,11 +176,13 @@ namespace ShiftJam
             Sound(s.bigCrash, 1f, 0.85f);
             Sound(s.wreck, 1f, 0.9f);
             for (int i = 0; i < s.wreckParts; i++) KnockPart(centre, Vector3.up, true);
+            _wreck.Break(_car, s, _paint, k, centre);   // after the parts: what is left on the body goes with it
         }
 
         private void OnRestored()
         {
             PutPartsBack();
+            _wreck.Mend();
             Switch(_light, false, true); Switch(_dark, false, true);
             _lightOn = _darkOn = false;
         }
@@ -416,7 +424,7 @@ namespace ShiftJam
                 piece.AddComponent<MeshRenderer>().sharedMaterials = r.sharedMaterials;
                 colliders.Add(piece.AddComponent<BoxCollider>());
                 r.enabled = false;
-                _knocked.Add(r);
+                knocked.Add(r);
             }
             if (colliders.Count == 0) { Destroy(loose); return; }
             foreach (var own in GetComponentsInChildren<Collider>())
@@ -442,8 +450,8 @@ namespace ShiftJam
 
         private void PutPartsBack()
         {
-            foreach (var r in _knocked) if (r != null) r.enabled = true;
-            _knocked.Clear();
+            foreach (var r in knocked) if (r != null) r.enabled = true;
+            knocked.Clear();
         }
 
         /// <summary>The car's body: the biggest drawn mesh that is not a wheel or an effect. The damage builder bakes paint

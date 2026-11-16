@@ -2,6 +2,26 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 16 Nov 2026 06:5x — D-0060 the wreck in pieces (Fraggo cuts every car body; the wreck breaks it up) — UNPLAYED
+Part 2 of the damage plan. Shift Jam > Workshop > Build Car Wrecks cut all 25 car bodies into 9 pieces each with
+Fraggo (run headless; every body's pieces add up to 100.0% of its surface). On a wreck the body breaks up: 7 pieces
+fly at the car's speed, 2 stay as the dark hulk, the 4 wheels pop off and bounce, the rest of the car is hidden; the
+tow (5 s), a repair or F9 puts the car back whole and the pieces shrink away. Checked headless on the Workshop's 5
+cars (a play probe, since deleted) and in stills (docs/stills/wreck_*.png). Unity left closed.
+TO PLAY (Workshop or Raceway): (1) wreck a car at speed: the pieces should carry on the way the car was going;
+(2) wreck one standing still (darts or ram it): pieces burst outward; (3) wait 5 s: the car is towed back whole;
+(4) look at the cut faces (the car's paint, darker) and at the hulk left behind. Tune in Resources/CarDamageFx under
+"Wreck in pieces": `pieceBurst` (how far they fly), `hulkPieces` (0 = the whole body flies), `insideShade`,
+`wheelBounce`, `wreckShake`. `cutCells` changes the piece count (then run Build Car Wrecks again).
+FOR HIS EYE: the bodies are hollow shells, so some cut faces are flat panels with ragged edges; the spread is 1 to
+3 car lengths; the wreck's sounds are still D-0059's (unheard).
+FOUND, NOT MINE, UNCOMMITTED: a pack import on 14 Nov 10:42 overwrote ProjectSettings: physics (default gravity -9.81
+to -20, max angular speed 50 to 100, the layer collision matrix), TagManager (layers 6-8 named bikebody / wheels /
+drivable, the rendering layer names gone) and InputManager (its axes gone). The game sets its own gravity (60) and
+every object of ours is on layer 0, so nothing of ours has changed that I can find; `git checkout -- ProjectSettings`
+puts them back if he wants (his call). The post-processing package adds a scripting define on every load.
+NEXT, HIS CALLS: AI rivals for a 4-car race; his drive of D-0058, D-0059 and this; the push (106 local commits).
+
 ## 15 Nov 2026 13:4x — D-0059 damage effects (smoke, sparks, flecks, knock sounds, loose parts, wreck burst) — UNPLAYED
 The pink squares were the Playroom smoke (missing material, built-in shaders). Polygon Arsenal's URP upgrade imported
 headless; new CarDamageFx on every car (D-0059), set by Resources/CarDamageFx (menu Shift Jam > Workshop > Build Car

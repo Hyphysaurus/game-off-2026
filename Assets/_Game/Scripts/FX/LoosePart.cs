@@ -2,28 +2,41 @@ using UnityEngine;
 
 namespace ShiftJam
 {
-    /// <summary>A part knocked off a car (CarDamageFx, D-0059): it lies about for a while, then shrinks away.</summary>
+    /// <summary>Something knocked off a car (a part: CarDamageFx, D-0059; a piece of a wreck: CarWreck, D-0060): it lies
+    /// about for a while, then shrinks away.</summary>
     public sealed class LoosePart : MonoBehaviour
     {
-        /// <summary>Loose parts in the scene now (CarDamageFx caps how many there can be).</summary>
+        private const float ShrinkSeconds = 0.4f;
+
+        /// <summary>Knocked-off parts in the scene now (CarDamageFx caps how many there can be). A wreck's pieces are
+        /// counted by CarWreck, not here.</summary>
         public static int Alive;
 
         private float _shrinkAt, _goneAt;
         private Vector3 _scale;
-        private bool _counted;
+        private bool _counted, _begun;
 
-        public void Begin(float life)
+        /// <summary>Starts the clock. <paramref name="counts"/>: whether it takes one of the knocked-off parts' places.</summary>
+        public void Begin(float life, bool counts = true)
         {
-            Alive++;
-            _counted = true;
+            if (counts && !_counted) { Alive++; _counted = true; }
+            _begun = true;
             _shrinkAt = Time.time + Mathf.Max(0.1f, life);
-            _goneAt = _shrinkAt + 0.4f;
+            _goneAt = _shrinkAt + ShrinkSeconds;
             _scale = transform.localScale;
+        }
+
+        /// <summary>Shrinks away from now (the car it came off is whole again). Never puts a shrink already under way back.</summary>
+        public void ShrinkNow()
+        {
+            if (!_begun || Time.time >= _shrinkAt) return;
+            _shrinkAt = Time.time;
+            _goneAt = _shrinkAt + ShrinkSeconds;
         }
 
         private void Update()
         {
-            if (Time.time < _shrinkAt) return;
+            if (!_begun || Time.time < _shrinkAt) return;
             transform.localScale = _scale * Mathf.InverseLerp(_goneAt, _shrinkAt, Time.time);
             if (Time.time >= _goneAt) Destroy(gameObject);
         }

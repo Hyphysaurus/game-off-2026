@@ -756,3 +756,42 @@
     `ArcadeCarSettings.smokeBelow`. The car cannon's puff (also FX_Smoke_Small, also pink) is now SmokeExplosionBright.
   - The builder's pink check: every named effect's materials are URP-drawable (0 failures).
   - Not played: compiled and built headless; nothing has been seen or heard in Play.
+
+- **D-0060 (16 Nov, 06:5x) The wreck in pieces (Part 2 of the damage and wreck plan: Fraggo).**
+  His ask (14 Nov): "vfx and sfx for taking damage and a wreck ... i think we can use tools such as fraggo here";
+  the two-part plan was approved then, Part 1 was D-0059.
+  - **Fraggo cuts, our code breaks.** Fraggo's cutter is an editor tool, so each car body is cut once, beforehand:
+    Shift Jam > Workshop > Build Car Wrecks (`CarWreckBuilder`, batch-safe) asks Fraggo for 9 scattered cells per
+    body (`cutCells`), keeps the seed that gives the most pieces out of 6 (seeded by the body's name, so a re-run
+    gives the same cut), drops slivers, and writes the pieces into Resources/CarDamageFx (`cuts`, by body mesh name).
+    All 25 bodies (15 Cyber, 10 Battle Stadium) gave 9 pieces; the builder checks that each body's pieces add up to
+    the body's own surface (100.0% on all 25). The piece meshes live in `_Imports/Generated/CarWrecks` (24 MB as
+    text): they are made from the licensed car packs, so they stay out of git like the packs.
+  - **Fraggo is called by name (reflection), not referenced.** It is a licensed tool kept out of the public repo; a
+    hard reference would stop a clone from compiling. Without Fraggo the menu says so and changes nothing, and a
+    car whose body has no pieces stays the dark whole wreck it was before. Fraggo's own run-time parts
+    (FraggoSimpleObject and its demo content) are not used: the pieces need the car's speed, the tow and the piece
+    budget, which the car's own code knows. His import at Assets/Unluck Software was left whole (nothing stripped:
+    only what a scene uses reaches a build).
+  - **At the wreck** (`CarWreck`, owned by `CarDamageFx`, after the D-0059 burst and the 3 parts): the body is swapped
+    for its pieces. The 2 nearest the middle of its underside stay on the car, darkened, as the burnt hulk
+    (`hulkPieces`; 0 = the whole body flies), so the car's collision still has something drawn where it stands. The
+    other 7 fly outward and up at the car's own speed (`pieceCarry` 0.8) plus 12 to 20 units a second
+    (`pieceBurst`, on a car 4 long), tumbling. The wheels pop off as bouncing balls (`wheelBurst`, `wheelBounce`).
+    Everything else the car draws is hidden with the body (it would hang in the air). The cut faces show the car's
+    baked paint, 0.55 as bright (`insideShade`), on a plain matt material (Data/WreckInside). The camera shakes by
+    how near it is (`wreckShake` 0.9 at the wreck, nothing past 12 car lengths).
+  - **Pieces** are boxes that pass through their own car and each other and land on the world; at most 60 across
+    every car (`mostPieces`: a wreck with no room left only hides its body). They last until the car is whole again
+    (the tow after 5 s, a repair, F9: they shrink away at once), or 8 s (`pieceLife`).
+  - `LoosePart` gained `ShrinkNow()` and a flag for whether it takes one of the 16 knocked-off parts' places (a
+    wreck's pieces do not). `CarDamageFx` and `CarWreck` now keep what they hid in a list Unity copies, so a Build
+    Mode copy of a car with parts off shows them again (it used to lose them for good).
+  - All numbers are in Resources/CarDamageFx under "Wreck in pieces".
+  - Checked headless: a temporary play probe wrecked each of the Workshop's 5 cars in turn (3 Cyber, 2 racers): the
+    pieces' box matched the body's to 0.00%, 7 flew + 2 stayed + 4 wheels each, every piece moved and came to rest on
+    the floor, a repair showed every hidden part again and the pieces were gone 0.6 s later; no errors from the game.
+    The other 20 bodies were cut and area-checked but not broken in play. Stills looked at (docs/stills/wreck_*.png,
+    not in git). Probe deleted.
+  - Not played. Seen in the stills, for his eye: the bodies are hollow shells, so some cut faces are flat panels with
+    ragged edges; the pieces spread about 1 to 3 car lengths (gravity is 60).

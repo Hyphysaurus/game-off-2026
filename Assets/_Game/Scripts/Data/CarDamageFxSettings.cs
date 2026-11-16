@@ -49,6 +49,29 @@ namespace ShiftJam
         public GameObject wreckSparks;
         public GameObject wreckSmoke;
 
+        [Header("Wreck in pieces (D-0060; the cuts are made by Shift Jam > Workshop > Build Car Wrecks)")]
+        [Tooltip("Cells the builder asks Fraggo to cut each car body into (a cell that misses the body makes no piece). Change it, then run Build Car Wrecks again.")]
+        [Range(3, 24)] public int cutCells = 9;
+        [Tooltip("Pieces of the body that stay on the car as its burnt hulk, lowest and most central first. 0 = the whole body flies apart.")]
+        [Min(0)] public int hulkPieces = 2;
+        [Tooltip("The hulk's colour (it multiplies the car's own paint).")] public Color hulkTint = new Color(0.22f, 0.2f, 0.19f);
+        [Tooltip("How fast the body's pieces are thrown outward, units per second on a car 4 long, least and most.")]
+        public Vector2 pieceBurst = new Vector2(12f, 20f);
+        [Tooltip("How fast the wheels pop off, units per second on a car 4 long, least and most.")]
+        public Vector2 wheelBurst = new Vector2(10f, 16f);
+        [Range(0f, 1f), Tooltip("Share of the car's own speed its pieces keep.")] public float pieceCarry = 0.8f;
+        [Range(0f, 1f), Tooltip("How much a popped wheel bounces.")] public float wheelBounce = 0.55f;
+        [Tooltip("Seconds the pieces lie about if nothing mends the car sooner (the tow or a repair shrinks them away at once).")]
+        public float pieceLife = 8f;
+        [Tooltip("Most wreck pieces (body pieces and wheels) in the scene across every car. A wreck with no room left only hides its body.")]
+        [Min(0)] public int mostPieces = 60;
+        [Range(0f, 1f), Tooltip("The cut faces show the car's paint this much darker (1 = the paint itself).")] public float insideShade = 0.55f;
+        [Tooltip("The cut faces' material (the builder makes Data/WreckInside). None = the body's own first material.")]
+        public Material wreckInside;
+        [Range(0f, 1f), Tooltip("Camera shake when a car breaks up right at the camera (0 = none).")] public float wreckShake = 0.9f;
+        [Tooltip("The shake fades to nothing this many car lengths from the wreck.")] public float wreckShakeRange = 12f;
+        [Tooltip("Car body mesh name to its cut pieces (written by the builder).")] public List<Cut> cuts = new List<Cut>();
+
         [Header("Sounds (picked at random, louder and lower the harder the hit)")]
         [Tooltip("A knock that does no harm (a cone, a glance, a soft bump).")] public AudioClip[] knock;
         [Tooltip("A crash that hurts.")] public AudioClip[] crash;
@@ -64,6 +87,27 @@ namespace ShiftJam
         {
             public string mesh;
             public Color colour;
+        }
+
+        /// <summary>One car body cut into pieces: each piece's mesh (the body's own submeshes, then one more for the cut
+        /// faces) and where its centre sits in the body mesh's own space.</summary>
+        [Serializable]
+        public sealed class Cut
+        {
+            public string mesh;
+            [Tooltip("Submeshes the body mesh has; every piece has one more, the cut faces.")] public int subMeshes = 1;
+            public Mesh[] pieces;
+            public Vector3[] centres;
+        }
+
+        /// <summary>The cut pieces of the body mesh named <paramref name="mesh"/>, or null when it was never cut (or its
+        /// piece meshes are not in this copy of the project: they are made from a licensed pack and stay out of git).</summary>
+        public Cut CutOf(string mesh)
+        {
+            if (string.IsNullOrEmpty(mesh) || cuts == null) return null;
+            foreach (var c in cuts)
+                if (c != null && c.mesh == mesh && c.pieces != null && c.centres != null && c.pieces.Length > 0 && c.pieces.Length == c.centres.Length) return c;
+            return null;
         }
 
         /// <summary>The baked paint colour of the body mesh named <paramref name="mesh"/>, or the fallback.</summary>

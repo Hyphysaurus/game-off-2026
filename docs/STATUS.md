@@ -2,8 +2,47 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 16 Nov 2026 08:2x — CHECKPOINT: the 5-hour limit cut two agents mid-work (resets 11:30) — RACEWAY HALF-BUILT, DO NOT JUDGE IT YET
-1. AI RIVALS (D-0061, his "proceed"): UNCOMMITTED and UNFINISHED in the tree. New: Race/RaceField, RaceGrid, RacePath, Racer,
+## 16 Nov 2026 09:2x — D-0061 rivals: a 4-car race on the Raceway (grid, 3-2-1-GO, place, results) — UNPLAYED
+Finished and committed locally (the 08:2x checkpoint below called it half-built: no longer). Four cars stand on a grid
+behind the finish line: BLUE, YELLOW, GREEN, PINK. Sit in any of them and the other three are rivals. They drive the
+same car through the same physics (`ICarDriver`: the player's input and `RivalDriver` both fit it), along a path the
+raceway builder bakes from the circuit table (`RacePath`: 664 points, each with the road's up, width and a suggested
+speed). The race is the old RaceLoop race started from the grid; `RaceField` holds the field and the standings.
+Checked headless with a temporary play probe (deleted): the real player seated in the pole car and never
+moving, three rivals: 3 of 3 ran 3 laps (45.6 to 49.8 s a lap, eased 10% by the rubber band because the player
+stands), 0 rescues, 0 wall touches, 0 car touches, the standing car never touched, the count held all four still, the
+place right at 12 of 12 line crossings, results in crossing order, 0 errors (time scale 4 and 1.0). A rival driving the
+player's car too: 4 of 4 ran 3 laps (42.0 to 45.2 s), 0 rescues, 0 wall touches, 0 car touches, places right at 16 of
+16, 0 errors (time scale 1.0; the same at 4). Wrecks, falls and a car on its roof were put back on the road (the
+player's 8.0 past the last gate, still in the seat). The race alone over the line, the Workshop and Greybox: unchanged,
+0 errors. Every check was seen failing first (D-0061 lists how).
+No editor was opened on this project (hidden batch runs only, one at a time, low priority).
+TO PLAY (Raceway.unity): (1) climb the steps, get in any grid car (E): "RACE  PRESS R" shows top right; (2) press R
+(pad LB): all four line up, 3-2-1-GO, nobody can move before GO; (3) race 3 laps: PLACE 2/4 sits left of the lap
+panel; the rivals keep to lanes, go round each other and you, slow for the spiral and the dive's crest, use nitro on
+the straights; (4) finish: a results card with all four (a car still out shows a dimmer time: what it is on course
+for); the rivals drive on a little, then are put back on the grid; (5) wreck your car in a race: you stay in the seat
+and 2.5 s later the car is whole, just past the last gate you took; drive off the road and stay off 3 s: the same;
+(6) get out, F9 or Build Mode ends the race and sends the rivals home; (7) driving over the line with no race on still
+starts a lap race alone, as before; (8) pick the pole car (BLUE) for an easier race: pole is the quickest rival.
+TUNE in Resources/Rivals: "Rivals" (each slot's pace, corner pace, lane, nitro mark), `cornerSpeedFactor` (the whole
+pack in bends), "Rubber band" (`rubberBand` off = every rival runs its own race), `lookAhead`, "Trouble" (when a car is
+put back), "The start" (the count), `resultsSeconds`. The grid's cars and lanes: `RwGrid` in CourseBuilder.RaceField.cs
+(then Shift Jam > Raceway > Build Raceway Room).
+FOR HIS EYE AND EAR: how hard the rivals are; the HUD in motion (stills of it: docs/stills/race_*.png); the count's
+sounds (the drift chime low for 3-2-1, high for GO: unheard); whether R / LB is the right start.
+LEFT AS IT IS: ramming rules are unchanged (a rival that rear-ends a car at speed costs it up to 80 of 150); rivals
+do not drift; the ToyRacers are not on the grid; the Workshop and Greybox have no grid and behave as before.
+STILLS (docs/stills, not in git): race_grid.png (the grid), race_results.png (the card, PLACE and the lap panel),
+race_count.png and race_pack.png (the count and GO!: taken BEFORE the count's panel was made smaller and moved up; it is
+now 300 x 230 in the upper middle). The HUD in them is the real one, lent to a still camera behind the car.
+FOUND, NOT FROM THIS WORK, LEFT: a car that rides up over a cone or a toy block can dip its nose into the road, and
+the road then counts as a crash: 40 to 49 health in one hit (seen with a cone 0.22 s before the hit; the slot-4 car
+did it on lap 1 after the loop in 3 of the probe's 8 four-car races). It would hit his car the same way. His call (D-0061, last point).
+NEXT: his drive of the race; then the push (his).
+
+## 16 Nov 2026 08:2x — CHECKPOINT: the 5-hour limit cut two agents mid-work (resets 11:30) — the rivals were finished after all: see D-0061, 09:2x, at the top
+1. AI RIVALS (D-0061, his "proceed"): [09:2x: FINISHED, PROVEN IN PLAY AND COMMITTED; the entry at the top replaces this item.] As it stood at 08:2x: UNCOMMITTED and UNFINISHED in the tree. New: Race/RaceField, RaceGrid, RacePath, Racer,
    RivalDriver, RivalLane, RaceRescue, RaceStartKey, UI/RaceHud, Vehicles/ICarDriver, Data/RivalSettings, Resources/Rivals.asset,
    Debug/CourseBuilder.RaceField, Debug/RivalsProbe (TEMPORARY, delete before commit). Changed: ArcadeCar, CarSeat, PlayerInput,
    RaceGate, RaceLoop, DrivingHud, KeyHelp, CourseBuilder.Raceway, and Raceway.unity (one landing run). It compiles outside

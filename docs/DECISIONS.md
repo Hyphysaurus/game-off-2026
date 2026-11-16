@@ -805,3 +805,89 @@
     navy reads as grey. If its chips should be navy, that is one colour typed into Resources/CarDamageFx > paints.
     🔴 The bake reads textures through the graphics card: run with -nographics it read blanks and washed out all
     25 colours (seen today, put right). The builder now keeps the old paints in such a run and says so.
+
+- **D-0061 (16 Nov, 09:2x) Rivals: a 4-car race on the Raceway, with a countdown and a finish.** His call from
+  D-0058 ("AI rival cars for a 4-car race"), his "proceed" on the plan. Built headless: hidden batch runs only, no
+  editor open on this project.
+  - **The same car.** `ArcadeCar` now reads whoever drives it through `ICarDriver`: steer and throttle, handbrake,
+    nitro, "my controls are live". The names are the ones `PlayerInput` already had, so the player's input fits as it
+    stands and the car's code changed only in the driver's type (plus one guard for a destroyed driver). `RivalDriver`
+    is the other driver. It hands the car those four things and nothing else: no extra speed, no forces of its own.
+  - **The road as data.** `RacePath` (Raceway/RacePath in the scene) is baked by the raceway builder from the same
+    segment table the track is laid from (`Debug/CourseBuilder.RaceField.cs`): 664 points 2.0 apart, 1328 a lap, each
+    with the road's own up, half the road's width (9.39) and a suggested speed. The speed comes from the shape: a bend
+    allows sqrt(18 / tightness), a third more when it leans 20 degrees into the bend; a dip allows sqrt(60 / tightness)
+    (41 round the loop); a crest sqrt(30 / tightness) (35 over the top of the dive); a straight 60. Slowest: 27.4, in
+    the spiral. The build checks every point lies on the road (0 of 664 off).
+  - **How a rival drives.** Each physics step it aims at a point 7 + 0.35 x its speed further along the path, in its
+    lane, and steers at it in the car's own plane (so the loop is the same sum upside down). It reads the suggested
+    speeds 60 ahead and asks for the fastest speed it can still slow down from in time. The car's own engine holds a
+    share of top speed, so its throttle is simply the speed it wants; 3 over that, it brakes. It lights nitro on a
+    straight (the road allows 1.3 x top speed, it is doing 0.6 of top, the wheel is nearly straight, the meter is past
+    its own mark). It never uses the handbrake. Stopped for 0.8 s, it backs up and tries again.
+  - **Other cars** (`RivalLane`). A car ahead that it is closing on, or one alongside, moves its lane 3.2 to the side
+    it is already on (the other side if a wall is there). While still in line behind a car it goes no faster than it
+    can stop from, and it does not sit in line closer than 0.6 s behind a car even at the same speed (a rival doing
+    44 ran into one braking to 29 for a hairpin, 64 health each: seen, then fixed). A car more than a length behind
+    is not its to avoid: the one behind gives way. Cars standing on the grid count like any other.
+  - **The grid.** Four cars behind the line (25 along): BLUE (CyberCar14), YELLOW (05), GREEN (09), PINK (01), at 18,
+    15, 12 and 9 along, each in a lane of its own (-2, +2, -6, +6). Two rows of two were tried first: the rival behind
+    a car left standing had 4.6 to its bumper, hit it and stuck (seen in play). The car the player sits in is the
+    player's; the other three get a rival each. A player who arrives in a car of their own takes the slot of one grid
+    car (the same kind of car if there is one), which sits the race out. Each slot has a character (`RivalProfile`:
+    pace, corner pace, lane, nitro mark). Every bend of this circuit turns left, so each unit of lane further left
+    is 19 units less road a lap: the inside lane has the gentlest pace. Pole is the quickest rival.
+  - **Starting.** Driving over the line still starts a lap race alone, as before (the Workshop too). New: **R** (pad
+    **LB**) while sitting in a car, shown as "RACE  PRESS R" where the lap panel goes. Every car is put on its slot,
+    whole, nitro empty; the cones, tyres and block wall are stood back up; 3-2-1 with every car held on its brakes; GO.
+  - **The race itself is the old one.** `RaceLoop` and `RaceGate` count the rivals through the same gates and the same
+    line by the same rules (silently). `RaceState` stays the player's own numbers; `RaceField` holds the field. The
+    clock runs from GO; the first time over the line starts lap one. A car's standing is how far it has come since
+    the line, held inside the lap its crossings say it is on, so its place is right at the moment it crosses.
+  - **HUD.** PLACE "2/4" beside the lap panel; the count in the upper middle; a results card when the player finishes
+    (place, name, time for all four; a car still out shows, dimmer, the time it is on course for, replaced when it
+    crosses). All drawn by a new part of the driving HUD (`RaceHud`).
+  - **After.** A rival that has finished drives on for 6 s at 0.6 of its pace, then is put back on its slot, but only
+    when no moving car is due at the grid within 3 s. The results stay 10 s, then every rival goes home. Getting out,
+    F9 or Build Mode ends the race the same way. Then it is free roam as before; R races again.
+  - **Trouble** (`RaceRescue`). A rival that has made under 3 of headway in 3.5 s, has been off the road 1.5 s, on its
+    roof 1.5 s, or wrecked 2.5 s is set down on the path where it had got to, facing the road, rolling at half the
+    suggested speed, to the side if a car is there or is about to come through. The player's car is put back only
+    when wrecked or off the road 3 s, 8 past the last gate taken (the line if none), and the driver stays in the seat
+    through the wreck (`CarSeat.KeepDriverInWreck`). A car a rival drives cannot be got into.
+  - **Rubber band**, gentle, one switch: a rival 150 ahead of the player eases off 10%, one 150 behind pushes 6% (never
+    past the car's own top speed).
+  - **Every number** is in `Resources/Rivals` (`RivalSettings`). The builder makes it once and never overwrites it.
+  - **Checked headless** with a temporary play probe (deleted), Unity hidden, sound off. The real player seated in the
+    pole car and never moving, three rivals: all three ran 3 laps (45.6 to 49.8 s a lap: the band eases them 10%
+    because the player stands), 0 rescues, 0 wall touches, 0 car touches, the standing car never touched; the count
+    held all four still (most any car moved: 0.035, its springs settling); the place was right at 12 of 12 line
+    crossings; the results came in crossing order; all three were back on their slots after; 0 errors (time scale 4
+    on the final code; 1.0 one change earlier, before the no-tailgating rule: the same result). A rival at the wheel
+    of the player's car as well, four racing: all four ran 3 laps
+    (42.0 to 45.2 s a lap), 0 rescues, 0 wall touches, 0 car touches, places right at 16 of 16 crossings, finish order =
+    crossing order, 0 errors (time scale 1.0; the same at 4). Rubber band off: 40.3 / 41.1 / 42.6 / 44.0 s a lap for
+    the four slots. Trouble on purpose: a wrecked rival was whole and driving 2.5 s later; one dropped on the room's
+    floor was back in 1.5 s; one turned on its roof was back; the player's car wrecked on the grid kept its driver,
+    the race kept running, and it was set down 8.0 past the line; wrecked after its second gate, 8.0 past gate 2 with
+    both gates still counted. An outside car: BLUE sat out and came back; F9 ended the race and put all four home.
+    The race alone over the line still runs its 3 laps. The Workshop and Greybox open with 0 errors.
+  - **Each check was seen failing first.** With the hold and the standings not yet written: a car moved 102.9 during
+    the count, the place was wrong at 12 of 12 crossings, the results came out in grid order. With two rows of two:
+    the standing car was hit twice. With the track's hold switched off and no avoiding: 0 of 3 laps, 65 to 85
+    rescues a car, off the road on the loop. A rival dropped on the floor on purpose: "left the road on 75 steps".
+    With nitro allowed over the dive's crest a rival flew 4.3 high and landed against a wall: hence the crest's 35.
+    A car put back on the grid in front of one arriving at speed cost both 80 health: hence the 3 s rule. With the
+    rescue taken out: the wrecked rival stayed wrecked, the dropped one stayed on the floor, the player's car stayed
+    in pieces (the one on its roof still came upright: the car's own righting does that).
+  - **Not played. For him:** how hard the rivals are (laps of about 40 to 44 s with the band off); the HUD's look in
+    motion; the count's sounds (the drift chime, low for 3-2-1, high for GO, unheard); whether R is the right key.
+  - **Left as it is:** ramming rules are unchanged, so a car that rear-ends another at speed costs it up to 80 of 150
+    (the rivals keep clear of each other and of a standing car in the probe: 0 car touches; nothing stops the player
+    ramming them); rivals do not drift; the ToyRacers are not on the grid.
+  - **Found, not from this work, left:** a car that rides up over a loose cone or toy block can dip its nose into the
+    road, and the road then counts as a crash: 40 to 49 health in one hit, four times in about 150 car-laps of the
+    probe. Three were a cone after the loop (the probe saw the cone touched 0.22 s before the hit, the car 0.8 up and
+    nose down); one was on the dive, where the loose blocks roll to (not confirmed). The cone itself does no damage
+    (D-0058); this second hit is the car's own crash rule and would hit the player's car the same way. Nobody was
+    wrecked or needed a rescue.

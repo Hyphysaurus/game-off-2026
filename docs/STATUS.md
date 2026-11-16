@@ -2,6 +2,17 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 16 Nov 2026 08:2x — CHECKPOINT: the 5-hour limit cut two agents mid-work (resets 11:30) — RACEWAY HALF-BUILT, DO NOT JUDGE IT YET
+1. AI RIVALS (D-0061, his "proceed"): UNCOMMITTED and UNFINISHED in the tree. New: Race/RaceField, RaceGrid, RacePath, Racer,
+   RivalDriver, RivalLane, RaceRescue, RaceStartKey, UI/RaceHud, Vehicles/ICarDriver, Data/RivalSettings, Resources/Rivals.asset,
+   Debug/CourseBuilder.RaceField, Debug/RivalsProbe (TEMPORARY, delete before commit). Changed: ArcadeCar, CarSeat, PlayerInput,
+   RaceGate, RaceLoop, DrivingHud, KeyHelp, CourseBuilder.Raceway, and Raceway.unity (one landing run). It compiles outside
+   Unity (0 errors). NOT proven: no lap probe result exists. Resume the same agent after 11:30; do not start a new one.
+2. PAINT PORT (first piece of the testing-zone merge, his "lets bring it over to unity for now"): only the 65 splat images
+   are exported, to %TEMP%\shiftjam-stage\paint\stage\Assets\_Game\Art\PaintSplats; no Unity code written yet. Nothing of
+   it is in the project. Resume the same agent after 11:30.
+3. Safe to play meanwhile: Greybox and the Workshop (damage, wreck). The v6 build (Builds/Windows/v6) is from before the rivals work.
+
 ## 16 Nov 2026 06:5x — D-0060 the wreck in pieces (Fraggo cuts every car body; the wreck breaks it up) — UNPLAYED
 Part 2 of the damage plan. Shift Jam > Workshop > Build Car Wrecks cut all 25 car bodies into 9 pieces each with
 Fraggo (run headless; every body's pieces add up to 100.0% of its surface). On a wreck the body breaks up: 7 pieces

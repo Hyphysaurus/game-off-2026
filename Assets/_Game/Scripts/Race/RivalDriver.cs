@@ -15,6 +15,9 @@ namespace ShiftJam
     [RequireComponent(typeof(ArcadeCar))]
     public sealed class RivalDriver : MonoBehaviour, ICarDriver
     {
+        private const float LeastPace = 0.2f;      // however far the rubber band and a lap of honour ease it, it still drives
+        private const float TrafficSlack = 0.5f;   // behind a car it brakes when over the wanted speed by this share of settings.blockedSpeed
+
         private ArcadeCar _car;
         private Racer _me;
         private RacePath _path;
@@ -59,7 +62,7 @@ namespace ShiftJam
 
             // how hard it tries: its character, the rubber band, and an easy pace once it has finished
             float band = Band();
-            float pace = Mathf.Clamp(_profile.pace * band, 0.2f, 1f);
+            float pace = Mathf.Clamp(_profile.pace * band, LeastPace, 1f);
             float corner = _settings.cornerSpeedFactor * _profile.cornerPace * band;
             if (_me.Finished) { pace *= _settings.coolDownPace; corner *= _settings.coolDownPace; }
 
@@ -91,7 +94,7 @@ namespace ShiftJam
             float crawl = _settings.blockedSpeed * s;
             if (Time.time < _reverseUntil) { _move = new Vector2(-steer, -1f); return; }
             if (Mathf.Abs(speed) < crawl)
-            {
+            {   // (GO itself is not a stop: the car is past a crawl within a step or two)
                 _blocked += dt;
                 if (_blocked >= _settings.blockedSeconds) { _blocked = 0f; _reverseUntil = Time.time + _settings.reverseSeconds; }
             }
@@ -100,7 +103,7 @@ namespace ShiftJam
             // the car's own engine holds a share of top speed, so the throttle IS the speed asked for; well over it
             // (for a car in the way: at all over it), brake
             bool traffic = limit < want + 0.01f;
-            float over = traffic ? 0.5f * crawl : _settings.brakeOver * s;
+            float over = traffic ? TrafficSlack * crawl : _settings.brakeOver * s;
             float throttle = speed > want + over && speed > crawl ? -1f : Mathf.Clamp01(want / top);
             _move = new Vector2(steer, throttle);
 

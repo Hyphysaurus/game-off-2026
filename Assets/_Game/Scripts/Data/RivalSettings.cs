@@ -70,6 +70,7 @@ namespace ShiftJam
         [Tooltip("...plus this many seconds of the speed it closes at.")] public float avoidSeconds = 1.3f;
         [Tooltip("A car's width: two cars whose middles are closer than this, side to side, are in line.")] public float carWidth = 2.3f;
         [Tooltip("The air it keeps to the bumper of a car it is in line behind.")] public float followAir = 1.5f;
+        [Min(0f), Tooltip("It does not sit in line behind a car that is closer than this many seconds of its own speed: it moves to the side (the car ahead may brake).")] public float followSeconds = 0.6f;
 
         [Header("Nitro")]
         [Tooltip("It lights nitro only when the road ahead allows this many times its top speed (a straight).")] public float nitroRoad = 1.3f;

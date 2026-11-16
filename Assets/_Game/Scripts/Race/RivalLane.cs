@@ -9,11 +9,14 @@ namespace ShiftJam
     /// hairpin as on a straight. A car ahead that it is closing on, or a car alongside, pushes its lane a car's
     /// clearance to the side it is already on, or to the other side when a wall is in the way; with no room on either
     /// side it holds station behind. Until it is out from behind a car it also goes no faster than it can still slow
-    /// down from before reaching it. Cars standing on the grid count like any other. It only chooses: RivalDriver
-    /// steers there.
+    /// down from before reaching it, and it does not follow a car closely in line even at the same speed (the car
+    /// ahead brakes harder than a rival plans for: seen, a 64-point shunt into a hairpin). Cars standing on the grid
+    /// count like any other. It only chooses: RivalDriver steers there.
     /// </summary>
     public static class RivalLane
     {
+        private const float DeadBehind = 0.3f;   // side to side, closer than this to a car's middle is dead behind it: no side of its own yet
+
         /// <summary>
         /// The lane for <paramref name="me"/>: <paramref name="own"/> (its liking, units right of the middle) unless a
         /// car is in the way. <paramref name="half"/> is how far from the middle it may go, <paramref name="scale"/> the
@@ -33,14 +36,16 @@ namespace ShiftJam
                     if (other == me || other.Car == null) continue;
                     float ahead = path.Delta(me.Distance, other.Distance);   // positive: it is in front of me
                     float closing = me.Speed - other.Speed;
+                    // closer in front than this, it does not sit in line behind a car even at the same speed: that car may brake
+                    float tail = length + settings.followSeconds * Mathf.Max(0f, me.Speed);
                     // a car behind is not this one's to avoid: the one behind gives way (else two cars squeeze each other)
-                    if (ahead < -settings.giveWay * length || ahead > settings.avoidMin * scale + settings.avoidSeconds * Mathf.Max(0f, closing)) continue;
-                    if (ahead > length && closing <= 0f) continue;            // in front and pulling away
+                    if (ahead < -settings.giveWay * length || ahead > Mathf.Max(tail, settings.avoidMin * scale + settings.avoidSeconds * Mathf.Max(0f, closing))) continue;
+                    if (ahead > tail && closing <= 0f) continue;              // well in front and pulling away
                     if (Mathf.Abs(lane - other.Lateral) >= clearance) continue;
 
                     // the side I am already on; dead behind it, the side with more road
                     float apart = me.Lateral - other.Lateral;
-                    float side = Mathf.Abs(apart) > 0.3f * scale ? Mathf.Sign(apart) : (other.Lateral > 0f ? -1f : 1f);
+                    float side = Mathf.Abs(apart) > DeadBehind * scale ? Mathf.Sign(apart) : (other.Lateral > 0f ? -1f : 1f);
                     float want = other.Lateral + side * clearance;
                     if (Mathf.Abs(want) > half)
                     {

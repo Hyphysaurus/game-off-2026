@@ -5,7 +5,7 @@ namespace ShiftJam
 {
     /// <summary>
     /// The driving HUD's parts for a race with a field (D-0061), drawn on the driving HUD's own canvas in its own style:
-    /// the place ("2/4") beside the lap panel; the count on the grid (3, 2, 1, GO!) in the middle of the screen; the
+    /// the place ("2/4") beside the lap panel; the count on the grid (3, 2, 1, GO!) in the upper middle of the screen; the
     /// prompt that offers a race from the grid ("RACE  PRESS R") while sitting in a car with no race on; and the results
     /// card when the player finishes (place, name and time for every car; a time still being driven is shown dimmer,
     /// as the time that car is on course for, and is replaced when it crosses the line). It only reads RaceField and
@@ -15,7 +15,7 @@ namespace ShiftJam
     {
         private const int Rows = 4;                       // cars on the results card
         private const float RowHeight = 50f, CardWidth = 600f, CardTop = 96f;
-        private const float CountSize = 230f, GoSize = 170f;
+        private const float CountSize = 190f, GoSize = 140f;
 
         private readonly DrivingHud _hud;
         private readonly CanvasGroup _place, _count, _prompt, _card;
@@ -48,10 +48,10 @@ namespace ShiftJam
             _placeValue = hud.Label(DrivingHud.At("Value", place, left, leftPivot, new Vector2(18f, -84f), new Vector2(140f, 90f)), 86f, true, TextAlignmentOptions.CaplineLeft, Color.white);
 
             // the count, in the middle
-            _countRt = DrivingHud.At("Count", canvas, centre, centre, new Vector2(0f, 120f), new Vector2(360f, 280f));
-            hud.Round(_countRt, BuildUiKit.PanelColor, 60f);
+            _countRt = DrivingHud.At("Count", canvas, centre, centre, new Vector2(0f, 250f), new Vector2(300f, 230f));   // in the upper half: the cars ahead stay in view
+            hud.Round(_countRt, BuildUiKit.PanelColor, 50f);
             _count = DrivingHud.Group(_countRt);
-            _countText = hud.Label(DrivingHud.At("Number", _countRt, centre, centre, new Vector2(0f, 6f), new Vector2(340f, 260f)), CountSize, true, TextAlignmentOptions.Capline, Color.white);
+            _countText = hud.Label(DrivingHud.At("Number", _countRt, centre, centre, new Vector2(0f, 6f), new Vector2(290f, 220f)), CountSize, true, TextAlignmentOptions.Capline, Color.white);
 
             // the offer of a race, where the lap panel will be
             _promptRt = DrivingHud.At("RacePrompt", canvas, Vector2.one, Vector2.one, new Vector2(-36f, -30f), new Vector2(340f, 54f));

@@ -43,6 +43,7 @@ MonoBehaviour:
   avoidSeconds: 1.3
   carWidth: 2.3
   followAir: 1.5
+  followSeconds: 0.6
   nitroRoad: 1.3
   nitroMinSpeed: 0.6
   nitroMaxSteer: 0.25

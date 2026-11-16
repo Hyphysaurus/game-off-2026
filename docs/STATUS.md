@@ -2,6 +2,39 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 16 Nov 2026 09:4x — D-0063 PAINT: the test room's paint ball, splats and the Colour Corner are in Shift Jam — UNPLAYED
+First piece of the testing-zone merge (his "lets bring it over to unity for now"). Ported from the Godot test room with
+its numbers: the paint ball (a shell that breaks or skips by its speed into the surface), the splat (spread formula,
+1.6x, the 1/sin stretch, spatter ring, drops with drag, runs with a bead, shell flakes, a paint mist, soaked-in splats
+on soft things, budgets 560 / 300, 45 s life), grey toys that take their colour back hit by hit (Colourable), soldiers
+that rub it off again, and the Colour Corner level (%, clock, the room brightening, best time). Splats are URP decals
+stuck to what was hit, so they wrap the model. A new sandbox scene, ColourCorner.unity, built by script from the
+Playroom pack as the Godot level has it (4 mats, 27 toys, 3 soldiers; walls and lights added).
+Checked headless (hidden batch runs, no editor opened): the builder's 22 checks pass; a temporary play probe (deleted)
+pulled the blaster's real trigger: 32 of 32 checks, 0 errors (the numbers are in D-0063); stills looked at
+(`docs/stills/paint_*.png`): the splats sit the right way round and the right size, wrap the car's wing, run down a
+wall, shell flakes lie over the paint, grey toys turn to colour, no pink. Greybox, Workshop and Raceway open and draw
+with 0 errors through the changed renderer.
+TO PLAY: (1) title menu > Colours (third button in the sandbox row; there is no console word for it yet);
+(2) you start on the mats with the Dart Pistol and the SMG (1 / 2), paint loaded: shoot the grey toys and
+mats: each hit brings some colour back, "Colour N%" climbs top centre, the room gets brighter; (3) T (pad: D-pad up)
+swaps to darts and back: darts knock the three soldiers over, they get up after 6 s and rub colour off the nearest
+coloured thing; (4) shoot a wall (runs trickle down), the floor at a flat angle (long streaks), a toy (paint wraps it);
+(5) 100%: bursts, a best time, Enter starts over; F9 resets any time (all paint gone, everything grey).
+Paint also works in the other scenes once a player there has an AmmoBelt (only the Colour Corner's player has one).
+TUNE: everything is in `Resources/PaintSettings` (tooltips say what each number does). The ball's speed 32, drop 6, life
+5 and hit radius are on `Prefabs/Combat/PaintBall`. Soldier health (45: three pistol darts) on
+`Prefabs/Combat/MischiefSoldier`. Shift Jam > Paint > Build Paint rebuilds the scene and keeps the numbers.
+FOR HIS EYE (nobody has seen any of this move): how big and how glossy the splats are (`spreadScale` 1.6, `wetGloss`
+0.85); glancing floor hits are long thin streaks (`flattest` 8); the paint looks dull while the corner is grey (the
+screen is at saturation 0.7 and the lights at 0.7 until colour comes back: `saturation`, `light`); the room's light
+(guessed); the "Colours" button and the two beside it are in smaller letters to fit three in the row; the readout at
+the top; the ball's streak and the burst in motion; the soldiers slide (no walk clip); the sounds (unheard).
+STOPPED HERE at his word (he wanted the editor): all of it is committed. Left for later: one more Build Paint run
+after the probe was deleted (the scene was built by the same code, so nothing should change); the kept probe is in
+`%TEMP%\shiftjam-stage\paint\probe-keep\PaintProbe.cs` (put it back in Scripts/Debug to run it again:
+`-executeMethod ShiftJam.PaintProbe.Run`, add `-paintStills` for pictures).
+
 ## 16 Nov 2026 09:2x — D-0061 rivals: a 4-car race on the Raceway (grid, 3-2-1-GO, place, results) — UNPLAYED
 Finished and committed locally (the 08:2x checkpoint below called it half-built: no longer). Four cars stand on a grid
 behind the finish line: BLUE, YELLOW, GREEN, PINK. Sit in any of them and the other three are rivals. They drive the

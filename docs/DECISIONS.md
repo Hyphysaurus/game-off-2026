@@ -891,3 +891,56 @@
     nose down); one was on the dive, where the loose blocks roll to (not confirmed). The cone itself does no damage
     (D-0058); this second hit is the car's own crash rule and would hit the player's car the same way. Nobody was
     wrecked or needed a rescue.
+
+- **D-0063 (16 Nov, 09:4x) Paint is an ammo, splats are decals, and the Colour Corner is the first piece of the test room to come over.**
+  His words: "lets bring it over to unity for now" (the Godot test room merges into Shift Jam). Ported first: the
+  paint ball, its splats, grey-to-colour toys, the soldiers that rub colour off, and the Colour Corner (the
+  five-minute test of the merged game). Numbers and behaviour are the Godot ones; nobody had seen the paint on a
+  screen in either engine.
+  - **Paint is one more kind of ammo, not a second weapon system.** `Projectile` is no longer sealed and has four
+    hooks (launched, before it moves, glances off before a hit counts, landed); `PaintBall` extends it. An `AmmoBelt`
+    beside the WeaponHolder lists the kinds (row 0 = each blaster's own darts, row 1 = paint; a third is one more
+    row) and T / D-pad up loads the next; `BlasterWeapon` asks it what to fire. No belt = darts as before.
+    PlayerInput was left alone (the belt reads its key itself, like the reset key).
+  - **Splats are URP Decal Projectors** parented to the drawn part nearest the hit, so paint wraps the model and
+    moves with it. A decal takes its picture and colour from its material, so there is one material per picture per
+    colour, made when first needed (70 after 8 s of steady fire; at most 208 with the built-in colours), instanced.
+    Fading is per decal (`fadeFactor`). The built-in decal shader has no tint and no gloss, so
+    `Shaders/PaintDecal.shadergraph` is Unity's own Decal graph with a tint, a gloss and angle fade added (put
+    together by script from the package's two graphs). The Decal renderer feature is now on PC_Renderer and
+    Mobile_Renderer (technique Automatic = DBuffer on a PC): every scene pays for one more prepass.
+  - **Grey toys:** `Shaders/Greyable.shader` is URP Lit with one step added where it reads the surface (grey by
+    `_PaintColour`, glow by `_PaintFlash`, per renderer). `Colourable` swaps a prop's Lit materials for it at start.
+    Borrowing Lit's other passes by name (UsePass) threw every subshader out at import; they are copied in instead.
+  - **All numbers in `Resources/PaintSettings`** (one asset; Build Paint refills pictures, materials and sounds and
+    keeps the numbers). The 64 pictures are our generator's, exported from the Godot project as PNG
+    (`Art/PaintSplats`); the 7 sounds are Case Portman's, in `_Imports/CasePortman/Paint`, out of git.
+  - **The level** is built by `PaintBuilder.Build` (batch-safe; 22 checks; exit 1 on a failed one): Godot's layout
+    with x and the turns mirrored, because Unity's copy of the pack is mirrored left to right (measured on the
+    bear: its x bounds change sign between the engines, its z bounds do not). Added to Godot's bare floor: a 2 x 2
+    tile floor, walls, three warm lights. The player starts with the pistol and the SMG, paint loaded.
+  - **Not as in Godot:** everything about a shot scales with the shooter here (Godot scaled only the ball), and the
+    spread formula is worked at toy size and scaled up; no fade toward the top and bottom of a decal's reach; faces
+    turned away fade on URP's curve; where two colours overlap the order is by material, not by age; the squash
+    compensation is gone (nothing squashes here); "soft" is a marker component (only the bear has it); the soldiers
+    are the guard soldier's body with a new mind, they slide and never shoot; no supply crate; the clock starts on
+    the first paint, not on a restart; best time in PlayerPrefs; the ball's speed, drop and life are on its prefab.
+  - **Checked in play (temporary probe, real trigger, hidden batch; 32 of 32, 0 errors):** floor: 1 break = 2 paint
+    decals (splat, shell) + a ring of 7 spots; wall: 5 paint decals (splat, shell, 3 runs) + 10 spots, on an upright
+    face; the car: colour 0 to 0.500 (one hit of 2), the corner's share 0 to 0.0161; a level shot that falls onto
+    the mat skipped (1 mark, 0 breaks, first try); steady fire with the budgets lowered to 40 / 60 so they are
+    reached in 8 s: 43 breaks, peaks exactly 40 and 60, 123 decal objects at most with those fading out, 11 drops in
+    the air; a soldier rubbed the castle wall from 1.000 to 0.900 in 1.0 s and the share fell; the reset took 142
+    decals to 0, with no drops or balls left and the clock at 0. The budgets at their real 560 / 300 were not reached.
+  - **Seen failing first.** The builder: the paint ball reference went empty when the scene was opened (the belt's
+    paint row would have been blank): now loaded by path after the scene opens; the "projector passes" check failed
+    for a sound shader (in a batch no render pipeline is up, so a material shows only the fallback pass): now read
+    from the shader's own data; the greyable shader's lost subshaders slipped past "no errors": the check now asks
+    whether it can be drawn. The probe, with three things broken on purpose (no colour on a hit, no budget, a reset
+    that keeps the decals): 5 checks failed (colour 0.000, share 0.0000, peaks 98 of 40 and 649 of 60, 789 decals
+    left), exit 1.
+  - **Seen in stills, not in motion** (`docs/stills/paint_*.png`): right way round, right size (a 14 cm core),
+    wrapped round the car's wing, a run with a bead down the wall, shell flakes on top, bits and mist in the ball's
+    colours, the corner grey and then coloured. The paint's hue matches the ball's; it is duller and darker than
+    the ball's colour while the corner is grey. Not seen at all: the title button, the readout, the streak in
+    flight, the sounds, first person, the kid's size.

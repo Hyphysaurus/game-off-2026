@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2ab910b0a3d7c34ba0a2e98e17c8d3f, type: 3}
+  m_Name: Rivals
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.RivalSettings
+  lineUpSeconds: 1
+  counts: 3
+  countSeconds: 1
+  goSeconds: 1
+  countClip: {fileID: 0}
+  goClip: {fileID: 0}
+  countVolume: 0.6
+  countPitch: 0.75
+  goPitch: 1.5
+  resultsSeconds: 10
+  coolDownSeconds: 6
+  coolDownPace: 0.6
+  homeNotice: 3
+  lookAhead: 7
+  lookAheadPerSpeed: 0.35
+  steerFullAngle: 20
+  cornerSpeedFactor: 1
+  brakeLook: 60
+  brakeDecel: 18
+  brakeOver: 3
+  lostAngle: 70
+  turnRoundSpeed: 9
+  wallMargin: 2.5
+  laneChange: 6
+  carClearance: 3.2
+  carLength: 5
+  giveWay: 1
+  avoidMin: 10
+  avoidSeconds: 1.3
+  carWidth: 2.3
+  followAir: 1.5
+  nitroRoad: 1.3
+  nitroMinSpeed: 0.6
+  nitroMaxSteer: 0.25
+  rivals:
+  - pace: 1
+    cornerPace: 1
+    lane: -0.13
+    nitroFrom: 0.3
+  - pace: 0.98
+    cornerPace: 0.98
+    lane: 0.13
+    nitroFrom: 0.4
+  - pace: 0.95
+    cornerPace: 0.95
+    lane: -0.4
+    nitroFrom: 0.5
+  - pace: 0.98
+    cornerPace: 0.97
+    lane: 0.4
+    nitroFrom: 0.6
+  rubberBand: 1
+  rubberDistance: 150
+  rubberEase: 0.1
+  rubberPush: 0.06
+  stuckProgress: 3
+  stuckSeconds: 3.5
+  blockedSeconds: 0.8
+  reverseSeconds: 0.9
+  blockedSpeed: 1.5
+  offRoadMargin: 2
+  offRoadDrop: 3
+  offRoadSeconds: 1.5
+  playerOffRoadSeconds: 3
+  flippedSeconds: 1.5
+  wreckSeconds: 2.5
+  rescueLift: 0.3
+  rescueSpeed: 0.5
+  rescueClear: 5
+  rescueNotice: 1
+  rescueAhead: 8

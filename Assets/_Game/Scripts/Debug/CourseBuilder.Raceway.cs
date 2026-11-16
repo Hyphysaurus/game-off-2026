@@ -134,6 +134,11 @@ namespace ShiftJam
             public readonly List<RwPiece> Pieces = new List<RwPiece>();
             public readonly Dictionary<string, Mesh> Meshes = new Dictionary<string, Mesh>();
             public int Count;
+            // the race (D-0061, CourseBuilder.RaceField.cs): the middle of the road as it is laid, where the finish line
+            // falls in that list, and the cars stood on the grid
+            public readonly List<(Vector3 at, Quaternion turn)> Line = new List<(Vector3, Quaternion)>();
+            public int FinishAt = -1;
+            public readonly List<(ArcadeCar car, string name, Vector3 at, Quaternion turn)> GridCars = new List<(ArcadeCar, string, Vector3, Quaternion)>();
         }
 
         [MenuItem("Shift Jam/Raceway/Build Raceway Room")]
@@ -234,18 +239,15 @@ namespace ShiftJam
                             openStart = true;   // the first piece has no wall on the outside: the steps arrive there
                             Vector3 fwd = layer.Cursor.Turn * Vector3.forward, right = layer.Cursor.Turn * Vector3.right;
                             XwBookSteps(props, "Steps", layer.Cursor.Pos + fwd * 12f + right * layer.Half, -right, RwBase);
-                            string[] rides = { "CyberCar14", "CyberCar05", "CyberCar09" };
-                            for (int i = 0; i < rides.Length; i++)
-                            {
-                                var asset = AssetDatabase.LoadAssetAtPath<GameObject>(CarPieces + rides[i] + ".prefab");
-                                if (asset == null) { Log.AppendLine("  NO CAR " + rides[i] + " (run Shift Jam > Workshop > Build Combat & Vehicle Pieces)"); continue; }
-                                var car = (GameObject)PrefabUtility.InstantiatePrefab(asset, cars); car.name = "Racer" + (i + 1);
-                                car.transform.SetPositionAndRotation(layer.Cursor.Pos + fwd * (5f + i * 6.5f) + right * (i % 2 == 0 ? -1.9f : 1.9f) + Vector3.up * 0.02f, layer.Cursor.Turn);
-                            }
+                            RwGridCars(layer, cars);   // four cars on the grid: the player takes one, rivals drive the rest (D-0061)
                             var player = GameObject.Find("Player");
                             if (player != null) player.transform.SetPositionAndRotation(layer.Cursor.Pos + fwd * 12f + right * 52f - Vector3.up * (RwBase - 0.3f), Quaternion.LookRotation(-right));
                         }
-                        else if (seg.Tag == "Finish" || seg.Tag == "Gate" || seg.Tag == "Boost") RwProp(layer, props, seg.Tag, ref gate);
+                        else if (seg.Tag == "Finish" || seg.Tag == "Gate" || seg.Tag == "Boost")
+                        {
+                            if (seg.Tag == "Finish") layer.FinishAt = layer.Line.Count;   // the next point of the middle line is the finish line
+                            RwProp(layer, props, seg.Tag, ref gate);
+                        }
                         else RwDress(layer, smash, pickups, props, seg.Tag);
                         break;
                 }
@@ -253,6 +255,9 @@ namespace ShiftJam
             float gap = (layer.Cursor.Pos - startPos).magnitude, off = Quaternion.Angle(layer.Cursor.Turn, startTurn);
             float lap = 0f; foreach (var p in layer.Pieces) for (int i = 1; i < p.Samples.Count; i++) lap += (p.Samples[i].at - p.Samples[i - 1].at).magnitude;
             Log.AppendLine($"raceway circuit: {layer.Pieces.Count} pieces, about {lap / 0.8f:F0} units a lap; closes with a gap of {gap:F3} and {off:F2} degrees; {layer.Meshes.Count} swept shapes");
+
+            // ---- the race: the path the rivals follow, baked from what was just laid, and the grid (D-0061) ----
+            RwRace(layer, root, track, props, smash);
 
             // ---- pillars: under each piece's start where it is level enough and nothing but floor is below ----
             Physics.SyncTransforms();
@@ -361,6 +366,8 @@ namespace ShiftJam
                 var piece = new RwPiece { Go = go, Start = layer.Cursor.Pos, StartTurn = turn };
                 for (int k = 0; k < 5; k++) piece.Samples.Add((layer.Cursor.Pos + turn * new Vector3(0f, 0f, each * (0.1f + 0.2f * k)), turn));
                 layer.Pieces.Add(piece);
+                Vector3 from = layer.Cursor.Pos;
+                RwLine(layer, Mathf.Max(1, Mathf.RoundToInt(each / RwPathRawStep)), t => (from + turn * new Vector3(0f, 0f, each * t), turn));
                 layer.Cursor.Pos += turn * new Vector3(0f, 0f, each);
             }
         }
@@ -469,6 +476,8 @@ namespace ShiftJam
                 piece.Samples.Add((layer.Cursor.Pos + turn * (p * XwScale), turn * r));
             }
             layer.Pieces.Add(piece);
+            Vector3 start = layer.Cursor.Pos;
+            RwLine(layer, RwPathRawCuts, t => { path(t, out Vector3 p, out Quaternion r); return (start + turn * (p * XwScale), turn * r); });
             path(1f, out Vector3 end, out _);
             layer.Cursor.Pos += turn * (end * XwScale);
         }
@@ -663,7 +672,11 @@ namespace ShiftJam
                 ("dress_arrows", new Vector3(-62f, RwBase + 14f, 52f), new Vector3(-72f, RwBase, 40f)),
             };
             foreach (var v in views) Shot(dir + "/" + v.name + ".png", v.eye, Quaternion.LookRotation(v.at - v.eye), 60f, 1280, 720);
-            Log.AppendLine("stills in " + dir);
+            // the grid, for the project's own stills folder (docs/stills is not in git)
+            string docs = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../docs/stills")); System.IO.Directory.CreateDirectory(docs);
+            Vector3 gridEye = RwStart + new Vector3(-9f, 8f, -10f), gridAt = RwStart + new Vector3(20f, 0.5f, 0f);
+            Shot(docs + "/race_grid.png", gridEye, Quaternion.LookRotation(gridAt - gridEye), 60f, 1280, 720);
+            Log.AppendLine("stills in " + dir + " and " + docs + "/race_grid.png");
         }
     }
 }

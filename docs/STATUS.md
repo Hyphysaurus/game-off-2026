@@ -22,7 +22,8 @@ to -20, max angular speed 50 to 100, the layer collision matrix), TagManager (la
 drivable, the rendering layer names gone) and InputManager (its axes gone). The game sets its own gravity (60) and
 every object of ours is on layer 0, so nothing of ours has changed that I can find; `git checkout -- ProjectSettings`
 puts them back if he wants (his call). The post-processing package adds a scripting define on every load.
-NEXT, HIS CALLS: AI rivals for a 4-car race; his drive of D-0058, D-0059 and this; the push (106 local commits).
+07:5x: v6 rehearsal build made and smoke-checked clean (Versions, below). The wheel counts the probe turned up are right as they are: ToyRacer03 is a hovercraft (four unseen spring points, no wheels to pop), ToyRacer06 a three-wheeler, CyberCar09 a six-wheeler.
+NEXT: AI rivals for a 4-car race with a countdown and a finish (his "proceed" 16 Nov, in work); his drive of D-0058, D-0059 and this; the push (his).
 
 ## 15 Nov 2026 13:4x — D-0059 damage effects (smoke, sparks, flecks, knock sounds, loose parts, wreck burst) — UNPLAYED
 The pink squares were the Playroom smoke (missing material, built-in shaders). Polygon Arsenal's URP upgrade imported
@@ -770,6 +771,7 @@ tutorial room in Greybox.unity, Feel hooks on ShiftSource/Switch/Door, a Core sc
 → STEP 3 room greybox + shift beat → feel pass → commit → v1.
 
 ## Versions
+- v6 — 16 Nov 2026: a REHEARSAL release build (plain, no dev keys) of head `59c26f2` (D-0060): built headless in 4.1 min, 399 MB, 0 errors; smoke check of Greybox, Workshop and Raceway: 0 errors. Made to learn whether the game still builds and boots after the 14 Nov pack import overwrote ProjectSettings: it does. UNPLAYED. `Builds/Windows/v6` (local).
 - v5 — 9 Nov 2026: D-0044 (pause menu + Options on pause and title; development build); smoke check clean; UNPLAYED. `Builds/Windows/v5` (local).
 - v4 — 8 Nov 2026: D-0043 (DEVELOPMENT build: dev keys F1/F2/F8 on, title "v4 dev"; nine shift cores in the Workshop); smoke check clean; UNPLAYED. `Builds/Windows/v4` (local).
 - v3 — 8 Nov 2026: D-0042 (carried in the arms, grips, reach and lower, the fist fixed); smoke check clean; UNPLAYED. `Builds/Windows/v3` (local).

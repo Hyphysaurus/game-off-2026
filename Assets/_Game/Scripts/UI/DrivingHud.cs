@@ -15,6 +15,8 @@ namespace ShiftJam
     /// boost fires the dial rattles and the number flashes; two pips beside NITRO fill with the drift charge (cars with
     /// IDriftCharge). Top right during a race and
     /// a while after it: the lap, lap time, best lap and gates, a toast for each lap, then FINISH and the total time.
+    /// In a race with a field (D-0061) its RaceHud part adds the place, the count on the grid, the offer of a race and
+    /// the results card, and the plain FINISH banner stays down (the card says it).
     /// Reads the car only through IChaseTarget, IBoostable and IDriftCharge, and the race through RaceState. Made by code at start like
     /// KeyHelp and lives across scenes. Fonts come from Resources/HUD (Shift Jam > UI > Make HUD Fonts), TMP's default
     /// when missing. It sorts under the scene HUD (order 0), so the screen fade and the start and end cards cover it.
@@ -59,6 +61,17 @@ namespace ShiftJam
         [SerializeField, Tooltip("How long the race panel stays up after the finish.")] private float finishPanelSeconds = 8f;
 
         private readonly List<Object> _made = new List<Object>();   // generated textures and sprites, freed on destroy
+        private RaceHud _raceHud;          // the place, the count, the offer of a race, the results (a race with a field)
+        private RivalSettings _rivals;
+
+        // what the RaceHud part borrows, so it is drawn in the same style
+        internal Color Accent => accent;
+        internal Color LabelColour => labelColour;
+        internal Color Gold => gold;
+        internal Color BestColour => bestColour;
+        internal string TimeFormat => _timeFormat;
+        internal string FractionFormat => _fractionFormat;
+        internal RivalSettings Rivals => _rivals != null ? _rivals : (_rivals = RivalSettings.Load());
         private TMP_FontAsset _numbers, _labels;
         private Sprite _ring, _disc, _ticks, _rounded, _shiftSprite;
         private string _speedFormat, _timeFormat, _fractionFormat, _percentFormat;
@@ -162,8 +175,9 @@ namespace ShiftJam
             Fade(_toast, play && now < _toastUntil, dt);
             Fade(_banner, play && now < _bannerUntil, dt);
             if (_banner.alpha > 0f) _bannerRt.localScale = Vector3.one * Punch(now - _bannerAt, 0.5f);
+            _raceHud.Tick(play, driving, _race.alpha, dt, now);
 
-            bool any = _drive.alpha > 0f || _race.alpha > 0f || _toast.alpha > 0f || _banner.alpha > 0f;
+            bool any = _drive.alpha > 0f || _race.alpha > 0f || _toast.alpha > 0f || _banner.alpha > 0f || _raceHud.Visible;
             if (_canvas.enabled != any) _canvas.enabled = any;
         }
 
@@ -320,7 +334,7 @@ namespace ShiftJam
         }
 
         /// <summary>The pad was touched more lately than the keyboard.</summary>
-        private static bool UsingPad()
+        internal static bool UsingPad()
         {
             var pad = Gamepad.current;
             if (pad == null) return false;
@@ -443,7 +457,8 @@ namespace ShiftJam
             _raceFinished = true;
             _toastUntil = 0f;
             _panelUntil = now + finishPanelSeconds;
-            _bannerAt = now; _bannerUntil = now + finishBannerSeconds;
+            // a race with a field shows its results card instead (RaceHud)
+            if (RaceField.Now == RaceField.Stage.None || RaceField.Racers.Count < 2) { _bannerAt = now; _bannerUntil = now + finishBannerSeconds; }
             int shown = -1;
             SetTime(_bannerTime, RaceState.TotalTime, ref shown);
             shown = -2;
@@ -494,14 +509,14 @@ namespace ShiftJam
 
         // ---------- motion ----------
 
-        private void Fade(CanvasGroup group, bool on, float dt)
+        internal void Fade(CanvasGroup group, bool on, float dt)
         {
             float target = on ? 1f : 0f;
             if (group.alpha != target) group.alpha = Mathf.MoveTowards(group.alpha, target, fadeSeconds > 0f ? dt / fadeSeconds : 1f);
         }
 
         /// <summary>Scale for a pop: starts at <paramref name="from"/>, overshoots, settles at 1.</summary>
-        private static float Punch(float t, float from) => 1f + (from - 1f) * Mathf.Exp(-9f * t) * Mathf.Cos(22f * t);
+        internal static float Punch(float t, float from) => 1f + (from - 1f) * Mathf.Exp(-9f * t) * Mathf.Cos(22f * t);
 
         // ---------- building ----------
 
@@ -542,6 +557,7 @@ namespace ShiftJam
             BuildDrive(canvasGo.transform);
             BuildRace(canvasGo.transform);
             BuildBanner(canvasGo.transform);
+            _raceHud = new RaceHud(this, canvasGo.transform);
             _canvas.enabled = false;
         }
 
@@ -684,7 +700,7 @@ namespace ShiftJam
             Label(cap, 13f, false, TextAlignmentOptions.Capline, new Color(0.06f, 0.07f, 0.1f)).SetText("SHIFT");
         }
 
-        private static RectTransform At(string name, Transform parent, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
+        internal static RectTransform At(string name, Transform parent, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
             => BuildUiKit.Rect(name, parent, anchor, anchor, pivot, position, size);
 
         /// <summary>One drift pip at <paramref name="x"/> in the pips' box: a dim slot and a fill that grows from its left.</summary>
@@ -698,14 +714,14 @@ namespace ShiftJam
             return img;
         }
 
-        private static CanvasGroup Group(RectTransform rt)
+        internal static CanvasGroup Group(RectTransform rt)
         {
             var group = rt.gameObject.AddComponent<CanvasGroup>();
             group.alpha = 0f; group.blocksRaycasts = false; group.interactable = false;
             return group;
         }
 
-        private TextMeshProUGUI Label(RectTransform rt, float size, bool number, TextAlignmentOptions align, Color colour)
+        internal TextMeshProUGUI Label(RectTransform rt, float size, bool number, TextAlignmentOptions align, Color colour)
         {
             var text = BuildUiKit.Label(rt, "", size, align);
             var font = number ? _numbers : _labels;
@@ -736,7 +752,7 @@ namespace ShiftJam
         }
 
         /// <summary>A rounded panel in the kit's way (BuildUiKit.Panel), corners <paramref name="radius"/> canvas units.</summary>
-        private Image Round(RectTransform rt, Color colour, float radius)
+        internal Image Round(RectTransform rt, Color colour, float radius)
         {
             var img = BuildUiKit.Panel(rt, colour);
             img.raycastTarget = false;

@@ -11,6 +11,9 @@ namespace ShiftJam
     /// lap is passed. The race ends after the last lap, or stops when the driver gets out, on F9 (IResettable), or when
     /// Build Mode or first person takes over. The numbers live in RaceState, for the driving HUD and the stadium TV; this
     /// plays the race's sounds. The line is this object's trigger, across the opening, so it works wherever it is placed.
+    /// A race with a field (D-0061: RaceGrid, RaceField) is the same race started from the grid: the clock runs from GO,
+    /// the first time over the line only starts lap one, and every rival is counted through the same gates and the same
+    /// line by the same rules, without the sounds.
     /// </summary>
     [RequireComponent(typeof(BoxCollider))]
     public sealed class RaceLoop : MonoBehaviour, IResettable
@@ -39,8 +42,12 @@ namespace ShiftJam
         private AudioSource _audio;
         private float _readyAt, _quietUntil;
         private bool _checkDriver;
+        private bool _startCrossed;         // false after a grid start until the driver first crosses: that crossing starts lap one
+        private Transform _lastGate;        // the gate the driver took last this lap (null: none yet)
 
         public int Laps => laps;
+        /// <summary>Where the driver last counted this lap: the gate taken last, or the line itself.</summary>
+        public Transform LastPassed => _lastGate != null ? _lastGate : transform;
         private int NextOrder => RaceState.Running && RaceState.Gate < _orders.Count ? _orders[RaceState.Gate] : 0;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -107,13 +114,21 @@ namespace ShiftJam
 
         private void OnTriggerEnter(Collider other)
         {
-            if (GameMode.Current != GameMode.Mode.Play || !RaceTouch.IsDriven(other)) return;
+            if (GameMode.Current != GameMode.Mode.Play) return;
+            if (!RaceTouch.IsDriven(other)) { RivalAtLine(other); return; }
             if (!RaceState.Running)
             {
                 if (Time.time >= _readyAt) Begin();
                 return;
             }
-            if (Active != this || RaceState.LapTime < minLapSeconds) return;
+            if (Active != this) return;
+            if (!_startCrossed)
+            {
+                _startCrossed = true;   // off the grid and over the line: lap one starts here
+                RaceField.Cross(RaceField.Player);
+                return;
+            }
+            if (RaceState.LapTime < minLapSeconds) return;
             if (RaceState.Gate < RaceState.Gates)
             {
                 if (Time.time < _quietUntil) return;
@@ -122,8 +137,21 @@ namespace ShiftJam
                 Missed?.Invoke(NextOrder);
                 return;
             }
+            _lastGate = null;
+            RaceField.Cross(RaceField.Player);   // the field's count first: the finish below announces a race it has already settled
             bool won = RaceState.CompleteLap();
             Play(won ? finishClip : lapClip);
+        }
+
+        /// <summary>A car the player does not drive touched the line: a rival of the field is counted by the same rules
+        /// (every gate of the lap first, not within minLapSeconds of its last crossing).</summary>
+        private void RivalAtLine(Collider other)
+        {
+            if (RaceField.Line != this) return;
+            Racer rival = RaceField.Find(other);
+            if (rival == null || rival.IsPlayer || rival.Finished) return;
+            if (rival.Crossings > 0 && (rival.Gate < _orders.Count || RaceField.Clock - rival.LapStart < minLapSeconds)) return;
+            RaceField.Cross(rival);
         }
 
         private void Begin()
@@ -133,8 +161,18 @@ namespace ShiftJam
                 if (g != null && g.isActiveAndEnabled && !_orders.Contains(g.Order)) _orders.Add(g.Order);
             _orders.Sort();
             Active = this;
+            _startCrossed = true;   // begun by crossing the line: that crossing was the start
+            _lastGate = null;
             RaceState.Begin(laps, _orders.Count);
             Play(startClip);
+        }
+
+        /// <summary>A standing start from the grid (RaceGrid, at GO): the same race, but the clock runs from here and the
+        /// first time over the line starts lap one.</summary>
+        public void BeginFromGrid()
+        {
+            Begin();
+            _startCrossed = false;
         }
 
         /// <summary>The driver went through a gate: it counts when it is the next one; any other is ignored.</summary>
@@ -142,8 +180,20 @@ namespace ShiftJam
         {
             var loop = Active;
             if (loop == null || gate == null || !RaceState.Running || gate.Order != loop.NextOrder) return;
+            loop._lastGate = gate.transform;
             RaceState.PassGate();
             loop.Play(loop.gateClip);
+        }
+
+        /// <summary>A car the player does not drive went through a gate: for a rival of the field it counts when it is
+        /// that rival's next one.</summary>
+        public static void RivalThrough(RaceGate gate, Collider other)
+        {
+            var loop = RaceField.Line;
+            if (loop == null || gate == null) return;
+            Racer rival = RaceField.Find(other);
+            if (rival == null || rival.IsPlayer || rival.Finished) return;
+            if (rival.Gate < loop._orders.Count && gate.Order == loop._orders[rival.Gate]) rival.Gate++;
         }
 
         private void Play(AudioClip clip)

@@ -48,8 +48,9 @@ namespace ShiftJam
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!RaceState.Running || GameMode.Current != GameMode.Mode.Play || !RaceTouch.IsDriven(other)) return;
-            RaceLoop.Through(this);
+            if (GameMode.Current != GameMode.Mode.Play) return;
+            if (!RaceTouch.IsDriven(other)) { RaceLoop.RivalThrough(this, other); return; }   // a rival of the field (D-0061)
+            if (RaceState.Running) RaceLoop.Through(this);
         }
 
         private void Update()

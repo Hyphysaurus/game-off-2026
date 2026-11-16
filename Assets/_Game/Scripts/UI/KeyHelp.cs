@@ -148,7 +148,8 @@ namespace ShiftJam
             Line(sb, Kb("Look"), "Look around; the camera swings back behind", Pad("Look"));
             sb.Append('\n');
             Header(sb, "RACE");
-            Line(sb, "Drive through the finish", "Start a 3-lap race; gates count in number order");
+            Line(sb, "R (Raceway, in a car)", "Race the rivals: line up on the grid, 3-2-1-GO", "LB");
+            Line(sb, "Drive through the finish", "Start a 3-lap race alone; gates count in number order");
             Line(sb, Kb("Interact"), "Getting out ends the race", Pad("Interact"));
             sb.Append('\n');
             Header(sb, "GARAGE (roll in slowly)");

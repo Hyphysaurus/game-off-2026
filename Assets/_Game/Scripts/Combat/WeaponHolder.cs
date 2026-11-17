@@ -201,15 +201,19 @@ namespace ShiftJam
             ShowCurrent();
         }
 
-        private void OnDropWeapon() { if (CanAct() && Current != null && !Current.Busy) Drop(Current); }
+        private void OnDropWeapon() { if (KeysAct() && !HandsFull && Current != null && !Current.Busy) Drop(Current); }
+
+        /// <summary>A key belongs to us (swap, drop, holster): the game is running, the player is in control and nothing
+        /// is being typed. Unlike a click it does not need the mouse captured: a pad has no mouse, and in the editor the
+        /// capture can be missing while the game still plays.</summary>
+        private bool KeysAct() => isActiveAndEnabled && Time.timeScale > 0f && !Locked && GameMode.Current != GameMode.Mode.Build && !DebugConsole.IsOpen;
 
         /// <summary>X with empty hands: put the weapon away, or take it out again. The same key puts down what is carried;
         /// a press that did that (the hands were full this frame or the last) does not also holster.</summary>
         private void OnHolster()
         {
             if (HandsFull || _handsFullFrame >= Time.frameCount - 1) return;
-            // A key, not a click: it does not need the mouse captured, only the game running and the player in control.
-            if (Current == null || Current.Busy || !isActiveAndEnabled || Time.timeScale <= 0f || Locked || GameMode.Current == GameMode.Mode.Build) return;
+            if (Current == null || Current.Busy || !KeysAct()) return;   // a key, not a click
             SetDrawn(!Drawn);
         }
 
@@ -227,7 +231,7 @@ namespace ShiftJam
 
         private void Cycle(int step)
         {
-            if (_weapons.Count < 2 || !CanAct() || (Current != null && Current.Busy)) return;
+            if (_weapons.Count < 2 || !KeysAct() || HandsFull || (Current != null && Current.Busy)) return;   // 1 / 2 are keys, not clicks
             Select((_current + step + _weapons.Count) % _weapons.Count);
         }
 
@@ -249,7 +253,7 @@ namespace ShiftJam
 
         private bool HandsFull => (carrier != null && carrier.Held != null) || (_grab != null && _grab.Holding);
 
-        /// <summary>Attack belongs to us: on foot, in Play or first person, mouse captured, hands free.</summary>
+        /// <summary>Attack (a click) belongs to us: on foot, in Play or first person, mouse captured, hands free.</summary>
         private bool CanAct()
         {
             if (!isActiveAndEnabled || Time.timeScale <= 0f || HandsFull || Locked) return false;

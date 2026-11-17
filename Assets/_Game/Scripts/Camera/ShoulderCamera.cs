@@ -189,8 +189,9 @@ namespace ShiftJam
         {
             if (_menuHold) return;
             // Escape opens the pause menu, which frees the mouse by switching this camera off (D-0044); a click in the
-            // game view takes the mouse back if it got free some other way.
-            if (!_cursorLocked && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) SetCursorLocked(true);
+            // game view takes the mouse back if it got free some other way. "Free" is read from the cursor itself, not
+            // only from what was last asked for: the editor can drop or never grant the capture without telling us.
+            if ((!_cursorLocked || Cursor.lockState != CursorLockMode.Locked) && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) SetCursorLocked(true);
         }
 
         private void SetCursorLocked(bool locked)

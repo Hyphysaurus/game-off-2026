@@ -1083,3 +1083,7 @@
   - **Left for the next parts:** two hands on the long guns with the carry across the body, finger curl, reloads, the
     feel numbers. The SMG and shotgun are one-handed until then.
   - **Checked:** probe 68 of 68 after, 20 of 68 on the code before; cameras 64 of 64; four scenes 0 errors. Not played.
+  - **21:3x, keys are not clicks.** Swap (1 / 2, d-pad) and drop (Z) no longer need the mouse captured; only Attack
+    does (its first click is the one that captures the mouse). Typing in the console does not swap. His "still cant
+    swap": carried 2, keys arriving, refused by the capture rule alone (seen in a headless run, where the mouse is
+    never captured; why it was not captured in his editor is not known).

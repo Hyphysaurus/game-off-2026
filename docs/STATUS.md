@@ -26,6 +26,13 @@ Built outside the project while he played, landed with his editor closed. Headle
   turned 180 degrees in the hand, the arm never came down, the shot was instant). Camera probe still 64 of 64, the
   four-scene smoke run 0 errors. Stills looked at: `docs/stills/hold_toy_DartPistol_*.png`, `hold_toy_DartSMG_*`,
   `hold_toy_DartShotgun_*`. Probe kept at `%TEMP%\shiftjam-stage\hold\probe-keep`.
+- **21:3x, his "still cant swap to the other guns":** 1 / 2 (swap) and Z (drop) used the rule made for clicks, which
+  wants the mouse captured by the game window. A swap check in the Colour Corner showed the player carries both guns
+  and the keys arrive, and the swap was refused only for that. They now follow the key rule, with X: game running,
+  player in control, not in Build Mode, the console not open (`WeaponHolder.KeysAct`). A pad's d-pad swap had the same
+  fault. Also `ShoulderCamera`: a click in the game view takes the mouse back whenever the cursor is really free, not
+  only when the camera itself had freed it. Check after: 2 -> SMG, 1 -> pistol, 2 -> SMG with the mouse not captured.
+  NOT KNOWN: why the mouse was not captured in his session (if clicks did not fire either, that is the same cause).
 TO PLAY (Colour Corner): walk about with the pistol out and turn the camera: the gun stays in the hand. Hold right
 mouse and look up and down. Click once from rest and watch the arm come up, fire, stay, lower. 2 for the SMG; hold the
 trigger. Then the shotgun in the Workshop.

@@ -1182,7 +1182,12 @@
     `WeaponSpec`; shared numbers in `Resources/WeaponAmmo`; `GameEvents.AmmoChanged` is what the HUD listens to;
     `WeaponHud.AddLine` stacks a line (a grenade count); a hit marker goes beside the dot; a new ammo kind is a row on
     the `AmmoBelt`. The builder's full note: `%TEMP%\shiftjam-stage\weapons\NOTES.md`, "CONTRACT FOR LATER PIECES".
-  - **Checked:** ammo probe 22 of 188 on the old code, 196 of 212 on the first landing, 212 of 212 after the
-    builder's fixes (what it changed between the last two was not written down before the usage limit cut the run);
-    four scenes 0 errors. The hold and camera probes were not re-run. Probe kept at
+  - **Checked:** ammo probe 22 of 188 on the old code, 196 of 212 on the first landing, 212 of 212 after one more
+    edit. That edit, read back from the builder's record: for the kid's pickups the game changed (`AmmoPieces`: a
+    pickup's reach is a column 12.1 tall, the height of a kid's body at its rim, not the test room's 1.5-tall ball
+    and box, which a kid's rounded underside passed over; the check's wait on a pickup also went from 0.5 to 1.2 s);
+    for the long guns' free hand only the check changed (`ArmAim` untouched: the fixed "6 cm down" rule became "within
+    3 cm of the test room's measured hand", which the pistol and the shotgun meet within 1 cm; the SMG has no twin
+    there and passes a looser bound, its hand ending 12 cm from the magazine against the test room rifle's 5).
+    Four scenes 0 errors. The hold and camera probes were not re-run. Probe kept at
     `%TEMP%\shiftjam-stage\weapons\p1\probe-keep\AmmoProbe.cs`. Not played.

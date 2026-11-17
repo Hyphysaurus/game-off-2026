@@ -35,9 +35,13 @@ taken out, one smoke run made, and the docs and the commit done by hand after.
   the Colour Corner's builder.
 - **CHECKED:** ammo probe 212 of 212 at toy and kid for the three guns. The same probe on the code before: 22 of 188.
   Its first run on the new code: 196 of 212 (the kid's ammo pickups gave nothing, and the free hand stopped 9 to 12 cm
-  short of a long gun's magazine); the builder changed something between that run and the passing one and was cut
-  off before writing down what (the game or the check): look at the free hand in play. Four-scene smoke run after
-  the landing: 0 errors in every scene (the Raceway's R still starts the race from a grid car).
+  short of a long gun's magazine). Between that run and the passing one (read back from the builder's own record):
+  the kid's pickups were a GAME change (a pickup's reach now stands 12.1 tall; a kid's rounded body passed over the
+  1.5-tall one; the check's wait on a pickup also went from 0.5 to 1.2 s), the free hand was a CHECK change only (the
+  arm code was not touched: the fixed 6 cm rule became the test room's own measured numbers, which the pistol and the
+  shotgun match within 1 cm; the SMG, which the test room does not have, passes a looser bound and its hand still
+  ends 12 cm from the magazine: look at it in play). Four-scene smoke run after the landing: 0 errors in every scene
+  (the Raceway's R still starts the race from a grid car).
 - **NOT RE-RUN after this piece** (his "avoid extra redundant testing for now"): the hold probe (81) and the camera
   probe (64). `ArmAim` was changed for the reload pose, so the hold probe is the first to run next time.
 - **OWED:** stills of the reload beside the test room's (no Godot window while he plays); the four sounds are pack

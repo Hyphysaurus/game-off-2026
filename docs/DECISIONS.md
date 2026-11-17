@@ -1191,3 +1191,39 @@
     there and passes a looser bound, its hand ending 12 cm from the magazine against the test room rifle's 5).
     Four scenes 0 errors. The hold and camera probes were not re-run. Probe kept at
     `%TEMP%\shiftjam-stage\weapons\p1\probe-keep\AmmoProbe.cs`. Not played.
+- **D-0073 (17 Nov, 10:1x) The car portal is his portal drawing as a model: the swirl turns, a warp sends the small marks out as a ripple.** (D-0071 and D-0072 are held for the weapons port's shot feel and rifle pieces.)
+  His third Blender piece after the orb and the star (`Dev\Blender Projects\portal_ring.blend`, over his Procreate
+  drawing `Shift_Portal_OG.png`). His words on the model: "the extra bits on the end should be after-effect post
+  ripples, the swirls should start from the very interior and radiate outwards or the center swirl should at least be
+  dark purple and gently blend in outwards". Then "proceed" on replacing the pack hoop and the flat swirl.
+  - **What the model is.** His swirl strokes and his small marks are traced from the drawing itself (a tool turns
+    each drawn stroke into a tube: `Dev\Blender Projects\_tools\drawing_to_tubes`). The 22 arms that fill the
+    middle are generated, not drawn (the drawing's hole is empty): they start at the very middle, dark purple, and
+    blend out into each arm's colour. The dark disc behind is dark purple, lighter toward its rim.
+  - **One model, colours in the vertices.** `Art/Portals/PortalRing.fbx` holds five meshes: Swirl, Void, Marks_1..3
+    (about 26,000 triangles). Every stroke's colour, and the dark-purple blend, is baked into the vertices, so one
+    shader (`ShiftJam/PortalStroke`) draws all of it with no textures. Not URP Lit: it has no vertex colours, and a
+    portal should glow the same in a dark room.
+  - **The swirl turns in its material, not by its transform** (`Data/PortalSwirl` > Spin speed, -40 degrees a second).
+    Build Mode sizes and rests a piece by its renderers' boxes, and a turning transform would change that box every
+    frame.
+  - **The marks are an effect, not part of the standing portal.** Three rings by distance from the middle, switched
+    off between warps (so Build Mode sizes the piece by the swirl). On a warp each ring swells in, drifts outward and
+    each mark shrinks to its own middle, inside ring first, at both ends: `Vehicles/PortalRipple.cs`, with the timing
+    of the loop set up in the .blend. Each mark's middle is stored in the model's first UV set by the export.
+  - **No solid hoop any more.** The portal is the trigger alone; there is nothing to bump into. The opening is still 7
+    across with its lowest point 0.4 under the floor, so the lower part of the swirl is under the floor as the hoop's
+    rim was.
+  - **The pack hoop stays as the stand-in** when the model or the shader is missing (`HoopPortal`), as the pack star
+    does for his star.
+  - **Open, his:** all three colours now look the same but for the floor glow and the flash, and the floor glow is
+    faint. A pair-colour cue is needed before a level uses two pairs (my pick: a thin ring in the pair's colour round
+    the swirl, from his own guide torus in the .blend). Which way the swirl turns and how fast. Whether the ripple
+    also plays by itself now and then (`PortalRipple` > idle, off).
+  - **Checked:** an edit-mode check, 86 of 86 (the model against Blender's own sizes and colours, each mark within
+    0.3 of its stored middle, the three prefabs, how Build Mode sizes and rests them, the ripple's timing, the two
+    portals standing in the Workshop). The first run failed 10: the shader lacked the colour include, the marks'
+    middles were in the second UV set (a curve brings its own first one), and one check counted the floor glow's depth
+    as the swirl's (the check was wrong). Stills seen: three portals at rest, mid-ripple and late, front and back,
+    and the Workshop's two in place. Kept at `%TEMP%\shiftjam-stage\portal\probe-keep\PortalRingProbe.cs`.
+    Not played: no warp, no turning swirl and no ripple has been seen in motion.

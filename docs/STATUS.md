@@ -2,6 +2,32 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 17 Nov 2026 10:1x — THE CAR PORTAL IS HIS PORTAL DRAWING (D-0073) — NOT PLAYED: no warp, spin or ripple seen in motion
+His "let's finish the portal", then "proceed, do it headless since im in aoe4". Built with Unity closed, in hidden
+low-priority batch runs.
+- **In the game:** `CarPortal_Red`, `_Blue` and `_Green` are now his drawn swirl standing up, with the dark purple
+  middle. The two red portals in the Workshop follow the prefab (checked in the scene; the scene file is unchanged).
+- **A warp:** the swirl flashes, and the drawing's small marks go outward as a ripple at both portals (three rings,
+  about 3.8 s in all). Between warps the marks are off.
+- **Same as before:** the opening (7 across, lowest point 0.4 under the floor), the trigger, pairing by colour,
+  keeping speed, the sound, the flash light, the floor glow.
+- **Gone:** the pack's hoop and its collider. Nothing solid stands there now.
+- **To tune (his, in the editor):** `Data/PortalSwirl` > Spin speed (-40; 0 stops it, above 0 turns it the other way),
+  Edge shade (1 = flat like the drawing), Brightness. `PortalRipple` on each prefab's `Model/Ripple`: the times, the
+  sizes, and idle (seconds between ripples with no car; 0 = only after a warp). After changing the model:
+  re-export (below), then Shift Jam > Workshop > Build Car Portals.
+- **Files:** `Art/Portals/PortalRing.fbx`, `Shaders/PortalStroke.shader`, `Data/PortalSwirl.mat`, `Data/PortalMarks.mat`,
+  `Scripts/Vehicles/PortalRipple.cs`, `Scripts/Vehicles/CarPortal.cs` (one field, one line),
+  `Scripts/Debug/RacingPieces.cs` (the builder). Build Mode thumbnails of the three redrawn.
+- **Re-export from Blender** (hidden, from the saved file; scrubs his Windows path from the FBX):
+  `blender.exe -b portal_ring.blend -P _tools\drawing_to_tubes\export_portal_fbx.py -- <out.fbx>`, both under
+  `Dev\Blender Projects`.
+- **Open, his:** (1) a pair-colour cue: the three colours look alike now except for a faint floor glow and the flash;
+  only a red pair is placed anywhere, so nothing is confusing yet. (2) The swirl's turn: direction and speed.
+  (3) The lower third of the swirl is under the floor (the hoop's rim was too): his eye. (4) The ripple by itself
+  now and then, or only after a warp (now: only after).
+- **Checked:** edit-mode check 86 of 86, stills seen. Nothing in motion has been seen by anyone.
+
 ## 17 Nov 2026 08:4x — MAGAZINES, RELOADING, AMMO PICKUPS AND THE WEAPON HUD (D-0070: the test room's ammo rules; the next piece of the weapons port) — NOT PLAYED
 His "let's continue the work on shift jam (including testing zone)". Built headless by a builder agent while he was in
 AoE4. The run was cut by the usage limit at 08:25 with this piece in the tree and its probe passing; the probe was

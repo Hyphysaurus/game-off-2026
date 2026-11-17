@@ -8,11 +8,13 @@ namespace ShiftJam
     public enum PortalColour { Red, Blue, Green }
 
     /// <summary>
-    /// A car portal (D-0039, "we shift in location"): drive through the hoop and come out of its partner at the same speed,
+    /// A car portal (D-0039, "we shift in location"): drive through it and come out of its partner at the same speed,
     /// turned to the partner's facing. The partner is the other portal of the same colour, so in Build Mode a red placed
     /// beside another red links to it. Car, driver and chase camera move together (IBoostable.Teleport, ShoulderCamera.Warp).
     /// Entering from the back works too: you come out of the partner's front either way. Cars only; the toy on foot uses
     /// the course's Portal. With three or more of one colour, each sends you on to the next one placed.
+    /// The look is his portal drawing as a model (D-0073): the swirl turns, and a warp flashes it and sends the
+    /// drawing's small marks outward as a ripple (PortalRipple) at both ends.
     /// </summary>
     [RequireComponent(typeof(Collider))]
     public sealed class CarPortal : MonoBehaviour
@@ -25,8 +27,9 @@ namespace ShiftJam
         [SerializeField, Tooltip("Gap left between the exit's trigger and the car's tail, world units at scale 1.")] private float exitGap = 1f;
         [SerializeField, Tooltip("Seconds before the same car can warp again (any portal), so it never bounces straight back.")] private float cooldown = 0.75f;
         [Header("Look")]
-        [SerializeField, Tooltip("His swirl drawing inside the hoop; it spins.")] private Transform swirl;
-        [SerializeField, Tooltip("Degrees a second.")] private float spinSpeed = 90f;
+        [SerializeField, Tooltip("A transform to spin (the stand-in hoop's flat swirl). Empty on his drawn portal: that one turns in its material, Data/PortalSwirl.")] private Transform swirl;
+        [SerializeField, Tooltip("Degrees a second, for the transform above.")] private float spinSpeed = 90f;
+        [SerializeField, Tooltip("The small marks around the drawing: sent outward after a warp, at both ends (D-0073). May be empty.")] private PortalRipple ripple;
         [SerializeField, Tooltip("What brightens on a warp. The swirl's renderers if empty.")] private Renderer[] glow;
         [SerializeField, Tooltip("Share of its colour added at the peak of a flash.")] private float flashBoost = 2.5f;
         [SerializeField] private float flashTime = 0.5f;
@@ -133,6 +136,7 @@ namespace ShiftJam
             _flashUntil = Time.time + flashTime;
             _flashing = true;
             if (flashLight != null) flashLight.enabled = true;
+            if (ripple != null) ripple.Play();
             PieceSound.Play(gameObject, ref _audio, sound, volume);
         }
 

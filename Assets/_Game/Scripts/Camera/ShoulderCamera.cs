@@ -5,10 +5,15 @@ using UnityEngine.InputSystem;
 namespace ShiftJam
 {
     /// <summary>
-    /// Over-the-shoulder follow camera: orbits a pivot above the player's feet, clamps pitch,
+    /// Third-person follow camera: orbits a pivot above the player's feet, clamps pitch,
     /// and pulls in when a wall is between the pivot and the camera. Runs in LateUpdate, after
     /// the player has moved this frame, which is why it never jitters.
     /// All distances scale with the Shifter, so the framing feels the same at toy size.
+    /// Three views on foot, eased into one another (CameraSettings): wide with empty hands, over the shoulder with a
+    /// weapon drawn, closer and narrower while aim is held. The way to the camera is swept with a ball as big as the
+    /// near plane's reach, up from the body's middle, then sideways to the shoulder, then back: so the camera stops
+    /// short of a wall and never starts inside one. When that brings it into the player's own body, InsideBody says so
+    /// and BodyFade hides the body.
     /// While a vehicle is driven it frames the car instead (D-0036, VehicleCameraSettings): its middle, by its own size,
     /// trailing it a little, swinging in behind the way it travels, slower in the air; with speed the view widens and the
     /// camera moves in and flattens, more so past top speed (a boost); in the garage (menu up) right-drag, A/D and the
@@ -27,6 +32,10 @@ namespace ShiftJam
         private LayerMask collisionMask = ~0;
 
         private Camera _camera;
+        private WeaponHolder _holder;        // on the target: a drawn weapon picks the view
+        private PlayerStance _stance;        // on the target: a crouch lowers the pivot
+        private CharacterController _capsule;
+        private float _side, _rise, _reach, _fovScale = 1f, _heightShare = 1f; private bool _viewReady;   // the view now, eased
         private float _yaw, _pitch;
         private bool _cursorLocked;
         private readonly RaycastHit[] _hits = new RaycastHit[16];
@@ -63,6 +72,11 @@ namespace ShiftJam
 
         public float Yaw => _yaw;
         public float Pitch => _pitch;
+        /// <summary>True while the on-foot camera is so close to the player's body that it would look out from inside it
+        /// (CameraSettings.hideBodyWithin, with slack on the way back). BodyFade hides the body meanwhile.</summary>
+        public bool InsideBody { get; private set; }
+        /// <summary>The settings in use (BodyFade reads the fade time).</summary>
+        public CameraSettings Settings => settings;
         /// <summary>Degrees added to the settings' field of view this frame. ShiftWarp punches it during a shift; 0 otherwise.</summary>
         public float FovOffset { get; set; }
 
@@ -135,6 +149,12 @@ namespace ShiftJam
         {
             _camera = GetComponent<Camera>();
             if (shifter == null && target != null) shifter = target.GetComponent<Shifter>();
+            if (target != null)
+            {
+                _holder = target.GetComponent<WeaponHolder>();
+                _stance = target.GetComponent<PlayerStance>();
+                _capsule = target.GetComponent<CharacterController>();
+            }
         }
 
         private void Start()
@@ -145,7 +165,7 @@ namespace ShiftJam
         }
 
         private void OnEnable() { SetCursorLocked(!_menuHold); }   // coming back from a menu, Build Mode or first person
-        private void OnDisable() { SetCursorLocked(false); }
+        private void OnDisable() { SetCursorLocked(false); InsideBody = false; }
 
         private bool _menuHold;
 
@@ -197,7 +217,7 @@ namespace ShiftJam
 
             Vector2 look = input != null ? input.ConsumeLook(settings.mouseSensitivity * PlayerOptions.LookScale, settings.padSensitivity * PlayerOptions.LookScale, dt) : Vector2.zero;
             if (look.sqrMagnitude > 0.0001f) _lastLookTime = Time.unscaledTime;
-            if (_chase != null) { VehicleView(look, fov, dt); return; }
+            if (_chase != null) { InsideBody = false; _viewReady = false; VehicleView(look, fov, dt); return; }
             if (_cursorLocked && Time.timeScale > 0f)
             {
                 _yaw = Mathf.Repeat(_yaw + look.x, 360f);
@@ -205,20 +225,45 @@ namespace ShiftJam
                 _pitch = Mathf.Clamp(_pitch + up, settings.minPitch, settings.maxPitch);
             }
 
+            // Which view: wide with empty hands, over the shoulder with a weapon drawn, closer and narrower while aiming.
+            bool armed = _holder != null && _holder.Armed;
+            bool aiming = armed && _holder.AimHeld;
+            float wantSide = armed ? settings.armedShoulderOffset : settings.shoulderOffset;
+            float wantRise = armed ? settings.armedRise : 0f;
+            float wantReach = aiming ? settings.aimDistance : armed ? settings.armedDistance : settings.distance;
+            float wantFov = aiming ? settings.aimFovScale : 1f;
+            float wantShare = _stance != null ? _stance.HeightShare : 1f;   // a crouch lowers the pivot with the head
+            float ease = _viewReady ? 1f - Mathf.Exp(-Mathf.Max(0.01f, settings.viewBlend) * dt) : 1f;
+            _viewReady = true;
+            _side = Mathf.Lerp(_side, wantSide, ease);
+            _rise = Mathf.Lerp(_rise, wantRise, ease);
+            _reach = Mathf.Lerp(_reach, wantReach, ease);
+            _fovScale = Mathf.Lerp(_fovScale, wantFov, ease);
+            _heightShare = Mathf.Lerp(_heightShare, wantShare, ease);
+            fov *= _fovScale;
+
             Quaternion rotation = Quaternion.Euler(_pitch, _yaw, 0f);
             Quaternion heading = Quaternion.Euler(0f, _yaw, 0f);
-            Vector3 pivot = target.position + Vector3.up * (settings.pivotHeight * scale) + heading * Vector3.right * (settings.shoulderOffset * scale);
             Vector3 back = rotation * Vector3.back;
 
-            // Keep the camera out of walls: the nearest thing between the pivot and the wanted spot wins.
-            float wanted = settings.distance * scale * distanceMul;
-            float distance = wanted;
-            int count = Physics.SphereCastNonAlloc(pivot, settings.collisionRadius * scale, back, _hits, wanted, collisionMask, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < count; i++)
-            {
-                if (_hits[i].transform.IsChildOf(target)) continue;
-                distance = Mathf.Min(distance, Mathf.Max(settings.minDistance * scale, _hits[i].distance));
-            }
+            // The ball the way to the camera is swept with: at least as big as the reach of the near plane's corners, so
+            // the camera stops short of a wall instead of on it with its near plane through it.
+            float near = Mathf.Max(0.001f, settings.nearClip * scale);
+            float half = Mathf.Tan(Mathf.Clamp(fov + FovOffset + PunchNow, 1f, 179f) * 0.5f * Mathf.Deg2Rad);
+            float nearReach = near * Mathf.Sqrt(1f + half * half * (1f + _camera.aspect * _camera.aspect));
+            float ball = Mathf.Max(settings.collisionRadius * scale, nearReach * settings.wallGap);
+
+            // Up from the body's middle (free: inside the capsule), sideways to the shoulder, then back. Each leg is cut
+            // short by what is in the way, so a low ceiling, a wall on the shoulder side or one behind never has the
+            // camera start inside it.
+            float middleHeight = _capsule != null ? _capsule.center.y * scale : settings.pivotHeight * 0.5f * scale;
+            Vector3 middle = target.position + Vector3.up * middleHeight;
+            float lift = Mathf.Max(0f, (settings.pivotHeight * _heightShare + _rise) * scale - middleHeight);
+            Vector3 pivot = middle + Vector3.up * Sweep(middle, Vector3.up, lift, ball);
+            Vector3 right = heading * Vector3.right * Mathf.Sign(_side);
+            pivot += right * Sweep(pivot, right, Mathf.Abs(_side) * scale, ball);
+            float wanted = _reach * scale * distanceMul;
+            float distance = Sweep(pivot, back, wanted, ball);
 
             Vector3 position = pivot + back * distance;
             if (_leave > 0f)
@@ -233,9 +278,38 @@ namespace ShiftJam
             bool free = _leave <= 0f && distance >= wanted - 1e-4f;
             AddShake(ref position, ref rotation, scale, free ? settings.collisionRadius * scale : 0f, dt);
             transform.SetPositionAndRotation(position, rotation);
+            // Inside the player's own body? Measured to the body's middle line, feet to the top of the capsule.
+            float tall = _capsule != null ? _capsule.height * scale : settings.pivotHeight * scale;
+            float along = Mathf.Clamp(position.y - target.position.y, 0f, tall);
+            float gap = Vector3.Distance(position, target.position + Vector3.up * along);
+            float limit = settings.hideBodyWithin * scale;
+            InsideBody = gap < (InsideBody ? limit * (1f + settings.hideBodySlack) : limit);
             if (_punchLeft > 0f) _punchLeft = Mathf.Max(0f, _punchLeft - dt);
             _camera.fieldOfView = fov + FovOffset + PunchNow;
-            _camera.nearClipPlane = Mathf.Max(0.001f, settings.nearClip * scale);
+            _camera.nearClipPlane = near;
+        }
+
+        /// <summary>The share of the ball's radius a leg of the sweep stops short of what it meets. Without it the ball
+        /// rests on the wall that cut the sideways step, the step back then starts in contact and gets nowhere, and a
+        /// wall beside the player puts the camera in the player's head.</summary>
+        private const float SweepSkin = 0.15f;
+
+        /// <summary>How far a ball of <paramref name="radius"/> gets from <paramref name="from"/> along <paramref name="direction"/>
+        /// before it meets something (never further than <paramref name="length"/>), stopping a skin short of it so the
+        /// next leg starts clear. The player's own colliders do not count. A ball that is already in something at the
+        /// start gets nowhere.</summary>
+        private float Sweep(Vector3 from, Vector3 direction, float length, float radius)
+        {
+            if (length <= 1e-5f) return 0f;
+            float skin = radius * SweepSkin;
+            float free = length;
+            int count = Physics.SphereCastNonAlloc(from, radius, direction, _hits, length + skin, collisionMask, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+            {
+                if (_hits[i].transform.IsChildOf(target)) continue;
+                free = Mathf.Min(free, _hits[i].distance - skin);
+            }
+            return Mathf.Max(0f, free);
         }
 
         /// <summary>Chase a vehicle while it is driven (null stops): the camera frames the car by its own size

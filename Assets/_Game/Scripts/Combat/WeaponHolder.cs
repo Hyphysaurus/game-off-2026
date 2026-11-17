@@ -182,7 +182,8 @@ namespace ShiftJam
         private void OnHolster()
         {
             if (HandsFull || _handsFullFrame >= Time.frameCount - 1) return;
-            if (Current == null || Current.Busy || !CanAct()) return;
+            // A key, not a click: it does not need the mouse captured, only the game running and the player in control.
+            if (Current == null || Current.Busy || !isActiveAndEnabled || Time.timeScale <= 0f || Locked || GameMode.Current == GameMode.Mode.Build) return;
             SetDrawn(!Drawn);
         }
 

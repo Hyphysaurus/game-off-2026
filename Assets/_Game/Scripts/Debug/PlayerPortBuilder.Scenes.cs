@@ -14,7 +14,8 @@ namespace ShiftJam
     /// (the pack's prefabs, unpacked so the pack's own mover and capsule can be taken off them), fitted and given their
     /// controllers; the move scripts are added; references to the old Animator are cleared (each script finds the body
     /// in use by itself); first person is added where it was missing and set to V; the wake-up starts where the new
-    /// clip lies still; and a death no longer respawns at once (PlayerHurt plays the fall first, then asks the Respawn).
+    /// clip lies still; a death no longer respawns at once (PlayerHurt plays the fall first, then asks the Respawn); and
+    /// BodyFade is added (it hides the body while the camera is inside it, D-0065).
     /// </summary>
     public static partial class PlayerPortBuilder
     {
@@ -85,7 +86,7 @@ namespace ShiftJam
             foreach (string added in new[]
             {
                 Ensure<PlayerBody>(player), Ensure<PlayerStance>(player), Ensure<PlayerMoves>(player),
-                Ensure<PlayerAnimation>(player), Ensure<PlayerHurt>(player),
+                Ensure<PlayerAnimation>(player), Ensure<PlayerHurt>(player), Ensure<BodyFade>(player),
             })
                 if (added != null) changes.Add(added);
 

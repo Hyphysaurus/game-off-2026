@@ -135,10 +135,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 522f908dafa8b1046af3ca441220bc59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.Projectile
-  speed: 40
+  speed: 34
   radius: 0.06
-  lifetime: 2.5
-  drop: 2
+  lifetime: 4
+  drop: 3
   faceTravel: 1
   hitMask:
     serializedVersion: 2

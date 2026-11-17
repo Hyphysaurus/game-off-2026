@@ -114,6 +114,14 @@ namespace ShiftJam
         [Tooltip("Degrees the gun rolls so its magazine comes round towards the free hand (the test room: 35).")]
         public float reloadRollDegrees = 35f;
 
+        [Header("The kick of a shot (a gun of recoil 1, the pistol; each gun multiplies these by its own Recoil)")]
+        [Tooltip("Degrees the barrel flips up on a shot (the test room: 4). Higher: a bigger flip.")]
+        public float recoilUpDegrees = 4f;
+        [Tooltip("How far the gun jumps back along its barrel on a shot, in the player's own units (the test room: 0.03 m). Higher: a longer jump.")]
+        public float recoilBack = 0.0297f;
+        [Tooltip("How quickly the kick settles: each second it falls to 1 / e this many times over (the test room: 14). Higher: snappier.")]
+        public float recoilSettle = 14f;
+
         private static WeaponHoldSettings _defaults;
 
         /// <summary>Resources/WeaponHold, or the defaults above when the asset is missing.</summary>

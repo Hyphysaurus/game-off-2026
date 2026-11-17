@@ -5,15 +5,17 @@ using UnityEngine.Events;
 namespace ShiftJam
 {
     /// <summary>One hit: how much, which way it shoves (a velocity, world units per second, already scaled by the
-    /// attacker's size), where it landed and who dealt it.</summary>
+    /// attacker's size), where it landed and who dealt it. Loose is the share of the shove a loose Rigidbody takes (1 =
+    /// all of it; a shot from a big shooter gives less: Projectile).</summary>
     public readonly struct DamageInfo
     {
         public readonly float Amount;
         public readonly Vector3 Knock;
         public readonly Vector3 Point;
         public readonly Transform Source;
-        public DamageInfo(float amount, Vector3 knock, Vector3 point, Transform source)
-        { Amount = amount; Knock = knock; Point = point; Source = source; }
+        public readonly float Loose;
+        public DamageInfo(float amount, Vector3 knock, Vector3 point, Transform source, float loose = 1f)
+        { Amount = amount; Knock = knock; Point = point; Source = source; Loose = loose; }
     }
 
     /// <summary>
@@ -82,11 +84,11 @@ namespace ShiftJam
         {
             if (Dead || dealt.Amount <= 0f) return false;
             if (Protected || DamageScale <= 0f) { Blocked?.Invoke(dealt); return false; }
-            var hit = new DamageInfo(dealt.Amount * DamageScale, dealt.Knock, dealt.Point, dealt.Source);
+            var hit = new DamageInfo(dealt.Amount * DamageScale, dealt.Knock, dealt.Point, dealt.Source, dealt.Loose);
             Health = Mathf.Max(0f, Health - hit.Amount);
             _safeUntil = Time.time + invulnerability;
             Flash();
-            if (takeKnockback && hit.Knock.sqrMagnitude > 0f) Knockback.Apply(gameObject, hit.Knock, hit.Point);
+            if (takeKnockback && hit.Knock.sqrMagnitude > 0f) Knockback.Apply(gameObject, hit.Knock, hit.Point, hit.Loose);
             if (showNumbers) DamageNumbers.Show(hit.Point, hit.Amount, Mathf.Max(0.01f, transform.lossyScale.y));
             Damaged?.Invoke(hit);
             onDamaged?.Invoke();

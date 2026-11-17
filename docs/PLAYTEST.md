@@ -121,3 +121,13 @@ Space = jump, X = put down (C crouches since D-0064), LMB = toggle the carried l
 - 2 for the SMG: hold fire through a reload. Walk into the supply crate: every gun carried is filled.
 - Workshop: take the shotgun, empty it, use the ammo box one step past the SMG (one magazine to each gun carried).
 - Say: how the reload looks (the hand on the magazine), the HUD's size and place, Y as reload on a pad.
+
+## Shot feel: the numbers (D-0071, 17 Nov)
+- Colour Corner (T for darts) or Workshop. Pistol at a wall: 5 shots a second at the fastest click, each on the dot;
+  the barrel flips a little (4 degrees; it was 10). Shotgun: a slower pump (1.2 a second), 8 darts in a tight
+  bunch, a big flip (8.8). SMG (2): hold the trigger: 7 a second, almost no stray.
+- Walk with the shotgun out, then X (put away) and walk again: a little faster without it. The same with the SMG.
+- Two guns carried: roll the mouse wheel down and up. Then grab a prop: the wheel moves the prop, not the guns.
+- Shoot a loose prop as a toy, then grow and shoot one as a kid: it should fly, not cross the room.
+- Say: the SMG (a steady automatic now, it was a fast spray), each gun's kick, whether the slower walk is felt, the
+  wheel's direction, the dart's drop at range.

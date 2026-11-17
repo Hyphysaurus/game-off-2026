@@ -56,23 +56,23 @@ MonoBehaviour:
   viewOffset: {x: 0.119, y: -0.218, z: 0.206}
   viewEuler: {x: 0, y: 0, z: 0}
   aimsWithView: 1
+  moveSpeed: 0.9
   twoHanded: 1
   supportPoint: {x: 0, y: 0, z: 0}
   projectile: {fileID: 5713214129242039125, guid: afbb0a2c301f7cd49bdd36580013ba56, type: 3}
   muzzle: {fileID: 2394273124398010903}
-  interval: 0.7
+  interval: 0.8333
   automatic: 0
-  pellets: 7
-  spread: 6
-  damage: 9
-  knockback: 4
+  pellets: 8
+  spread: 2.5
+  damage: 7.5
+  knockback: 2.5
+  shotSpeed: 0.9
   range: 120
   aimMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  kickAngle: 10
-  kickBack: 0.06
-  recovery: 14
+  recoil: 2.2
   viewPunch: {x: 1.2, y: 0.4}
   fireClip: {fileID: 0}
   magazine:

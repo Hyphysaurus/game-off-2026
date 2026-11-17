@@ -1191,6 +1191,65 @@
     there and passes a looser bound, its hand ending 12 cm from the magazine against the test room rifle's 5).
     Four scenes 0 errors. The hold and camera probes were not re-run. Probe kept at
     `%TEMP%\shiftjam-stage\weapons\p1\probe-keep\AmmoProbe.cs`. Not played.
+- **D-0071 (17 Nov, 10:3x) Shot feel, the numbers: the guns fire, kick and weigh as the test room's; the mouse wheel swaps weapons.**
+  The port order of 16 Nov (weapon feel after paint). Read from the test room's code (`weapon_holder.gd`,
+  `projectile.gd`, `aim_pose.gd`, `player.gd`) and its weapon files (`_Actors/weapons/*.tres`, `foam_dart.tscn`); its
+  game was not run.
+  - **The numbers: the test room's | Shift Jam's before, and now.**
+    - Dart Pistol: shots a second 5 | 5.56, now 5. Stray 0 degrees | 1, now 0. Damage 1 | 15, now 15. Push 8 | 3,
+      now 8. Pellets 1 | 1. Shot speed x 1 | no such number, now 1. Kick 1 | 10 degrees and 0.06, now 4 degrees and
+      0.0297. Walk 1 | no such number, now 1.
+    - Dart Shotgun: shots a second 1.2 | 1.43, now 1.2. Stray 2.5 | 6, now 2.5. Pellets 8 | 7, now 8. Damage 0.5 a
+      pellet | 9, now 7.5. Push 2.5 a pellet | 4, now 2.5. Shot speed x 0.9 | none, now 0.9. Kick 2.2 | 10 degrees
+      and 0.06, now 8.8 degrees and 0.0653. Walk 0.9 | none, now 0.9.
+    - Dart SMG (the test room has none: its pistol and its rifle stand either side): shots a second 5 and 9 | 12.5,
+      now 7. Stray 0 and 0.6 | 3, now 0.3. Damage 1 and 1 | 7, now 15. Push 8 and 6 | 1.5, now 7. Shot speed 1 and
+      1.2 | none, now 1.1. Kick 1 and 0.7 | 10 degrees and 0.06, now 3.4 degrees and 0.0252. Walk 1 and 0.92 | none,
+      now 0.96.
+    - The foam dart: speed 34 | 40, now 34. Fall 3 | 2, now 3. Life 4 s | 2.5, now 4.
+    - A kick of 1: 4 degrees up, 0.03 m back, settling at 14 a second | each gun its own 10, 0.06 and 14, now one
+      shared 4, 0.0297 and 14 (`WeaponHold`), times the gun's Recoil.
+  - **Damage keeps Shift Jam's scale: 15 here is 1 there.** The paint port had already set the mischief soldier's
+    health at 45 for the test room's 3.
+  - **The SMG is half way on every number**, the rule its magazine got in D-0070. It changes the gun's character (a
+    fast spray of weak darts before); said in STATUS for his eye, and every number is on its prefab.
+  - **The 0.99 goes on the hold, not on flight.** The gun's jump back is a length in the hands (0.03 m = 0.0297).
+    The dart's speed and fall are the test room's number for number, as the paint ball's already were (32 and 6).
+  - **The toy soldiers' darts follow the dart** (they fire the same prefab): 16 % slower, 0.14 lower at their
+    longest range of 14. Not compensated: one dart for everyone, as in the test room. Their damage (10) and their
+    shove on the player (2) are untouched.
+  - **The size rule on the shove.** A shot's shove was multiplied by the shooter's size whatever it hit. Now a loose
+    Rigidbody takes the shove times the square root of the size (the test room: a crate slides as far as the square
+    of the shove, so that carries it about as many kid sizes as a toy's shot carries it toy sizes; the whole size
+    threw crates across the room there). A player or a soldier still takes all of it: for them the shove is a speed
+    in the shooter's own units. Carried as `DamageInfo.Loose` and `Knockback.Apply(..., loose)`. Shift Jam's own 0.3
+    upward tilt on every shove stays. Melee is not touched.
+  - **What stood on the old numbers** (looked at before changing damage and push): practice bear and skittle (120
+    health): 8 pistol darts as before, 2 shotgun blasts as before, 8 SMG darts (18). Toy soldier (60): 4 pistol
+    darts as before, one whole shotgun blast as before (all 8 pellets, as all 7 before), 4 SMG darts (9). Mischief
+    soldier (45): 3 pistol darts as before, 6 of 8 pellets (5 of 7), 3 SMG darts (7). Cars (150): 10 pistol darts
+    as before. Every one of them has no safe time after a hit, so each pellet counts. A practice target rocks by the
+    shove: a pistol dart about 5.5 degrees (2), a shotgun blast about 14 (19), under its stop at 40. Loose pieces
+    (mass 4): a pistol dart sends one off at 2 a second (0.75), a blast at 5 (7); a gun on the floor (mass 0.5) at
+    17 (6). Paint is counted by hits, not by damage: unchanged; a paint ball from the shotgun leaves at 0.9 of its
+    speed, still far above what its shell needs to break head-on (28.8 against 15).
+  - **Where it lives.** Per gun on its prefab: `BlasterWeapon` > Interval, Pellets, Spread, Damage, Knockback, Shot
+    Speed, Recoil; `Weapon` > Move Speed (any weapon can be heavy). The same numbers in `WorkshopPieces`'
+    `WeaponSpec`, so a rebuild gives them back. `kickAngle`, `kickBack` and `recovery` are gone from the gun.
+    The walk: `WeaponHolder.MoveShare` sets `PlayerMotor.SpeedShare` and `FirstPersonBody.SpeedShare`, after the
+    crouch's cap.
+  - **Ours, not the test room's:** the first-person view punch (now times Recoil); the 0.3 upward tilt of a shove.
+    **Not ported:** the test room slows the walk clip by the same share as the walk (here the blend tree follows
+    the speed); the dart's bright streak.
+  - **The wheel** swaps only with a weapon out, as in the test room (1 / 2 also draw a put-away gun, as before);
+    down is the next, up the one before; not with a prop in the hands, not with the key sheet open.
+  - **Checked:** shot probe, numbers part, 48 of 48 (12 of 48 on the code before): shots a second 4.99, 6.97 and
+    1.20; darts at 34.0, 37.4 and 30.6; stray 0.02, 0.29 and 2.49 degrees; a pull takes 15, 15 and 60; a loose thing
+    of mass 1 leaves at 8, 7 and 20 from a toy and 47, 41 and 117 from a kid; the barrel flips 4.00, 3.40 and 8.80
+    degrees (4.15, 3.54 and 9.08 measured on the gun in the hand) and settles at 14.0 a second; the walk is 1.00,
+    0.96 and 0.90; the wheel swaps. Hold probe before the work, on the D-0070 code: 81 of 81. The four-scene smoke
+    run comes once, after the feedback landing. Probe kept at
+    `%TEMP%\shiftjam-stage\weapons\p2\probe-keep\ShotProbe.cs`. Not played.
 - **D-0073 (17 Nov, 10:1x) The car portal is his portal drawing as a model: the swirl turns, a warp sends the small marks out as a ripple.** (D-0071 and D-0072 are held for the weapons port's shot feel and rifle pieces.)
   His third Blender piece after the orb and the star (`Dev\Blender Projects\portal_ring.blend`, over his Procreate
   drawing `Shift_Portal_OG.png`). His words on the model: "the extra bits on the end should be after-effect post

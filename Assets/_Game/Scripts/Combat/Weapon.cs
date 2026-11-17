@@ -21,6 +21,7 @@ namespace ShiftJam
         [SerializeField, Tooltip("On: a long gun. Both hands stay on it, it is carried low across the body and comes up to the shoulder to aim (third person).")] private bool twoHanded;
         [SerializeField, Tooltip("A long gun: where the support hand holds, in the weapon's own axes (z along the barrel), units at scale 1. Zero: the model's under-barrel marker (Place_..._BarBottom) if it has one, else a spot ahead of the grip.")] private Vector3 supportPoint;
         [SerializeField, Tooltip("Field of view while this weapon is aimed in first person, degrees (a scope zooms further). 0 = the first-person settings' aim field of view.")] private float sightFieldOfView;
+        [SerializeField, Range(0.5f, 1f), Tooltip("How fast you move with this weapon out, as a share of normal. A heavy gun is a little slower (the test room: rifle 0.92, shotgun 0.9, sniper 0.82). 1 = no slower.")] private float moveSpeed = 1f;
 
         public string DisplayName => displayName;
         public WeaponHolder Holder { get; private set; }
@@ -29,6 +30,8 @@ namespace ShiftJam
         public bool TwoHanded => twoHanded;
         /// <summary>This weapon's own field of view while aimed in first person; 0 = none of its own.</summary>
         public float SightFieldOfView => sightFieldOfView;
+        /// <summary>How fast the holder moves with this weapon out, as a share of normal (1 = no slower).</summary>
+        public float MoveSpeed => moveSpeed;
         public Quaternion HandRotation => Quaternion.Euler(handEuler);
         public Vector3 HandOffset => handOffset;
         public Vector3 ViewOffset => viewOffset;

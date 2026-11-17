@@ -53,6 +53,9 @@ namespace ShiftJam
         // What the moves ask of the motor (PlayerStance and PlayerMoves write these; left alone they change nothing).
         /// <summary>Top speed in the player's own units a second (a crouch); infinity = the motor's own walk and sprint.</summary>
         public float SpeedCap { get; set; } = float.PositiveInfinity;
+        /// <summary>A share of the walk, sprint and crouch speeds: a heavy gun in the hands is a little slower (the
+        /// WeaponHolder sets it). 1 = all of it.</summary>
+        public float SpeedShare { get; set; } = 1f;
         /// <summary>No jump: no headroom over a crouch, or a move is under way. A press meanwhile is dropped.</summary>
         public bool JumpLocked { get; set; }
         /// <summary>The stick is ignored: the body stands its ground (a block, a strike, a hit, dead).</summary>
@@ -127,7 +130,7 @@ namespace ShiftJam
             bool steering = wish.sqrMagnitude > 0.0001f;
 
             // Horizontal speed eases toward the target instead of snapping: that is the "weight".
-            float topSpeed = Mathf.Min(input.Sprint && !SprintLocked ? settings.sprintSpeed : settings.walkSpeed, SpeedCap) * scale;
+            float topSpeed = Mathf.Min(input.Sprint && !SprintLocked ? settings.sprintSpeed : settings.walkSpeed, SpeedCap) * SpeedShare * scale;
             float rate = (steering ? settings.acceleration : settings.deceleration) * scale;
             if (!Grounded) rate *= settings.airControl;
             _planar = Drive ?? Vector3.MoveTowards(_planar, wish * topSpeed, rate * dt);

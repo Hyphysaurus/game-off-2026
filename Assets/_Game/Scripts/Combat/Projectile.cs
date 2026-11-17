@@ -5,8 +5,12 @@ namespace ShiftJam
 {
     /// <summary>
     /// A swept toy shot (foam dart, pellet): sphere-casts its path each frame so it never tunnels, hurts what it hits
-    /// (Damageable) or shoves it (Rigidbody, player), and goes back to a pool instead of being destroyed. Everything about
-    /// it (speed, radius, drop, shove) is multiplied by the shooter's scale, so a kid's shots are kid-sized.
+    /// (Damageable) or shoves it (Rigidbody, player), and goes back to a pool instead of being destroyed. Its speed,
+    /// radius and drop are multiplied by the shooter's scale, so a kid's shots are kid-sized. So is its shove on a
+    /// player or a soldier (a speed in the shooter's own units); a loose thing takes only the square root of the
+    /// shooter's size (the test room's rule: a crate slides as far as the square of the shove, so that carries it
+    /// about as many kid sizes as a toy's shot carries it toy sizes; all of it threw crates across the room).
+    /// The weapon that fires it can make it faster or slower (its Shot Speed).
     /// Another kind of ammo (the paint ball) extends this and changes only what happens at a hit: it can glance off
     /// before the hit counts (Deflects) and leave something behind after it (OnLanded).
     /// </summary>
@@ -31,9 +35,10 @@ namespace ShiftJam
         private Vector3 _baseScale;
 
         /// <summary>Fires one shot from the pool. <paramref name="owner"/> and <paramref name="ownerAlt"/> (both optional)
-        /// are never hit: the shooter's body, and the first-person body or car it is in.</summary>
+        /// are never hit: the shooter's body, and the first-person body or car it is in. <paramref name="speedScale"/>
+        /// multiplies the shot's own speed (a weapon's Shot Speed).</summary>
         public static Projectile Fire(Projectile prefab, Vector3 position, Vector3 direction, float damage, float knock, float scale,
-            Transform owner, Transform ownerAlt = null)
+            Transform owner, Transform ownerAlt = null, float speedScale = 1f)
         {
             if (prefab == null) return null;
             if (!Pools.TryGetValue(prefab, out var pool)) Pools[prefab] = pool = new Stack<Projectile>();
@@ -46,7 +51,7 @@ namespace ShiftJam
                 shot._prefab = prefab;
                 shot._baseScale = shot.transform.localScale;
             }
-            shot.Launch(position, direction, damage, knock, scale, owner, ownerAlt);
+            shot.Launch(position, direction, damage, knock, scale, owner, ownerAlt, speedScale);
             return shot;
         }
 
@@ -57,10 +62,10 @@ namespace ShiftJam
             Live.Clear();
         }
 
-        private void Launch(Vector3 position, Vector3 direction, float damage, float knock, float scale, Transform owner, Transform ownerAlt)
+        private void Launch(Vector3 position, Vector3 direction, float damage, float knock, float scale, Transform owner, Transform ownerAlt, float speedScale)
         {
             _scale = Mathf.Max(0.001f, scale);
-            _velocity = direction.normalized * (speed * _scale);
+            _velocity = direction.normalized * (speed * Mathf.Max(0.01f, speedScale) * _scale);
             _damage = damage; _knock = knock; _owner = owner; _ownerAlt = ownerAlt;
             _expires = Time.time + lifetime;
             transform.SetPositionAndRotation(position, Quaternion.LookRotation(_velocity));
@@ -128,10 +133,12 @@ namespace ShiftJam
                 var hit = _hits[best];
                 Vector3 point = hit.distance > 0f ? hit.point : transform.position;
                 if (Deflects(hit, point)) return;
+                // The shove, sized to the shooter; a loose thing takes the square root of that size, not all of it.
                 Vector3 shove = (dir + Vector3.up * 0.3f) * (_knock * _scale);
+                float loose = 1f / Mathf.Sqrt(_scale);
                 var health = Damageable.Find(hit.collider);
-                if (health != null) health.Hit(new DamageInfo(_damage, shove, point, _owner));
-                else Knockback.Apply(hit.collider.gameObject, shove, point);
+                if (health != null) health.Hit(new DamageInfo(_damage, shove, point, _owner, loose));
+                else Knockback.Apply(hit.collider.gameObject, shove, point, loose);
                 OnLanded(hit, point);
                 Recycle();
                 return;

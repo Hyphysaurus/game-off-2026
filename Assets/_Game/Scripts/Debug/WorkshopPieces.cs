@@ -55,6 +55,10 @@ namespace ShiftJam
             /// <summary>A blaster's magazine (D-0070, the test room's numbers): rounds in a full one, the reserve it starts
             /// with, the most the reserve holds, and the seconds a reload takes.</summary>
             public int Rounds, Reserve, ReserveMost; public float ReloadSeconds;
+            /// <summary>A blaster's feel (D-0071, the test room's numbers): how hard it kicks (1 = the pistol), the share
+            /// of the ammo's own speed its shots leave at, and the share of normal speed you move at with it out.
+            /// 0 = 1 for each.</summary>
+            public float Recoil, ShotSpeed, Walk;
         }
 
         private static readonly WeaponSpec[] Weapons =
@@ -62,9 +66,9 @@ namespace ShiftJam
             // Knife_02 stands ring up, blade tip down: the fist takes the handle just under the finger ring.
             new WeaponSpec { Name = "ToyKnife", Label = "Toy Knife", Model = CW + "Knives/Knife_02.prefab", Kind = Kind.Melee, Length = 0.6f, Damage = 30f, Knock = 7f, TipDown = true, GripAt = 0.35f },
             new WeaponSpec { Name = "FoamFinger", Label = "Foam Finger", Model = BS + "Other/foam_finger_001.prefab", Kind = Kind.Melee, Length = 0.9f, Damage = 20f, Knock = 14f },
-            new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.18f, Spread = 1f, Pellets = 1, Knock = 3f, PackSize = true, Grip = new Vector3(0f, -0.0412f, -0.0258f), MuzzleReach = 0.1726f, Rounds = 12, Reserve = 48, ReserveMost = 96, ReloadSeconds = 1.3f },   // the test room's pistol
-            new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 9f, Interval = 0.7f, Spread = 6f, Pellets = 7, Knock = 4f, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0305f, -0.006f), Rounds = 6, Reserve = 24, ReserveMost = 48, ReloadSeconds = 2.2f },   // the test room's shotgun
-            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 7f, Interval = 0.08f, Spread = 3f, Pellets = 1, Knock = 1.5f, Auto = true, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0556f, -0.0267f), MuzzleReach = 0.0985f, Rounds = 20, Reserve = 60, ReserveMost = 120, ReloadSeconds = 1.5f },   // no SMG in the test room: between its pistol (12 / 48 / 96, 1.3 s) and its rifle (30 / 90 / 180, 1.8 s)
+            new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.2f, Spread = 0f, Pellets = 1, Knock = 8f, Recoil = 1f, ShotSpeed = 1f, Walk = 1f, PackSize = true, Grip = new Vector3(0f, -0.0412f, -0.0258f), MuzzleReach = 0.1726f, Rounds = 12, Reserve = 48, ReserveMost = 96, ReloadSeconds = 1.3f },   // the test room's pistol: 5 shots a second, damage 1 (15 here), push 8
+            new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 7.5f, Interval = 0.8333f, Spread = 2.5f, Pellets = 8, Knock = 2.5f, Recoil = 2.2f, ShotSpeed = 0.9f, Walk = 0.9f, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0305f, -0.006f), Rounds = 6, Reserve = 24, ReserveMost = 48, ReloadSeconds = 2.2f },   // the test room's shotgun: 1.2 shots a second, 8 pellets of damage 0.5 (7.5 here) and push 2.5 within 2.5 degrees
+            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 15f, Interval = 0.1429f, Spread = 0.3f, Pellets = 1, Knock = 7f, Recoil = 0.85f, ShotSpeed = 1.1f, Walk = 0.96f, Auto = true, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0556f, -0.0267f), MuzzleReach = 0.0985f, Rounds = 20, Reserve = 60, ReserveMost = 120, ReloadSeconds = 1.5f },   // no SMG in the test room: every number half way between its pistol (12 / 48 / 96, 1.3 s; 5 a second, push 8, kick 1) and its rifle (30 / 90 / 180, 1.8 s; 9 a second, push 6, spread 0.6, speed 1.2, kick 0.7, walk 0.92)
         };
 
         private static readonly (string name, string model, float height)[] Targets =
@@ -173,7 +177,11 @@ namespace ShiftJam
             var r = body.GetComponent<MeshRenderer>();
             r.sharedMaterial = mat;
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            root.AddComponent<Projectile>();
+            var dart = root.AddComponent<Projectile>();
+            // The test room's foam dart: 34 a second, falling at 3, gone after 4 s if it hits nothing.
+            Set(dart, "speed", 34f);
+            Set(dart, "drop", 3f);
+            Set(dart, "lifetime", 4f);
             var saved = Save(root, Combat + "/FoamDart.prefab");
             return saved.GetComponent<Projectile>();
         }
@@ -220,6 +228,9 @@ namespace ShiftJam
                 Set(b, "pellets", spec.Pellets);
                 Set(b, "knockback", spec.Knock);
                 Set(b, "automatic", spec.Auto);
+                Set(b, "shotSpeed", spec.ShotSpeed > 0f ? spec.ShotSpeed : 1f);
+                Set(b, "recoil", spec.Recoil > 0f ? spec.Recoil : 1f);
+                Set(b, "moveSpeed", spec.Walk > 0f ? spec.Walk : 1f);
                 Set(b, "aimsWithView", true);
                 Set(b, "twoHanded", spec.TwoHands);
                 // First person: where the grip sits from the camera. At the pack's size these are the test room's hip

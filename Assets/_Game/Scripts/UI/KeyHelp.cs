@@ -136,6 +136,7 @@ namespace ShiftJam
             Line(sb, "R or Right click + mouse", "Turn it", "LB");
             sb.Append('\n');
             Line(sb, Kb("Previous") + " / " + Kb("Next"), "Previous / next weapon", Pad("Previous") + " / " + Pad("Next"));
+            Line(sb, "Mouse wheel", "Next / previous weapon, with one out and no prop held");
             Line(sb, "Z", "Drop the weapon", "D-pad down");
             Line(sb, "T", "Next ammo: darts, paint (Colour Corner)", "D-pad up");
             Line(sb, "R", "Reload the gun in hand (an empty gun reloads by itself)", "Y, with nothing to use");
@@ -172,7 +173,7 @@ namespace ShiftJam
             Line(sb, Kb("Interact"), "Grab a prop, use, take a weapon", Pad("Interact"));
             Line(sb, Kb("Attack"), "Throw, fire, swing", Pad("Attack"));
             Line(sb, "R or Right click + mouse", "Turn what you hold", "LB");
-            Line(sb, "Mouse wheel", "Turn what you hold");
+            Line(sb, "Mouse wheel", "Turn what you hold; with empty hands: next / previous weapon");
             Line(sb, Kb("Previous") + " / " + Kb("Next"), "Previous / next weapon", Pad("Previous") + " / " + Pad("Next"));
             Line(sb, Kb("Aim"), "Aim a drawn weapon (the view narrows)", Pad("Aim"));
             Line(sb, Kb("Holster"), "Holster or draw the weapon", Pad("Holster"));

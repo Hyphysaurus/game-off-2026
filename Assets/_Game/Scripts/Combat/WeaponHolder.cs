@@ -6,9 +6,9 @@ namespace ShiftJam
 {
     /// <summary>
     /// The player's weapons. Carries up to a few (taken from WeaponPickups with E), shows the one in hand, fires it with
-    /// Attack (tap, or hold for automatic), cycles with Previous / Next (1 / 2), holsters or draws it with X and drops it
+    /// Attack (tap, or hold for automatic), cycles with Previous / Next (1 / 2, or the mouse wheel while one is out), holsters or draws it with X and drops it
     /// with Z, and reloads a blaster with R (Reload keeps the time; an empty gun clicks and reloads by itself; a swap, a
-    /// holster, a drop or a move stops it). Holstered, the hands are empty (the player punches and kicks). Aim (right mouse) is held with a weapon
+    /// holster, a drop or a move stops it). A heavy gun out slows every step a little (Weapon > Move Speed). Holstered, the hands are empty (the player punches and kicks). Aim (right mouse) is held with a weapon
     /// drawn: the camera comes in and the body faces the aim. The kid's carry wins:
     /// while the Carrier holds something (the flashlight), Attack is the carried thing's and the weapon is put away; in
     /// first person, while the hands hold a prop, Attack throws it instead.
@@ -60,6 +60,8 @@ namespace ShiftJam
         private readonly Reload _reload = new Reload();   // the reload under way, if any
         private float _reloadPose;           // 0 the normal hold, 1 the gun tipped in front of the chest for the reload
         private Interactor _interactor;      // what E / the pad's Y would use: that press is not a reload
+        private PlayerMotor _motor;          // slowed a little by a heavy gun in the hands
+        private FirstPersonBody _fpMotor;    // the same, for the first-person body
 
         /// <summary>False while the weapon is holstered (X): it is carried but put away, and the hands are empty.</summary>
         public bool Drawn { get; private set; } = true;
@@ -77,6 +79,9 @@ namespace ShiftJam
         public float ReloadDone => _reload.Done;
         /// <summary>The player's moves set this while one is under way (a roll, a block, a hit, dead): no firing, the arm comes down.</summary>
         public bool Locked { get; set; }
+        /// <summary>How fast the player moves with what is in the hands, as a share of normal: a heavy gun out is a
+        /// little slower (the test room's rule); 1 with nothing out.</summary>
+        public float MoveShare => Armed ? Current.MoveSpeed : 1f;
         /// <summary>The drawn weapon's own field of view while aimed in first person; 0 = it has none.</summary>
         public float SightFieldOfView => Armed ? Current.SightFieldOfView : 0f;
 
@@ -116,6 +121,7 @@ namespace ShiftJam
             _hold = WeaponHoldSettings.Load();
             _ammo = WeaponAmmoSettings.Load();
             _interactor = GetComponent<Interactor>();
+            _motor = GetComponent<PlayerMotor>();
             _armAim = new ArmAim(animator, transform);   // here, before the Animator poses the arm: it reads the rest pose
             _fist = new FingerCurl(animator, right: true);
             _support = new FingerCurl(animator, right: false);
@@ -144,6 +150,14 @@ namespace ShiftJam
             _grip = 0f;
             StandDown();
             EndReload();
+            SlowBy(1f);   // seated, or the player is off: nothing in the hands slows anything
+        }
+
+        /// <summary>Tells whatever moves the player how much of its speed it keeps with this in the hands.</summary>
+        private void SlowBy(float share)
+        {
+            if (_motor != null) _motor.SpeedShare = share;
+            if (_fpMotor != null) _fpMotor.SpeedShare = share;
         }
 
         /// <summary>The weapon in hand changed or went away: a click still waiting for the arm is dropped, and the arm
@@ -161,7 +175,9 @@ namespace ShiftJam
         /// the hand with nulls.</summary>
         public void SetFirstPerson(Transform body, Transform view, FirstPersonLook look, PhysicsGrabber hands)
         {
+            if (_fpMotor != null) _fpMotor.SpeedShare = 1f;
             _fpBody = body; _fpView = view; _fpLook = look; _fpHands = hands;
+            _fpMotor = body != null ? body.GetComponent<FirstPersonBody>() : null;
             foreach (var w in _weapons) SetViewModel(w, view != null);
         }
 
@@ -412,7 +428,13 @@ namespace ShiftJam
 
         private void Update()
         {
+            // The mouse wheel swaps weapons while one is out (the test room's rule): down for the next, up for the one
+            // before. Not with a prop in the hands (the wheel moves or turns it), nor with the key sheet open.
+            float wheel = input != null ? input.Scroll : 0f;
+            if (wheel != 0f && Drawn && !(_fpHands != null && _fpHands.Held != null) && !KeyHelp.IsOpen) Cycle(wheel < 0f ? 1 : -1);
+
             var w = Current;
+            SlowBy(MoveShare);
             if (HandsFull) _handsFullFrame = Time.frameCount;
             bool visible = w != null && !HandsFull && Drawn;
             if (w != null && w.gameObject.activeSelf != visible) { if (!visible) w.Cancel(); w.gameObject.SetActive(visible); }

@@ -30,6 +30,9 @@ namespace ShiftJam
         public float Scale => _shifter != null ? _shifter.Scale : 1f;
         public bool Grounded { get; private set; }
         public bool Crouched => _crouched;
+        /// <summary>A share of the run, sprint and crouch speeds: a heavy gun in the hands is a little slower (the
+        /// WeaponHolder sets it). 1 = all of it.</summary>
+        public float SpeedShare { get; set; } = 1f;
         public Vector3 Velocity => _velocity;
         /// <summary>Eye height above the feet right now (eases through crouches).</summary>
         public float EyeHeight { get; private set; }
@@ -162,6 +165,7 @@ namespace ShiftJam
             Vector3 wishDir = wishSpeed > 1e-4f ? wish.normalized : Vector3.zero;
             float top = (_input != null && _input.Sprint && !_crouched ? _s.sprintSpeed : _s.runSpeed) * scale;
             if (_crouched) top *= _s.crouchSpeedMultiplier;
+            top *= SpeedShare;
             wishSpeed *= top;
 
             float gravity = _s.gravity * scale;

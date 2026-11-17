@@ -2,6 +2,57 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 17 Nov 2026 10:3x — SHOT FEEL, THE NUMBERS (D-0071: the guns fire, kick and weigh as the test room's; the mouse wheel swaps weapons) — NOT PLAYED
+The next piece of the weapons port, built headless while he was in AoE4. Every number was read from the test room's
+code and weapon files; its game was not run.
+- **The pistol and the shotgun fire as the test room's.** Dart Pistol: 5 shots a second (was 5.6), on the spot (its
+  1 degree of stray is gone), damage 15 as before (15 here is the test room's 1), push 8 (was 3). Dart Shotgun: 1.2
+  shots a second (was 1.4), 8 pellets (was 7) of damage 7.5 (was 9) and push 2.5 (was 4), within 2.5 degrees (was 6),
+  at 0.9 of the dart's speed. A full blast takes 60 health (was 63).
+- **The SMG stands half way between the test room's pistol and its rifle, number by number** (the test room has no
+  SMG): 7 shots a second (was 12.5), damage 15 (was 7), push 7 (was 1.5), stray 0.3 degrees (was 3), darts at 1.1 of
+  the dart's speed, kick 0.85, walk 0.96. It is a different gun now: a steady automatic with pistol darts, where it
+  was a fast spray of weak ones. All of it is on `DartSMG.prefab`.
+- **The foam dart flies as the test room's:** 34 a second (was 40), falling at 3 (was 2), gone after 4 s (was 2.5).
+  The toy soldiers fire the same dart, so theirs slowed with it (0.14 lower at their longest range of 14).
+- **The kick is one number a gun** (`BlasterWeapon` > Recoil, 1 = the pistol): the barrel flips up 4 degrees and the
+  gun jumps back 0.03 for each 1, and it settles at 14 a second (`Resources/WeaponHold` > The kick of a shot).
+  Pistol 1, SMG 0.85, shotgun 2.2. Every gun used to flip 10 degrees and jump 0.06. Third and first person; the
+  first-person view punch (ours, the test room has none) is multiplied by the same number.
+- **A bigger shooter shoves loose things harder by the square root of its size** (the test room's rule), no longer
+  by its whole size: a kid's shot shoves a loose prop 5.9 times as hard as a toy's, where it was 35 times. The shove
+  on a player or a soldier is as it was.
+- **A heavy gun slows every step a little** (`Weapon` > Move Speed): shotgun 0.9, SMG 0.96, pistol 1; walking,
+  running and crouched, third and first person. Put away, it slows nothing.
+- **The mouse wheel swaps weapons** while one is out: down for the next, up for the one before. 1 / 2 as before.
+  Not while a prop is held (the wheel moves or turns it), not with the key sheet open.
+- **What stood on the old numbers, looked at first** (D-0071 has the list): the practice targets (120) still take 8
+  pistol darts and 2 shotgun blasts; the toy soldier (60) 4 darts or one whole blast; the mischief soldier (45) 3
+  darts or 6 of 8 pellets; the SMG needs as many darts as the pistol now (it needed twice as many and more). A
+  pistol dart rocks a practice target about 5.5 degrees (was 2) and sends a loose prop off at 2 a second (was 0.75).
+  Paint is counted by hits, not damage: unchanged, but the SMG now paints 7 times a second, not 12.
+- **Where the numbers live:** per gun on its prefab (`BlasterWeapon`: Interval, Pellets, Spread, Damage, Knockback,
+  Shot Speed, Recoil; `Weapon`: Move Speed) and in `WorkshopPieces`, so a rebuild gives the same; what a kick of 1
+  is in `Resources/WeaponHold`; the dart's flight on `Prefabs/Combat/FoamDart.prefab`.
+- **CHECKED:** the new shot probe, its numbers part: 48 of 48 (12 of 48 on the code before), at toy size, with
+  the darts' count, speed and stray and the shove again at kid size. Measured: pistol 4.99 shots a second, SMG 6.97,
+  shotgun 1.20; darts leave at 34.0, 37.4 and 30.6; they stray 0.02, 0.29 and 2.49 degrees; a pull takes 15, 15
+  and 60 health; a loose thing of mass 1 leaves at 8, 7 and 20 along the shot from a toy and at 47, 41 and 117 from
+  a kid (5.9 times; the code before gave 35 times); the barrel flips 4.00, 3.40 and 8.80 degrees, and measured on
+  the gun in the hand 4.15, 3.54 and 9.08; the kick settles at 14.0 a second; the walk is 1.00, 0.96 and 0.90 of
+  normal; the wheel swaps both ways and does nothing with the gun put away; no errors in the run. The hold probe
+  was run once before the work, on the D-0070 code: 81 of 81 (the reload pose broke nothing in the hold).
+- **NOT RUN YET:** the four-scene smoke run (once, when the feedback landing is in). **NOT RE-RUN:** the ammo and
+  camera probes (nothing they measure changed) and the hold probe after this landing. First person was not driven by
+  the probe: its kick reads the same two values the probe measured.
+TO PLAY: Colour Corner or Workshop: fire each gun at a wall and watch the barrel; hold the SMG's trigger; walk with
+the shotgun out, then put it away (X) and walk again; roll the mouse wheel with two guns; shoot a loose prop as a toy,
+then as a kid.
+FOR HIS EYE: the SMG's new character; the pistol's kick (4 degrees, it was 10) and the shotgun's (8.8); whether the
+slower walk can be felt (10 % and 4 %); the wheel's direction; the slower dart with more drop.
+NOT YET: what a shot shows and sounds like (hit marker, puff at the barrel, bits and squash where it lands, the
+dart's sounds) is the next landing; then the rifle, the sniper and bubbles; then grenades and first person.
+
 ## 17 Nov 2026 10:1x — THE CAR PORTAL IS HIS PORTAL DRAWING (D-0073) — NOT PLAYED: no warp, spin or ripple seen in motion
 His "let's finish the portal", then "proceed, do it headless since im in aoe4". Built with Unity closed, in hidden
 low-priority batch runs.

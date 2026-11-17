@@ -2,6 +2,119 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 16 Nov 2026 20:0x — THE CAMERAS ARE THE TEST ROOM'S (D-0065, Stage B of the player port) + THE ORB'S FAINT BOX FIXED HERE — NOT PLAYED
+His "let's pick up the work". Stage B was cut by the usage limit at 14:38 with the code in the tree and its check not
+yet run; finished here. Headless only (his editor closed): play probes, stills looked at, nothing played by hand.
+- **Three views on foot, eased into one another** (`Camera/ShoulderCamera.cs`, numbers in `Data/CameraSettings.cs`):
+  empty hands = the wide view as before (6 back, 0.3 to the side); weapon drawn = over the shoulder (1.8 back, 0.75 to
+  the side, 0.28 higher); aim held (right mouse) = 1.2 back and the view narrowed to 0.73 (60 to 43.8 degrees).
+  Lengths are in body units (the 1.8 body); the kid's 0.7 distance and 70 degree view apply to all three. A crouch
+  lowers the camera with the head.
+- **Walls:** the way to the camera is swept with a ball as big as the near plane's reach: up from the body's middle,
+  sideways to the shoulder, then back. The camera stops short of a wall and never starts inside one.
+- **Own body:** pushed in by a wall behind, the camera ends up in the player's head; the body and the weapon fade out
+  in 0.15 s (only their shadows stay) and come back when clear, with slack so it does not flicker (`Player/BodyFade.cs`,
+  on the Player in all four scenes).
+- **First person (V):** aim narrows the view there too (73.7 to 43.5).
+- **X (holster) works without the mouse captured** (`WeaponHolder.OnHolster`): it is a key, not a click.
+- **CHECKED:** camera probe 64 of 64 at toy and kid size (views, blends, back to a wall, corner, low ceiling, crate
+  beside, wall on the shoulder side, body fade, first person); the same probe sabotaged fails 34 checks; the
+  four-scene smoke run passes with 0 errors (the Raceway's race still starts). Probes kept outside the project:
+  `%TEMP%\shiftjam-stage\player-stage\probe-keep`. Stills: `docs/stills/player_toy_view_*.png`,
+  `player_toy_first_person_aim.png`, `player_toy_armed_*.png`, `player_kid_view_shoulder.png`.
+- 🔴 **A DEFECT FOUND AND FIXED ON THE WAY:** with a wall on the right (the shoulder side) and open space behind, the
+  camera fell into the player's head and the body vanished (0.00 behind, both sizes, armed or not). The sideways step
+  left the sweep ball resting on the wall, so the step back began in contact and got nowhere. Each leg now stops a
+  skin short of what it meets (`Sweep`, `SweepSkin`). Seen failing first (4 checks), then passing.
+- **One check was wrong, not the camera:** "crate beside" drew its sight line from the player's waist, so looking over
+  a crate lower than the shoulder counted as "behind a wall". The line is from the head now. Over the shoulder the
+  camera DOES look over a waist-high crate beside you (the legs are hidden): his eye, see `player_toy_armed_crate_beside.png`.
+- **THE ORB'S FAINT BOX:** the lab's `Shaders/ShiftOrbMote.shader` is here, on a new material of the orb's own,
+  `Data/ShiftOrbMote.mat` (the halo's first material in `Resources/FX/ShiftOrbVisual.prefab`; `ShiftOrbBuilder` uses
+  it). `OrbGlow.mat` is NOT changed, unlike in the lab: here the pad glow, the Pocket Core, the portal swirl and the
+  shield bubble are copies of it, and Greybox and the Workshop use it directly. Imports clean; not seen in the game.
+TO PLAY (Workshop or the Colour Corner, where the Player starts with a dart pistol):
+1. X to holster and draw: the camera eases between the wide view and over the shoulder.
+2. Hold right mouse with the weapon out: closer and narrower. Let go.
+3. Back into a wall and into a corner; stand under something low; stand with a wall or a crate on your right.
+4. Back hard against a wall and look forward: the body fades and comes back.
+5. V, then hold right mouse: first person narrows too.
+TUNE: `CameraSettings` asset: Armed Distance / Shoulder Offset / Rise, Aim Distance, Aim Fov Scale, View Blend (8),
+Wall Gap, Hide Body Within, Body Fade Seconds.
+FOR HIS EYE: how tight the aim view is (the head fills the left edge at toy size: `player_toy_view_aim.png`); the
+shoulder view's height; whether looking over a low crate is wanted.
+STILL OPEN HERE, HIS: the orb's bolt colour (gold or the cyan-white it has), the room-in-the-orb pass, the 14 Nov
+pack import that overwrote ProjectSettings and the package list (uncommitted), the new title art (uncommitted), the push.
+NEXT PORT PIECE: weapon feel numbers and ammo types, then Castle Siege and Train Rescue.
+
+## 16 Nov 2026 15:3x — THE ORB FOR INSTAGRAM, TWO NEW WAYS: filmed as it is, and drawn as pixel art (his "why does it look so processed?", then "1", "and then do 2") — NOT WATCHED PLAYING, NOT SEEN ON THE PHONE
+Lab only (`Unity Projects/Shift Orb Lab`); nothing in this project changed. The 14:1x pixel version looked processed
+because it is a shrunk render (striped glow, speckle, smeared edges, shimmer); it stays in `Export` as `shift_orb_*`.
+All files below are in `Shift Orb Lab/Export`, in iCloud Drive `Shift Orb`, and (reel, 4:5 post, cover) in his Photos
+library by way of `iCloudPhotos\Photos`. Each in gold bolts and in this project's cyan-white bolts.
+- **THE REAL ORB** `orb_real_<gold|cyan>_reel_1080x1920.mp4`, `_post_1080x1350.mp4`, `_cover_1080x1920.png`:
+  1080 x 1920, 30 fps, one 10 s loop (calm, someone near, strike at 5.4 s, bolts at 6.1 s, calm), H.264, silent AAC.
+  Filmed out of Play by `ShiftJam.OrbReelCapture.Shoot` (new, `Scripts/Debug/OrbReelCapture.cs`): it steps the orb one
+  video frame at a time with the rules of ShiftOrb, BoltBurst and Billboard and the numbers read off the prefab; two
+  things are directed and say so in the code (the first flash after someone arrives; the bolt ring's roll, 113 deg,
+  so the long bolts point up and down). Settings by env (ORB_REEL_DIR / SETS / SIZE / FPS / VIEW / STILLS); the
+  stills go to %TEMP%, then `Export/make_reel.py <stills> <export> <work>` blends the loop shut (0.5 s of spare
+  frames) and encodes. Launcher used: `%TEMP%\sj_orb_reel_run\run.ps1` (hidden, below normal; full run 48 s).
+  Measured: the loop's join changes no more than any other frame.
+- 🔴 **A FAINT BOX AROUND THE ORB, FOUND AND FIXED IN THE LAB, NOT YET HERE:** the halo's first material (`OrbGlow.mat`,
+  his mote `Art/Portals/orb_mote.png`) used the stock additive shader; the drawing's ground is 1/255, not black, and
+  the orb multiplies that layer on a flash or strike, so the whole square lit up 3 to 5 shades in the dark (a tilted
+  box, since the halo spins). New `Shaders/ShiftOrbMote.shader` (takes that ground away, fades before the square's
+  border; the drawing file is untouched) and `OrbGlow.mat` now uses it. COPY BOTH HERE with the next orb landing
+  (this project's `OrbGlow.mat` is tracked and still on the stock shader).
+  DONE 20:0x (top entry): the shader is here on the orb's own `ShiftOrbMote.mat`; `OrbGlow.mat` left as it is.
+- **THE DRAWN ORB** `orb_drawn_<gold|cyan>_80.aseprite` (80 x 80, 16 colours, 48 frames, the same five tags), `_480.gif`,
+  `_80.gif`, `_reel_1080x1920.mp4`, `_post_1080x1350.mp4`, `_square_1080.mp4`, `_cover_1080x1920.png`: drawn by
+  `Export/draw_orb.py` (every shape is in that file: the ball's light and shadow, his two glints, the specks, three
+  lightning forks, four hand-drawn bolt maps turned onto eight places). 25 different drawings over the 48 frames
+  (the rest are holds), 1.4% lone pixels. CLAUDE-DRAWN from his orb design: any caption must not call it his pixel
+  art. `make_aseprite.lua` now takes `--script-param name=a,b` and any frame size; `make_instagram.py` takes names.
+- HIS, still open: which bolt colour; which version he posts; the earlier too-bright `shift_orb_square_1080.mp4` and
+  the six `shift_orb_*` files in his Photos library are his to delete.
+
+## 16 Nov 2026 14:3x — ORB TONED DOWN, here and in the GIF (his "the orb emission is slightly too bright and the yellow is stark", then "apply the fixes and polish") — NOT PLAYED
+Files only, compiled outside Unity (0 errors); no batch here. Both shaders are now the lab's (so the settable clock is in too).
+- Outer glow (`ShiftOrbAura`): brightness default 0.75, falloff 5 (the falloff he had set in the lab; he had raised
+  brightness to 1.25 there, which is what read too bright), a far colour (violet `_FarColor`, taking over 0.45 radii out),
+  and a flash/strike now lifts it by 0.8, not 1.5 (`_FlashGain`). This project's aura material carries no saved numbers,
+  so it follows those defaults.
+- The strike (`ShiftOrb`): no longer blanks the ball (shader: 0.55 white, was 1.0); `flareStrength` 0.95 (was 1.6) and
+  `flareTime` 0.4 in the script and in `Resources/FX/ShiftOrbVisual.prefab`; lightning flash brightness 2.0 (was 2.6).
+- Ink: `ShiftOrbInk.mat` black -> deep purple (0.102, 0.043, 0.18).
+- 🔴 BOLT COLOUR LEFT AS FOUND HERE: `ShiftOrbBolt.mat` is (1.3, 1.9, 2.1), a pale cyan-white, not my yellow: set here
+  during his test (by him or by the other session, not by me). The lab's bolts are now gold (0.949, 0.784, 0.294).
+  Which one the game keeps is his call.
+- GIF, two versions in `Shift Orb Lab/Export` and his iCloud `Shift Orb` folder (the earlier bright files are replaced):
+  `shift_orb_gold_*` (gold bolts) and `shift_orb_cyan_*` (this project's cyan-white bolts); each = .aseprite, 512 and
+  128 GIF, square and vertical MP4. Pipeline kept beside them: `make_gif.py`, `make_aseprite*.lua`; capture =
+  `OrbLabBuilder.ShootGif` (env ORB_GIF_DIR, ORB_GIF_BOLTS).
+- 14:4x CHECK OF THE EXPORT (a later session, his "pick up any unfinished work"; every frame looked at and measured,
+  nothing watched playing): both GIFs = 48 frames, 80 ms each, loop forever, the 128 GIF equal to the frames pixel for
+  pixel; the four videos = H.264 1080 px, 30 fps, 12 s; the loop's join (frame 48 to 1) changes less than an ordinary
+  calm frame does; no pixel of the strike is near white any more.
+  ONE DEFECT, FIXED: in both .aseprite files the whole background sat on swatch 1, not swatch 0 (65% of the pixels one
+  shade off, swatch 0 unused), because `ChangePixelFormat` keeps index 0 for "transparent". `make_aseprite.lua` now
+  places each pixel by an exact lookup into palette.txt and builds both loops in one run; both files rebuilt, 0 pixels
+  differ from the frames, all 32 swatches in use, tags and timing as before.
+  🔴 `make_aseprite_cyan.lua` is the OLD script (superseded, still has the defect): delete it, do not run it.
+- 15:1x INSTAGRAM FILES (his "hard to tell the difference, lets get them instagram presentable onto my phone"):
+  `Export/make_instagram.py <export dir> <work dir>` rebuilds, per bolt colour, `_reel_1080x1920.mp4` (9:16),
+  `_post_1080x1350.mp4` (4:5, new), `_square_1080.mp4`, `_cover_1080x1920.png` (the bolts at full spread, for the
+  Reel's cover) and one `shift_orb_compare_bolts.png` (the two colours side by side: they differ ONLY in the six
+  bolt frames, 38 to 43, half a second of the loop). Each art pixel = an exact 8 x 8 block on even offsets, 24 fps
+  with every art frame held for two (even pacing; the old files were 30 fps, holds of 2 and 3), H.264 CRF 12, bt709
+  tags, a silent AAC track, 12 s. Measured on decoded frames: largest colour error at a block centre 10 of 255.
+  The old reel and square files are replaced. Not watched playing; not seen on the phone.
+  ON THE PHONE: all of it in iCloud Drive `Shift Orb` (Files app); the two reels, the two 4:5 posts and the two covers
+  also copied into `iCloudPhotos\Photos` so they land in his Photos library (the folder took them; whether they
+  uploaded cannot be seen from here). His library still holds the EARLIER bright `shift_orb_square_1080.mp4` (he
+  saved it at 14:18): his to delete.
+
 ## 16 Nov 2026 14:3x — THE PLAYER IS THE TEST ROOM'S PLAYER: Playroom body, crouch, roll, block, punch, kick (D-0064, Stage A of the player port) — NOT PLAYED
 His "lets finish the player port now". Headless only: built by one batch (`Shift Jam > Player > Build Player Port`),
 checked by temporary play probes (deleted), looked at in stills. Stage B (the cameras) is the next entry up when it lands.
@@ -33,6 +146,109 @@ once and held, as in the test room); the carry: with a 0.6 box the hands end 0.2
 shorter); the wake-up; whether the Male or the Female should be the default.
 KNOWN: the moves are third person only; no strike sounds or hit marker yet; a kid's punch lands at a kid's chest
 height, over small props.
+
+## 16 Nov 2026 14:1x — ORB AS PIXEL ART: an Aseprite file, a GIF and two videos (his "an aseprite version of my orb, animated, a gif i can share", "on iphone", "maybe my instagram")
+He picked "from the real orb": 54 frames rendered from the lab's orb out of Play (`OrbLabBuilder.ShootGif`, 512 px,
+12 a second, bloom on; calm, stirred, strike, bolts, settle), shrunk to 128 x 128, one 32-colour palette for the whole
+loop, no dither, the last six frames blended into the first so it loops. All in `Unity Projects/Shift Orb Lab/Export`:
+`shift_orb_128.aseprite` (48 frames, indexed, tags calm / stirred / strike / bolts / settle; built by
+`make_aseprite.lua` with aseprite.exe -b), `shift_orb_512.gif` (4x), `shift_orb_128.gif`,
+`shift_orb_square_1080.mp4` and `shift_orb_reel_1080x1920.mp4` (H.264, 12 s = the loop three times, no sound).
+The GIF and both videos are also in his iCloud Drive, folder `Shift Orb` (the Files app on his iPhone).
+What it is, for any caption: the game's orb, rendered and pixelated by script. Not hand-pixelled, by him or anyone.
+- LAB SHADERS ARE AHEAD AGAIN: `ShiftOrb.shader` and `ShiftOrbAura.shader` there read a settable clock
+  (`_ShiftOrbClock`, unset = the game's time, so no change in play). Copy both here with the next landing.
+- 🔴 The Aseprite MCP cannot start Aseprite (its path is the Windows one, `C:\Users\maram\Apps\aseprite\build\bin\
+  aseprite.exe`, "not an executable file" from WSL); the exe itself runs fine from WSL by its /mnt/c path.
+- 🔴 `Sprite()` made in Lua has an all-black palette: `ChangePixelFormat{format="indexed"}` then turns every frame
+  black. Set the palette first (`spr:setPalette`).
+
+## 16 Nov 2026 13:3x — NEW WORKING TITLE ART IN (his "lets get the new working title in, feel free to polish up") — NOT SEEN IN THE GAME
+His colour title drawing (`iCloudPhotos/IMG_2950.PNG`, byte-identical to `iCloudDrive/Procreate/Shift_Title_V2.png`,
+4096 x 2048 on white) replaces the white lettering at `Resources/Titles/title_shift_wide.png` (same .meta, same GUID;
+2048 x 953; the old lettering is in git, `f9a283b`). Only that PNG changed: no script (he was testing in Play).
+How it was cut (`docs/tools/title_cut.py`, stills `docs/stills/title_v2_cut_on_dark.png`, `title_v2_menu_mock.png`):
+- The paper goes, the white-FILLED shapes stay: everything reachable from the border without crossing ink gets alpha =
+  distance from white (so his pink, purple and cyan glows fade out cleanly); ink and every enclosed shape (the white
+  arrows, the white letter tops) stay solid. Plain alpha-from-white would have made the arrows see-through.
+- Nine stray specks on the paper removed (the largest 150 px in a 4096-wide drawing). Nothing of his lines was redrawn.
+- Resized with premultiplied alpha, so the soft edges carry no dark fringe.
+OPEN (wants a script change, so it waits until he is out of Play; TitleMenu.cs also has another session's edits):
+(1) in today's layout (a 1300 x 440 box) the art shows at 946 x 440, about a quarter narrower than the old lettering
+did, and "SHIFT" is harder to read at that size: a taller box (about 1500 x 600, buttons nudged down) would fix it;
+(2) near-square windows still show the OLD white stacked lettering (`title_shift_stacked.png`): the new drawing has no
+stacked form; (3) the itch page and the build's icon still use nothing of it.
+
+## 16 Nov 2026 13:2x — THE YELLOW BOLTS NOW MARK THE END OF A SHIFT (his "yes proceed"; the 10:1x checkpoint below is finished) — NOT PLAYED
+Compiled outside Unity in both projects (0 errors); both editors were closed, so one hidden batch rebuilt the orb
+prefabs here and one rebuilt the lab.
+- `FX/BoltBurst.cs` (new): the bolts as one short burst on their ring (flick on, shoot out, flicker in 0.05 s steps,
+  gone; the ring faces the camera while it plays). The orb no longer handles bolts itself.
+- `FX/ShiftOrb.cs`: `Strike()` = the white flare and an inner flash only; `Bolts()` plays the burst. The single-bolt
+  flicker near the orb is deleted (not just zeroed). Bolts start at 0.8 size, so they no longer begin inside the glass.
+- `FX/ShiftOrbLink.cs`: core used -> `Strike()` at once, and when THAT shift finishes (`GameEvents.Shifted`) ->
+  `Bolts()` around the orb. `ShiftOrbLink.LastUse` = the time a core last started a shift.
+- `FX/ShiftEndBolts.cs` (new, added to the player by `Shifter.Awake`, like ShiftCharge): a shift no core started (the
+  carried shift on F, the dev keys) gets the same burst around the player, 0.65 x the player's new scale, 0.45 s. The
+  ring is copied once out of `Resources/FX/ShiftOrbVisual`.
+- `ShiftOrbBuilder` gives the ring its BoltBurst; prefabs rebuilt (`strikeReach` 0.8/1.3, `flareTime` 0.55).
+HIS PLAYTEST: at a core press E: white flare at once, and as the grow or shrink finishes the yellow bolts burst around
+the orb, about half a second. Away from any core press F (carried shift): the bolts burst around the player as it
+finishes, sized to the new size. Standing near an orb: no yellow at all, only the cyan crackle. Judge: the size of the
+burst on the kid (it scales with the player: it may be too big or too small from the kid camera) and its timing.
+UNCOMMITTED, with the rest of the orb work.
+
+## 16 Nov 2026 10:2x — THE ORB'S BOLTS GLOW (his "the lightning blocks look a bit awkward", option 1) — NOT SEEN, UNCOMMITTED
+Done by the rivals/merge session in the orb's files (the orb session: keep this when you copy the lab's files across).
+The eight strike bolts were flat yellow with a black outline (stickers round a glass ball). Now: `Data/ShiftOrbBolt.mat` is
+see-through and adds light; new `Data/ShiftOrbBoltEdge.mat` replaces the black ink on the BOLTS only (the crystal's own
+outline keeps ShiftOrbInk); `Resources/FX/ShiftOrbVisual.prefab`: the 8 bolts' second material switched (text edit);
+`FX/ShiftOrb.cs`: `TintBolt` colours each bolt from the orb's glow (so the Pocket Core's are amber), each flicker has its
+own brightness, and they fade out over the strike (`boltWhiteness` 0.55, `boltBrightness` 1.3, `boltEdge` 0.45 on the
+visual); `ShiftOrbBuilder` makes the two glowing materials (`Glow`). Compiled outside Unity, 0 errors. His bolt shapes are
+unchanged. NOT in the lab's copies. For his eye in Play: E at a core. Bloom is still 0 here, so the glow is modest.
+
+## 16 Nov 2026 10:1x — CHECKPOINT (FINISHED 13:2x, entry above): usage limit cut the "bolts at the end of the shift" change mid-way
+His "yes proceed" to: fire the yellow bolts from the END of the shift (around the orb for a core shift, around the
+player for a carried shift on F). State when the limit hit:
+- THIS PROJECT: nothing of this change landed. It still runs the 09:3x orb plus `nearBoltEvery: 0` in the visual prefab.
+- THE LAB (`Unity Projects/Shift Orb Lab`), written but NOT COMPILED, NOT RUN: new `FX/BoltBurst.cs` (the bolts as one
+  burst on the ring); `FX/ShiftOrb.cs` reworked (Strike = white flare only, new `Bolts()`, no single-bolt flicker,
+  bolts start at 0.8 so they no longer begin inside the glass, new `flareTime`); `ShiftOrbBuilder` adds BoltBurst.
+  The lab's Space key still only strikes: `OrbLabViewer` needs `Bolts()` about 0.6 s after `Strike()`.
+STILL TO DO, in order: (1) compile the lab outside Unity and fix; lab viewer line above. (2) Copy BoltBurst.cs and
+ShiftOrb.cs here (he must be out of Play: Fast Script Reload). (3) `ShiftOrbLink`: on Used -> Strike, remember it, and
+on `GameEvents.Shifted` -> `orb.Bolts()`; keep a static time of the last core use. (4) New `FX/ShiftEndBolts.cs` on the
+player (added in `Shifter.Awake` like ShiftCharge): on its Shifter's Shifted, if the shift did not start at a core,
+play a BoltBurst cloned from the "Bolts" child of `Resources/FX/ShiftOrbVisual`, at the player's middle, sized
+0.65 x Shifter.Scale. (5) This project's `ShiftOrbBuilder`: add BoltBurst to the ring, drop the `bolts` list wiring.
+(6) Compile outside, then his play. The room-in-the-orb pass still waits on his pick (see-through, mirror, or both).
+
+## 16 Nov 2026 10:0x — HIS FIRST LOOK AT THE ORB IN THE WORKSHOP: the yellow bolts clash; they stay for the shift only
+His words: "the large yellow lightning bolts clash with the cyan lightning aesthetic, its okay, we can save the yellow
+lightning bolts for something else, i do like them appearing at the end of the shrink and grow animations."
+Done (no script touched: he was in the editor and Fast Script Reload patches .cs during Play): `nearBoltEvery: 0` in
+`Resources/FX/ShiftOrbVisual.prefab`, so the single bolt no longer flickers out when the player stands near. The bolts
+now show only on a shift at a core (0.55 s, over a 0.6 s shift, so they are what is left on screen as the warp clears).
+(SETTLED 13:2x: the flicker is deleted from the script.) OWED when he is out of Play: the same 0 as the script default in `FX/ShiftOrb.cs` (the lab's copy has it), or a rebuild
+by Shift Jam > Dev > Build Shift Orb brings the flicker back. OFFERED, not built: fire the bolts from the end of the
+shift itself (GameEvents.Shifted), which would also give a carried shift (F) its bolts, around the player.
+
+## 16 Nov 2026 10:0x — PREP ONLY: the room showing in the orb (his "begin preparing what we need to do the mirror reflection in the orb itself") — NOTHING BUILT IN THE ORB
+Facts read from this project: PC renderer = Forward+ (`m_RenderingMode: 2`), probe blending + box projection + atlas on;
+Opaque Texture ON at half size (`m_OpaqueDownsampling: 1`), OFF on the Mobile asset; NO reflection probe in Greybox,
+Workshop or Raceway (a mirror would show the default sky); `realtimeReflectionProbes: 0` in QualitySettings; MSAA 4.
+Two ways, to be tried side by side in the lab behind two sliders at 0 (plan sent, waiting on his word):
+- SEE-THROUGH (the room behind the orb, upside down and shrunk): the orb's pass moves to queue Transparent-100 (keeps
+  ZWrite) and reads `SampleSceneColor` (DeclareOpaqueTexture.hlsl) around its own screen centre, flipped. Needs nothing
+  else here. Shows only what is on screen; soft (half-size copy); nothing on the Mobile asset.
+- TRUE MIRROR (the room around the orb, on the glass): `GlossyEnvironmentReflection` with the URP keywords
+  (`_REFLECTION_PROBE_BLENDING`, `_REFLECTION_PROBE_BOX_PROJECTION`, `_REFLECTION_PROBE_ATLAS`, `_CLUSTER_LIGHT_LOOP`),
+  strongest at the glass edge. Needs a picture of the room: a live probe riding the nearest orb (128, one face a frame)
+  and `realtimeReflectionProbes` turned on here, or baked probes per room (scene edits).
+Done in the lab only: `OrbLabBuilder` now builds walls (inside faces only), a checkered floor, his title drawing as a
+poster, two more blocks and a live probe at the orb, and turns live probes on in the lab's settings. Applied when he
+clicks Shift Jam > Lab > Build Orb Lab (not clicked yet).
 
 ## 16 Nov 2026 09:4x — D-0063 PAINT: the test room's paint ball, splats and the Colour Corner are in Shift Jam — UNPLAYED
 First piece of the testing-zone merge (his "lets bring it over to unity for now"). Ported from the Godot test room with
@@ -66,6 +282,33 @@ STOPPED HERE at his word (he wanted the editor): all of it is committed. Left fo
 after the probe was deleted (the scene was built by the same code, so nothing should change); the kept probe is in
 `%TEMP%\shiftjam-stage\paint\probe-keep\PaintProbe.cs` (put it back in Scripts/Debug to run it again:
 `-executeMethod ShiftJam.PaintProbe.Run`, add `-paintStills` for pictures).
+
+## 16 Nov 2026 09:3x — THE ORB IS IN: every shift core wears it in Play (D-0062, his "this looks good, lets get this in") — NOT PLAYED HERE
+He approved the look in the lab (lightning arcs for his squiggles, the outer glow, crackles escaping). Ported, compiled
+outside Unity with the other session's files (0 errors), both prefabs built and six stills rendered by one hidden batch
+(`docs/stills/orb_in_shift_jam_2026-11-16.png`, no bloom: as this project is today). He had changed no numbers in the lab
+(all defaults on disk), so the look is exactly what he saw.
+- NO SCENE WAS EDITED (the paint-port session is working in this tree). `ShiftSource.Start` calls `ShiftOrbLink.Dress`:
+  a core with no orb gets `Resources/FX/ShiftOrbVisual` hung on it, sized to its body (the wooden sphere's mesh, else
+  its collider), and its old mote, sparks, ember and lights stop drawing (`ShiftSource.RetireLooks` + renderers/lights
+  off; colliders untouched). So the tutorial cores, cores A-D, the Workshop cores and the Pocket Core (amber, via
+  `ShiftOrb.SetGlow`) all change with no rebuild. In the editor's scene view they still show the old mote.
+- `FX/ShiftOrb.cs` = the lab's decoupled one (SetAwake / SetViewer / SetGlow / Strike). `FX/ShiftOrbLink.cs` (new) joins
+  it to the rule: Usable -> awake, Used -> strike, the Shifter and its Scale -> who it stirs for.
+- `Shaders/ShiftOrb.shader` (lightning arcs; `_LinesDrawn` 0 keeps his drawn lines as an option),
+  `Shaders/ShiftOrbAura.shader` + `Data/ShiftOrbAura.mat` (second material on the halo quad), `ShiftOrbBuilder` now makes
+  the visual (radius 1) and the Build Mode piece (`Pieces/Interactables/ShiftOrb`, radius 1.5, not in the catalogue yet).
+- UNCOMMITTED (mine): Art/Orb, the two shaders, Data/ShiftOrb*.mat, FX/ShiftOrb.cs, FX/ShiftOrbLink.cs,
+  Debug/ShiftOrbBuilder.cs, Resources/FX/ShiftOrbVisual.prefab, Pieces/Interactables/ShiftOrb.prefab, ShiftSource.cs
+  (Used event, Start, RetireLooks), docs. Left for his word, beside the other session's paint work.
+HIS PLAYTEST (Greybox, New Game): the toy-box core is a purple crystal with a cyan edge, not the flat mote; stand back
+(calm, a crackle now and then), walk up (it stirs, a bolt flickers out), E (white flare, eight bolts, the shift); the bed
+core the same; a dormant core (wardrobe, core C) is dark glass with an ember until lit; F2: the Pocket Core is amber.
+Judge: size against the old mote (crystal = the wooden sphere's size, halo 5 radii), whether the bolts read at kid size,
+anything left of the old mote or sparks. Tune `Data/ShiftOrbCrystal.mat`, `Data/ShiftOrbAura.mat`, and the ShiftOrb
+numbers on `Resources/FX/ShiftOrbVisual` (the lab stays the place to try things: copy the .mat files across).
+NOT DONE: `CourseBuilder.Core()` and DevToolsBuilder still build the old mote (harmless: it is retired at run time);
+bloom is still 0 in this project; the room-through-the-ball second pass.
 
 ## 16 Nov 2026 09:2x — D-0061 rivals: a 4-car race on the Raceway (grid, 3-2-1-GO, place, results) — UNPLAYED
 Finished and committed locally (the 08:2x checkpoint below called it half-built: no longer). Four cars stand on a grid
@@ -105,6 +348,66 @@ FOUND, NOT FROM THIS WORK, LEFT: a car that rides up over a cone or a toy block 
 the road then counts as a crash: 40 to 49 health in one hit (seen with a cone 0.22 s before the hit; the slot-4 car
 did it on lap 1 after the loop in 3 of the probe's 8 four-car races). It would hit his car the same way. His call (D-0061, last point).
 NEXT: his drive of the race; then the push (his).
+
+## 16 Nov 2026 09:1x — THE ORB HAS ITS OWN LAB PROJECT (his call: this project is held by the rivals session) — NOT PLAYED
+His words: "shift jam is currently being used by another claude instance, lets try opening it up in goblin delivery
+service or flight of the hummingbird or its own project". Made `Dev\Unity Projects\Shift Orb Lab` (Unity 6000.3.10f1):
+this project's ProjectSettings and `Assets/Settings` copied (the ShiftWarp full-screen feature removed from PC_Renderer),
+packages cut to URP + Input System + uGUI, and the orb's files copied WITH their .meta files at the same paths (shader,
+fbx, cut-outs, three materials, OrbGlow.mat + orb_mote.png, Billboard.cs). One hidden batch built the prefab and
+`Scenes/OrbLab.unity` (0 errors); the editor was then opened on it for him.
+- Lab only: `Scripts/Lab/OrbLabViewer.cs` (drag = orbit, scroll = in/out and so "near", Space = strike, D = dormant,
+  B = bloom, H = help), `Scripts/Debug/OrbLabBuilder.cs` (Shift Jam > Lab > Build Orb Lab), `Data/Lab_*.mat`, `Lab_Bloom.asset`.
+- (PORTED 09:3x, entry above.) THE LAB'S `ShiftOrb.cs` WAS THE NEWER ONE: it no longer reads ShiftSource / Shifter; its owner calls `SetAwake`,
+  `SetViewer(transform, size)` and `Strike()`. This project still has the first version (reads ShiftSource itself).
+  When this project is free: copy the lab's ShiftOrb.cs here, add a small link beside the ShiftSource (Used -> Strike,
+  Usable -> SetAwake, the Shifter -> SetViewer with its Scale), add it in ShiftOrbBuilder, rebuild the prefab. Copy back
+  whatever he tunes: `ShiftOrbCrystal.mat` values and the ShiftOrb component numbers.
+- 🔴 FOUND: this project's `Settings/DefaultVolumeProfile` has Bloom at intensity 0, so nothing in the jam blooms today.
+  The lab has its own bloom volume (0.9, threshold 0.95) so he can judge both with B. Turning bloom on here is a
+  whole-game look call: his.
+- 09:3x, LAB ONLY SO FAR (port with the rest): (1) his words "i dont like my squiggles in it, those are essentially
+  representing crackling lightning or charging electricity": `ShiftOrb.shader` now draws five jagged arcs from the
+  core to the glass, each redrawn on its own beat (`_Crackle`), a few at rest (`_LinesRest` = charge at rest), all on a
+  flash; his drawn lines stay as `_LinesDrawn` (0 = off). He saw it: "looks good". (2) his "a bit more outer emission
+  glow and some of those crackles escaping it": new `Shaders/ShiftOrbAura.shader` + `Data/ShiftOrbAura.mat`, a second
+  material on the halo quad (his mote stays first): outer glow + six escaping arcs, driven by the colour ShiftOrb
+  already sends the halo (above 1 = flashing). NOT SEEN YET. ShiftOrbBuilder adds it on a rebuild.
+- The lab is a viewer for this project, not a new game: no docs of its own, no git; this entry is its record.
+
+## 16 Nov 2026 09:0x — SHIFT ORB FIRST PASS BUILT (D-0062): a crystal that stirs and strikes — NOT PLAYED, not in any scene yet
+His brief: "an ethereal warp portal", "Manimekhala's crystal orb or Palantir"; the room-through-the-ball idea is held
+back ("ambitious, lets stick with the first pass first"). Built, compiled outside Unity (0 errors), prefab made and six
+check stills rendered by one hidden batch (`docs/stills/orb_first_pass_2026-11-16.png`; the stills have no bloom):
+- `Shaders/ShiftOrb.shader` (ShiftJam/ShiftOrb, opaque unlit, own depth passes): dark purple glass, bright thin edge, one
+  drawn highlight, mist sampled at four depths along the view ray (real parallax), his dots as stars on two inner shells,
+  his lines as inner lightning (faint at rest, bright on a flash), ember when dormant, white flare on the strike.
+- `Scripts/FX/ShiftOrb.cs`: rest / near / strike / dormant from the ShiftSource above it (new `ShiftSource.Used` event);
+  property blocks only (no material asset writes); bolts hidden at rest, one flickers out when the player is near, all
+  eight burst on use; the bolt ring faces the camera; halo (his mote) and light follow the glow colour.
+- `Scripts/Debug/ShiftOrbBuilder.cs`: Shift Jam > Dev > Build Shift Orb -> `Prefabs/Pieces/Interactables/ShiftOrb.prefab`
+  (trigger + ShiftSource Toggle + ShiftOrb; crystal 3 units across), materials `Data/ShiftOrbCrystal|Bolt|Ink.mat`,
+  cut-outs `Art/Orb/orb_lines.png`, `orb_dots.png` (from his title art, 172 px source: soft up close).
+NOT DONE: no scene holds it, the Build Mode catalogue is not rebuilt, the course cores and the Pocket Core still use the
+old mote (the builders are mid-edit by the rivals work: left alone). All of this is UNCOMMITTED, beside the rivals work.
+HIS PLAYTEST: drag the ShiftOrb prefab into the Workshop (about 2 units above the floor), Play; stand back (calm, a flash
+every few seconds), walk up as the toy (swirl quickens, flashes come fast, a single bolt flickers out), press E (white
+flare, all bolts burst, the shift). Tune on the ShiftOrb component (colours, ranges, timings, Show Ink Outline) and on
+`ShiftOrbCrystal.mat` (mist, edge, highlight, lightning brightness). Judge: purple vs cyan balance, flash brightness,
+whether the bolts read at kid size.
+🔴 Two Claude sessions shared this project today: my batch was refused twice while the rivals probe held the project.
+Check for a running Unity before every batch.
+
+## 16 Nov 2026 08:4x — SHIFT ORB MODEL exported (his Blender work) — MODEL ONLY, nothing in the game uses it yet
+He modelled the orb from his title drawing (`iCloudDrive/Procreate/Shift_Title_V2.png`) in Blender 5.2, step by step:
+`Dev\Blender Projects\orb.blend` (his hand-made state before my pass: `orb_handmade_backup.blend`, same folder). On his ask
+I thickened the bolts' ink ring (0.023 -> 0.045), varied the six bolts from his one traced shape, added two smaller ones
+top and bottom (`Bolt_07`, `Bolt_08`: his to keep or delete), and exported `Assets/_Game/Art/Orb/ShiftOrb.fbx` (untracked,
+Unity was closed: no .meta yet). Contents, checked by re-import: `Orb` (UV sphere r 1, material `Orb_Body`, his purple
+~#4400AE as a placeholder), `Orb Outline` (inside-out shell r 1.06, `Ink_Black`), `Bolt_01..08` (0.15 thick, closed,
+`Bolt_Yellow` face + `Ink_Black` ring and sides, every pivot at the orb's centre, all in one flat plane). Y up, 1 unit = 1.
+The Unity side followed at 09:0x (entry above). He means the orb to replace the shift cores "or some type of
+interactable": cores assumed first, portals not confirmed.
 
 ## 16 Nov 2026 08:2x — CHECKPOINT: the 5-hour limit cut two agents mid-work (resets 11:30) — the rivals were finished after all: see D-0061, 09:2x, at the top
 1. AI RIVALS (D-0061, his "proceed"): [09:2x: FINISHED, PROVEN IN PLAY AND COMMITTED; the entry at the top replaces this item.] As it stood at 08:2x: UNCOMMITTED and UNFINISHED in the tree. New: Race/RaceField, RaceGrid, RacePath, Racer,

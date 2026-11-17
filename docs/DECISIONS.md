@@ -892,6 +892,35 @@
     (D-0058); this second hit is the car's own crash rule and would hit the player's car the same way. Nobody was
     wrecked or needed a rescue.
 
+- **D-0062 (16 Nov, 09:0x) The shift orb is a crystal with something alive inside, calm until it strikes.**
+  (D-0061 is the rivals work, written by its own session.) His drawing's orb, modelled by him in Blender, becomes the
+  replacement for the flat mote on the shift cores. His words: "an ethereal warp portal", "Manimekhala's crystal orb
+  or Palantir"; body "very dark purple"; the flat painted ball was "almost too matte".
+  - Glass, not paint: an opaque unlit shader that works out the inside per pixel (mist at four depths along the view
+    ray, his dots on two inner shells, his lines as a card facing the viewer). Chosen over a see-through glass
+    material: no sorting problems, the same in a lit room and a dark wardrobe, and no real reflections (the glossy
+    marble of D-0014 "read as a lump"). The shine is one drawn highlight, always upper left.
+  - The bolts are the discharge, not decoration: hidden at rest, one flickers when the player is near, all burst on
+    use (Mekhala: the lightning comes out of the crystal). They flicker in 0.05 s steps, hard on and off.
+  - The black outline shell stays in the model but is off: a bright edge suits glass; `Show Ink Outline` turns it on.
+  - Bolts are flat, so their ring turns to face the camera; pivots at the orb's centre, so scale = reach.
+  - Per-orb colours live on the ShiftOrb component and go through property blocks (the Pocket Core can be amber).
+  - Held back by him: the room seen through the ball (upside down, shrunk). Second pass, only if the first one lands.
+  - Not swapped into the course yet: the course and raceway builders were mid-edit by another session.
+  - 16 Nov 09:3x, after he saw it in the lab project:
+    - His squiggles go: "those are essentially representing crackling lightning or charging electricity". The shader
+      draws the lightning itself (five jagged arcs core-to-glass, each redrawn on its own beat, a fork and a touch
+      point); his drawn lines stay behind a slider at 0.
+    - "A bit more outer emission glow and some of those crackles escaping it": an aura shader as a second material on
+      the halo quad. It needs no new script values: it reads the colour ShiftOrb already sends the halo, and anything
+      brighter than 1 means "flashing". It glows without bloom, which matters because this project's bloom is 0.
+    - The orb is put on cores at run time (ShiftSource.Start -> ShiftOrbLink.Dress), not baked into scenes. Why: a
+      second session was working in this tree and Greybox/Workshop could not be re-saved safely; and one rule covers
+      hand-placed cores, built cores and the Pocket Core. Cost: the scene view shows the old mote. Baking it into
+      CourseBuilder.Core() later is optional.
+    - ShiftOrb knows nothing of the game (SetAwake / SetViewer / SetGlow / Strike); ShiftOrbLink is the only file that
+      knows both. That is what let the same script run in the lab project.
+
 - **D-0063 (16 Nov, 09:4x) Paint is an ammo, splats are decals, and the Colour Corner is the first piece of the test room to come over.**
   His words: "lets bring it over to unity for now" (the Godot test room merges into Shift Jam). Ported first: the
   paint ball, its splats, grey-to-colour toys, the soldiers that rub colour off, and the Colour Corner (the
@@ -944,6 +973,15 @@
     colours, the corner grey and then coloured. The paint's hue matches the ball's; it is duller and darker than
     the ball's colour while the corner is grey. Not seen at all: the title button, the readout, the streak in
     flight, the sounds, first person, the kid's size.
+  - 16 Nov 13:2x, after his first look in the Workshop: "the large yellow lightning bolts clash with the cyan
+    lightning aesthetic ... we can save the yellow lightning bolts for something else, i do like them appearing at the
+    end of the shrink and grow animations." So the orb's own lightning is cyan only, and the yellow bolts are the
+    full stop at the end of a shift: around the orb when a core started it, around the player when it was the
+    carried shift. They live in their own component (BoltBurst), so anything else can play them later.
+  - 16 Nov 20:0x: the halo's faint box (found in the lab at 15:3x) is fixed here with the lab's `ShiftOrbMote.shader`
+    on a material of the orb's own, `ShiftOrbMote.mat`. `OrbGlow.mat` stays on the stock shader: here it is shared
+    (Greybox and Workshop glows use it, and the pad glow, Pocket Core, portal swirl and shield bubble are copies of it),
+    and the new shader drops vertex colour and fades at the square's border, which those were not made for.
 - **D-0064 (16 Nov, 14:3x) The player is the test room's player: the Playroom body, its moves, its keys (Stage A of the player port).**
   His words: "examine the testing zone shift characters and mechanics, thats what we need in Shift" and "the play room
   models Male and Female work better with what we've designed in testing zone"; "proceed" on the plan; "lets finish the
@@ -1001,3 +1039,25 @@
     jump); no strike sounds, puffs or hit marker yet; carrying a 0.6 box the wrists end 0.27 short of their marks (the
     new arms are shorter than the old carry asks; D-0042 accepted 0.3 on a pillow): `ThirdPersonGrab`'s carry numbers
     want his eye. Unseen in motion: everything; stills only.
+- **D-0065 (16 Nov, 20:0x) The cameras are the test room's: three third-person views, a wall sweep, the body hidden when the camera is in it (Stage B of the player port).**
+  His "lets finish the player port now"; cut by the usage limit at 14:38 and finished at 20:0x on "let's pick up the work".
+  - **Views.** Wide with empty hands (Shift Jam's own, unchanged), over the shoulder with a weapon drawn, closer and
+    narrower while aim is held. The test room's numbers, turned into body units of the 1.8 body (its body is 1.92 m):
+    1.9 m back = 1.8, 0.8 m to the side = 0.75, 0.3 m higher = 0.28, aim 1.3 m = 1.2, aim view 75 to 55 degrees = a
+    share of 0.73 of the view in use (so the kid's 70 degrees narrows too). Eased by `viewBlend` 8.
+  - **Walls.** One ball, never smaller than the near plane's reach times `wallGap` 1.15, swept in three legs: up from
+    the body's middle, sideways to the shoulder, back. `minDistance` is gone: the camera may come all the way in,
+    and the body is hidden when it does.
+  - **Each leg stops a skin short (0.15 of the ball).** Without it the ball rested on a wall beside the player after
+    the sideways leg, the leg back started in contact (a sphere cast reports that as distance 0) and the camera sat in
+    the player's head beside any wall on the shoulder side. Found by a probe case added at 20:0x; the first run of
+    Stage B did not test a wall beside with nothing behind.
+  - **Own body.** `ShoulderCamera.InsideBody`: the camera closer than `hideBodyWithin` 0.56 to the body's middle line,
+    with 20 % slack on the way back. `BodyFade` fades the body and the weapon in 0.15 s through see-through copies of
+    their materials, then leaves shadows only; parts with other shaders are switched off at the end. A carried prop is
+    not the player's and stays.
+  - **Looking over low things is allowed.** Over the shoulder the pivot is 1.68 up, so the camera can sit beyond a
+    crate 1.5 high beside the player and look over it; the legs are hidden. The probe's sight line is from the head.
+    His eye decides whether that stays.
+  - **Holster is a key.** X no longer needs the mouse captured (it did, through CanAct, which is a click's rule).
+  - **Checked:** probe 64 of 64 at both sizes, 34 failing when sabotaged, four-scene smoke 0 errors. Not played.

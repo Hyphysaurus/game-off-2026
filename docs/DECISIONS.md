@@ -1280,7 +1280,8 @@
       2 of 14 before this landing): 6 bits at the barrel, 8 off a wall; the event and the ticks for a hit (white,
       0.20 s) and for the finishing hit (orange, 0.40 s), none for a wall; a skittle squashes to 0.850 by 1.150 and
       comes back; a dart with its sounds missing still fires, lands and throws its bits. Four scenes 0 errors.
-      Nothing seen or heard: hidden runs. Not played.
+      The feedback part again in the Workshop, which holds no paint keeper of its own (the first shot makes the
+      one that flies the bits): 17 of 17. Nothing seen or heard: hidden runs. Not played.
 - **D-0073 (17 Nov, 10:1x) The car portal is his portal drawing as a model: the swirl turns, a warp sends the small marks out as a ripple.** (D-0071 and D-0072 are held for the weapons port's shot feel and rifle pieces.)
   His third Blender piece after the orb and the star (`Dev\Blender Projects\portal_ring.blend`, over his Procreate
   drawing `Shift_Portal_OG.png`). His words on the model: "the extra bits on the end should be after-effect post

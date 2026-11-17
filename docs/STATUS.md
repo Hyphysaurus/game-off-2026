@@ -30,6 +30,9 @@ heard in this piece: all of it is for his eye and ear.
   over 0.3 s and 0.1 over 0.25 s; the dart carries 3 and 3 sounds and one plays at a landing; a dart with a clip
   that is gone and with none still fires, lands and throws its bits, with no error. Four-scene smoke run after both
   landings: 0 errors in Greybox, Workshop, Raceway and Colour Corner (the Raceway's R still starts the race).
+  The bits and the placed sounds go through the scene's paint keeper, which only the Colour Corner holds; anywhere
+  else the first shot makes it. So the feedback part was run once more in the Workshop: 17 of 17, the first shot
+  made the keeper, no error (Greybox and the Raceway take the same path; not run there).
 - **NOT CHECKED:** nothing was seen or heard (a hidden run draws nothing and is muted); first person was not
   driven; the ammo, camera and hold probes were not re-run after D-0071 (nothing they measure was changed).
 - **OWED FOR HIS EYE AND EAR** (no stills in this piece, no Godot window while he plays): the ticks on screen

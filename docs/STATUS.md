@@ -18,6 +18,33 @@ his "yes bring in one mesh and all of the materials". Landed beside his open edi
 - **Checked:** see D-0068. Stills are in `%TEMP%\sj_star_csc` (`star2_threequarter.png`, `star3_seven_colours.png`).
 - **HIS, open:** a look at the star on the Raceway; which colour stays; the glow strength of each material.
 
+## 16 Nov 2026 22:5x — THE HAND IS ON THE GRIP AND THE GUNS ARE THE PACK'S SIZE (D-0069: measured from the test room) — NOT PLAYED
+His "the animations in the testing zone look better, especially the two hand gun holding". Close-ups of both, side by
+side, showed why:
+- **The hand held the wrong part of every gun.** The builder put each weapon's root (where the fist goes) at the
+  MAGAZINE: 8 cm above the grip's middle on the pistol, 6 cm on the shotgun, 10 cm above and 15 cm ahead on the SMG.
+  The pistol grip hung unheld below the hand. Now the root is the middle of the grip, as the test room finds it from
+  the model (the part hanging below the trigger): pistol (0, -0.041, -0.026), SMG (0, -0.056, -0.027), shotgun
+  (0, -0.031, -0.006) in the model's own space.
+- **The guns had been resized as toys** (pistol 0.89 x, SMG 0.75 x, shotgun 1.18 x the pack). The long shotgun pushed
+  the arms out; the small SMG cramped them. Now all three are the pack's own size, as in the test room.
+- **The gun sat in the fist at the wrong angle** (I had put the barrel straight along the knuckles). Measured on the
+  test room's hand: the barrel tips 25 degrees towards the palm and 8 towards the thumb, the top 33 degrees away from
+  the palm, and the grip's middle is 4.8 cm into the palm from the bone line. Those numbers are now in
+  `Resources/WeaponHold` (Fist Centre, Barrel In Hand, Top In Hand).
+- A long gun's carry and shoulder positions are now measured to the same point as the test room's (its hand prop
+  bone, Grip From Holder), so they sit where its do.
+- The muzzle is at the end of what is fitted on it (the pistol's and the SMG's suppressors), not inside it.
+- `WorkshopPieces` builds the three guns this way on a rebuild (PackSize, Grip, MuzzleReach); the prefabs were edited
+  to match by hand, not rebuilt.
+- **CHECKED:** hold probe 81 of 81; four scenes 0 errors; stills beside the test room's: the aimed and carried
+  shotgun, the aimed pistol and the hands now read the same (`docs/stills/compare_godot_unity_*.jpg`, redone).
+  Measurements by `claude-test-views/probes/compare/measure.gd` (reads only).
+- **NOT CHANGED:** the pickups on the Workshop's tables still show the old toy sizes (their own prefabs); first
+  person's view model offsets were set for the old sizes (the shotgun now looks smaller there, the SMG bigger).
+FOR HIS EYE: the same walk-through as below, with the SMG and the shotgun; say if the motion (walking, running,
+turning with a long gun) still reads worse than the test room's, and where.
+
 ## 16 Nov 2026 22:2x — COMPARED WITH THE TEST ROOM, PICTURE BY PICTURE (D-0068): the gun-out camera corrected, the fingers close on the grip — NOT PLAYED
 His play of the long guns: "needs serious work, compare with the testing zone in godot". I had ported from the test
 room's code without looking at its pictures. Now the same poses are rendered in both and set side by side:

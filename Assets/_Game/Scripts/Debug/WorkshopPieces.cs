@@ -42,6 +42,12 @@ namespace ShiftJam
             public float Damage, Interval, Spread, Knock; public int Pellets; public bool Auto;
             /// <summary>A long gun: held in both hands, carried across the body, raised to the shoulder to aim.</summary>
             public bool TwoHands;
+            /// <summary>A blaster from the Cartoon Weapons pack, kept at the pack's own size (Length is not used): the
+            /// middle of its grip, in the model's own space (measured in the test room from the model: the part that
+            /// hangs below the trigger). The weapon's root is put there, so the fist closes on the grip.</summary>
+            public Vector3 Grip; public bool PackSize;
+            /// <summary>How far what is fitted on the muzzle (a suppressor) reaches past the muzzle marker.</summary>
+            public float MuzzleReach;
             /// <summary>A model standing up (longest side Y) with its tip at the bottom: -Y becomes the tip instead of +Y.</summary>
             public bool TipDown;
             /// <summary>Melee: where the fist closes, as a share of the length from the back end. 0 = 0.1 (a cuff, a pommel).</summary>
@@ -53,9 +59,9 @@ namespace ShiftJam
             // Knife_02 stands ring up, blade tip down: the fist takes the handle just under the finger ring.
             new WeaponSpec { Name = "ToyKnife", Label = "Toy Knife", Model = CW + "Knives/Knife_02.prefab", Kind = Kind.Melee, Length = 0.6f, Damage = 30f, Knock = 7f, TipDown = true, GripAt = 0.35f },
             new WeaponSpec { Name = "FoamFinger", Label = "Foam Finger", Model = BS + "Other/foam_finger_001.prefab", Kind = Kind.Melee, Length = 0.9f, Damage = 20f, Knock = 14f },
-            new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.18f, Spread = 1f, Pellets = 1, Knock = 3f },
-            new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 9f, Interval = 0.7f, Spread = 6f, Pellets = 7, Knock = 4f, TwoHands = true },
-            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 7f, Interval = 0.08f, Spread = 3f, Pellets = 1, Knock = 1.5f, Auto = true, TwoHands = true },
+            new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.18f, Spread = 1f, Pellets = 1, Knock = 3f, PackSize = true, Grip = new Vector3(0f, -0.0412f, -0.0258f), MuzzleReach = 0.1726f },
+            new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 9f, Interval = 0.7f, Spread = 6f, Pellets = 7, Knock = 4f, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0305f, -0.006f) },
+            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 7f, Interval = 0.08f, Spread = 3f, Pellets = 1, Knock = 1.5f, Auto = true, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0556f, -0.0267f), MuzzleReach = 0.0985f },
         };
 
         private static readonly (string name, string model, float height)[] Targets =
@@ -278,6 +284,14 @@ namespace ShiftJam
                     inst.transform.localRotation = Quaternion.Euler(spec.TipDown ? -90f : 90f, 0f, 0f) * inst.transform.localRotation;
             }
             Bounds b = LocalBounds(space, inst);
+            if (spec.PackSize)
+            {
+                // The pack's own size, as the test room has it; the root goes to the middle of the grip (the hand held
+                // the magazine before, 6 to 15 cm from the grip), the muzzle to the end of what is fitted on it.
+                grip = inst.transform.localPosition + inst.transform.localRotation * spec.Grip;
+                tip = (muzzleSocket != null ? space.InverseTransformPoint(muzzleSocket.position) : new Vector3(b.center.x, b.center.y, b.max.z)) + Vector3.forward * spec.MuzzleReach;
+                return;
+            }
             float k = spec.Length / Mathf.Max(1e-4f, b.size.z);
             inst.transform.localScale *= k;
             inst.transform.localPosition *= k;

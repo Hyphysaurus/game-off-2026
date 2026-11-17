@@ -81,7 +81,11 @@ namespace ShiftJam
                 _support = supportPoint;
                 if (_support == Vector3.zero)
                 {
-                    _support = new Vector3(0f, 0.06f, 0.24f);
+                    // Ahead of the model's own origin (the builder hangs the pack's model under "Model"): the grip, which
+                    // is this weapon's root, sits below that origin.
+                    Transform model = transform.Find("Model");
+                    Vector3 origin = model != null && model.childCount > 0 ? toRoot.MultiplyPoint3x4(model.GetChild(0).position) : Vector3.zero;
+                    _support = origin + new Vector3(0f, 0.06f, 0.24f);
                     foreach (Transform child in GetComponentsInChildren<Transform>(true))
                         if (child.name.StartsWith("Place_") && child.name.EndsWith("_BarBottom")) { _support = toRoot.MultiplyPoint3x4(child.position); break; }
                 }

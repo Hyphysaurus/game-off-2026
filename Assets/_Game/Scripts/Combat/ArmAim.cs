@@ -27,6 +27,9 @@ namespace ShiftJam
             /// <summary>The weapon's own motion this frame (the recoil): a turn and a slide.</summary>
             public Quaternion kickTurn;
             public Vector3 kickSlide;
+            /// <summary>From the point the carry and the shoulder positions are measured to (the test room's hand prop
+            /// bone) to the gun's root.</summary>
+            public Vector3 frame;
             /// <summary>A long gun: from the root back to the end of the stock.</summary>
             public float stock;
             /// <summary>A long gun: where the support hand holds, from the root.</summary>
@@ -39,7 +42,7 @@ namespace ShiftJam
         {
             public Transform upper, fore, hand, knuckle;
             public Quaternion upperFix, foreFix;
-            public Vector3 fingers = Vector3.up, thumb = Vector3.forward;
+            public Vector3 fingers = Vector3.up, thumb = Vector3.forward, palm = Vector3.right;
             public Quaternion upperWas, foreWas, handWas;
             public bool ok;
 
@@ -63,8 +66,19 @@ namespace ShiftJam
         public bool Ready => _right.ok;
         /// <summary>True when the body can hold a gun in both hands (a left arm and a chest bone as well).</summary>
         public bool BothHands => _right.ok && _left.ok && _chest != null;
-        /// <summary>The hold worked out from the right hand's own bones: barrel along the knuckles, top towards the thumb.</summary>
-        public Quaternion NaturalGrip { get; }
+        /// <summary>A direction or a point in the right hand's own space, from its parts along the hand's own
+        /// directions: x along the knuckles (from the wrist), y towards the thumb's side, z the way the palm faces.</summary>
+        public Vector3 InHand(Vector3 knucklesThumbPalm) => _right.fingers * knucklesThumbPalm.x + _right.thumb * knucklesThumbPalm.y + _right.palm * knucklesThumbPalm.z;
+
+        /// <summary>How a gun sits in the right hand (gun rotation = hand rotation x this), from where its barrel and its
+        /// top point in the hand's own directions (knuckles, thumb, palm).</summary>
+        public Quaternion Grip(Vector3 barrel, Vector3 top)
+        {
+            Vector3 along = InHand(barrel), up = InHand(top);
+            if (along.sqrMagnitude < 1e-8f) along = _right.fingers;
+            if (up.sqrMagnitude < 1e-8f) up = _right.thumb;
+            return Quaternion.LookRotation(along.normalized, up.normalized);
+        }
         public Transform Hand => _right.hand;
         public Transform Shoulder => _right.upper;
 
@@ -73,7 +87,6 @@ namespace ShiftJam
         public ArmAim(Animator animator, Transform body)
         {
             _body = body;
-            NaturalGrip = Quaternion.identity;
             if (animator == null || !animator.isHuman) return;
             _hips = animator.GetBoneTransform(HumanBodyBones.Hips);
             _chest = animator.GetBoneTransform(HumanBodyBones.UpperChest);
@@ -83,7 +96,9 @@ namespace ShiftJam
             if (_neck == null) _neck = animator.GetBoneTransform(HumanBodyBones.Head);
             Measure(_right, animator, body, HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm, HumanBodyBones.RightHand, HumanBodyBones.RightMiddleProximal, HumanBodyBones.RightThumbProximal);
             Measure(_left, animator, body, HumanBodyBones.LeftUpperArm, HumanBodyBones.LeftLowerArm, HumanBodyBones.LeftHand, HumanBodyBones.LeftMiddleProximal, HumanBodyBones.LeftThumbProximal);
-            if (_right.ok) NaturalGrip = Quaternion.LookRotation(_right.fingers, _right.thumb);
+            // The way each palm faces: fingers x thumb on a right hand, the other way round on a left.
+            _right.palm = Vector3.Cross(_right.fingers, _right.thumb).normalized;
+            _left.palm = Vector3.Cross(_left.thumb, _left.fingers).normalized;
         }
 
         private static void Measure(Arm arm, Animator animator, Transform body, HumanBodyBones upper, HumanBodyBones fore, HumanBodyBones hand, HumanBodyBones knuckle, HumanBodyBones thumb)
@@ -153,8 +168,11 @@ namespace ShiftJam
             Vector3 shoulder = _right.upper.position;
             Vector3 direction = _body.forward;
             if ((target - shoulder).sqrMagnitude > 1e-4f * scale * scale) direction = Limit((target - shoulder).normalized, s);
-            Vector3 pocket = s.shoulderPocket * scale + new Vector3(0f, 0f, hold.stock);
-            Quaternion aimedTurn = BarrelOn(shoulder, pocket, hold.muzzle, target, direction, s);
+            // Everything below places the gun's reference point (hold.frame back from its root): the carry and the
+            // shoulder pocket are measured to it, as in the test room.
+            Vector3 muzzle = hold.frame + hold.muzzle;
+            Vector3 pocket = s.shoulderPocket * scale + new Vector3(0f, 0f, hold.stock - hold.frame.z);
+            Quaternion aimedTurn = BarrelOn(shoulder, pocket, muzzle, target, direction, s);
             Vector3 aimedAt = shoulder + aimedTurn * pocket;
             // Pointed steeply down, the grip would swing back into the belly: the whole gun slides forward instead (the
             // stock leaves the shoulder) and is lined up again from there. A few rounds settle it.
@@ -164,7 +182,7 @@ namespace ShiftJam
                 Vector3 grip = ClearOfBody(aimedAt, aimedTurn * Vector3.forward, s, scale);
                 if ((grip - aimedAt).sqrMagnitude < 1e-10f) break;
                 anchor += grip - aimedAt;
-                aimedTurn = BarrelOn(anchor, pocket, hold.muzzle, target, aimedTurn * Vector3.forward, s);
+                aimedTurn = BarrelOn(anchor, pocket, muzzle, target, aimedTurn * Vector3.forward, s);
                 aimedAt = anchor + aimedTurn * pocket;
             }
 
@@ -176,6 +194,7 @@ namespace ShiftJam
             Vector3 at = Vector3.Lerp(carriedAt, aimedAt, aim);
             at += gun * hold.kickSlide;
             gun *= hold.kickTurn;
+            at += gun * hold.frame;   // from the reference point to the gun's root, where the hands are measured from
 
             // The right hand on the grip.
             Bend(_right, at - gun * hold.seat, gun * Quaternion.Inverse(hold.grip), s.longElbow);

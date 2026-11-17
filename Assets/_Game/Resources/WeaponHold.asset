@@ -23,6 +23,10 @@ MonoBehaviour:
   maxTurn: 80
   bodyHalfWidth: 0.238
   bodyHalfDepth: 0.168
+  fistCentre: {x: 0.0772, y: -0.0041, z: 0.0483}
+  barrelInHand: {x: 0.8963, y: 0.1406, z: 0.4207}
+  topInHand: {x: 0.126, y: 0.8287, z: -0.5453}
+  gripFromHolder: {x: 0, y: -0.02, z: -0.012}
   gripEuler: {x: 0, y: 0, z: 0}
   nearestTrueAim: 4
   holdTime: 0.2

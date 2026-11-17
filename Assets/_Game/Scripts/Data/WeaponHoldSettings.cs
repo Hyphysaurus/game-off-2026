@@ -43,7 +43,15 @@ namespace ShiftJam
         public float bodyHalfDepth = 0.168f;
 
         [Header("The gun in the fist")]
-        [Tooltip("Extra turn of every gun in the hand, degrees, on top of the hold worked out from the hand's bones (barrel along the knuckles, top towards the thumb).")]
+        [Tooltip("Where the middle of a gun's grip sits from the wrist, along the hand's own directions: x along the knuckles, y towards the thumb's side, z the way the palm faces. Rig metres. Measured in the test room (its fist centre on the Playroom hand).")]
+        public Vector3 fistCentre = new Vector3(0.0772f, -0.0041f, 0.0483f);
+        [Tooltip("Which way the barrel points in the hand, the same three directions. Measured in the test room: mostly along the knuckles, tipped towards the palm.")]
+        public Vector3 barrelInHand = new Vector3(0.8963f, 0.1406f, 0.4207f);
+        [Tooltip("Which way the gun's top points in the hand. Measured in the test room: mostly to the thumb's side, tipped away from the palm.")]
+        public Vector3 topInHand = new Vector3(0.126f, 0.8287f, -0.5453f);
+        [Tooltip("From the point a long gun's carry and shoulder positions are measured to, to the middle of its grip, in the gun's axes (the test room's fist centre on its hand prop bone).")]
+        public Vector3 gripFromHolder = new Vector3(0f, -0.02f, -0.012f);
+        [Tooltip("Extra turn of every gun in the hand, degrees, on top of the hold above.")]
         public Vector3 gripEuler;
         [Tooltip("The barrel is lined up on the target itself, not held parallel to the line from the shoulder. Closer than this many times the barrel's distance from that line, the correction fades out.")]
         public float nearestTrueAim = 4f;

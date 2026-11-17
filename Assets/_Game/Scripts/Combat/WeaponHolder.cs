@@ -361,9 +361,10 @@ namespace ShiftJam
             }
             if (ByArm(w))
             {
-                // The gun is fixed in the fist: barrel along the knuckles, top towards the thumb, plus the tuned turns.
-                Quaternion fist = _armAim.NaturalGrip * Quaternion.Euler(_hold.gripEuler) * w.HandRotation;
-                Vector3 inHand = _wears != null ? _wears.Palm(palm) : palm;
+                // The gun is fixed in the fist the way the test room seats it: the middle of its grip at the fist's
+                // centre, the barrel and the top set against the hand's own knuckles, thumb and palm.
+                Quaternion fist = _armAim.Grip(_hold.barrelInHand, _hold.topInHand) * Quaternion.Euler(_hold.gripEuler) * w.HandRotation;
+                Vector3 inHand = _armAim.InHand(_hold.fistCentre);
                 bool both = InBothHands(w);
                 if (both ? _hands > 0f : _raise > 0f)
                 {
@@ -374,6 +375,7 @@ namespace ShiftJam
                         muzzle = w.MuzzleOffset,
                         kickTurn = w.PoseRotation,
                         kickSlide = w.PosePosition * s,
+                        frame = _hold.gripFromHolder * s,
                     };
                     Vector3 target = _raise > 0f ? w.AimPoint() : transform.position + transform.forward * (100f * s);
                     if (both)

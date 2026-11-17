@@ -1148,3 +1148,17 @@
     Playroom rig has two bones a finger, and the humanoid names for a third do not exist on it.
   - **Left as differences, listed in STATUS for his pick:** the guns' sizes and set, the HUD, ammo and reload, shot
     feedback and recoil numbers, mouse-wheel swap, first person, grenades.
+- **D-0069 (16 Nov, 22:5x) A gun's root is the middle of its grip, the guns are the pack's size, and the hold in the fist is the test room's, measured.**
+  His "the animations in testing zone look better, especially the two hand gun holding".
+  - **Root at the grip, not the magazine.** `WorkshopPieces` had used the pack's magazine marker as "the grip". On a
+    pistol that is inside the grip but 8 cm too high; on the long guns it is ahead of and above the grip. The test
+    room finds the grip from the mesh (vertices below the origin within 12 cm of it, the middle stretch); those points
+    are now in each `WeaponSpec.Grip`.
+  - **Pack size.** The toy sizes (`Length`) were a Shift Jam builder choice from before the test room existed; with
+    the test room as the reference they are dropped for the three blasters. Melee keeps `Length`.
+  - **The hold in the fist is data, measured once on the test room's hand** (its prop bone and holder turn, in terms
+    of the hand's knuckles, thumb and palm): `fistCentre`, `barrelInHand`, `topInHand`. My D-0066 guess (barrel along
+    the knuckles, top to the thumb) was 26 and 33 degrees out.
+  - **Mirror note:** Godot's f x t on this rig is the back of the hand; Unity's f x t (mirrored space) is the palm:
+    the third number of each measure changes sign coming over.
+  - **Open:** pickups' own models, first-person offsets, the 5 % on D-0064's move lengths.

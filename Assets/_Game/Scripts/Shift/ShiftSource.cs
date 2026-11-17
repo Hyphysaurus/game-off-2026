@@ -35,6 +35,9 @@ namespace ShiftJam
 
         private int _used;
 
+        /// <summary>Raised each time this core shifts the player (after the size has changed). The orb's strike listens here.</summary>
+        public event System.Action Used;
+
         public bool Dormant { get; private set; }
         public bool Spent => uses > 0 && _used >= uses;
         public bool Usable => !Dormant && !Spent;
@@ -43,6 +46,24 @@ namespace ShiftJam
         {
             Dormant = startDormant;
             ApplyLooks();
+        }
+
+        private void Start()
+        {
+            // Every core wears the shift orb (D-0062). One that was not built with it gets it here, so the course,
+            // the Workshop and the Pocket Core need no rebuild.
+            ShiftOrbLink.Dress(this);
+        }
+
+        /// <summary>Hands the looks to something else (the orb): the old glow, sparks, ember and marble are switched
+        /// off and no longer follow this core's state.</summary>
+        public void RetireLooks()
+        {
+            if (awakeOnly != null) foreach (var go in awakeOnly) if (go != null) go.SetActive(false);
+            if (dormantOnly != null) foreach (var go in dormantOnly) if (go != null) go.SetActive(false);
+            awakeOnly = null;
+            dormantOnly = null;
+            marble = null;
         }
 
         /// <summary>Power on: the core lights up and can be used. Nothing happens if already awake.</summary>
@@ -107,6 +128,7 @@ namespace ShiftJam
             // A core is a battery: using one also refills the shift the player carries (D-0045).
             if (shifter.TryGetComponent(out ShiftCharge charge)) charge.Refill();
             onUsed?.Invoke();
+            Used?.Invoke();
             _used++;
             if (Spent)
             {

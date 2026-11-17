@@ -39,6 +39,8 @@ namespace ShiftJam
             // The carried shift (D-0045) rides on every shifting player; TryGetComponent, since ?? cannot see Unity's fake null.
             if (!TryGetComponent(out ShiftCharge charge)) charge = gameObject.AddComponent<ShiftCharge>();
             charge.Init(settings);
+            // His yellow bolts mark the end of a shift that no core started (D-0062): they ride along the same way.
+            if (!TryGetComponent(out ShiftEndBolts _)) gameObject.AddComponent<ShiftEndBolts>();
             Size = startSize;
             Scale = ScaleOf(Size);
             Apply(Scale);

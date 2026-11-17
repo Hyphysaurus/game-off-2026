@@ -51,6 +51,8 @@ namespace ShiftJam
         private ArmAim _armAim;              // bends the right arm to point the gun
         private float _raise;                // 0 the arm is the animation's (a long gun: carried), 1 it is up and on the crosshair
         private float _hands;                // a long gun: 0 the arms are the animation's, 1 both hands are on the gun
+        private FingerCurl _fist, _support;  // the fingers of the gun hand, and of the hand under a long gun
+        private float _grip;                 // 0 the gun hand is the animation's open hand, 1 it is closed round the grip
         private float _aimTime;              // seconds the arm stays up yet after a shot
         private bool _trigger;               // a click whose shot has not left: it waits for the arm
 
@@ -104,6 +106,8 @@ namespace ShiftJam
             }
             _hold = WeaponHoldSettings.Load();
             _armAim = new ArmAim(animator, transform);   // here, before the Animator poses the arm: it reads the rest pose
+            _fist = new FingerCurl(animator, right: true);
+            _support = new FingerCurl(animator, right: false);
             _audio = gameObject.AddComponent<AudioSource>();
             _audio.playOnAwake = false;
             _audio.spatialBlend = 0.6f;
@@ -124,6 +128,7 @@ namespace ShiftJam
             _arm = 0f;
             _raise = 0f;
             _hands = 0f;
+            _grip = 0f;
             StandDown();
         }
 
@@ -322,6 +327,8 @@ namespace ShiftJam
             bool both = byArm && InBothHands(w);
             _hands = !both ? 0f : _hold.holdTime > 0f ? Mathf.MoveTowards(_hands, Locked ? 0f : 1f, Time.deltaTime / _hold.holdTime) : Locked ? 0f : 1f;
             bool up = !byArm || (_raise >= _hold.raisedAt && (!both || _hands >= _hold.raisedAt));
+            // The fingers close round the grip while a blaster is in the hand.
+            _grip = !byArm ? 0f : _hold.gripTime > 0f ? Mathf.MoveTowards(_grip, 1f, Time.deltaTime / _hold.gripTime) : 1f;
             if (_trigger && up && Time.timeScale > 0f)
             {
                 _trigger = false;
@@ -382,6 +389,9 @@ namespace ShiftJam
                 }
                 Quaternion held = _hand.rotation * fist;
                 w.transform.SetPositionAndRotation(_hand.TransformPoint(inHand) + held * (w.HandOffset * s), held);
+                // The fingers: the gun hand closes round the grip, the other curls under a long gun.
+                _fist.Close(Mathf.SmoothStep(0f, 1f, _grip), _hold.fingerCurl, _hold.triggerCurl, _hold.thumbCurl);
+                if (both) _support.Close(Mathf.SmoothStep(0f, 1f, Mathf.Min(_grip, _hands)), _hold.supportCurl, _hold.supportCurl, 0f);
                 return;
             }
             Quaternion frame;

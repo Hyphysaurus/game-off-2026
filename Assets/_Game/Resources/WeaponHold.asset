@@ -21,21 +21,26 @@ MonoBehaviour:
   maxPitchUp: 60
   maxPitchDown: 85
   maxTurn: 80
-  bodyHalfWidth: 0.225
-  bodyHalfDepth: 0.16
+  bodyHalfWidth: 0.238
+  bodyHalfDepth: 0.168
   gripEuler: {x: 0, y: 0, z: 0}
   nearestTrueAim: 4
   holdTime: 0.2
   longElbow: {x: 0.8, y: -0.7, z: -0.2}
   supportElbow: {x: -0.9, y: -0.6, z: -0.1}
   aimChestTurn: 35
-  shoulderPocket: {x: -0.028, y: -0.056, z: 0.028}
-  carryPosition: {x: 0.11, y: -0.15, z: 0.19}
+  shoulderPocket: {x: -0.03, y: -0.059, z: 0.03}
+  carryPosition: {x: 0.119, y: -0.158, z: 0.198}
   carryLeftDegrees: 40
   carryDownDegrees: 30
   carryChestTurn: 12
-  longestSupportReach: 0.28
-  closestSupport: 0.094
-  palmDepth: 0.028
+  longestSupportReach: 0.297
+  closestSupport: 0.099
+  palmDepth: 0.03
   palmRollDegrees: 35
   fingersAlongBarrel: 0.8
+  gripTime: 0.15
+  fingerCurl: 70
+  triggerCurl: 35
+  thumbCurl: 25
+  supportCurl: 40

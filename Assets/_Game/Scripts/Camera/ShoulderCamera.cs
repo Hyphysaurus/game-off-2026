@@ -35,7 +35,7 @@ namespace ShiftJam
         private WeaponHolder _holder;        // on the target: a drawn weapon picks the view
         private PlayerStance _stance;        // on the target: a crouch lowers the pivot
         private CharacterController _capsule;
-        private float _side, _rise, _reach, _fovScale = 1f, _heightShare = 1f; private bool _viewReady;   // the view now, eased
+        private float _side, _rise, _reach, _armedView, _aimView, _heightShare = 1f; private bool _viewReady;   // the view now, eased
         private float _yaw, _pitch;
         private bool _cursorLocked;
         private readonly RaycastHit[] _hits = new RaycastHit[16];
@@ -232,16 +232,17 @@ namespace ShiftJam
             float wantSide = armed ? settings.armedShoulderOffset : settings.shoulderOffset;
             float wantRise = armed ? settings.armedRise : 0f;
             float wantReach = aiming ? settings.aimDistance : armed ? settings.armedDistance : settings.distance;
-            float wantFov = aiming ? settings.aimFovScale : 1f;
             float wantShare = _stance != null ? _stance.HeightShare : 1f;   // a crouch lowers the pivot with the head
             float ease = _viewReady ? 1f - Mathf.Exp(-Mathf.Max(0.01f, settings.viewBlend) * dt) : 1f;
             _viewReady = true;
             _side = Mathf.Lerp(_side, wantSide, ease);
             _rise = Mathf.Lerp(_rise, wantRise, ease);
             _reach = Mathf.Lerp(_reach, wantReach, ease);
-            _fovScale = Mathf.Lerp(_fovScale, wantFov, ease);
+            _armedView = Mathf.Lerp(_armedView, armed ? 1f : 0f, ease);
+            _aimView = Mathf.Lerp(_aimView, aiming ? 1f : 0f, ease);
             _heightShare = Mathf.Lerp(_heightShare, wantShare, ease);
-            fov *= _fovScale;
+            // The wide view keeps its own field of view (toy or kid); a weapon out and aim each have theirs, at either size.
+            fov = Mathf.Lerp(Mathf.Lerp(fov, settings.armedFieldOfView, _armedView), settings.aimFieldOfView, _aimView);
 
             Quaternion rotation = Quaternion.Euler(_pitch, _yaw, 0f);
             Quaternion heading = Quaternion.Euler(0f, _yaw, 0f);

@@ -7,7 +7,8 @@ namespace ShiftJam
     /// hand. A pistol: at rest the arm is the animation's and the gun hangs with it; while aim is held, and for a moment
     /// after each shot, the arm comes up and points the gun at the crosshair. A long gun (Weapon > Two Handed): both
     /// hands stay on it; it is carried low across the body and comes up to the shoulder to aim. Lengths are in the
-    /// player's own units (the 1.8 body) and scale with the shift. Lives at Resources/WeaponHold; without the asset
+    /// player's own units and scale with the shift; the test room's metres turn into these at 0.99 (the same rig,
+    /// fitted at 0.99 of the pack's size). Lives at Resources/WeaponHold; without the asset
     /// these defaults are used.
     /// </summary>
     [CreateAssetMenu(menuName = "Shift Jam/Weapon Hold Settings", fileName = "WeaponHold")]
@@ -36,10 +37,10 @@ namespace ShiftJam
         public float maxTurn = 80f;
 
         [Header("Keeping the hand out of the body")]
-        [Tooltip("The body seen from above, an oval round the hips: half its width (the test room: 0.24 m on a 1.92 m body).")]
-        public float bodyHalfWidth = 0.225f;
+        [Tooltip("The body seen from above, an oval round the hips: half its width (the test room: 0.24 m).")]
+        public float bodyHalfWidth = 0.238f;
         [Tooltip("How far the oval's front is from its middle (the test room: 0.17 m).")]
-        public float bodyHalfDepth = 0.16f;
+        public float bodyHalfDepth = 0.168f;
 
         [Header("The gun in the fist")]
         [Tooltip("Extra turn of every gun in the hand, degrees, on top of the hold worked out from the hand's bones (barrel along the knuckles, top towards the thumb).")]
@@ -59,11 +60,11 @@ namespace ShiftJam
         [Tooltip("Degrees the chest turns to the right so the support shoulder comes forward. The head stays facing forward.")]
         public float aimChestTurn = 35f;
         [Tooltip("Where the end of the stock sits from the right shoulder, in the gun's own axes: x to the gun's right (negative is towards the middle of the chest), y up, z forward.")]
-        public Vector3 shoulderPocket = new Vector3(-0.028f, -0.056f, 0.028f);
+        public Vector3 shoulderPocket = new Vector3(-0.03f, -0.059f, 0.03f);
 
         [Header("A long gun: carried")]
         [Tooltip("Where the grip sits from the chest bone, in the body's own space: x right, y up, z forward.")]
-        public Vector3 carryPosition = new Vector3(0.11f, -0.15f, 0.19f);
+        public Vector3 carryPosition = new Vector3(0.119f, -0.158f, 0.198f);
         [Tooltip("The barrel points this many degrees to the left.")]
         public float carryLeftDegrees = 40f;
         [Tooltip("The barrel points this many degrees down.")]
@@ -73,15 +74,27 @@ namespace ShiftJam
 
         [Header("A long gun: the support hand")]
         [Tooltip("The support hand never holds further forward of the grip than this, so short arms can reach it.")]
-        public float longestSupportReach = 0.28f;
+        public float longestSupportReach = 0.297f;
         [Tooltip("Out of reach, the hold slides back along the barrel towards the grip, but never closer to it than this.")]
-        public float closestSupport = 0.094f;
+        public float closestSupport = 0.099f;
         [Tooltip("How far the palm's middle sits from the gun.")]
-        public float palmDepth = 0.028f;
+        public float palmDepth = 0.03f;
         [Tooltip("Degrees the palm rolls round the barrel towards the support side, so the hand cups the gun from below and beside it. 0 puts the hand flat underneath.")]
         public float palmRollDegrees = 35f;
         [Tooltip("How strongly the support hand's fingers point along the barrel instead of simply following the forearm.")]
         public float fingersAlongBarrel = 0.8f;
+
+        [Header("The fingers")]
+        [Tooltip("Seconds for the fingers to close round the grip, or open (the test room: 0.15).")]
+        public float gripTime = 0.15f;
+        [Tooltip("Degrees each bone of the three gripping fingers bends towards the palm (the test room: 70).")]
+        public float fingerCurl = 70f;
+        [Tooltip("The trigger finger bends less, so it rests on the trigger instead of wrapping the grip (the test room: 35).")]
+        public float triggerCurl = 35f;
+        [Tooltip("Degrees the thumb folds across the grip (the test room: 25).")]
+        public float thumbCurl = 25f;
+        [Tooltip("A long gun: degrees each bone of the support hand's four fingers bends under the barrel (the test room: 40). Its thumb is left as the animation has it.")]
+        public float supportCurl = 40f;
 
         private static WeaponHoldSettings _defaults;
 

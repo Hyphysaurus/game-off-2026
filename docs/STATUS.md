@@ -18,6 +18,44 @@ his "yes bring in one mesh and all of the materials". Landed beside his open edi
 - **Checked:** see D-0068. Stills are in `%TEMP%\sj_star_csc` (`star2_threequarter.png`, `star3_seven_colours.png`).
 - **HIS, open:** a look at the star on the Raceway; which colour stays; the glow strength of each material.
 
+## 16 Nov 2026 22:2x — COMPARED WITH THE TEST ROOM, PICTURE BY PICTURE (D-0068): the gun-out camera corrected, the fingers close on the grip — NOT PLAYED
+His play of the long guns: "needs serious work, compare with the testing zone in godot". I had ported from the test
+room's code without looking at its pictures. Now the same poses are rendered in both and set side by side:
+`docs/stills/compare_godot_unity_pistol.jpg`, `_shotgun.jpg`, `_rifle_vs_smg.jpg` (Godot left, Shift Jam right; the
+game's own view, the side, the hands close up). Godot stills by `claude-test-views/probes/compare/shots.gd` from the
+no-focus twin (reads only).
+- **WHAT THE PICTURES SHOWED WRONG HERE, AND IS NOW FIXED:**
+  - **The camera with a gun out was about 30 % tighter than the test room's.** D-0065 kept Shift Jam's 60 degree view
+    and narrowed it to 0.73 on aim; the test room uses 75 with a gun out and 55 on aim. Now `CameraSettings` has
+    `Armed Field Of View` 75 and `Aim Field Of View` 55 (either size); the wide view keeps its own.
+  - **Every length taken from the test room was 5 % short.** D-0064 to D-0067 turned its metres into "units of the
+    1.8 body" (x 0.9375, the capsules' ratio). The bodies are the same rig, fitted here at 0.99: the right factor is
+    0.99. Corrected: gun-out camera 1.88 back, 0.79 to the side, 0.28 up, aim 1.29; the hold's body oval, shoulder
+    pocket, carry position and support-hand numbers (`Resources/WeaponHold`). NOT corrected: D-0064's move lengths
+    (roll, reach, crouch speed), which carry the same 5 %: his call.
+  - **The hands were open.** `Combat/FingerCurl.cs` (the test room's HandGrip): the gun hand's three fingers bend 70
+    degrees a bone, the trigger finger 35, the thumb folds 25; the support hand's four fingers 40 under a long gun.
+    From the rest pose, so the grip is the same over every clip; 0.15 s to close. Numbers in `WeaponHold` > The fingers.
+- **CHECKED:** hold probe 81 of 81 (the 10 finger checks failed first: hands 1.00 open, now 0.81 and 0.92); camera
+  probe 64 of 64 on the new numbers; four scenes 0 errors; the game views now sit on the test room's (same place and
+  size of the head and the gun on screen, aim and gun-out).
+- **WHAT STILL DIFFERS FROM THE TEST ROOM (seen in the pictures or in its STATUS), not done:**
+  1. **The guns themselves.** Here: Dart Pistol, Dart SMG, Dart Shotgun, resized as toys (the shotgun 1.18 x the
+     pack's size, the SMG 0.75 x). There: pistol, rifle, shotgun, sniper at the pack's own size. The shotgun reads
+     bigger here; there is no rifle or sniper here and no SMG there.
+  2. **The HUD.** There: ammo count ("12 / 48"), the weapon's and the ammo's name, grenades, a dot crosshair, a hit
+     marker. Here: a small cross only.
+  3. **Ammo and reload** (magazines and reserves, R, the reload pose, ammo boxes): not here.
+  4. **Shot feedback** (hit marker, burst of bits, squash, muzzle puff, the test room's sounds) and its recoil numbers
+     (4 degrees and 0.03 x each gun's recoil; here 10 degrees and 0.06 for every gun).
+  5. **Mouse wheel** swaps weapons there; here 1 / 2.
+  6. **First person**: there the gun sits low in view and right mouse brings its sight to the eye; here the old
+     floating view model.
+  7. **Grenades** (G) and the slower walk with a heavy gun: not here.
+  8. **Not comparable from stills:** how the hold moves while walking, running, crouching and turning. His eye.
+TO PLAY: as the entries below; look for the wider view with a gun out, the closed hands, and say which of 1 to 8
+matter most.
+
 ## 16 Nov 2026 21:5x — THE LONG GUNS ARE IN BOTH HANDS (D-0067: SMG and shotgun carried across the body, raised to the shoulder; the test room's rule) — NOT PLAYED
 His "now the two handed long guns". Built outside the project, landed with the editor closed, headless only.
 - **Both hands stay on a long gun while it is out** (`Weapon > Two Handed`, on for the Dart SMG and the Dart Shotgun).

@@ -3,8 +3,9 @@ using UnityEngine;
 namespace ShiftJam
 {
     /// <summary>
-    /// The third-person camera, as numbers. Lengths are in the player's own units (a toy is 1.8 tall) and scale with the
-    /// shift. Three views, eased into one another: wide with empty hands (Framing), over the shoulder with a weapon
+    /// The third-person camera, as numbers. Lengths are in the player's own units and scale with the shift. The test
+    /// room's metres turn into these at 0.99: the body here is the same rig, fitted at 0.99 of the pack's size (the
+    /// capsules differ, 1.8 against 1.92, but the bodies do not). Three views, eased into one another: wide with empty hands (Framing), over the shoulder with a weapon
     /// drawn, and closer while aim is held. The kid multipliers apply to all three.
     /// </summary>
     [CreateAssetMenu(menuName = "Shift Jam/Camera Settings", fileName = "CameraSettings")]
@@ -19,18 +20,20 @@ namespace ShiftJam
         public float fieldOfView = 60f;
 
         [Header("Weapon drawn: over the shoulder (the test room's numbers as body heights of a 1.8 body)")]
-        [Tooltip("How far behind the pivot the camera sits with a weapon drawn (the test room: 1.9 m on a 1.92 m body).")]
-        public float armedDistance = 1.8f;
+        [Tooltip("How far behind the pivot the camera sits with a weapon drawn (the test room: 1.9 m).")]
+        public float armedDistance = 1.88f;
         [Tooltip("Sideways offset of the pivot with a weapon drawn (the test room: 0.8 m).")]
-        public float armedShoulderOffset = 0.75f;
-        [Tooltip("How much higher the pivot sits with a weapon drawn (the test room: 0.3 m).")]
+        public float armedShoulderOffset = 0.79f;
+        [Tooltip("How much higher the pivot sits with a weapon drawn (the test room: 0.3 m, its pivot 1.7 m up).")]
         public float armedRise = 0.28f;
+        [Tooltip("Field of view with a weapon drawn, degrees, at either size (the test room: 75). The wide view keeps Field Of View and Kid Field Of View.")]
+        public float armedFieldOfView = 75f;
 
         [Header("Aim held")]
         [Tooltip("How far behind the pivot the camera sits while aim is held (the test room: 1.3 m).")]
-        public float aimDistance = 1.2f;
-        [Range(0.3f, 1f), Tooltip("The field of view while aim is held, as a share of the view's own (the test room narrows 75 to 55).")]
-        public float aimFovScale = 0.73f;
+        public float aimDistance = 1.29f;
+        [Tooltip("Field of view while aim is held, degrees, at either size (the test room: 55).")]
+        public float aimFieldOfView = 55f;
         [Tooltip("How quickly the camera moves between the views. Higher is snappier.")]
         public float viewBlend = 8f;
 

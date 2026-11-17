@@ -1133,3 +1133,18 @@
     wide, 1.14 tall, 0.39 thick, middle at 1.05; pink and bold put on the prefab by hand each outlived a rebuild and
     the floor glow followed; stills of the star and of the seven in a row looked at (a bare preview room, not the
     Raceway's light). Not seen on the Raceway, not driven through.
+- **D-0068 (16 Nov, 22:2x) Ports from the test room are checked against its pictures, and its metres turn into our units at 0.99.**
+  His "needs serious work, compare with the testing zone in godot" after trying D-0067.
+  - **The rule from now:** a port is not done on matching numbers. The same poses are rendered in the test room
+    (`claude-test-views/probes/compare/shots.gd`, the no-focus twin) and here, and laid side by side
+    (`docs/stills/compare_godot_unity_*.jpg`). D-0065 to D-0067 were checked only against their own numbers.
+  - **0.99, not 0.9375.** The earlier ports scaled lengths by the capsules (1.8 / 1.92). The Playroom body is the same
+    rig in both projects; here it is fitted at 0.99 of the pack's size (`PlayerBody.asset` fit). Camera and hold
+    numbers are corrected. D-0064's move lengths are not (his call: they change how far a roll goes).
+  - **The gun-out camera's field of view is the test room's** (75, aim 55, at either size), not a share of Shift
+    Jam's 60: with the same distances, 60 framed the player a third larger than the test room does.
+  - **Fingers** (`FingerCurl`): the test room's curls (70 / 35 / 25, support 40), bent from the rest pose. The axis is
+    worked out from the hand (fingers x palm), and the second bone of each finger is the next one down the chain: the
+    Playroom rig has two bones a finger, and the humanoid names for a third do not exist on it.
+  - **Left as differences, listed in STATUS for his pick:** the guns' sizes and set, the HUD, ammo and reload, shot
+    feedback and recoil numbers, mouse-wheel swap, first person, grenades.

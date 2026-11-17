@@ -20,8 +20,9 @@ namespace ShiftJam
 
     /// <summary>
     /// Health for anything that can be hit: the player, cars, practice targets, toy soldiers. Takes a DamageInfo, ignores
-    /// hits during a short invulnerability window, flashes the renderers, passes the shove on (Rigidbody, PlayerMotor or the
-    /// first-person body) and announces damage and death. It does not decide what death means: listeners do.
+    /// hits during a short invulnerability window, flashes the renderers, squashes for a moment if it is set to, passes
+    /// the shove on (Rigidbody, PlayerMotor or the first-person body) and announces damage and death. It does not
+    /// decide what death means: listeners do.
     /// </summary>
     public sealed class Damageable : MonoBehaviour, IResettable
     {
@@ -31,6 +32,9 @@ namespace ShiftJam
         [SerializeField, Tooltip("Seconds after a hit during which further hits are ignored.")] private float invulnerability = 0.1f;
         [SerializeField, Tooltip("Colour the renderers flash on a hit.")] private Color flashColor = new Color(1f, 0.45f, 0.2f);
         [SerializeField] private float flashSeconds = 0.1f;
+        [SerializeField, Range(0f, 0.5f), Tooltip("How far it squashes when hit, as a share of its height: flat and wide at the hit, then it springs back (the test room: a target 0.15, a figure 0.1). 0 = it does not squash.")] private float squash;
+        [SerializeField, Min(0.01f), Tooltip("Seconds the squash takes to spring back (the test room: a target 0.3, a figure 0.25).")] private float squashSeconds = 0.3f;
+        [SerializeField, Tooltip("The part that squashes. Empty: the first child (never this object itself: its colliders would squash with it).")] private Transform squashPart;
         [SerializeField, Tooltip("Pass the hit's shove on to this object's Rigidbody or motor.")] private bool takeKnockback = true;
         [SerializeField, Tooltip("Float the damage taken above the hit point.")] private bool showNumbers;
         [SerializeField, Tooltip("Seconds after death before health refills by itself. 0 = stays dead until reset.")] private float refillAfterDeath;
@@ -88,6 +92,7 @@ namespace ShiftJam
             Health = Mathf.Max(0f, Health - hit.Amount);
             _safeUntil = Time.time + invulnerability;
             Flash();
+            if (squash > 0f) Squash.Hit(squashPart != null ? squashPart : transform.childCount > 0 ? transform.GetChild(0) : null, squash, squashSeconds);
             if (takeKnockback && hit.Knock.sqrMagnitude > 0f) Knockback.Apply(gameObject, hit.Knock, hit.Point, hit.Loose);
             if (showNumbers) DamageNumbers.Show(hit.Point, hit.Amount, Mathf.Max(0.01f, transform.lossyScale.y));
             Damaged?.Invoke(hit);

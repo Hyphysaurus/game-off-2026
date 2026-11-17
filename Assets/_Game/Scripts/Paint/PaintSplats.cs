@@ -40,6 +40,10 @@ namespace ShiftJam
         /// <summary>Every paint decal in the scene, those fading out included.</summary>
         public int Decals => _book.Count;
         public int DropsInAir => _drops.InAir;
+        /// <summary>Bits in the air now: paint bursts, a dart's bits, the puff at a barrel (for checks).</summary>
+        public int BitsInAir => _drops.BitsInAir;
+        /// <summary>Placed sounds played since the scene began (for checks).</summary>
+        public int Sounds { get; private set; }
         /// <summary>Balls that broke, and skips that left a mark, since the scene began (Clear does not zero them).</summary>
         public int Breaks { get; private set; }
         public int Marks { get; private set; }
@@ -195,6 +199,7 @@ namespace ShiftJam
         public void Play(AudioClip clip, Vector3 point, float volume = 1f)
         {
             if (clip == null) return;
+            Sounds++;
             float spread = Mathf.Max(_settings.pitchSpread, 1f);
             _audio.transform.position = point;
             _audio.pitch = Mathf.Pow(spread, Random.Range(-1f, 1f));

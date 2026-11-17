@@ -11,6 +11,9 @@ namespace ShiftJam
     /// shooter's size (the test room's rule: a crate slides as far as the square of the shove, so that carries it
     /// about as many kid sizes as a toy's shot carries it toy sizes; all of it threw crates across the room).
     /// The weapon that fires it can make it faster or slower (its Shot Speed).
+    /// Each kind of ammo carries its own feedback, as in the test room: the sounds of the shot and of the landing, and
+    /// the small bits thrown off where it lands. Whoever fired it is told when it lands on something with health
+    /// (GameEvents.ShotLanded: the hit marker).
     /// Another kind of ammo (the paint ball) extends this and changes only what happens at a hit: it can glance off
     /// before the hit counts (Deflects) and leave something behind after it (OnLanded).
     /// </summary>
@@ -22,10 +25,21 @@ namespace ShiftJam
         [SerializeField, Tooltip("Downward pull, units per second squared at scale 1. 0 = flies straight.")] private float drop = 2f;
         [SerializeField, Tooltip("Turn the visual to face the way it flies (darts). Off for round pellets.")] private bool faceTravel = true;
         [SerializeField] private LayerMask hitMask = ~0;
+        [Header("Feedback (each kind of ammo carries its own, as in the test room)")]
+        [SerializeField, Tooltip("A gun firing this ammo plays one of these. Licensed clips under _Imports: with none, or with the clips gone, the gun's own Fire Clip plays, or nothing.")] private AudioClip[] fireClips = System.Array.Empty<AudioClip>();
+        [SerializeField, Tooltip("One of these plays where the shot lands. None: it lands silently (paint plays its own).")] private AudioClip[] hitClips = System.Array.Empty<AudioClip>();
+        [SerializeField, Range(0f, 1f), Tooltip("How loud the landing is.")] private float hitVolume = 1f;
+        [SerializeField, Min(0), Tooltip("Small bits thrown off the surface where the shot lands (the test room's dart: 8). 0 = none (paint throws its own).")] private int burstAmount;
+        [SerializeField, Tooltip("The bits' colour.")] private Color burstColour = Color.white;
+        [SerializeField, Tooltip("How fast the fastest bit flies, units per second at scale 1 (the test room's dart: 2.5).")] private float burstSpeed = 3f;
+        [SerializeField, Tooltip("A bit's radius, units at scale 1 (the test room: 0.035).")] private float burstSize = 0.035f;
+        [SerializeField, Tooltip("How fast the bits fall, units per second squared at scale 1 (the test room: 9).")] private float burstGravity = 9f;
+        [SerializeField, Tooltip("Seconds a bit lasts (the test room: 0.45).")] private float burstSeconds = 0.45f;
 
         private static readonly Dictionary<Projectile, Stack<Projectile>> Pools = new Dictionary<Projectile, Stack<Projectile>>();
         private static readonly List<Projectile> Live = new List<Projectile>();
         private static Transform _poolRoot;
+        private static int _hitSoundFrame = -1;   // the frame a landing last sounded: pellets landing together make one sound
 
         private readonly RaycastHit[] _hits = new RaycastHit[16];
         private Projectile _prefab;
@@ -53,6 +67,17 @@ namespace ShiftJam
             }
             shot.Launch(position, direction, damage, knock, scale, owner, ownerAlt, speedScale);
             return shot;
+        }
+
+        /// <summary>One of this ammo's firing sounds, for the gun that fires it; null when it has none, or the clip is
+        /// not in the project.</summary>
+        public AudioClip FireClip() => Pick(fireClips);
+
+        private static AudioClip Pick(AudioClip[] clips)
+        {
+            if (clips == null || clips.Length == 0) return null;
+            AudioClip clip = clips[Random.Range(0, clips.Length)];
+            return clip != null ? clip : null;   // a clip that is gone is not null to C#: hand back a real null
         }
 
         /// <summary>Puts every flying shot back in its pool (the Workshop reset).</summary>
@@ -106,6 +131,24 @@ namespace ShiftJam
             else Destroy(gameObject);
         }
 
+        /// <summary>What a landing shows and sounds like: a few bits thrown off the surface, and a sound there.</summary>
+        private void Landed(in RaycastHit hit, Vector3 point, Vector3 dir)
+        {
+            AudioClip clip = Pick(hitClips);
+            if (burstAmount <= 0 && clip == null) return;
+            PaintSplats keeper = PaintSplats.InScene();   // the scene's paint keeper flies every puff of bits and plays the placed sounds
+            if (burstAmount > 0)
+            {
+                Vector3 off = hit.distance > 0f && Vector3.Dot(hit.normal, dir) < 0f ? hit.normal : -dir;   // the side the shot came from
+                keeper.Puff(point + off * (0.03f * _scale), off, burstColour, burstAmount, burstSpeed * _scale, burstSize * _scale, burstGravity * _scale, burstSeconds);
+            }
+            if (clip != null && _hitSoundFrame != Time.frameCount)
+            {
+                _hitSoundFrame = Time.frameCount;
+                keeper.Play(clip, point, hitVolume);
+            }
+        }
+
         private bool IsOwner(Transform t) =>
             (_owner != null && t.IsChildOf(_owner)) || (_ownerAlt != null && t.IsChildOf(_ownerAlt));
 
@@ -137,8 +180,12 @@ namespace ShiftJam
                 Vector3 shove = (dir + Vector3.up * 0.3f) * (_knock * _scale);
                 float loose = 1f / Mathf.Sqrt(_scale);
                 var health = Damageable.Find(hit.collider);
-                if (health != null) health.Hit(new DamageInfo(_damage, shove, point, _owner, loose));
+                bool counted = false;
+                if (health != null) counted = health.Hit(new DamageInfo(_damage, shove, point, _owner, loose));
                 else Knockback.Apply(hit.collider.gameObject, shove, point, loose);
+                Landed(hit, point, dir);
+                // Whoever fired it is told that it landed on something with health, and whether that finished it.
+                if (counted && _owner != null && _owner.TryGetComponent(out WeaponHolder holder)) GameEvents.RaiseShotLanded(holder, health.Dead);
                 OnLanded(hit, point);
                 Recycle();
                 return;

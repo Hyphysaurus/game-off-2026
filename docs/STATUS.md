@@ -2,6 +2,48 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 17 Nov 2026 10:4x — SHOT FEEL, WHAT A SHOT SHOWS AND SOUNDS LIKE (D-0071, second landing: hit marker, puff at the barrel, bits and squash where a dart lands, the dart's sounds) — NOT PLAYED, NOT SEEN, NOT HEARD
+On top of the numbers (the entry below), built headless while he was in AoE4. No picture was taken and no sound was
+heard in this piece: all of it is for his eye and ear.
+- **Hit marker.** Four short ticks round the crosshair flash white when one of your shots lands on something with
+  health, and bigger, longer (0.4 s against 0.2) and orange when that hit finishes it. Third and first person, darts
+  and paint. A wall or a loose prop gives none. Sizes, colours and times: `Resources/WeaponAmmo` > The hit marker.
+- **A puff at the barrel** on every shot: 6 pale bits along the shot, gone in 0.2 s (`WeaponAmmo` > A shot leaving).
+- **Where a dart lands:** 8 pale blue bits fly off the surface, and it makes a sound. Each kind of ammo carries its
+  own (`Prefabs/Combat/FoamDart.prefab` > Feedback); paint keeps its own splat, bits and sounds, untouched.
+- **What is hit squashes** flat and wide for a moment and springs back: the practice bear and skittle by 0.15, the
+  toy soldier and the mischief soldier by 0.1 (`Damageable` > Squash; 0 = off, which the player and the cars are).
+  Any hit does it, a punch too.
+- **The dart's sounds:** three for the shot and three for the landing, the test room's (Case Portman's pack, his
+  licence, under `_Imports`, never in git). A copy of the project without them is silent and runs the same.
+  Pellets landing in the same frame make one sound, not eight on top of each other.
+- **What each new part owns:** `FX/Squash.cs` the squash and its spring; `Projectile` > Feedback an ammo's sounds
+  and bits; `GameEvents.ShotLanded` says a shot landed on something with health (and whether it finished it);
+  `UI/WeaponHud.cs` shows the ticks. The bits fly in the paint's own bit system (`PaintSplats.Puff`); bits that do
+  not fall (the puff) got a system of their own there, so a puff cannot stop a paint burst's bits falling.
+- **CHECKED:** the shot probe, all of it, after both landings: 64 of 64 (numbers 48 of 48, feedback 16 of 16; the
+  feedback part stood at 2 of 14 before this landing, and two checks came with the sound files). Measured: 6 bits at
+  the barrel as a shot leaves, none 0.45 s later; 8 bits off a wall, none while the dart flew; a wall raises no
+  event and no ticks; a hit on something with health raises the event once and the ticks flash white for 0.20 s;
+  the hit that finishes it raises it as finished and they flash orange for 0.40 s; a practice skittle squashes to
+  0.850 of its height and 1.150 of its width and is back to its own shape 0.7 s later; the four pieces carry 0.15
+  over 0.3 s and 0.1 over 0.25 s; the dart carries 3 and 3 sounds and one plays at a landing; a dart with a clip
+  that is gone and with none still fires, lands and throws its bits, with no error. Four-scene smoke run after both
+  landings: 0 errors in Greybox, Workshop, Raceway and Colour Corner (the Raceway's R still starts the race).
+- **NOT CHECKED:** nothing was seen or heard (a hidden run draws nothing and is muted); first person was not
+  driven; the ammo, camera and hold probes were not re-run after D-0071 (nothing they measure was changed).
+- **OWED FOR HIS EYE AND EAR** (no stills in this piece, no Godot window while he plays): the ticks on screen
+  (size, how long, the orange) beside the test room's; the puff and the bits beside the test room's; the squash in
+  motion; every sound, and how loud next to the paint's. And still owed from D-0070: Shift Jam's side of the reload
+  stills (the test room's 27 are shot: `AppData\Roaming\Godot\app_userdata\testing-zone-view\reload`).
+TO PLAY: Workshop: shoot a practice bear with the pistol until it falls (white ticks, then orange; it squashes; bits;
+sounds). Shoot a wall (bits and a sound, no ticks). Watch the barrel for the puff. Shotgun into a wall close up.
+V for first person: the same. Colour Corner with paint: ticks on the mischief soldier.
+FOR HIS EYE: the ticks' size and time; whether the puff reads at all at 6 small bits, and with the SMG; the squash
+amounts; each sound and its loudness; the SMG as a gun (the entry below).
+NOT YET (the next pieces): the rifle, the sniper and bubbles (D-0072); grenades; first-person arms and sights; the
+dart's bright streak; the rooms.
+
 ## 17 Nov 2026 10:3x — SHOT FEEL, THE NUMBERS (D-0071: the guns fire, kick and weigh as the test room's; the mouse wheel swaps weapons) — NOT PLAYED
 The next piece of the weapons port, built headless while he was in AoE4. Every number was read from the test room's
 code and weapon files; its game was not run.
@@ -42,16 +84,16 @@ code and weapon files; its game was not run.
   the gun in the hand 4.15, 3.54 and 9.08; the kick settles at 14.0 a second; the walk is 1.00, 0.96 and 0.90 of
   normal; the wheel swaps both ways and does nothing with the gun put away; no errors in the run. The hold probe
   was run once before the work, on the D-0070 code: 81 of 81 (the reload pose broke nothing in the hold).
-- **NOT RUN YET:** the four-scene smoke run (once, when the feedback landing is in). **NOT RE-RUN:** the ammo and
-  camera probes (nothing they measure changed) and the hold probe after this landing. First person was not driven by
+- **The four-scene smoke run** came after the feedback landing (the entry above): 0 errors. **NOT RE-RUN:** the ammo
+  and camera probes (nothing they measure changed) and the hold probe after this landing. First person was not driven by
   the probe: its kick reads the same two values the probe measured.
 TO PLAY: Colour Corner or Workshop: fire each gun at a wall and watch the barrel; hold the SMG's trigger; walk with
 the shotgun out, then put it away (X) and walk again; roll the mouse wheel with two guns; shoot a loose prop as a toy,
 then as a kid.
 FOR HIS EYE: the SMG's new character; the pistol's kick (4 degrees, it was 10) and the shotgun's (8.8); whether the
 slower walk can be felt (10 % and 4 %); the wheel's direction; the slower dart with more drop.
-NOT YET: what a shot shows and sounds like (hit marker, puff at the barrel, bits and squash where it lands, the
-dart's sounds) is the next landing; then the rifle, the sniper and bubbles; then grenades and first person.
+NEXT: what a shot shows and sounds like landed right after (the entry above); then the rifle, the sniper and
+bubbles; then grenades and first person.
 
 ## 17 Nov 2026 10:1x — THE CAR PORTAL IS HIS PORTAL DRAWING (D-0073) — NOT PLAYED: no warp, spin or ripple seen in motion
 His "let's finish the portal", then "proceed, do it headless since im in aoe4". Built with Unity closed, in hidden

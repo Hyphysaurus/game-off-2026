@@ -7,16 +7,18 @@ namespace ShiftJam
     /// <summary>
     /// The gun in hand on screen, after the test room's: the rounds in the gun and in reserve ("12 / 48", or RELOADING),
     /// the gun's name and the loaded ammo's name under it, and a dot crosshair in the middle (third person; first
-    /// person draws its own). The count turns to a warning colour when the magazine is nearly empty. Shown only while a
+    /// person draws its own), with a hit marker round it: four short ticks that flash when one of the holder's shots
+    /// lands on something with health, bigger, longer and in another colour when that hit finishes it off (both
+    /// views). The count turns to a warning colour when the magazine is nearly empty. Shown only while a
     /// blaster is out: not holstered or carrying, not in Build Mode, a menu, the key sheet or the console, not while
-    /// driving. It only listens (GameEvents.AmmoChanged, the AmmoBelt) and reads the holder; nothing knows it exists.
+    /// driving. It only listens (GameEvents.AmmoChanged and ShotLanded, the AmmoBelt) and reads the holder; nothing knows it exists.
     /// Made by the WeaponHolder at start; built in code like the other HUDs. Numbers in Resources/WeaponAmmo.
     /// Later lines (a grenade count) stack above the count with AddLine.
     /// </summary>
     public sealed class WeaponHud : MonoBehaviour
     {
         private const string NumberFont = "HUD/Teko SDF", LabelFont = "HUD/Fredoka SDF";
-        private static readonly Color PanelColour = new Color(0f, 0f, 0f, 0.35f), DotDark = new Color(0f, 0f, 0f, 0.75f);
+        private static readonly Color PanelColour = new Color(0f, 0f, 0f, 0.35f), DotDark = new Color(0f, 0f, 0f, 0.75f), TickDark = new Color(0f, 0f, 0f, 0.6f);
         private const float Width = 420f, Pad = 14f;
 
         private WeaponHolder _holder;
@@ -29,6 +31,10 @@ namespace ShiftJam
         private TMP_FontAsset _numbers, _labels;
         private float _top;          // where the next line goes, above the box's bottom
         private bool _stale = true;  // the read-out no longer matches the gun
+        private RectTransform _marker;          // the hit marker: four ticks round the middle
+        private CanvasGroup _markerGroup;
+        private Image[] _ticks;
+        private float _flashAt = -100f, _flashSeconds = 0.2f, _flashScale = 1.25f;
 
         /// <summary>What the count shows now ("12 / 48", "RELOADING").</summary>
         public string CountText => _count.text;
@@ -40,6 +46,10 @@ namespace ShiftJam
         public bool Showing => _group.alpha > 0f;
         /// <summary>True while the dot crosshair is on screen.</summary>
         public bool DotShowing => Showing && _dot.activeSelf;
+        /// <summary>True while the hit marker's flash is on screen.</summary>
+        public bool MarkerShowing => Showing && _markerGroup.alpha > 0f;
+        /// <summary>The colour of the hit marker's last flash.</summary>
+        public Color MarkerColour => _ticks[0].color;
 
         public static WeaponHud Create(WeaponHolder holder)
         {
@@ -66,12 +76,25 @@ namespace ShiftJam
             return text;
         }
 
-        private void OnEnable() { GameEvents.AmmoChanged += OnAmmoChanged; }
-        private void OnDisable() { GameEvents.AmmoChanged -= OnAmmoChanged; }
+        private void OnEnable() { GameEvents.AmmoChanged += OnAmmoChanged; GameEvents.ShotLanded += OnShotLanded; }
+        private void OnDisable() { GameEvents.AmmoChanged -= OnAmmoChanged; GameEvents.ShotLanded -= OnShotLanded; }
         private void OnDestroy() { if (_belt != null) _belt.Changed -= OnBeltChanged; }
 
         private void OnAmmoChanged(WeaponHolder who) { if (who == _holder) _stale = true; }
         private void OnBeltChanged(AmmoBelt belt) => _stale = true;
+        private void OnShotLanded(WeaponHolder who, bool finished) { if (who == _holder) Flash(finished); }
+
+        /// <summary>Flashes the hit marker: bigger, longer and in the other colour for the hit that finished something.</summary>
+        public void Flash(bool finished)
+        {
+            Color colour = finished ? _s.downColour : _s.hitColour;
+            foreach (Image tick in _ticks) tick.color = colour;
+            _flashAt = Time.time;
+            _flashSeconds = Mathf.Max(0.01f, _s.markerSeconds * (finished ? 2f : 1f));
+            _flashScale = finished ? _s.markerScales.y : _s.markerScales.x;
+            _markerGroup.alpha = 1f;
+            _marker.localScale = Vector3.one * _flashScale;
+        }
 
         private void Update()
         {
@@ -81,6 +104,10 @@ namespace ShiftJam
             _group.alpha = show ? 1f : 0f;
             _dot.SetActive(show && !_holder.FirstPerson);
             if (show && _stale) Refresh();
+            // The hit marker: big and solid as the shot lands, back to its size and gone over the flash.
+            float flash = (Time.time - _flashAt) / _flashSeconds;
+            if (flash >= 1f) { if (_markerGroup.alpha > 0f) _markerGroup.alpha = 0f; }
+            else { _markerGroup.alpha = 1f - flash; _marker.localScale = Vector3.one * Mathf.Lerp(_flashScale, 1f, flash); }
         }
 
         /// <summary>Writes the read-out from the gun in hand.</summary>
@@ -121,6 +148,26 @@ namespace ShiftJam
             var dot = BuildUiKit.Rect("Dot", dark, centre, centre, centre, Vector2.zero, Vector2.one * _s.dotSizes.y);
             BuildUiKit.Panel(dot, Color.white).raycastTarget = false;
             _dot = dark.gameObject;
+
+            // The hit marker: four short ticks on the diagonals round the middle, dark behind, the flash's colour in front.
+            _marker = BuildUiKit.Rect("HitMarker", canvasGo.transform, centre, centre, centre, Vector2.zero, Vector2.zero);
+            _markerGroup = _marker.gameObject.AddComponent<CanvasGroup>();
+            _markerGroup.alpha = 0f; _markerGroup.blocksRaycasts = false; _markerGroup.interactable = false;
+            float gap = _s.markerTicks.x, length = _s.markerTicks.y, thick = _s.markerTicks.z;
+            var nearEnd = new Vector2(0f, 0.5f);   // each tick runs outward from its near end
+            _ticks = new Image[4];
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = 45f + 90f * i;
+                var way = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
+                var behind = BuildUiKit.Rect("TickDark", _marker, centre, centre, nearEnd, way * gap, new Vector2(length, thick + 3f));
+                behind.localRotation = Quaternion.Euler(0f, 0f, angle);
+                BuildUiKit.Panel(behind, TickDark).raycastTarget = false;
+                var tick = BuildUiKit.Rect("Tick", _marker, centre, centre, nearEnd, way * gap, new Vector2(length, thick));
+                tick.localRotation = Quaternion.Euler(0f, 0f, angle);
+                _ticks[i] = BuildUiKit.Panel(tick, _s.hitColour);
+                _ticks[i].raycastTarget = false;
+            }
         }
     }
 }

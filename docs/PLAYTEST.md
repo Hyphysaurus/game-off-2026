@@ -131,3 +131,14 @@ Space = jump, X = put down (C crouches since D-0064), LMB = toggle the carried l
 - Shoot a loose prop as a toy, then grow and shoot one as a kid: it should fly, not cross the room.
 - Say: the SMG (a steady automatic now, it was a fast spray), each gun's kick, whether the slower walk is felt, the
   wheel's direction, the dart's drop at range.
+
+## Shot feel: what a shot shows and sounds like (D-0071, 17 Nov)
+- Workshop: shoot a practice bear or skittle with the pistol. Each hit: white ticks flash round the dot, the target
+  squashes and springs back, pale blue bits fly off, the hit sounds. The dart that knocks it over: orange ticks,
+  bigger and longer.
+- Shoot a wall: bits and a sound, no ticks. Watch the barrel: a small pale puff on every shot.
+- Shotgun into a wall close up: a cloud of bits, one landing sound.
+- V (first person): ticks, puff and sounds the same. Colour Corner with paint loaded: ticks when paint hits the
+  mischief soldier; the paint's own splat and sounds as before.
+- Say: the ticks (size, how long they stay, the orange), the puff (seen at all? too much with the SMG?), the squash
+  (0.15 on targets, 0.1 on soldiers), each sound and how loud it is.

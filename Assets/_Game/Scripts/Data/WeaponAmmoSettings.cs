@@ -4,7 +4,7 @@ namespace ShiftJam
 {
     /// <summary>
     /// Ammo and reloading as numbers, the same for every gun: what an empty gun does, how a reload runs through its
-    /// length, the read-out on the HUD, and the sounds. After the test room. Each gun's own numbers (magazine size,
+    /// length, the read-out on the HUD, the hit marker, the puff at the barrel, and the sounds. After the test room. Each gun's own numbers (magazine size,
     /// reserve, reload seconds) are on its prefab (BlasterWeapon > Magazine); where the gun is held during a reload is
     /// in WeaponHold > A reload. Lives at Resources/WeaponAmmo; without the asset these defaults are used.
     /// </summary>
@@ -50,6 +50,32 @@ namespace ShiftJam
         public Vector2 corner = new Vector2(40f, 72f);
         [Tooltip("The crosshair: the side of its dark square and of the white dot in it, on a 1080-high screen (the test room: 10 and 4 on a 648-high one).")]
         public Vector2 dotSizes = new Vector2(17f, 7f);
+
+        [Header("The hit marker (four ticks round the crosshair when a shot lands on something with health)")]
+        [Tooltip("Its colour for a hit.")]
+        public Color hitColour = Color.white;
+        [Tooltip("Its colour for the hit that finishes something off.")]
+        public Color downColour = new Color(1f, 0.4f, 0.2f);
+        [Tooltip("How far from the middle the ticks start, how long they are and how thick, on a 1080-high screen (the test room: 8, 9 and 3 on a 648-high one).")]
+        public Vector3 markerTicks = new Vector3(13f, 15f, 5f);
+        [Tooltip("Seconds a hit's flash lasts; the finishing hit's lasts twice as long (the test room: 0.2).")]
+        public float markerSeconds = 0.2f;
+        [Tooltip("How much bigger the ticks start: for a hit, and for the finishing hit (the test room: 1.25 and 1.7). They come back to their size as they fade.")]
+        public Vector2 markerScales = new Vector2(1.25f, 1.7f);
+
+        [Header("A shot leaving")]
+        [Min(0), Tooltip("Small bits thrown from the barrel along the shot, so it is seen leaving (the test room: 6). 0 = none.")]
+        public int puffAmount = 6;
+        [Tooltip("Their colour.")]
+        public Color puffColour = new Color(1f, 0.97f, 0.85f);
+        [Tooltip("How fast the fastest flies, units per second at scale 1 (the test room: 2.5).")]
+        public float puffSpeed = 2.5f;
+        [Tooltip("A bit's radius, units at scale 1 (the test room: 0.018).")]
+        public float puffSize = 0.018f;
+        [Tooltip("Seconds a bit lasts (the test room: 0.2).")]
+        public float puffSeconds = 0.2f;
+        [Min(1f), Tooltip("An ammo's own firing sound plays up to this many times higher or lower each shot (the test room: 1.1). 1 = always the same.")]
+        public float firePitchSpread = 1.1f;
 
         [Header("Sounds (licensed clips under _Imports: a project without them plays nothing)")]
         [Tooltip("The trigger pulled on an empty gun.")]

@@ -182,8 +182,35 @@ namespace ShiftJam
             Set(dart, "speed", 34f);
             Set(dart, "drop", 3f);
             Set(dart, "lifetime", 4f);
+            // Its feedback (foam_dart.tscn): 8 pale blue bits where it lands, and its own sounds when the licensed
+            // clips are in _Imports (a project without them plays nothing).
+            Set(dart, "burstAmount", 8);
+            Set(dart, "burstColour", new Color(0.75f, 0.88f, 1f));
+            Set(dart, "burstSpeed", 2.5f);
+            Set(dart, "burstSize", 0.035f);
+            Set(dart, "burstGravity", 9f);
+            Set(dart, "burstSeconds", 0.45f);
+            WireClips(dart, "fireClips", "fire_dart_");
+            WireClips(dart, "hitClips", "hit_dart_");
             var saved = Save(root, Combat + "/FoamDart.prefab");
             return saved.GetComponent<Projectile>();
+        }
+
+        /// <summary>Fills a list of clips from _Imports/CasePortman/Weapons: name1.ogg, name2.ogg, name3.ogg, those that are there.</summary>
+        private static void WireClips(Object target, string field, string name)
+        {
+            var so = new SerializedObject(target);
+            var list = so.FindProperty(field);
+            if (list == null) { Debug.LogError($"[Workshop] {target.GetType().Name} has no field '{field}'."); return; }
+            list.ClearArray();
+            for (int i = 1; i <= 3; i++)
+            {
+                var clip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/_Imports/CasePortman/Weapons/" + name + i + ".ogg");
+                if (clip == null) continue;
+                list.InsertArrayElementAtIndex(list.arraySize);
+                list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = clip;
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static bool BuildWeapon(WeaponSpec spec, Projectile dart)
@@ -343,6 +370,8 @@ namespace ShiftJam
             Set(health, "showNumbers", true);
             Set(health, "takeKnockback", false);
             Set(health, "invulnerability", 0f);   // every pellet and dart counts; a swing already hits each target once
+            Set(health, "squash", 0.15f);         // the test room's target: squashes by 0.15 when hit, back in 0.3 s
+            Set(health, "squashSeconds", 0.3f);
             var target = root.AddComponent<PracticeTarget>();
             Set(target, "pivot", pivot.transform);
             Save(root, PieceInteractables + "/" + name + ".prefab");
@@ -371,6 +400,8 @@ namespace ShiftJam
             Set(health, "showNumbers", true);
             Set(health, "takeKnockback", false);
             Set(health, "invulnerability", 0f);   // every pellet and SMG dart counts
+            Set(health, "squash", 0.1f);          // the test room's figure: squashes by 0.1 when hit, back in 0.25 s
+            Set(health, "squashSeconds", 0.25f);
             var soldier = root.AddComponent<ToySoldier>();
             Set(soldier, "projectile", dart);
             Set(soldier, "visual", visual.transform);

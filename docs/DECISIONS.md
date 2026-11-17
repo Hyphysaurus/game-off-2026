@@ -1248,8 +1248,39 @@
     of mass 1 leaves at 8, 7 and 20 from a toy and 47, 41 and 117 from a kid; the barrel flips 4.00, 3.40 and 8.80
     degrees (4.15, 3.54 and 9.08 measured on the gun in the hand) and settles at 14.0 a second; the walk is 1.00,
     0.96 and 0.90; the wheel swaps. Hold probe before the work, on the D-0070 code: 81 of 81. The four-scene smoke
-    run comes once, after the feedback landing. Probe kept at
+    run came once, after the feedback landing (below): 0 errors. Probe kept at
     `%TEMP%\shiftjam-stage\weapons\p2\probe-keep\ShotProbe.cs`. Not played.
+  - **Second landing (17 Nov, 10:4x): what a shot shows and sounds like**, from the test room's `hit_marker.gd`,
+    `puff.gd`, `punch.gd`, `sfx.gd` and `projectile.gd`. All of it is new here; the test room's number | Shift Jam's:
+    - Hit marker: ticks start 8 from the middle, 9 long, 3 thick on a 648-high screen | 13, 15 and 5 on 1080. White;
+      the finishing hit (1, 0.4, 0.2). 0.2 s, twice that for the finishing hit; they start at 1.25 and 1.7 times
+      their size and come back as they fade | the same.
+    - Puff at the barrel: 6 bits of (1, 0.97, 0.85), speed 2.5, size 0.018, no fall, 0.2 s | the same.
+    - A dart's landing: 8 bits of (0.75, 0.88, 1), speed 2.5, size 0.035, fall 9, 0.45 s | the same.
+    - Squash: a target 0.15 over 0.3 s, a figure 0.1 over 0.25 s | bear and skittle 0.15 over 0.3, toy soldier and
+      mischief soldier 0.1 over 0.25. The spring is Godot's elastic ease-out, written out in `FX/Squash.cs`.
+    - Sounds: three for the shot, three for the landing, each up to 1.1 times higher or lower | the same clips, the
+      same spread.
+    - **Each kind of ammo carries its own feedback** on its prefab (`Projectile` > Feedback), the test room's
+      layout. Off by default, so the paint ball needed no change and keeps its own splat, bits and sounds.
+    - **The marker flashes when the thing hit has health and the hit counted.** The test room flashes for anything
+      that can take a hit at all, so there it also flashes on a figure already down.
+    - **Pellets landing in the same frame make one sound.** The test room plays one each, eight at once.
+    - **The bits fly in the paint keeper's bit system** (`PaintSplats.Puff`, ported with the paint). It had one
+      pull for every bit in it, so bits that do not fall (the puff) now fly in a second system: a puff at the
+      barrel cannot stop a paint burst's bits falling.
+    - **The squash is switched on per `Damageable`** (0 on the player and on the cars): a default for everything
+      would have squashed things nobody has looked at.
+    - **The sounds are licensed clips** under `_Imports/CasePortman/Weapons` (git-ignored). `FoamDart.prefab`
+      points at them by id; a copy of the project without them has empty slots there, the gun falls back to its
+      own clip or to silence, and nothing else changes.
+    - **Not ported:** the dart's bright streak; the pop-up target's and the range sign's squash (no such pieces
+      here); hiding the dot on a first-person sight (no sights yet).
+    - **Checked:** shot probe after both landings, 64 of 64 (numbers 48 of 48, feedback 16 of 16; feedback
+      2 of 14 before this landing): 6 bits at the barrel, 8 off a wall; the event and the ticks for a hit (white,
+      0.20 s) and for the finishing hit (orange, 0.40 s), none for a wall; a skittle squashes to 0.850 by 1.150 and
+      comes back; a dart with its sounds missing still fires, lands and throws its bits. Four scenes 0 errors.
+      Nothing seen or heard: hidden runs. Not played.
 - **D-0073 (17 Nov, 10:1x) The car portal is his portal drawing as a model: the swirl turns, a warp sends the small marks out as a ripple.** (D-0071 and D-0072 are held for the weapons port's shot feel and rifle pieces.)
   His third Blender piece after the orb and the star (`Dev\Blender Projects\portal_ring.blend`, over his Procreate
   drawing `Shift_Portal_OG.png`). His words on the model: "the extra bits on the end should be after-effect post

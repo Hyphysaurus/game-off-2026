@@ -29,6 +29,17 @@ MonoBehaviour:
   nameSize: 27
   corner: {x: 40, y: 72}
   dotSizes: {x: 17, y: 7}
+  hitColour: {r: 1, g: 1, b: 1, a: 1}
+  downColour: {r: 1, g: 0.4, b: 0.2, a: 1}
+  markerTicks: {x: 13, y: 15, z: 5}
+  markerSeconds: 0.2
+  markerScales: {x: 1.25, y: 1.7}
+  puffAmount: 6
+  puffColour: {r: 1, g: 0.97, b: 0.85, a: 1}
+  puffSpeed: 2.5
+  puffSize: 0.018
+  puffSeconds: 0.2
+  firePitchSpread: 1.1
   dryClip: {fileID: 8300000, guid: 761119b7e262a804c8c7286ee838379a, type: 3}
   reloadStartClip: {fileID: 8300000, guid: 11b166b899305ae49bc602d06dacf49a, type: 3}
   reloadSeatClip: {fileID: 8300000, guid: 1597530dcb1c1374d9d761d95c323995, type: 3}

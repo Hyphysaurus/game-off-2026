@@ -21,7 +21,7 @@ namespace ShiftJam
         private readonly PaintSettings _settings;
         private readonly List<Drop> _drops = new List<Drop>();
         private readonly RaycastHit[] _hits = new RaycastHit[8];
-        private readonly ParticleSystem _beads, _bits;
+        private readonly ParticleSystem _beads, _bits, _floats;
         private ParticleSystem.Particle[] _shown = new ParticleSystem.Particle[0];
 
         public PaintDrops(PaintSettings settings, Transform parent)
@@ -29,7 +29,13 @@ namespace ShiftJam
             _settings = settings;
             _beads = MakeSystem("Drops in the air", parent, settings.dropMaterial, Mathf.Max(1, settings.mostDropsInAir), false);
             _bits = MakeSystem("Bits", parent, settings.bitsMaterial, Mathf.Max(1, settings.mostBits), true);
+            // Bits that do not fall (the puff at a gun's barrel) fly in a system of their own: a system has one pull for
+            // every bit in it, and a puff must not stop a burst's bits falling.
+            _floats = MakeSystem("Bits that do not fall", parent, settings.bitsMaterial, Mathf.Max(1, settings.mostBits), true);
         }
+
+        /// <summary>Bits in the air now (bursts and puffs).</summary>
+        public int BitsInAir => (_bits != null ? _bits.particleCount : 0) + (_floats != null ? _floats.particleCount : 0);
 
         /// <summary>Drops in the air now.</summary>
         public int InAir => _drops.Count;
@@ -87,10 +93,14 @@ namespace ShiftJam
         /// <paramref name="size"/> is a bit's radius.</summary>
         public void Puff(Vector3 point, Vector3 way, Color colour, int amount, float speed, float size, float gravity, float seconds)
         {
-            if (amount <= 0 || _bits == null) return;
-            var main = _bits.main;
-            float pull = Mathf.Abs(Physics.gravity.y);
-            main.gravityModifier = pull > 1e-4f ? gravity / pull : 0f;
+            ParticleSystem system = gravity != 0f ? _bits : _floats;
+            if (amount <= 0 || system == null) return;
+            if (gravity != 0f)
+            {
+                var main = system.main;
+                float pull = Mathf.Abs(Physics.gravity.y);
+                main.gravityModifier = pull > 1e-4f ? gravity / pull : 0f;
+            }
             if (way.sqrMagnitude < 1e-6f) way = Vector3.up;
             way.Normalize();
             Vector3 side = Vector3.Cross(way, Mathf.Abs(way.y) > 0.99f ? Vector3.right : Vector3.up).normalized;
@@ -102,7 +112,7 @@ namespace ShiftJam
                 bit.position = point;
                 bit.velocity = dir * (speed * Random.Range(_settings.burstLeast.x, 1f));
                 bit.startSize = 2f * size * Random.Range(_settings.burstLeast.y, 1f);
-                _bits.Emit(bit, 1);
+                system.Emit(bit, 1);
             }
         }
 
@@ -112,6 +122,7 @@ namespace ShiftJam
             _drops.Clear();
             if (_beads != null) _beads.Clear();
             if (_bits != null) _bits.Clear();
+            if (_floats != null) _floats.Clear();
         }
 
         /// <summary>Draws the drops in the air: one round bead each, in its paint's colour.</summary>

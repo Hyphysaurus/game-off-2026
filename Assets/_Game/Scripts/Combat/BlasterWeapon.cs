@@ -9,7 +9,8 @@ namespace ShiftJam
     /// Shots leave from the muzzle unless the muzzle has poked through a wall, in which case they leave from the chest and
     /// hit that wall. Each shot kicks the gun back (and the view, in first person): how hard is this gun's Recoil, and
     /// what a kick of 1 is (degrees, distance, how it settles) is the same for every gun, in WeaponHold (the test
-    /// room's rule). Shot Speed multiplies the ammo's own speed.
+    /// room's rule). Shot Speed multiplies the ammo's own speed. A shot is heard (the loaded ammo's sound, else the
+    /// shot's own, else this gun's Fire Clip) and seen leaving (a puff of bits at the barrel: WeaponAmmo).
     /// Each shot spends a round from the gun's Magazine; empty, the trigger only clicks and the holder is told (it
     /// starts the reload). A blaster with Magazine Size 0 has no magazine and never runs dry.
     /// </summary>
@@ -40,6 +41,7 @@ namespace ShiftJam
         private AmmoBelt _belt;         // the holder's choice of ammo, if it carries one
         private MagazinePart _part;     // the magazine on the model, found once
         private WeaponHoldSettings _feel;   // what a kick of 1 is
+        private WeaponAmmoSettings _shared; // the puff at the barrel
 
         /// <summary>The rounds in this gun and in reserve for it. They stay with the gun when it is put away or dropped.</summary>
         public Magazine Magazine { get { magazine.Fill(); return magazine; } }   // filled the first time anyone looks
@@ -134,8 +136,15 @@ namespace ShiftJam
 
             _kick = 1f;
             Holder.Punch(new Vector2(-viewPunch.x, Random.Range(-viewPunch.y, viewPunch.y)) * recoil);
+            if (_shared == null) _shared = WeaponAmmoSettings.Load();
+            // The sound: the loaded ammo's (the AmmoBelt: paint), else the shot's own (the foam dart), else this gun's.
             AudioClip ammoClip = _belt != null ? _belt.FireClip() : null;
-            Holder.PlayClip(ammoClip != null ? ammoClip : fireClip, Random.Range(1.05f, 1.25f));
+            AudioClip own = ammoClip == null ? shot.FireClip() : null;
+            if (own != null) Holder.PlayClip(own, Mathf.Pow(Mathf.Max(1f, _shared.firePitchSpread), Random.Range(-1f, 1f)));   // a little higher or lower each shot, as the test room's
+            else Holder.PlayClip(ammoClip != null ? ammoClip : fireClip, Random.Range(1.05f, 1.25f));
+            // A puff at the barrel, so each shot can be seen leaving.
+            if (_shared.puffAmount > 0)
+                PaintSplats.InScene().Puff(from + dir * (0.03f * scale), dir, _shared.puffColour, _shared.puffAmount, _shared.puffSpeed * scale, _shared.puffSize * scale, 0f, _shared.puffSeconds);
             Holder.AmmoChanged();
             return true;
         }

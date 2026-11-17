@@ -140,6 +140,9 @@ MonoBehaviour:
   invulnerability: 0
   flashColor: {r: 1, g: 0.45, b: 0.2, a: 1}
   flashSeconds: 0.1
+  squash: 0.1
+  squashSeconds: 0.25
+  squashPart: {fileID: 0}
   takeKnockback: 0
   showNumbers: 1
   refillAfterDeath: 0

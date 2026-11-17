@@ -143,3 +143,18 @@ MonoBehaviour:
   hitMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  fireClips:
+  - {fileID: 8300000, guid: 5eabf462fb254281a1e8a28e0bd40466, type: 3}
+  - {fileID: 8300000, guid: fec9d8664e3349848bb60c8607f3c8fd, type: 3}
+  - {fileID: 8300000, guid: d7878722f85541708c13200344fd53ca, type: 3}
+  hitClips:
+  - {fileID: 8300000, guid: 3f7c924496b546bba8f590c9ec7b9167, type: 3}
+  - {fileID: 8300000, guid: afb21726e85b4b14979f4d615ca7bff8, type: 3}
+  - {fileID: 8300000, guid: e4fc2a58db194a22b96e74a0761e0e42, type: 3}
+  hitVolume: 1
+  burstAmount: 8
+  burstColour: {r: 0.75, g: 0.88, b: 1, a: 1}
+  burstSpeed: 2.5
+  burstSize: 0.035
+  burstGravity: 9
+  burstSeconds: 0.45

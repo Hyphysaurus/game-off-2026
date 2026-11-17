@@ -232,7 +232,9 @@ namespace ShiftJam
             _motor.SteerLocked = !free && Current != Move.Roll;
             _motor.JumpLocked = !free || (_stance != null && _stance.NoHeadroom);
             _motor.SprintLocked = aiming;
-            _motor.FaceYaw = aiming ? _motor.View.eulerAngles.y : (float?)null;
+            // The body faces the aim while aim is held and while the arm is still up after a shot (the test room's rule).
+            bool facing = aiming || (free && _holder != null && _holder.Aiming && _motor.View != null);
+            _motor.FaceYaw = facing ? _motor.View.eulerAngles.y : (float?)null;
             _motor.Drive = Current == Move.Roll ? _rollDirection * (_rollSpeed * (1f - Share)) : (Vector3?)null;
             if (_stance != null) _stance.Frozen = !free;   // a move keeps whichever capsule the player has
             if (_holder != null) _holder.Locked = !free;   // weapons only fire in normal control

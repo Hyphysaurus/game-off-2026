@@ -4,7 +4,8 @@ namespace ShiftJam
 {
     /// <summary>
     /// A toy blaster: fires pooled Projectiles at a set interval (tap or hold if automatic), several pellets with spread for
-    /// a shotgun, aimed where the camera's centre ray lands (so third-person shots go to the crosshair, not along the arm).
+    /// a shotgun, aimed where the camera's centre ray lands (so third-person shots go to the crosshair; the holder's arm
+    /// points the barrel at the same spot).
     /// Shots leave from the muzzle unless the muzzle has poked through a wall, in which case they leave from the chest and
     /// hit that wall. Each shot kicks the gun back (and the view, in first person).
     /// </summary>
@@ -36,6 +37,27 @@ namespace ShiftJam
         public override Quaternion PoseRotation => Quaternion.Euler(-kickAngle * _kick, 0f, 0f);
         public override Vector3 PosePosition => Vector3.back * (kickBack * _kick);
 
+        public override Vector3 MuzzleOffset => muzzle != null ? Quaternion.Inverse(transform.rotation) * (muzzle.position - transform.position) : Vector3.zero;
+
+        /// <summary>Where the crosshair lands: the first thing on the camera's centre ray that is not us. In third person
+        /// the ray starts level with the holder, so nothing between the camera and the player gets picked.</summary>
+        public override Vector3 AimPoint()
+        {
+            if (Holder == null) return base.AimPoint();
+            float reach = range * Scale;
+            Vector3 eye = Holder.AimOrigin, look = Holder.AimForward;
+            float skip = Holder.FirstPerson ? 0f : Mathf.Clamp(Vector3.Dot(Holder.AttackOrigin - eye, look), 0f, reach * 0.5f);
+            Vector3 target = eye + look * reach;
+            int n = Physics.RaycastNonAlloc(eye + look * skip, look, _hits, reach - skip, aimMask, QueryTriggerInteraction.Ignore);
+            float nearest = float.MaxValue;
+            for (int i = 0; i < n; i++)
+            {
+                if (Holder.IsSelf(_hits[i].transform) || _hits[i].transform.IsChildOf(transform)) continue;
+                if (_hits[i].distance < nearest) { nearest = _hits[i].distance; target = _hits[i].point; }
+            }
+            return target;
+        }
+
         public override void TriggerPressed() => TryFire();
         public override void TriggerHeld() { if (automatic) TryFire(); }
         public override void Cancel() { _kick = 0f; }
@@ -55,16 +77,8 @@ namespace ShiftJam
             _nextFire = Time.time + interval;
             float scale = Scale;
 
-            // Where the crosshair lands: the first thing on the camera's centre ray that is not us.
-            Vector3 eye = Holder.AimOrigin, look = Holder.AimForward;
-            Vector3 target = eye + look * (range * scale);
-            int n = Physics.RaycastNonAlloc(eye, look, _hits, range * scale, aimMask, QueryTriggerInteraction.Ignore);
-            float nearest = float.MaxValue;
-            for (int i = 0; i < n; i++)
-            {
-                if (Holder.IsSelf(_hits[i].transform) || _hits[i].transform.IsChildOf(transform)) continue;
-                if (_hits[i].distance < nearest) { nearest = _hits[i].distance; target = _hits[i].point; }
-            }
+            Vector3 look = Holder.AimForward;
+            Vector3 target = AimPoint();
 
             // Leave from the muzzle, unless it is through a wall: then from the chest, into that wall.
             Vector3 from = muzzle != null ? muzzle.position : transform.position;

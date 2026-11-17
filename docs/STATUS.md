@@ -2,6 +2,43 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 16 Nov 2026 21:2x — THE GUN IS FIXED IN THE HAND AND THE ARM AIMS IT (D-0066, the test room's rule; first part of the weapon port) — NOT PLAYED
+His play of the cameras (20:5x): "im noticing the pistol rotates in my hand". Cause: a drawn blaster was put at the palm
+but always turned to the camera's view, while the arm was one fixed raised pose and the body only faced the camera with
+right mouse held. The far camera hid it; the over-the-shoulder view shows it. His "proceed with the recommended".
+Built outside the project while he played, landed with his editor closed. Headless only.
+- **The gun sits in the fist** (barrel along the knuckles, top towards the thumb, worked out from the hand's own bones)
+  and never turns in it. At rest the arm is the animation's: the gun hangs at the side and swings with the walk.
+- **Aim (right mouse)**: the arm comes up and points the barrel at the crosshair's spot, up and down too (60 up, 85
+  down, 80 to either side of the body); the body faces the aim. `Combat/ArmAim.cs` bends the upper arm and forearm
+  after the Animator each frame.
+- **A click from rest**: the arm comes up first (0.12 s), then the shot leaves along the barrel; the arm stays up 1 s
+  after the last shot and lowers in 0.25 s; the body faces the aim for that time too. Holding the trigger keeps it up.
+- **Shots and the arm aim at the same spot** (`BlasterWeapon.AimPoint`): the crosshair's ray now starts level with the
+  player, so a thing between the camera and the player is no longer picked (the test room's rule).
+- **Melee** (knife, foam finger) and **first person** are as they were. The Arms layer no longer raises the arm for a blaster.
+- **Numbers:** `Resources/WeaponHold.asset` (new, `Data/WeaponHoldSettings.cs`): raise / lower times, the wait after a
+  shot, reach 0.9, elbow direction, the limits, the body oval the hand stays out of, Grip Euler (a turn of every gun in
+  the fist). Per gun: `Hand Euler` and `Hand Offset` on the weapon prefab, as before.
+- **CHECKED:** hold probe 68 of 68 (pistol, SMG, shotgun, toy and kid: gun turns 0.0 degrees in the hand over four
+  camera looks, arm down at rest, barrel 0.0 degrees off the spot aiming level / up / down, a pull leaves 0.11 s
+  later with the arm up, arm still up at 0.5 s, down at 2 s). The same probe on the code before: 20 of 68 (the gun
+  turned 180 degrees in the hand, the arm never came down, the shot was instant). Camera probe still 64 of 64, the
+  four-scene smoke run 0 errors. Stills looked at: `docs/stills/hold_toy_DartPistol_*.png`, `hold_toy_DartSMG_*`,
+  `hold_toy_DartShotgun_*`. Probe kept at `%TEMP%\shiftjam-stage\hold\probe-keep`.
+TO PLAY (Colour Corner): walk about with the pistol out and turn the camera: the gun stays in the hand. Hold right
+mouse and look up and down. Click once from rest and watch the arm come up, fire, stay, lower. 2 for the SMG; hold the
+trigger. Then the shotgun in the Workshop.
+FOR HIS EYE: the 0.12 s before a first shot (Raise Time; 0 = instant); the hand is open round the grip (no finger
+curl yet); the SMG and shotgun are held out in one hand like a pistol; how the gun hangs while running.
+NOT IN THIS PASS (next parts of the weapon port): the second hand on the long guns and their carry across the body,
+fingers closing on the grip, reloads and magazines, the test room's feel numbers and ammo counts.
+🔴 FOUND, NOT MINE, LEFT ALONE: after his play the tree holds saved changes to `Data/ShiftWarp.mat` (direction and
+picture), `Resources/FX/ShiftOrbVisual.prefab` (its light's intensity 1.4 -> 0) and others: these look like values the
+game set during Play written back into the files (a Play session in the editor changes a shared material or a prefab
+loaded from Resources for good). Another session is also landing a star model (`Art/Star`, `Data/Stars`, NitroStar,
+`RacingPieces.cs`) in this tree. Neither is in the D-0066 commit.
+
 ## 16 Nov 2026 20:0x — THE CAMERAS ARE THE TEST ROOM'S (D-0065, Stage B of the player port) + THE ORB'S FAINT BOX FIXED HERE — NOT PLAYED
 His "let's pick up the work". Stage B was cut by the usage limit at 14:38 with the code in the tree and its check not
 yet run; finished here. Headless only (his editor closed): play probes, stills looked at, nothing played by hand.

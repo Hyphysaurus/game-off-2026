@@ -1061,3 +1061,25 @@
     His eye decides whether that stays.
   - **Holster is a key.** X no longer needs the mouse captured (it did, through CanAct, which is a click's rule).
   - **Checked:** probe 64 of 64 at both sizes, 34 failing when sabotaged, four-scene smoke 0 errors. Not played.
+- **D-0066 (16 Nov, 21:2x) A blaster is fixed in the hand and the arm aims it (the test room's one-handed rule; first part of the weapon port).**
+  His "im noticing the pistol rotates in my hand" while trying the D-0065 cameras, then "proceed with the recommended"
+  (the other choice was a patch: the body always faces the camera with a gun out, which leaves the up-and-down swivel).
+  - **Was:** the gun at the palm, turned to the camera's view every frame (`AimsWithView`); the arm one raised pose from
+    the Animator's Arms layer; the body facing the camera only with aim held or at the instant of a shot.
+  - **Now, as the test room's AimPose and holder do it:** the gun never turns in the hand. `ArmAim` (a plain class the
+    WeaponHolder owns) works out where the gun goes (the wrist out along the aim at 0.9 of the arm, clear of the body's
+    oval, the barrel turned onto the target itself, not parallel to the line from the shoulder) and bends the arm to
+    it: a two-bone triangle with the elbow towards (0.5, -1, -0.3) in the body's space, the bones' own roll taken from
+    the rest pose so it does not wander with the walk. Written after the Animator in LateUpdate, eased in by `Raise`.
+  - **The hold is read from the hand, not typed in:** barrel along wrist-to-middle-knuckle, top towards the thumb
+    (humanoid finger bones). So it fits either body and any later rig; `gripEuler` and each gun's `handEuler` turn it.
+  - **A shot waits for the arm** (0.12 s), so it leaves along the barrel; the arm stays up 1 s after and lowers in
+    0.25 s; `WeaponHolder.Aiming` (aim held, or the arm still up for a shot) is what turns the body, `AimHeld` alone
+    still brings the camera in and stops the sprint. `PullTrigger` is the one entry a click goes through.
+  - **Aim point:** one place (`Weapon.AimPoint`, the blaster's ray), used by the shot and the arm; the ray starts
+    level with the player in third person.
+  - **Kept from Shift Jam:** each blaster's own kick (10 degrees, 0.06 back), now through the arm; the muzzle-in-a-wall
+    rule; first person's view model; melee on the Arms layer.
+  - **Left for the next parts:** two hands on the long guns with the carry across the body, finger curl, reloads, the
+    feel numbers. The SMG and shotgun are one-handed until then.
+  - **Checked:** probe 68 of 68 after, 20 of 68 on the code before; cameras 64 of 64; four scenes 0 errors. Not played.

@@ -17,7 +17,9 @@ namespace ShiftJam
     /// JumpPad (the Cyber ramp), BounceTramp (the round trampoline), FanPad (the propeller pad, sunk to its blades).
     /// Pieces/Interactables: NitroStar, RepairHeart and ShieldRing (CarPickup, D-0038). Re-running overwrites the same
     /// prefabs (GUIDs kept) and keeps the materials it makes once (BoostPlate, NitroGlow, RepairGlow, ShieldGlow,
-    /// ShieldBubble). Run Build Catalog afterwards so Build Mode lists them.
+    /// ShieldBubble, the star colours in Data/Stars). Run Build Catalog afterwards so Build Mode lists them.
+    /// The nitro star is his own model (Art/Star/NitroStar.fbx, D-0068) and has a menu of its own, Build Nitro Star,
+    /// for a change of colour without rebuilding the other eleven.
     /// </summary>
     public static class RacingPieces
     {
@@ -31,6 +33,21 @@ namespace ShiftJam
         private const float CarLength = 3.8f;   // a toy's car at toy scale (WorkshopPieces sizes every Cyber car to it)
         private const float CarMiddle = 1.05f;  // height of a toy car's body middle above the floor
         private static readonly Color BoostColour = new Color(0.35f, 0.9f, 1f);
+        private const string StarModel = "Assets/_Game/Art/Star/NitroStar.fbx";   // his star, modelled in Blender (D-0068)
+        private const string StarLooks = "Assets/_Game/Data/Stars";               // one glowing material a colour, made once
+        private const string StarFirstLook = "StarOrange";                        // on the star until he drags another on
+        private const float StarGlow = 0.5f;                                      // emission = the glow colour times this, when made (1.2 washed cyan to white)
+        // His seven from star.blend, by their hex: the colour of the star, and the colour it glows (Bold glows gold on orange).
+        private static readonly (string file, Color colour, Color glow)[] StarColours =
+        {
+            ("StarGold", new Color32(0xF2, 0xC8, 0x4B, 255), new Color32(0xF2, 0xC8, 0x4B, 255)),
+            ("StarOrange", new Color32(0xFF, 0x7A, 0x1A, 255), new Color32(0xFF, 0x7A, 0x1A, 255)),
+            ("StarPink", new Color32(0xFF, 0x4F, 0xA3, 255), new Color32(0xFF, 0x4F, 0xA3, 255)),
+            ("StarLime", new Color32(0xB6, 0xFF, 0x3C, 255), new Color32(0xB6, 0xFF, 0x3C, 255)),
+            ("StarCyan", new Color32(0x9E, 0xE7, 0xFF, 255), new Color32(0x9E, 0xE7, 0xFF, 255)),
+            ("StarViolet", new Color32(0x9B, 0x5C, 0xFF, 255), new Color32(0x9B, 0x5C, 0xFF, 255)),
+            ("StarBold", new Color32(0xFF, 0x7A, 0x1A, 255), new Color32(0xFF, 0xC7, 0x40, 255)),
+        };
 
         [MenuItem("Shift Jam/Workshop/Build Boost Pieces")]
         public static void Build()
@@ -54,6 +71,18 @@ namespace ShiftJam
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log($"[RacingPieces] Built {made.Count} of 12: {string.Join(", ", made)}. Run Shift Jam > Workshop > Build Catalog so Build Mode lists them.");
+        }
+
+        /// <summary>The nitro star alone (D-0068): after dragging another Data/Stars material onto the star in
+        /// NitroStar.prefab, this rebuilds it in that colour and turns the floor glow to match. Same prefab, GUID kept.</summary>
+        [MenuItem("Shift Jam/Workshop/Build Nitro Star")]
+        public static void BuildStar()
+        {
+            EnsureFolder(Interactables);
+            bool made = BuildNitroStar(Clip("Star_Light_Activate.wav"));
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log(made ? "[RacingPieces] Built NitroStar." : "[RacingPieces] NitroStar NOT built: no model (see the warnings above).");
         }
 
         // ---------- car portals (D-0039) ----------
@@ -379,19 +408,84 @@ namespace ShiftJam
 
         // ---------- pickups ----------
 
-        /// <summary>The Battle Stadium's gold star (star_001): a third of the nitro meter.</summary>
+        /// <summary>
+        /// His star (Art/Star/NitroStar.fbx, D-0068) in a glowing colour: a third of the nitro meter. The colour is the
+        /// Data/Stars material the prefab's star wears now (so his pick in the editor outlives a rebuild), orange the first
+        /// time; the floor glow is turned to the same colour. Without his model the Battle Stadium's gold star (star_001)
+        /// stands in, as before, on a gold glow.
+        /// </summary>
         private static bool BuildNitroStar(AudioClip chime)
         {
-            var pickup = BuildPickup("NitroStar", "Props/star_001.prefab", CarPickup.Kind.Nitro, 0.35f, 8f, Glow("NitroGlow", new Color(1f, 0.78f, 0.25f, 0.85f)), chime);
+            var star = AssetDatabase.LoadAssetAtPath<GameObject>(StarModel);
+            Material look = star != null ? StarLook() : null;
+            if (star == null) Debug.LogWarning("[RacingPieces] No " + StarModel + ": the pack's gold star stands in.");
+            else if (look == null) Debug.LogWarning("[RacingPieces] No star material could be made: the star keeps its imported one.");
+            Color spot = look != null ? look.GetColor("_BaseColor") : new Color(1f, 0.78f, 0.25f);
+            spot.a = 0.85f;
+            var glow = Glow("NitroGlow", spot);
+            if (glow != null && glow.GetColor("_BaseColor") != spot)
+            {
+                glow.SetColor("_BaseColor", spot);
+                EditorUtility.SetDirty(glow);
+            }
+            var pickup = BuildPickup("NitroStar", star != null ? star : Load(BS + "Props/star_001.prefab"), CarPickup.Kind.Nitro, 0.35f, 8f, glow, chime);
             if (pickup == null) return false;
+            var visual = pickup.transform.Find("Visual");
+            if (look != null && visual != null)
+                foreach (var r in visual.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    var mats = r.sharedMaterials;
+                    for (int i = 0; i < mats.Length; i++) mats[i] = look;
+                    r.sharedMaterials = mats;
+                    r.shadowCastingMode = ShadowCastingMode.Off;   // a light in the air: no dark star on the road under it
+                }
             Save(pickup.gameObject, Interactables + "/NitroStar.prefab");
             return true;
+        }
+
+        /// <summary>The star material to build with: the one from Data/Stars on NitroStar.prefab's star now, else the first
+        /// look (orange). Makes any of the colours that are missing (never touches one that exists: they are his to tune).</summary>
+        private static Material StarLook()
+        {
+            EnsureFolder(StarLooks);
+            Material first = null;
+            foreach (var (file, colour, glow) in StarColours)
+            {
+                var mat = StarMaterial(file, colour, glow);
+                if (file == StarFirstLook) first = mat;
+            }
+            var now = AssetDatabase.LoadAssetAtPath<GameObject>(Interactables + "/NitroStar.prefab");
+            var visual = now != null ? now.transform.Find("Visual") : null;
+            if (visual != null)
+                foreach (var r in visual.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    var worn = r.sharedMaterial;
+                    if (worn != null && AssetDatabase.GetAssetPath(worn).StartsWith(StarLooks + "/")) return worn;
+                }
+            return first;
+        }
+
+        /// <summary>One glowing star colour: a copy of our plain lit material (BuildShape) in that colour, lit from inside
+        /// by its glow colour. Made once.</summary>
+        private static Material StarMaterial(string file, Color colour, Color glow)
+        {
+            string path = StarLooks + "/" + file + ".mat";
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (mat != null) return mat;
+            if (!AssetDatabase.CopyAsset(Data + "/BuildShape.mat", path)) { Debug.LogWarning("[RacingPieces] Could not copy BuildShape.mat for " + file + " (run Build Catalog once)."); return null; }
+            mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            mat.SetColor("_BaseColor", colour);
+            mat.SetColor("_EmissionColor", glow.linear * StarGlow);
+            mat.EnableKeyword("_EMISSION");
+            mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;   // the default flag would switch the glow off again
+            EditorUtility.SetDirty(mat);
+            return mat;
         }
 
         /// <summary>The Battle Stadium's heart (heart_001): mends a third of a car's health (D-0038).</summary>
         private static bool BuildRepairHeart()
         {
-            var pickup = BuildPickup("RepairHeart", "Props/heart_001.prefab", CarPickup.Kind.Repair, 0.35f, 10f, Glow("RepairGlow", new Color(1f, 0.38f, 0.48f, 0.85f)), ClipAt("UI/UI_Confirm_v1.wav"));
+            var pickup = BuildPickup("RepairHeart", Load(BS + "Props/heart_001.prefab"), CarPickup.Kind.Repair, 0.35f, 10f, Glow("RepairGlow", new Color(1f, 0.38f, 0.48f, 0.85f)), ClipAt("UI/UI_Confirm_v1.wav"));
             if (pickup == null) return false;
             Save(pickup.gameObject, Interactables + "/RepairHeart.prefab");
             return true;
@@ -402,7 +496,7 @@ namespace ShiftJam
         private static bool BuildShieldRing()
         {
             var ring = Load(BS + "Inflatable/lifebuoy_001.prefab");
-            var pickup = BuildPickup("ShieldRing", "Inflatable/lifebuoy_001.prefab", CarPickup.Kind.Shield, 0f, 12f, Glow("ShieldGlow", new Color(0.4f, 0.85f, 1f, 0.85f)), ClipAt("Toys/Toy_Squeak_v1.wav"), true);
+            var pickup = BuildPickup("ShieldRing", ring, CarPickup.Kind.Shield, 0f, 12f, Glow("ShieldGlow", new Color(0.4f, 0.85f, 1f, 0.85f)), ClipAt("Toys/Toy_Squeak_v1.wav"), true);
             if (pickup == null) return false;
             Set(pickup, "shieldSeconds", 8f);
             Set(pickup, "shieldRing", ring);
@@ -415,15 +509,14 @@ namespace ShiftJam
         }
 
         /// <summary>
-        /// A Battle Stadium prop as a car pickup (CarPickup), 1.2 across, floating at a car's middle height over a soft glow on
+        /// A model (a Battle Stadium prop, or his star) as a car pickup (CarPickup), 1.2 across, floating at a car's middle height over a soft glow on
         /// the floor. The glow marks the spot while the model is away and is what Build Mode rests the piece by (so the model
         /// keeps floating); a thin pad under it is the only solid part (Build Mode picks by solid colliders). The pack's spin,
         /// bob and scale-pulse scripts are off: CarPickup spins and bobs it. <paramref name="standUp"/> stands a model that lies
         /// flat (the life ring) on its edge, so it reads as a ring while it spins. Not saved: the caller adds its own fields.
         /// </summary>
-        private static CarPickup BuildPickup(string name, string model, CarPickup.Kind kind, float amount, float respawn, Material glow, AudioClip sound, bool standUp = false)
+        private static CarPickup BuildPickup(string name, GameObject prefab, CarPickup.Kind kind, float amount, float respawn, Material glow, AudioClip sound, bool standUp = false)
         {
-            var prefab = Load(BS + model);
             if (prefab == null) return null;
             const float Size = 1.2f, Reach = 1f, Spot = 1.8f;
             var root = new GameObject(name);

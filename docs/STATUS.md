@@ -2,6 +2,22 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 16 Nov 2026 22:0x — THE NITRO STAR IS HIS STAR, IN SEVEN COLOURS (D-0068) — NOT SEEN ON THE RACEWAY, NOT DRIVEN THROUGH
+His first Blender model after the orb, built by him from menu steps (`Dev\Blender Projects\star.blend`), brought in on
+his "yes bring in one mesh and all of the materials". Landed beside his open editor, out of Play.
+- **In the game:** `Prefabs/Pieces/Interactables/NitroStar.prefab` is his star in ORANGE over an orange floor glow.
+  Every nitro star already placed (the Raceway's) follows the prefab. Same size, hover, spin, trigger and sound.
+- **The seven colours:** `Data/Stars/` StarGold, StarOrange, StarPink, StarLime, StarCyan, StarViolet, StarBold.
+- **To change the colour (his, in the editor):** open `NitroStar.prefab`, drag another `Data/Stars` material onto the
+  star, then Shift Jam > Workshop > Build Nitro Star. The floor glow follows. Build Boost Pieces keeps the pick too.
+- **Files:** `Art/Star/NitroStar.fbx` (the one mesh), `Scripts/Debug/RacingPieces.cs` (the builder), `Data/NitroGlow.mat`.
+  Seven FBX files, one a colour, are in `Dev\Blender Projects\star_export` for his own use (not in the project).
+- **Also:** `Art/Orb/ShiftOrb.fbx` had his Windows user path inside it (Blender writes the source path into every FBX);
+  replaced in the file. 🔴 The earlier copy is still in commit `2e3013d`, and two older lines of this file carried the
+  same path (now shortened): all unpushed. Taking them out of the history before a push is his call.
+- **Checked:** see D-0068. Stills are in `%TEMP%\sj_star_csc` (`star2_threequarter.png`, `star3_seven_colours.png`).
+- **HIS, open:** a look at the star on the Raceway; which colour stays; the glow strength of each material.
+
 ## 16 Nov 2026 21:5x — THE LONG GUNS ARE IN BOTH HANDS (D-0067: SMG and shotgun carried across the body, raised to the shoulder; the test room's rule) — NOT PLAYED
 His "now the two handed long guns". Built outside the project, landed with the editor closed, headless only.
 - **Both hands stay on a long gun while it is out** (`Weapon > Two Handed`, on for the Dart SMG and the Dart Shotgun).
@@ -229,7 +245,7 @@ The GIF and both videos are also in his iCloud Drive, folder `Shift Orb` (the Fi
 What it is, for any caption: the game's orb, rendered and pixelated by script. Not hand-pixelled, by him or anyone.
 - LAB SHADERS ARE AHEAD AGAIN: `ShiftOrb.shader` and `ShiftOrbAura.shader` there read a settable clock
   (`_ShiftOrbClock`, unset = the game's time, so no change in play). Copy both here with the next landing.
-- 🔴 The Aseprite MCP cannot start Aseprite (its path is the Windows one, `C:\Users\maram\Apps\aseprite\build\bin\
+- 🔴 The Aseprite MCP cannot start Aseprite (its path is the Windows one, `%USERPROFILE%\Apps\aseprite\build\bin\
   aseprite.exe`, "not an executable file" from WSL); the exe itself runs fine from WSL by its /mnt/c path.
 - 🔴 `Sprite()` made in Lua has an all-black palette: `ChangePixelFormat{format="indexed"}` then turns every frame
   black. Set the palette first (`spr:setPalette`).
@@ -738,7 +754,7 @@ HIS PLAYTEST: run `Builds\Windows\v1\ShiftJam.exe` (the real build, not the edit
 Game, the course end to end with sound: a shift (shimmer), a core waking, the switch click, a door, a checkpoint chime,
 a fall reset (thump), the goal (win jingle), jump squeak, hard-landing tock, the room tone. Say which sounds to swap
 (Shift Jam > Audio > the CourseSounds asset in Data/, or tell me). Then the Workshop from the title. Music: his.
-NOT YET ON GITHUB: 74 commits since 2 Nov (`git push` is his: `! git.exe -C "C:\Users\maram\Dev\Unity Projects\Shift Jam Project" push`).
+NOT YET ON GITHUB: 74 commits since 2 Nov (`git push` is his: `! git.exe -C "%USERPROFILE%\Dev\Unity Projects\Shift Jam Project" push`).
 
 ## 6 Nov 2026 23:3x — BUILT + LANDED headless (D-0039): pillow side bounce, car portals, run cadence B — UNPLAYED
 His "start building" on the three open picks (my recommendations). Unity closed: code compiled outside (0 errors),

@@ -1106,3 +1106,30 @@
   - **Not ported:** the test room's wrist limits and forearm roll share for the support hand (the stills did not need
     them), finger curl, the reload pose.
   - **Checked:** probe 68 of 68 (the long-gun checks failed before), four scenes 0 errors, stills. Not played.
+- **D-0068 (16 Nov, 22:0x) The nitro star is his own star, in seven glowing colours.** His first Blender model after the
+  orb (`Dev\Blender Projects\star.blend`: a ten-point circle with every other point pulled in, Solidify 0.3, Bevel 0.04
+  in 3 segments), with his seven colour versions. His "yes bring in one mesh and all of the materials".
+  - **One mesh, seven materials.** `Art/Star/NitroStar.fbx` is the one model; `Data/Stars/` holds StarGold, StarOrange,
+    StarPink, StarLime, StarCyan, StarViolet and StarBold (orange that glows gold): copies of our plain lit material in
+    his hex colours with the glow switched on. The builder makes any that are missing and never touches one that
+    exists, so they are his to tune.
+  - **The builder, not the prefab by hand.** `RacingPieces.BuildNitroStar` now builds from his model (the Battle
+    Stadium's gold star stands in if the file is missing). Size, hover height, spin, trigger and sound are unchanged
+    (`BuildPickup` now takes the model itself, so the heart and the ring pass theirs).
+  - **His pick outlives a rebuild.** The colour is whichever `Data/Stars` material the star in `NitroStar.prefab` wears;
+    orange the first time (my pick: the old glow was the gold he found stark on the orb, and orange reads as boost and
+    stays apart from the shift's purple and cyan). To change it: drag another star material onto the star in the
+    prefab, then Shift Jam > Workshop > Build Nitro Star (new menu, the star alone); the floor glow (`NitroGlow.mat`)
+    turns to the same colour.
+  - **Glow 0.5, not 1.2.** At 1.2 times the colour the glow added to the lit colour washed cyan to white and gold to
+    yellow in a still; at 0.5 the seven read as seven. Blender's strength 2 is not carried over.
+  - **The export.** The circle was added facing the view, which leaves a 90 degree turn on the object; the builder sets
+    a model's turn to none, so the first import lay flat like a coin. The export now puts that turn into the mesh
+    (headless, the .blend never saved). Blender also writes the source file's full Windows path into every FBX: it is
+    replaced in the game copy, and in `Art/Orb/ShiftOrb.fbx` (same length, nothing else changed; both read back the
+    same in Blender), because this repo is public.
+  - **No shadow.** The star casts none (a light in the air, and no dark star on the road under it).
+  - **Checked:** compiled outside the project before each landing; in his open editor (out of Play): the star 1.20
+    wide, 1.14 tall, 0.39 thick, middle at 1.05; pink and bold put on the prefab by hand each outlived a rebuild and
+    the floor glow followed; stills of the star and of the seven in a row looked at (a bare preview room, not the
+    Raceway's light). Not seen on the Raceway, not driven through.

@@ -14,7 +14,8 @@ namespace ShiftJam
     /// Third person, a blaster (the test room's rule, numbers in WeaponHoldSettings): the gun is fixed in the right hand.
     /// At rest the arm is the animation's and the gun hangs with it. While aim is held, and for a moment after each
     /// shot, the arm comes up and points the gun at the crosshair (ArmAim), the body faces the aim, and a shot waits for
-    /// the arm to be up so it leaves along the barrel. Melee: the arm is raised through the Animator's Arms layer, like
+    /// the arm to be up so it leaves along the barrel. A long gun (Weapon.TwoHanded) has both hands on it the whole time
+    /// it is out: carried low across the body, raised to the shoulder the same way. Melee: the arm is raised through the Animator's Arms layer, like
     /// the Carrier, and the weapon follows it.
     /// First person: it floats in front of the camera as a view model. Weapons are parented to the player so they shift
     /// size with it.
@@ -48,7 +49,8 @@ namespace ShiftJam
         private int _handsFullFrame = -10;   // the last frame the hands held something: that press put it down, it does not holster
         private WeaponHoldSettings _hold;    // how a blaster is held in third person
         private ArmAim _armAim;              // bends the right arm to point the gun
-        private float _raise;                // 0 the arm is the animation's, 1 it is up and on the crosshair
+        private float _raise;                // 0 the arm is the animation's (a long gun: carried), 1 it is up and on the crosshair
+        private float _hands;                // a long gun: 0 the arms are the animation's, 1 both hands are on the gun
         private float _aimTime;              // seconds the arm stays up yet after a shot
         private bool _trigger;               // a click whose shot has not left: it waits for the arm
 
@@ -121,6 +123,7 @@ namespace ShiftJam
             if (animator != null && _layer >= 0 && carrier != null && carrier.Held == null) animator.SetLayerWeight(_layer, 0f);
             _arm = 0f;
             _raise = 0f;
+            _hands = 0f;
             StandDown();
         }
 
@@ -131,6 +134,9 @@ namespace ShiftJam
         /// <summary>A blaster in third person is pointed by the arm; melee, first person and a body without a
         /// humanoid arm are not.</summary>
         private bool ByArm(Weapon w) => w != null && w.AimsWithView && !FirstPerson && _armAim != null && _armAim.Ready;
+
+        /// <summary>A long gun on a body that can hold one in both hands.</summary>
+        private bool InBothHands(Weapon w) => ByArm(w) && w.TwoHanded && _armAim.BothHands;
 
         /// <summary>Called by FirstPersonMode: hold the weapon as a view model in front of <paramref name="view"/>, or back in
         /// the hand with nulls.</summary>
@@ -312,7 +318,10 @@ namespace ShiftJam
             _aimTime = Mathf.Max(0f, _aimTime - Time.deltaTime);
             float seconds = aiming ? _hold.raiseTime : _hold.lowerTime;
             _raise = !byArm ? 0f : seconds > 0f ? Mathf.MoveTowards(_raise, aiming ? 1f : 0f, Time.deltaTime / seconds) : aiming ? 1f : 0f;
-            bool up = !byArm || _raise >= _hold.raisedAt;
+            // A long gun: both hands come onto it as it is drawn and stay there; a move (a roll, a hit) takes them off.
+            bool both = byArm && InBothHands(w);
+            _hands = !both ? 0f : _hold.holdTime > 0f ? Mathf.MoveTowards(_hands, Locked ? 0f : 1f, Time.deltaTime / _hold.holdTime) : Locked ? 0f : 1f;
+            bool up = !byArm || (_raise >= _hold.raisedAt && (!both || _hands >= _hold.raisedAt));
             if (_trigger && up && Time.timeScale > 0f)
             {
                 _trigger = false;
@@ -348,7 +357,8 @@ namespace ShiftJam
                 // The gun is fixed in the fist: barrel along the knuckles, top towards the thumb, plus the tuned turns.
                 Quaternion fist = _armAim.NaturalGrip * Quaternion.Euler(_hold.gripEuler) * w.HandRotation;
                 Vector3 inHand = _wears != null ? _wears.Palm(palm) : palm;
-                if (_raise > 0f)
+                bool both = InBothHands(w);
+                if (both ? _hands > 0f : _raise > 0f)
                 {
                     var hold = new ArmAim.Hold
                     {
@@ -358,7 +368,17 @@ namespace ShiftJam
                         kickTurn = w.PoseRotation,
                         kickSlide = w.PosePosition * s,
                     };
-                    _armAim.Aim(w.AimPoint(), Mathf.SmoothStep(0f, 1f, _raise), hold, _hold, s);
+                    Vector3 target = _raise > 0f ? w.AimPoint() : transform.position + transform.forward * (100f * s);
+                    if (both)
+                    {
+                        // Measured in the weapon's own space; its size in the world is the weapon's scale.
+                        float size = w.transform.lossyScale.z;
+                        w.LongGunFit(_hold.longestSupportReach * s / Mathf.Max(1e-5f, size), out float stock, out Vector3 support);
+                        hold.stock = stock * size;
+                        hold.support = support * size;
+                        _armAim.Shoulder2(target, Mathf.SmoothStep(0f, 1f, _raise), Mathf.SmoothStep(0f, 1f, _hands), hold, _hold, s);
+                    }
+                    else _armAim.Aim(target, Mathf.SmoothStep(0f, 1f, _raise), hold, _hold, s);
                 }
                 Quaternion held = _hand.rotation * fist;
                 w.transform.SetPositionAndRotation(_hand.TransformPoint(inHand) + held * (w.HandOffset * s), held);

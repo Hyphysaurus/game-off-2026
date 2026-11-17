@@ -2,6 +2,33 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 16 Nov 2026 21:5x — THE LONG GUNS ARE IN BOTH HANDS (D-0067: SMG and shotgun carried across the body, raised to the shoulder; the test room's rule) — NOT PLAYED
+His "now the two handed long guns". Built outside the project, landed with the editor closed, headless only.
+- **Both hands stay on a long gun while it is out** (`Weapon > Two Handed`, on for the Dart SMG and the Dart Shotgun).
+- **Carried** (not aiming): low in front of the chest, the barrel 30 degrees down and 40 to the left, the chest turned
+  12 degrees so the left shoulder comes forward.
+- **Aimed** (right mouse, or a shot): the stock comes into the right shoulder and the barrel onto the crosshair's
+  spot, up and down too; the chest turns 35 degrees, the head stays facing the aim. A shot waits for the gun to be up
+  (0.12 s) and it stays up a second after, as with the pistol.
+- **The support hand** holds under and beside the barrel: at the model's own under-barrel marker when it has one
+  (the pack's `Place_..._BarBottom`), else a spot ahead of the grip, never further forward than 0.28; it slides back
+  along the barrel when the arm cannot reach (a gun pointed steeply down).
+- **The stock's length is measured from each model**, so any long gun added later sits in the shoulder by itself.
+- A roll, a block or a hit takes the hands off for its length (0.2 s on and off).
+- **Numbers:** `Resources/WeaponHold.asset`, the four "A long gun" groups (hold time, elbows, chest turns, shoulder
+  pocket, carry position and angles, the support hand). Per gun: `Two Handed`, `Support Point` on the weapon prefab.
+- **CHECKED:** hold probe 68 of 68 at toy and kid: carried barrel 30 down / 40 left with the support palm 0.05 from the
+  barrel's line; aimed level, up and down the barrel 0.0 degrees off the spot with the support hand still on; a pull
+  from the carry leaves 0.11 s later; carried again 2 s after. The same probe before this: the 32 long-gun checks
+  failed (support palm 0.48 to 0.70 from the gun). Four-scene smoke run 0 errors. Stills looked at:
+  `docs/stills/hold_toy_DartShotgun_*.png`, `hold_toy_DartSMG_*.png`. Probe: `%TEMP%\shiftjam-stage\hold2\probe-keep`.
+TO PLAY: Colour Corner, 2 for the SMG: walk with it, hold right mouse, look up and down, fire. Workshop: take the
+shotgun (E) and do the same. Roll (Left Ctrl) with a long gun out.
+FOR HIS EYE: the SMG is small in two hands (held close to the chest; say if it should go back to one hand); the carry's
+height and angle; the hands are still open (no finger curl); how the carry reads while running and crouching.
+NOT YET: finger curl, reloads and magazines, the test room's feel numbers (recoil per gun, move speed with a long gun)
+and ammo counts; first person is unchanged.
+
 ## 16 Nov 2026 21:2x — THE GUN IS FIXED IN THE HAND AND THE ARM AIMS IT (D-0066, the test room's rule; first part of the weapon port) — NOT PLAYED
 His play of the cameras (20:5x): "im noticing the pistol rotates in my hand". Cause: a drawn blaster was put at the palm
 but always turned to the camera's view, while the arm was one fixed raised pose and the body only faced the camera with

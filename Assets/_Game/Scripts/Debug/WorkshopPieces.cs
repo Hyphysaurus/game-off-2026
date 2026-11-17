@@ -40,6 +40,8 @@ namespace ShiftJam
         {
             public string Name, Label, Model; public Kind Kind; public float Length;
             public float Damage, Interval, Spread, Knock; public int Pellets; public bool Auto;
+            /// <summary>A long gun: held in both hands, carried across the body, raised to the shoulder to aim.</summary>
+            public bool TwoHands;
             /// <summary>A model standing up (longest side Y) with its tip at the bottom: -Y becomes the tip instead of +Y.</summary>
             public bool TipDown;
             /// <summary>Melee: where the fist closes, as a share of the length from the back end. 0 = 0.1 (a cuff, a pommel).</summary>
@@ -52,8 +54,8 @@ namespace ShiftJam
             new WeaponSpec { Name = "ToyKnife", Label = "Toy Knife", Model = CW + "Knives/Knife_02.prefab", Kind = Kind.Melee, Length = 0.6f, Damage = 30f, Knock = 7f, TipDown = true, GripAt = 0.35f },
             new WeaponSpec { Name = "FoamFinger", Label = "Foam Finger", Model = BS + "Other/foam_finger_001.prefab", Kind = Kind.Melee, Length = 0.9f, Damage = 20f, Knock = 14f },
             new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.18f, Spread = 1f, Pellets = 1, Knock = 3f },
-            new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 9f, Interval = 0.7f, Spread = 6f, Pellets = 7, Knock = 4f },
-            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 7f, Interval = 0.08f, Spread = 3f, Pellets = 1, Knock = 1.5f, Auto = true },
+            new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 9f, Interval = 0.7f, Spread = 6f, Pellets = 7, Knock = 4f, TwoHands = true },
+            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 7f, Interval = 0.08f, Spread = 3f, Pellets = 1, Knock = 1.5f, Auto = true, TwoHands = true },
         };
 
         private static readonly (string name, string model, float height)[] Targets =
@@ -210,6 +212,7 @@ namespace ShiftJam
                 Set(b, "knockback", spec.Knock);
                 Set(b, "automatic", spec.Auto);
                 Set(b, "aimsWithView", true);
+                Set(b, "twoHanded", spec.TwoHands);
                 Set(b, "viewOffset", new Vector3(0.2f, -0.2f, 0.42f));
                 weapon = b;
             }

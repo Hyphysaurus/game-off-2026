@@ -18,11 +18,15 @@ namespace ShiftJam
         [SerializeField, Tooltip("First person: where the grip sits in camera space, units at scale 1.")] private Vector3 viewOffset = new Vector3(0.22f, -0.22f, 0.45f);
         [SerializeField, Tooltip("First person: extra turn in camera space.")] private Vector3 viewEuler;
         [SerializeField, Tooltip("On: a blaster. It sits fixed in the hand, and the arm points it at the crosshair while aiming or just after a shot. Off: melee, which follows the arm on the body's heading.")] private bool aimsWithView = true;
+        [SerializeField, Tooltip("On: a long gun. Both hands stay on it, it is carried low across the body and comes up to the shoulder to aim (third person).")] private bool twoHanded;
+        [SerializeField, Tooltip("A long gun: where the support hand holds, in the weapon's own axes (z along the barrel), units at scale 1. Zero: the model's under-barrel marker (Place_..._BarBottom) if it has one, else a spot ahead of the grip.")] private Vector3 supportPoint;
         [SerializeField, Tooltip("Field of view while this weapon is aimed in first person, degrees (a scope zooms further). 0 = the first-person settings' aim field of view.")] private float sightFieldOfView;
 
         public string DisplayName => displayName;
         public WeaponHolder Holder { get; private set; }
         public bool AimsWithView => aimsWithView;
+        /// <summary>True for a long gun: held in both hands, carried across the body, raised to the shoulder to aim.</summary>
+        public bool TwoHanded => twoHanded;
         /// <summary>This weapon's own field of view while aimed in first person; 0 = none of its own.</summary>
         public float SightFieldOfView => sightFieldOfView;
         public Quaternion HandRotation => Quaternion.Euler(handEuler);
@@ -47,6 +51,45 @@ namespace ShiftJam
         public virtual void TriggerHeld() { }
         /// <summary>Put away or dropped mid-action: stop cleanly.</summary>
         public virtual void Cancel() { }
+
+        private bool _fitted; private float _stock; private Vector3 _support;
+
+        /// <summary>A long gun measured for the hold, in the weapon's own (root) space: how far it runs back from the
+        /// grip to the end of its stock, and where the support hand holds, never further forward than
+        /// <paramref name="longestReach"/>. Measured once from the model.</summary>
+        public void LongGunFit(float longestReach, out float stock, out Vector3 support)
+        {
+            if (!_fitted)
+            {
+                _fitted = true;
+                // The stock: the furthest any part of the model reaches behind the root.
+                float back = 0f;
+                Matrix4x4 toRoot = transform.worldToLocalMatrix;
+                foreach (MeshFilter part in GetComponentsInChildren<MeshFilter>(true))
+                {
+                    if (part.sharedMesh == null) continue;
+                    Bounds b = part.sharedMesh.bounds;
+                    Matrix4x4 m = toRoot * part.transform.localToWorldMatrix;
+                    for (int corner = 0; corner < 8; corner++)
+                    {
+                        var p = new Vector3((corner & 1) == 0 ? b.min.x : b.max.x, (corner & 2) == 0 ? b.min.y : b.max.y, (corner & 4) == 0 ? b.min.z : b.max.z);
+                        back = Mathf.Min(back, m.MultiplyPoint3x4(p).z);
+                    }
+                }
+                _stock = Mathf.Max(-back, 0.1f);
+                // The support hand: where the prefab says, else the pack's marker under the barrel, else ahead of the grip.
+                _support = supportPoint;
+                if (_support == Vector3.zero)
+                {
+                    _support = new Vector3(0f, 0.06f, 0.24f);
+                    foreach (Transform child in GetComponentsInChildren<Transform>(true))
+                        if (child.name.StartsWith("Place_") && child.name.EndsWith("_BarBottom")) { _support = toRoot.MultiplyPoint3x4(child.position); break; }
+                }
+            }
+            stock = _stock;
+            support = _support;
+            support.z = Mathf.Min(support.z, longestReach);
+        }
 
         internal void SetHolder(WeaponHolder holder)
         {

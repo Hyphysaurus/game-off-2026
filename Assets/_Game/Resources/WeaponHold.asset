@@ -25,3 +25,17 @@ MonoBehaviour:
   bodyHalfDepth: 0.16
   gripEuler: {x: 0, y: 0, z: 0}
   nearestTrueAim: 4
+  holdTime: 0.2
+  longElbow: {x: 0.8, y: -0.7, z: -0.2}
+  supportElbow: {x: -0.9, y: -0.6, z: -0.1}
+  aimChestTurn: 35
+  shoulderPocket: {x: -0.028, y: -0.056, z: 0.028}
+  carryPosition: {x: 0.11, y: -0.15, z: 0.19}
+  carryLeftDegrees: 40
+  carryDownDegrees: 30
+  carryChestTurn: 12
+  longestSupportReach: 0.28
+  closestSupport: 0.094
+  palmDepth: 0.028
+  palmRollDegrees: 35
+  fingersAlongBarrel: 0.8

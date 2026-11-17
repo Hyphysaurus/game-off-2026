@@ -1087,3 +1087,22 @@
     does (its first click is the one that captures the mouse). Typing in the console does not swap. His "still cant
     swap": carried 2, keys arriving, refused by the capture rule alone (seen in a headless run, where the mouse is
     never captured; why it was not captured in his editor is not known).
+- **D-0067 (16 Nov, 21:5x) The long guns are held in both hands: carried across the body, raised to the shoulder (the test room's two-handed rule).**
+  His "now the two handed long guns", the part D-0066 left for next.
+  - **Which guns:** the Dart SMG and the Dart Shotgun (`Weapon.TwoHanded`; `WorkshopPieces` sets it when it rebuilds
+    the prefabs). The test room has no SMG (its long guns are rifle, shotgun, sniper); the SMG is two-handed here on
+    my call, his eye decides.
+  - **The gun first, then the hands** (`ArmAim.Shoulder2`): the chest turns (12 degrees carried, 35 aimed, the head put
+    back), the gun's place is worked out between the carry (from the chest bone) and the shoulder (the stock's end in
+    the shoulder pocket, the barrel turned onto the target, slid forward if the grip would enter the belly), then the
+    right arm is bent to the grip and the left to the support point, palm to the gun, fingers along the barrel.
+  - **The test room's numbers, turned to the 1.8 body and Unity's axes** (its x is the character's left, ours the
+    right): pocket (0.03, -0.06, 0.03) m = (-0.028, -0.056, 0.028); carry (-0.12, -0.16, 0.2) m = (0.11, -0.15, 0.19);
+    elbows (-0.8, -0.7, -0.2) and (0.9, -0.6, -0.1) = (0.8, -0.7, -0.2) and (-0.9, -0.6, -0.1); longest support reach
+    0.3 m = 0.28, closest 0.1 m = 0.094, palm depth 0.03 m = 0.028. Angles and times as there.
+  - **Read from the model and the hand, not typed in:** the stock's length (the model's furthest point behind the
+    grip), the support point (the pack's under-barrel marker), the left hand's own axes (knuckles and thumb), the palm
+    (three quarters of the way from wrist to middle knuckle).
+  - **Not ported:** the test room's wrist limits and forearm roll share for the support hand (the stills did not need
+    them), finger curl, the reload pose.
+  - **Checked:** probe 68 of 68 (the long-gun checks failed before), four scenes 0 errors, stills. Not played.

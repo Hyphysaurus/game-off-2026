@@ -138,6 +138,7 @@ namespace ShiftJam
             Line(sb, Kb("Previous") + " / " + Kb("Next"), "Previous / next weapon", Pad("Previous") + " / " + Pad("Next"));
             Line(sb, "Z", "Drop the weapon", "D-pad down");
             Line(sb, "T", "Next ammo: darts, paint (Colour Corner)", "D-pad up");
+            Line(sb, "R", "Reload the gun in hand (an empty gun reloads by itself)", "Y, with nothing to use");
             Line(sb, "Esc", "Pause: resume, options, back to the title, quit", "Start");
             Line(sb, "R", "Restart, on the end card");
             Line(sb, "H", "This list", "View");
@@ -176,6 +177,7 @@ namespace ShiftJam
             Line(sb, Kb("Aim"), "Aim a drawn weapon (the view narrows)", Pad("Aim"));
             Line(sb, Kb("Holster"), "Holster or draw the weapon", Pad("Holster"));
             Line(sb, "Z", "Drop the weapon", "D-pad down");
+            Line(sb, "R", "Reload (with empty hands)", "Y, with nothing to use");
             Line(sb, Kb("Crouch"), "Crouch", Pad("Crouch"));
             Line(sb, Kb("Jump") + ", " + Kb("Sprint"), "Jump, run", Pad("Jump") + ", " + Pad("Sprint"));
             Set(2, sb);

@@ -2,6 +2,53 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 17 Nov 2026 08:4x — MAGAZINES, RELOADING, AMMO PICKUPS AND THE WEAPON HUD (D-0070: the test room's ammo rules; the next piece of the weapons port) — NOT PLAYED
+His "let's continue the work on shift jam (including testing zone)". Built headless by a builder agent while he was in
+AoE4. The run was cut by the usage limit at 08:25 with this piece in the tree and its probe passing; the probe was
+taken out, one smoke run made, and the docs and the commit done by hand after.
+- **Each gun has a magazine and a reserve** (on its prefab: `BlasterWeapon` > Magazine). Dart Pistol: 12 in the gun,
+  48 carried at the start, 96 at most, reload 1.3 s. Dart Shotgun: 6 / 24 / 48, 2.2 s. Both are the test room's.
+  Dart SMG: 20 / 60 / 120, 1.5 s (the test room has no SMG: set between its pistol and its rifle). A shot spends one
+  round whatever the pellets. Darts and paint share the one magazine (the test room's rule). The rounds stay with the
+  gun: put away, dropped, picked up again.
+- **R reloads** (pad: Y while there is nothing to use; all 16 pad buttons were taken). An empty gun clicks once,
+  waits 0.25 s and reloads by itself if there is reserve; a held automatic that runs dry just reloads. No aiming and
+  no firing during a reload. A swap, putting the gun away, a drop, a roll, a block, a hit or getting into a car
+  stops it.
+- **The reload is shown.** The gun comes to the chest tipped up 25 degrees and rolled 35, the magazine drops out and
+  comes back, and the free hand (a long gun's support hand) goes to the magazine. Where: `Resources/WeaponHold` >
+  A reload. First person: the floating gun tips the same way (no arms there yet).
+- **Ammo pickups.** `AmmoBox` (one magazine to each gun carried, back after 15 s) stands one step past the SMG in the
+  Workshop's row. `SupplyCrate` (fills every gun carried, never used up) stands in the Colour Corner where the test
+  room's does. A pickup gives only to the guns being carried.
+- **Weapon HUD, bottom left:** rounds / reserve ("12 / 48"), RELOADING, the gun's name and the ammo's name, red when a
+  quarter or less is left, and a dot crosshair (the old small cross is gone; first person keeps its own dot). Hidden
+  with no blaster out, in Build Mode, in menus, in the console and while driving.
+- **Numbers:** per gun on its prefab (and in `WorkshopPieces`, so a rebuild gives the same); the shared ones in
+  `Resources/WeaponAmmo` (the dry wait, reload when empty, the reload's timeline, the HUD's sizes and colours, the
+  four sounds).
+- **What each new script owns:** `Combat/Magazine.cs` a gun's rounds and reserve; `Combat/Reload.cs` a reload's
+  timing; `Combat/MagazinePart.cs` finds the model's magazine and moves it; `Combat/AmmoBox.cs` the two pickups;
+  `Data/WeaponAmmoSettings.cs` the shared numbers; `UI/WeaponHud.cs` the read-out and the dot; `Debug/AmmoPieces.cs`
+  builds the two pickup pieces. Changed: `BlasterWeapon`, `WeaponHolder`, `ArmAim` (the reload pose), `GameEvents`
+  (AmmoChanged, ReloadStarted, ReloadEnded, DryFired, AmmoTaken), `PlayerInput` (Reload), `KeyHelp`, `WorkshopPieces`,
+  the Colour Corner's builder.
+- **CHECKED:** ammo probe 212 of 212 at toy and kid for the three guns. The same probe on the code before: 22 of 188.
+  Its first run on the new code: 196 of 212 (the kid's ammo pickups gave nothing, and the free hand stopped 9 to 12 cm
+  short of a long gun's magazine); the builder changed something between that run and the passing one and was cut
+  off before writing down what (the game or the check): look at the free hand in play. Four-scene smoke run after
+  the landing: 0 errors in every scene (the Raceway's R still starts the race from a grid car).
+- **NOT RE-RUN after this piece** (his "avoid extra redundant testing for now"): the hold probe (81) and the camera
+  probe (64). `ArmAim` was changed for the reload pose, so the hold probe is the first to run next time.
+- **OWED:** stills of the reload beside the test room's (no Godot window while he plays); the four sounds are pack
+  clips picked by name, unheard.
+TO PLAY: Colour Corner: fire the pistol dry (click, then it reloads); press R mid-magazine; 2 for the SMG and hold fire
+through a reload; walk into the supply crate. Workshop: take the shotgun, empty it, use the ammo box past the SMG.
+FOR HIS EYE: the reload pose and the hand on the magazine; the HUD's size and place; Y as reload on a pad; the SMG's
+numbers; whether an empty gun should reload by itself (`WeaponAmmo` > Reload When Empty).
+NOT YET (the next pieces, in order): shot feel (per-gun recoil, hit marker, muzzle puff, wheel swap, slower walk with
+a heavy gun), then the rifle, the sniper and bubbles, then grenades and first person.
+
 ## 16 Nov 2026 22:0x — THE NITRO STAR IS HIS STAR, IN SEVEN COLOURS (D-0068) — NOT SEEN ON THE RACEWAY, NOT DRIVEN THROUGH
 His first Blender model after the orb, built by him from menu steps (`Dev\Blender Projects\star.blend`), brought in on
 his "yes bring in one mesh and all of the materials". Landed beside his open editor, out of Play.

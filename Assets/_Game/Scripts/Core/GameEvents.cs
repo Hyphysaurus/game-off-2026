@@ -26,6 +26,17 @@ namespace ShiftJam
         public static event Action<Goal> GoalReached;
         /// <summary>The Shift key was pressed and the shift could not happen; the string says why (shown on the HUD).</summary>
         public static event Action<Shifter, string> ShiftRefused;
+        /// <summary>A holder's ammo read-out changed: a shot left, a reload started, seated or ended, an ammo box was
+        /// taken, or another gun came to hand. Read the numbers from the holder (Current, Reloading) and its gun's Magazine.</summary>
+        public static event Action<WeaponHolder> AmmoChanged;
+        /// <summary>A reload started on this gun.</summary>
+        public static event Action<WeaponHolder, BlasterWeapon> ReloadStarted;
+        /// <summary>A reload ended on this gun; the bool says whether the new magazine had seated (rounds were loaded).</summary>
+        public static event Action<WeaponHolder, BlasterWeapon, bool> ReloadEnded;
+        /// <summary>The trigger was pulled on an empty gun (the dry click).</summary>
+        public static event Action<WeaponHolder, BlasterWeapon> DryFired;
+        /// <summary>A holder took ammo from a box; the int is how many rounds its guns gained in all.</summary>
+        public static event Action<WeaponHolder, int> AmmoTaken;
 
         internal static void RaiseShiftStarted(Shifter who, ShiftSize size) => ShiftStarted?.Invoke(who, size);
         internal static void RaiseShifted(Shifter who, ShiftSize size) => Shifted?.Invoke(who, size);
@@ -36,5 +47,10 @@ namespace ShiftJam
         internal static void RaisePlayerReset(Respawn respawn) => PlayerReset?.Invoke(respawn);
         internal static void RaiseGoalReached(Goal goal) => GoalReached?.Invoke(goal);
         internal static void RaiseShiftRefused(Shifter who, string why) => ShiftRefused?.Invoke(who, why);
+        internal static void RaiseAmmoChanged(WeaponHolder holder) => AmmoChanged?.Invoke(holder);
+        internal static void RaiseReloadStarted(WeaponHolder holder, BlasterWeapon gun) => ReloadStarted?.Invoke(holder, gun);
+        internal static void RaiseReloadEnded(WeaponHolder holder, BlasterWeapon gun, bool loaded) => ReloadEnded?.Invoke(holder, gun, loaded);
+        internal static void RaiseDryFired(WeaponHolder holder, BlasterWeapon gun) => DryFired?.Invoke(holder, gun);
+        internal static void RaiseAmmoTaken(WeaponHolder holder, int rounds) => AmmoTaken?.Invoke(holder, rounds);
     }
 }

@@ -115,3 +115,9 @@ Space = jump, X = put down (C crouches since D-0064), LMB = toggle the carried l
 - Pad: hum with speed, buzz on boost and in a slide, a jolt on landing and on a hit. It must stop when you get out
   and when you pause.
 - Note anything too strong or too weak, and say which; every number is in one of three settings files.
+
+## Ammo and reload (D-0070, 17 Nov)
+- Colour Corner: fire the pistol until it clicks; it reloads by itself. Press R mid-magazine. Watch the count bottom left.
+- 2 for the SMG: hold fire through a reload. Walk into the supply crate: every gun carried is filled.
+- Workshop: take the shotgun, empty it, use the ammo box one step past the SMG (one magazine to each gun carried).
+- Say: how the reload looks (the hand on the magazine), the HUD's size and place, Y as reload on a pad.

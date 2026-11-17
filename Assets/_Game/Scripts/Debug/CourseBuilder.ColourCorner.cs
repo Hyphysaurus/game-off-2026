@@ -70,6 +70,7 @@ namespace ShiftJam
         // x, z (Godot); all three face the same way
         static readonly Vector2[] CcSoldiers = { new Vector2(-4f, -3f), new Vector2(14f, 2f), new Vector2(-12f, 6f) };
         const float CcSoldierTurn = 180f;
+        static readonly Vector2 CcSupplyAt = new Vector2(6f, 21f);   // x, z (Godot): the supply crate, to the right of the player's start
 
         static Vector3 CcAt(float x, float z) => new Vector3(-x, 0f, z);
         static Vector3 CcTurn(float degrees) => new Vector3(0f, -degrees, 0f);
@@ -129,6 +130,7 @@ namespace ShiftJam
                     minds.Add(go.GetComponent<MischiefSoldier>());
                 }
             PaintBuilder.Check(minds.Count == CcSoldiers.Length && minds.All(m => m != null), $"{minds.Count} of {CcSoldiers.Length} mischief soldiers placed");
+            PaintBuilder.Check(CcSupply(level, matTop) != null, "the supply crate stands by the player's start (D-0070: every reserve filled, never used up)");
 
             // ---- the level: paint keeper (no skips here), the grade, the corner, its readout ----
             var paint = Child(level, "PaintSplats").gameObject.AddComponent<PaintSplats>();
@@ -177,6 +179,37 @@ namespace ShiftJam
             if (!scenes.Any(s => s.path == ColourCornerScenePath)) { scenes.Add(new EditorBuildSettingsScene(ColourCornerScenePath, true)); EditorBuildSettings.scenes = scenes.ToArray(); }
             PaintBuilder.Check(saved && EditorBuildSettings.scenes.Any(s => s.path == ColourCornerScenePath && s.enabled), ColourCornerScenePath + " saved and in Build Settings");
             PaintBuilder.Say($"Colour Corner built: {things.Count} grey things on mats {matTop:F2} high, {minds.Count} soldiers, {lights.Count} lights, a {half * 2f:F0} x {half * 2f:F0} room");
+        }
+
+        /// <summary>The supply crate, where the Godot level has it: on the near mats, to the right of the player's start.
+        /// It replaces one placed before. Null when the piece is missing (Shift Jam > Workshop > Build Ammo Pieces).</summary>
+        static GameObject CcSupply(Transform parent, float matTop)
+        {
+            var old = parent.Find("SupplyCrate"); if (old != null) Object.DestroyImmediate(old.gameObject);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AmmoPieces.CratePath);
+            if (prefab == null) return null;
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+            go.name = "SupplyCrate";
+            go.transform.position = CcAt(CcSupplyAt.x, CcSupplyAt.y) + Vector3.up * matTop;
+            return go;
+        }
+
+        /// <summary>D-0070, without rebuilding the room: opens the Colour Corner, stands the supply crate on its mats and
+        /// saves. False if the scene, its Level or the piece is missing.</summary>
+        internal static bool LandColourCornerAmmo()
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ColourCornerScenePath) == null) { Debug.LogError("[Ammo] No " + ColourCornerScenePath + "."); return false; }
+            Scene scene = EditorSceneManager.OpenScene(ColourCornerScenePath);
+            var level = GameObject.Find("ColourCorner/Level"); var mats = GameObject.Find("ColourCorner/Mats");
+            if (level == null || mats == null) { Debug.LogError("[Ammo] The Colour Corner has no Level or no Mats."); return false; }
+            float matTop = CcMatLift;
+            foreach (Transform mat in mats.transform) matTop = Mathf.Max(matTop, B(mat.gameObject).max.y);
+            var crate = CcSupply(level.transform, matTop);
+            if (crate == null) { Debug.LogError("[Ammo] No SupplyCrate piece: run Shift Jam > Workshop > Build Ammo Pieces."); return false; }
+            EditorSceneManager.MarkSceneDirty(scene);
+            bool saved = EditorSceneManager.SaveScene(scene);
+            Debug.Log($"[Ammo] Colour Corner: SupplyCrate at ({crate.transform.position.x:0.#}, {crate.transform.position.y:0.##}, {crate.transform.position.z:0.#}), mats {matTop:F2} high.");
+            return saved;
         }
 
         /// <summary>The corner's shell, the sandbox's on a smaller floor: CcTiles x CcTiles floor tiles, Wall_01 walls,

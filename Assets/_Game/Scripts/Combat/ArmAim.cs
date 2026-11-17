@@ -11,6 +11,8 @@ namespace ShiftJam
     /// Two-handed (a long gun): both hands stay on the gun while it is out. Carried, it sits low in front of the chest,
     /// barrel down and across the body; aimed, its stock sits in the right shoulder and the barrel is on the target. The
     /// chest turns so the support shoulder comes forward; the head stays as it was.
+    /// Reloading (Hold.reload above 0): the gun comes in front of the chest, barrel tipped up and the magazine rolled
+    /// round towards the free hand, which goes to the magazine and follows it down and back up.
     /// Not a component: the WeaponHolder owns one and calls it from its LateUpdate.
     /// </summary>
     public sealed class ArmAim
@@ -34,6 +36,10 @@ namespace ShiftJam
             public float stock;
             /// <summary>A long gun: where the support hand holds, from the root.</summary>
             public Vector3 support;
+            /// <summary>0 the normal hold, 1 the gun tipped in front of the chest for a reload.</summary>
+            public float reload;
+            /// <summary>Where the free hand takes the magazine: its bottom, from the root, as far out of the gun as it is now.</summary>
+            public Vector3 magazine;
         }
 
         /// <summary>One arm: its bones, each bone's own turn against "y along the bone, z along the elbow's hinge", and
@@ -146,8 +152,45 @@ namespace ShiftJam
             wrist += gun * hold.kickSlide;
             gun *= hold.kickTurn;
 
+            bool freeHand = hold.reload > 0f && _left.ok;
+            if (hold.reload > 0f)
+            {
+                // Reloading: the gun goes from wherever the aim has it to its place in front of the chest (both measured
+                // at the gun's reference point, as the carry is), and the free hand to the magazine.
+                Vector3 at = wrist + gun * (hold.seat - hold.frame);
+                ReloadPlace(s, scale, out Quaternion tipped, out Vector3 place);
+                gun = Quaternion.Slerp(gun, tipped, hold.reload);
+                Vector3 root = Vector3.Lerp(at, place, hold.reload) + gun * hold.frame;
+                wrist = root - gun * hold.seat;
+                if (freeHand) { _left.Remember(); HandToMagazine(root, gun, hold, s, scale); }
+            }
+
             Bend(_right, wrist, gun * Quaternion.Inverse(hold.grip), s.elbowDirection);
-            if (weight < 1f) _right.Blend(weight);
+            if (weight < 1f) { _right.Blend(weight); if (freeHand) _left.Blend(weight); }
+        }
+
+        /// <summary>Where a gun is held for a reload: in front of the chest, barrel tipped up, rolled so the magazine
+        /// comes round towards the free (left) hand. The place is the gun's reference point (Hold.frame back from its root).</summary>
+        private void ReloadPlace(WeaponHoldSettings s, float scale, out Quaternion gun, out Vector3 at)
+        {
+            gun = _body.rotation * Quaternion.AngleAxis(-s.reloadUpDegrees, Vector3.right) * Quaternion.AngleAxis(-s.reloadRollDegrees, Vector3.forward);
+            Vector3 chest = _chest != null ? _chest.position : _right.upper.position;
+            at = chest + _body.rotation * (s.reloadPosition * scale);
+        }
+
+        /// <summary>A one-handed gun's reload: the free hand travels from where the animation has it to the bottom of
+        /// the magazine and back, as far as Hold.reload. Its palm faces the gun from below and beside it.</summary>
+        private void HandToMagazine(Vector3 root, Quaternion gun, in Hold hold, WeaponHoldSettings s, float scale)
+        {
+            float roll = s.palmRollDegrees * Mathf.Deg2Rad;
+            Vector3 barrel = gun * Vector3.forward;
+            Vector3 palmWay = (gun * Vector3.up * Mathf.Cos(roll) + gun * Vector3.right * Mathf.Sin(roll)).normalized;
+            float palmLength = _left.knuckle != null ? Vector3.Distance(_left.knuckle.position, _left.hand.position) * PalmShare : 0.07f * scale;
+            Vector3 palm = root + gun * hold.magazine;
+            Vector3 fingers = AcrossPalm((palm - _left.upper.position).normalized + barrel * s.fingersAlongBarrel, palmWay);
+            Vector3 wrist = palm - fingers * palmLength - palmWay * (s.palmDepth * scale);
+            Vector3 freeAt = _left.hand.position; Quaternion freeTurn = _left.hand.rotation;   // the animation's, before we move it
+            Bend(_left, Vector3.Lerp(freeAt, wrist, hold.reload), Quaternion.Slerp(freeTurn, LeftHandTurn(fingers, palmWay), hold.reload), s.supportElbow);
         }
 
         /// <summary>Two-handed: both hands on a long gun. <paramref name="aim"/> moves it from the carry (0) up to the
@@ -194,6 +237,13 @@ namespace ShiftJam
             Vector3 at = Vector3.Lerp(carriedAt, aimedAt, aim);
             at += gun * hold.kickSlide;
             gun *= hold.kickTurn;
+            if (hold.reload > 0f)
+            {
+                // Reloading: the gun comes in front of the chest, tipped, and the support hand goes to the magazine.
+                ReloadPlace(s, scale, out Quaternion tipped, out Vector3 place);
+                gun = Quaternion.Slerp(gun, tipped, hold.reload);
+                at = Vector3.Lerp(at, place, hold.reload);
+            }
             at += gun * hold.frame;   // from the reference point to the gun's root, where the hands are measured from
 
             // The right hand on the grip.
@@ -205,14 +255,14 @@ namespace ShiftJam
             Vector3 palmWay = (gun * Vector3.up * Mathf.Cos(roll) + gun * Vector3.right * Mathf.Sin(roll)).normalized;
             float palmLength = _left.knuckle != null ? Vector3.Distance(_left.knuckle.position, _left.hand.position) * PalmShare : 0.07f * scale;
             float palmDepth = s.palmDepth * scale;
-            Vector3 palm = at + gun * hold.support;
+            Vector3 palm = at + gun * Vector3.Lerp(hold.support, hold.magazine, hold.reload);
             Vector3 reachFrom = _left.upper.position;
             Vector3 fingers = AcrossPalm((palm - reachFrom).normalized + barrel * s.fingersAlongBarrel, palmWay);
             Vector3 wrist = palm - fingers * palmLength - palmWay * palmDepth;
             // Out of reach, the hand would hang in the air short of the gun: the hold slides back along the barrel. Only
             // as the gun comes up to aim: the carry keeps the hold it has.
             float armLength = Vector3.Distance(_left.fore.position, reachFrom) + Vector3.Distance(_left.hand.position, _left.fore.position);
-            float back = SlideToReach(wrist - reachFrom, barrel, hold.support.z - s.closestSupport * scale, armLength * MostStretch) * aim;
+            float back = hold.reload > 0f ? 0f : SlideToReach(wrist - reachFrom, barrel, hold.support.z - s.closestSupport * scale, armLength * MostStretch) * aim;
             if (back > 0f)
             {
                 palm -= barrel * back;

@@ -8,7 +8,7 @@ namespace ShiftJam
     /// The only script that knows about devices. It turns the Input System asset's "Player" map into
     /// intents the rest of the game reads: Move, Sprint, a look delta, and Jump / Interact presses. On foot the keys
     /// follow the test room: C crouch (hold), Left Ctrl dodge roll, Q block (hold), left mouse fire or punch, right mouse
-    /// aim or kick, X put down what is carried or holster / draw, Z drop the weapon.
+    /// aim or kick, X put down what is carried or holster / draw, Z drop the weapon, R reload.
     /// A car reads it as its driver (ICarDriver: Move, JumpHeld and Sprint, as they are).
     /// </summary>
     public sealed class PlayerInput : MonoBehaviour, ICarDriver
@@ -20,7 +20,7 @@ namespace ShiftJam
         private InputActionMap _player;
         private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop, _previous, _next, _shift, _crouch, _aim, _dodge, _block;
         // Workshop extras the asset has no actions for: made here so this stays the only script that knows devices.
-        private InputAction _dropWeapon, _scroll, _rotate;
+        private InputAction _dropWeapon, _scroll, _rotate, _reload;
         private Vector2 _mouseLook;   // pixels moved since the last read
         private Vector2 _stickLook;   // current right-stick value, -1..1
 
@@ -60,6 +60,10 @@ namespace ShiftJam
         public event Action Shift;
         /// <summary>Raised on Z (pad: D-pad down): drop the weapon in hand.</summary>
         public event Action DropWeapon;
+        /// <summary>Raised on R, and on the pad's Y: reload the gun in hand. The bool is true when the press came from
+        /// the button that is also Interact (the pad has no button to spare): the listener leaves it alone when there
+        /// is something to use.</summary>
+        public event Action<bool> Reload;
 
         private void Awake()
         {
@@ -85,6 +89,8 @@ namespace ShiftJam
             _rotate = new InputAction("RotateHeld", InputActionType.Button, "<Keyboard>/r");
             _rotate.AddBinding("<Mouse>/rightButton");
             _rotate.AddBinding("<Gamepad>/leftShoulder");
+            _reload = new InputAction("Reload", InputActionType.Button, "<Keyboard>/r");
+            _reload.AddBinding("<Gamepad>/buttonNorth");
         }
 
         private void OnEnable()
@@ -101,14 +107,16 @@ namespace ShiftJam
             _next.performed += OnNext;
             _shift.performed += OnShift;
             _dropWeapon.performed += OnDropWeapon;
+            _reload.performed += OnReload;
             _player.Enable();
-            _dropWeapon.Enable(); _scroll.Enable(); _rotate.Enable();
+            _dropWeapon.Enable(); _scroll.Enable(); _rotate.Enable(); _reload.Enable();
         }
 
         private void OnDisable()
         {
             _player.Disable();
-            _dropWeapon.Disable(); _scroll.Disable(); _rotate.Disable();
+            _dropWeapon.Disable(); _scroll.Disable(); _rotate.Disable(); _reload.Disable();
+            _reload.performed -= OnReload;
             _previous.performed -= OnPrevious;
             _next.performed -= OnNext;
             _shift.performed -= OnShift;
@@ -127,7 +135,7 @@ namespace ShiftJam
         private void OnDestroy()
         {
             if (_instance != null) Destroy(_instance);
-            _dropWeapon?.Dispose(); _scroll?.Dispose(); _rotate?.Dispose();
+            _dropWeapon?.Dispose(); _scroll?.Dispose(); _rotate?.Dispose(); _reload?.Dispose();
         }
 
         private void OnJump(InputAction.CallbackContext _) => Jump?.Invoke();
@@ -140,6 +148,7 @@ namespace ShiftJam
         private void OnNext(InputAction.CallbackContext _) => Next?.Invoke();
         private void OnShift(InputAction.CallbackContext _) => Shift?.Invoke();
         private void OnDropWeapon(InputAction.CallbackContext _) => DropWeapon?.Invoke();
+        private void OnReload(InputAction.CallbackContext ctx) => Reload?.Invoke(ctx.control != null && ctx.control.device is Gamepad);
 
         private void OnLook(InputAction.CallbackContext ctx)
         {

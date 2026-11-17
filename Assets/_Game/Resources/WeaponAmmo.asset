@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d39cb9473919444493eefafa00f95713, type: 3}
+  m_Name: WeaponAmmo
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.WeaponAmmoSettings
+  dryWait: 0.25
+  reloadWhenEmpty: 1
+  shortestReload: 0.2
+  poseInBy: 0.2
+  poseOutFrom: 0.82
+  magazineOut: {x: 0.25, y: 0.45}
+  magazineBack: {x: 0.55, y: 0.75}
+  magazineGone: {x: 0.44, y: 0.56}
+  magazineDrop: 0.198
+  lowShare: 0.25
+  countColour: {r: 1, g: 1, b: 1, a: 1}
+  lowColour: {r: 1, g: 0.35, b: 0.3, a: 1}
+  reloadingText: RELOADING
+  countSize: 53
+  nameSize: 27
+  corner: {x: 40, y: 72}
+  dotSizes: {x: 17, y: 7}
+  dryClip: {fileID: 8300000, guid: 761119b7e262a804c8c7286ee838379a, type: 3}
+  reloadStartClip: {fileID: 8300000, guid: 11b166b899305ae49bc602d06dacf49a, type: 3}
+  reloadSeatClip: {fileID: 8300000, guid: 1597530dcb1c1374d9d761d95c323995, type: 3}
+  pickupClip: {fileID: 8300000, guid: a5f8565c7844aed429ffc81c79937fd7, type: 3}

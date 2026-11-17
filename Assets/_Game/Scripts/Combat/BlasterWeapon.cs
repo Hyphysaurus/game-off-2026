@@ -8,6 +8,8 @@ namespace ShiftJam
     /// points the barrel at the same spot).
     /// Shots leave from the muzzle unless the muzzle has poked through a wall, in which case they leave from the chest and
     /// hit that wall. Each shot kicks the gun back (and the view, in first person).
+    /// Each shot spends a round from the gun's Magazine; empty, the trigger only clicks and the holder is told (it
+    /// starts the reload). A blaster with Magazine Size 0 has no magazine and never runs dry.
     /// </summary>
     public sealed class BlasterWeapon : Weapon
     {
@@ -28,11 +30,19 @@ namespace ShiftJam
         [SerializeField, Tooltip("How fast the kick settles, per second.")] private float recovery = 14f;
         [SerializeField, Tooltip("First person: view punch per shot (pitch up, yaw jitter), degrees.")] private Vector2 viewPunch = new Vector2(1.2f, 0.4f);
         [SerializeField] private AudioClip fireClip;
+        [Header("Ammo")]
+        [SerializeField, Tooltip("This gun's magazine: its size, the reserve it starts with, the most it can carry, and how long a reload takes.")] private Magazine magazine = new Magazine();
 
         private readonly RaycastHit[] _hits = new RaycastHit[16];
         private float _nextFire, _kick;
         private WeaponHolder _beltOf;   // whose AmmoBelt was looked up
         private AmmoBelt _belt;         // the holder's choice of ammo, if it carries one
+        private MagazinePart _part;     // the magazine on the model, found once
+
+        /// <summary>The rounds in this gun and in reserve for it. They stay with the gun when it is put away or dropped.</summary>
+        public Magazine Magazine { get { magazine.Fill(); return magazine; } }   // filled the first time anyone looks
+        /// <summary>The magazine on this gun's model, for the reload.</summary>
+        public MagazinePart MagazinePart => _part ??= new MagazinePart(transform);
 
         public override Quaternion PoseRotation => Quaternion.Euler(-kickAngle * _kick, 0f, 0f);
         public override Vector3 PosePosition => Vector3.back * (kickBack * _kick);
@@ -58,18 +68,26 @@ namespace ShiftJam
             return target;
         }
 
-        public override void TriggerPressed() => TryFire();
-        public override void TriggerHeld() { if (automatic) TryFire(); }
-        public override void Cancel() { _kick = 0f; }
+        public override void TriggerPressed() => TryFire(true);
+        public override void TriggerHeld() { if (automatic) TryFire(false); }
+        public override void Cancel() { _kick = 0f; if (Holder != null) Holder.CancelReload(this); }   // put away, swapped or dropped: the reload stops
 
         private void Update()
         {
             _kick = Mathf.Lerp(_kick, 0f, 1f - Mathf.Exp(-recovery * Time.deltaTime));
         }
 
-        private bool TryFire()
+        /// <summary>One shot, if the gun may fire now. <paramref name="pressed"/>: a fresh pull of the trigger (not a
+        /// held automatic), which is what makes an empty gun click.</summary>
+        private bool TryFire(bool pressed)
         {
-            if (Holder == null || Time.time < _nextFire) return false;
+            if (Holder == null || Time.time < _nextFire || Holder.Reloading) return false;
+            if (Magazine.Empty)
+            {
+                // Empty: the trigger rests a moment, and the holder clicks and starts the reload.
+                _nextFire = Time.time + Holder.Empty(this, pressed);
+                return false;
+            }
             // What leaves the barrel: the holder's chosen ammo (AmmoBelt: darts, paint...), else this blaster's own.
             if (_beltOf != Holder) { _beltOf = Holder; Holder.TryGetComponent(out _belt); }
             Projectile shot = _belt != null ? _belt.Shot(projectile) : projectile;
@@ -101,11 +119,13 @@ namespace ShiftJam
             dir.Normalize();
             for (int p = 0; p < pellets; p++)
                 Projectile.Fire(shot, from, Spread(dir), damage, knockback, scale, Holder.transform, Holder.FirstPersonBodyRoot);
+            Magazine.Spend();   // one round a shot, however many pellets
 
             _kick = 1f;
             Holder.Punch(new Vector2(-viewPunch.x, Random.Range(-viewPunch.y, viewPunch.y)));
             AudioClip ammoClip = _belt != null ? _belt.FireClip() : null;
             Holder.PlayClip(ammoClip != null ? ammoClip : fireClip, Random.Range(1.05f, 1.25f));
+            Holder.AmmoChanged();
             return true;
         }
 

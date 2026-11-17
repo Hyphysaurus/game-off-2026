@@ -75,6 +75,11 @@ MonoBehaviour:
   recovery: 14
   viewPunch: {x: 1.2, y: 0.4}
   fireClip: {fileID: 0}
+  magazine:
+    size: 6
+    reserveStart: 24
+    reserveMax: 48
+    reloadSeconds: 2.2
 --- !u!65 &8760050280400495802
 BoxCollider:
   m_ObjectHideFlags: 0

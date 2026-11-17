@@ -7,7 +7,8 @@ namespace ShiftJam
     /// <summary>
     /// The player's weapons. Carries up to a few (taken from WeaponPickups with E), shows the one in hand, fires it with
     /// Attack (tap, or hold for automatic), cycles with Previous / Next (1 / 2), holsters or draws it with X and drops it
-    /// with Z. Holstered, the hands are empty (the player punches and kicks). Aim (right mouse) is held with a weapon
+    /// with Z, and reloads a blaster with R (Reload keeps the time; an empty gun clicks and reloads by itself; a swap, a
+    /// holster, a drop or a move stops it). Holstered, the hands are empty (the player punches and kicks). Aim (right mouse) is held with a weapon
     /// drawn: the camera comes in and the body faces the aim. The kid's carry wins:
     /// while the Carrier holds something (the flashlight), Attack is the carried thing's and the weapon is put away; in
     /// first person, while the hands hold a prop, Attack throws it instead.
@@ -55,17 +56,25 @@ namespace ShiftJam
         private float _grip;                 // 0 the gun hand is the animation's open hand, 1 it is closed round the grip
         private float _aimTime;              // seconds the arm stays up yet after a shot
         private bool _trigger;               // a click whose shot has not left: it waits for the arm
+        private WeaponAmmoSettings _ammo;    // what an empty gun does, how a reload runs
+        private readonly Reload _reload = new Reload();   // the reload under way, if any
+        private float _reloadPose;           // 0 the normal hold, 1 the gun tipped in front of the chest for the reload
+        private Interactor _interactor;      // what E / the pad's Y would use: that press is not a reload
 
         /// <summary>False while the weapon is holstered (X): it is carried but put away, and the hands are empty.</summary>
         public bool Drawn { get; private set; } = true;
         /// <summary>True with a weapon drawn and in the hand: the camera goes over the shoulder, Attack fires.</summary>
         public bool Armed => isActiveAndEnabled && Drawn && Current != null && !HandsFull;
         /// <summary>True while a drawn weapon is aimed (Aim held): the camera comes in, the body faces the aim.</summary>
-        public bool AimHeld => Armed && !Locked && input != null && input.AimHeld && Time.timeScale > 0f;
+        public bool AimHeld => Armed && !Locked && !Reloading && input != null && input.AimHeld && Time.timeScale > 0f;
         /// <summary>True while the gun is being pointed: aim is held, or the arm is still up after a shot. The body faces the aim.</summary>
         public bool Aiming => AimHeld || (Armed && !Locked && !FirstPerson && (_aimTime > 0f || _trigger));
         /// <summary>How far the gun arm is up: 0 at rest, 1 on the crosshair.</summary>
         public float Raise => _raise;
+        /// <summary>True while the gun in hand is being reloaded: it cannot fire or aim.</summary>
+        public bool Reloading => _reload.Active;
+        /// <summary>How far through the reload we are, 0 to 1 (0 when none runs).</summary>
+        public float ReloadDone => _reload.Done;
         /// <summary>The player's moves set this while one is under way (a roll, a block, a hit, dead): no firing, the arm comes down.</summary>
         public bool Locked { get; set; }
         /// <summary>The drawn weapon's own field of view while aimed in first person; 0 = it has none.</summary>
@@ -105,6 +114,8 @@ namespace ShiftJam
                 _layer = animator.GetLayerIndex(armsLayer);
             }
             _hold = WeaponHoldSettings.Load();
+            _ammo = WeaponAmmoSettings.Load();
+            _interactor = GetComponent<Interactor>();
             _armAim = new ArmAim(animator, transform);   // here, before the Animator poses the arm: it reads the rest pose
             _fist = new FingerCurl(animator, right: true);
             _support = new FingerCurl(animator, right: false);
@@ -113,16 +124,18 @@ namespace ShiftJam
             _audio.spatialBlend = 0.6f;
         }
 
+        private void Start() { if (input != null) WeaponHud.Create(this); }   // a player's holder shows its ammo on screen
+
         private void OnEnable()
         {
             if (input == null) return;
-            input.UseHeld += OnAttack; input.Previous += OnPrevious; input.Next += OnNext; input.DropWeapon += OnDropWeapon; input.Drop += OnHolster;
+            input.UseHeld += OnAttack; input.Previous += OnPrevious; input.Next += OnNext; input.DropWeapon += OnDropWeapon; input.Drop += OnHolster; input.Reload += OnReload;
             ShowCurrent();
         }
 
         private void OnDisable()
         {
-            if (input != null) { input.UseHeld -= OnAttack; input.Previous -= OnPrevious; input.Next -= OnNext; input.DropWeapon -= OnDropWeapon; input.Drop -= OnHolster; }
+            if (input != null) { input.UseHeld -= OnAttack; input.Previous -= OnPrevious; input.Next -= OnNext; input.DropWeapon -= OnDropWeapon; input.Drop -= OnHolster; input.Reload -= OnReload; }
             if (Current != null) { Current.Cancel(); Current.gameObject.SetActive(false); }   // seated, or the player is off
             if (animator != null && _layer >= 0 && carrier != null && carrier.Held == null) animator.SetLayerWeight(_layer, 0f);
             _arm = 0f;
@@ -130,6 +143,7 @@ namespace ShiftJam
             _hands = 0f;
             _grip = 0f;
             StandDown();
+            EndReload();
         }
 
         /// <summary>The weapon in hand changed or went away: a click still waiting for the arm is dropped, and the arm
@@ -187,6 +201,7 @@ namespace ShiftJam
             Drawn = true;   // a weapon just taken is in the hand
             ShowCurrent();
             Pose();
+            GameEvents.RaiseAmmoChanged(this);
             return weapon;
         }
 
@@ -210,6 +225,7 @@ namespace ShiftJam
             if (weapon.TryGetComponent(out Rigidbody rb))
                 rb.linearVelocity = Vector3.ProjectOnPlane(AimForward, Vector3.up).normalized * (dropToss * Scale) + Vector3.up * (dropToss * 0.5f * Scale);
             ShowCurrent();
+            GameEvents.RaiseAmmoChanged(this);
         }
 
         private void OnDropWeapon() { if (KeysAct() && !HandsFull && Current != null && !Current.Busy) Drop(Current); }
@@ -236,6 +252,7 @@ namespace ShiftJam
             StandDown();
             if (!drawn && Current != null) Current.Cancel();
             ShowCurrent();
+            GameEvents.RaiseAmmoChanged(this);
         }
         private void OnPrevious() => Cycle(-1);
         private void OnNext() => Cycle(1);
@@ -254,6 +271,96 @@ namespace ShiftJam
             _current = index;
             Drawn = true;   // picking a weapon takes it out
             ShowCurrent();
+            GameEvents.RaiseAmmoChanged(this);
+        }
+
+        // ---------- ammo and the reload ----------
+
+        /// <summary>R (pad: Y). The pad's button is also Use: with something to use in reach, or the hands busy with a
+        /// prop, that press was a use and nothing is reloaded.</summary>
+        private void OnReload(bool sharedWithUse)
+        {
+            if (!KeysAct()) return;
+            if (sharedWithUse && ((_interactor != null && _interactor.Target != null) || (_grab != null && (_grab.BusyThisFrame || !string.IsNullOrEmpty(_grab.Hint))) || (_fpHands != null && _fpHands.BusyThisFrame))) return;
+            StartReload();
+        }
+
+        /// <summary>Starts reloading the gun in hand, as R does. False when it cannot: no blaster out, its magazine is
+        /// full, nothing in reserve, a move is under way, or a reload is running already.</summary>
+        public bool StartReload()
+        {
+            if (!Armed || Locked || Reloading || !(Current is BlasterWeapon gun) || !gun.gameObject.activeSelf) return false;
+            if (_fpHands != null && _fpHands.Held != null) return false;   // first person with a prop in the hands: R turns the prop
+            if (!_reload.Begin(gun, _ammo)) return false;
+            StandDown();   // no shot waits through a reload, and the arm does not stay up for one
+            PlayClip(_ammo.reloadStartClip, 1f);
+            GameEvents.RaiseReloadStarted(this, gun);
+            GameEvents.RaiseAmmoChanged(this);
+            return true;
+        }
+
+        /// <summary>Stops the reload under way (of <paramref name="gun"/>, or whichever when null). The magazine goes
+        /// back in the gun; rounds count only if the new one had already seated.</summary>
+        public void CancelReload(Weapon gun = null)
+        {
+            if (_reload.Active && (gun == null || _reload.Weapon == gun)) EndReload();
+        }
+
+        private void EndReload()
+        {
+            if (!_reload.Active) return;
+            BlasterWeapon gun = _reload.Weapon;
+            bool loaded = _reload.Seated;
+            _reload.Stop();
+            _reloadPose = 0f;
+            if (gun != null) gun.MagazinePart.Seat();
+            GameEvents.RaiseReloadEnded(this, gun, loaded);
+            GameEvents.RaiseAmmoChanged(this);
+        }
+
+        /// <summary>One frame of the reload: stopped when the gun is no longer out or a move takes the hands (a roll, a
+        /// block, a hit); otherwise the magazine drops out and comes back, and the rounds count in when it seats.</summary>
+        private void RunReload(Weapon inHand, bool visible)
+        {
+            if (!_reload.Active) return;
+            if (!visible || Locked || _reload.Weapon != inHand) { EndReload(); return; }
+            bool over = _reload.Tick(Time.deltaTime, _ammo, out bool seated);
+            if (seated)
+            {
+                _reload.Weapon.Magazine.Load();
+                PlayClip(_ammo.reloadSeatClip, 1f);
+                GameEvents.RaiseAmmoChanged(this);
+            }
+            if (over) { EndReload(); return; }
+            _reloadPose = _reload.Pose(_ammo);
+            _reload.Weapon.MagazinePart.Set(_ammo.magazineDrop * _reload.MagazineOut(_ammo), _reload.MagazineHidden(_ammo));
+        }
+
+        /// <summary>How far <paramref name="w"/> is in its reload position: 0 unless it is the gun being reloaded.</summary>
+        private float ReloadPose(Weapon w) => _reload.Active && _reload.Weapon == w ? _reloadPose : 0f;
+
+        /// <summary>A blaster's trigger was pulled with nothing in the gun. A fresh pull clicks; then the reload starts
+        /// by itself if there is anything to load (the test room's rule). Returns the seconds before the trigger
+        /// answers again.</summary>
+        public float Empty(BlasterWeapon gun, bool pressed)
+        {
+            if (pressed) { PlayClip(_ammo.dryClip, 1f); GameEvents.RaiseDryFired(this, gun); }
+            if (_ammo.reloadWhenEmpty) StartReload();
+            return _ammo.dryWait;
+        }
+
+        /// <summary>A gun we carry spent or gained rounds: whoever shows them is told.</summary>
+        public void AmmoChanged() => GameEvents.RaiseAmmoChanged(this);
+
+        /// <summary>An ammo box: every blaster carried gets this many magazines' worth of rounds into its reserve, up to
+        /// the most it holds (0 = each reserve filled to the top). Returns the rounds gained in all: 0 means nothing
+        /// was needed, and the box stays.</summary>
+        public int AddAmmo(int magazines)
+        {
+            int gained = 0;
+            foreach (Weapon w in _weapons) if (w is BlasterWeapon gun) gained += gun.Magazine.Add(magazines);
+            if (gained > 0) { GameEvents.RaiseAmmoTaken(this, gained); GameEvents.RaiseAmmoChanged(this); }
+            return gained;
         }
 
         private void ShowCurrent()
@@ -288,7 +395,7 @@ namespace ShiftJam
         public bool PullTrigger()
         {
             var w = Current;
-            if (w == null || !Drawn || !w.gameObject.activeSelf || Locked) return false;
+            if (w == null || !Drawn || !w.gameObject.activeSelf || Locked || Reloading) return false;   // a click during a reload is dropped
             FaceAim();
             if (ByArm(w)) _trigger = true;   // the shot waits for the arm to be up (Update), so it leaves along the barrel
             else w.TriggerPressed();
@@ -309,15 +416,16 @@ namespace ShiftJam
             if (HandsFull) _handsFullFrame = Time.frameCount;
             bool visible = w != null && !HandsFull && Drawn;
             if (w != null && w.gameObject.activeSelf != visible) { if (!visible) w.Cancel(); w.gameObject.SetActive(visible); }
+            RunReload(w, visible);
             bool held = input != null && input.AttackHeld;
             if (!held) _waitRelease = false;
             else if ((_fpHands != null && _fpHands.BusyThisFrame) || (_grab != null && _grab.BusyThisFrame)) _waitRelease = true;   // the press threw a prop: wait for a new one
-            bool pulling = visible && held && !_waitRelease && CanAct();
+            bool pulling = visible && held && !_waitRelease && CanAct() && !Reloading;
 
             // A blaster in third person: the arm is up while aim is held, the trigger is down or a click is waiting, and
             // for a moment after. The shot leaves once the arm is up.
             bool byArm = visible && ByArm(w);
-            if (!byArm || Locked) StandDown();
+            if (!byArm || Locked || Reloading) StandDown();
             else if (pulling || _trigger) _aimTime = _hold.lowerDelay;
             bool aiming = byArm && !Locked && (AimHeld || _aimTime > 0f);
             _aimTime = Mathf.Max(0f, _aimTime - Time.deltaTime);
@@ -352,10 +460,19 @@ namespace ShiftJam
             var w = Current;
             if (w == null || !w.gameObject.activeSelf) return;
             float s = Scale;
+            float reload = ReloadPose(w);
             if (_fpView != null)
             {
-                Quaternion rot = _fpView.rotation * w.ViewRotation * w.PoseRotation;
-                Vector3 pos = _fpView.position + _fpView.rotation * (w.ViewOffset * s) + rot * (w.PosePosition * s);
+                Quaternion turn = w.ViewRotation; Vector3 at = w.ViewOffset * s;
+                if (reload > 0f)
+                {
+                    // Reloading: the gun comes to the middle of the view, barrel tipped up, magazine rolled round.
+                    Quaternion tipped = Quaternion.AngleAxis(-_hold.reloadUpDegrees, Vector3.right) * Quaternion.AngleAxis(-_hold.reloadRollDegrees, Vector3.forward);
+                    turn = Quaternion.Slerp(turn, tipped, reload);
+                    at = Vector3.Lerp(at, (_hold.reloadViewPosition + tipped * _hold.gripFromHolder) * s, reload);
+                }
+                Quaternion rot = _fpView.rotation * turn * w.PoseRotation;
+                Vector3 pos = _fpView.position + _fpView.rotation * at + rot * (w.PosePosition * s);
                 w.transform.SetPositionAndRotation(pos, rot);
                 return;
             }
@@ -366,7 +483,7 @@ namespace ShiftJam
                 Quaternion fist = _armAim.Grip(_hold.barrelInHand, _hold.topInHand) * Quaternion.Euler(_hold.gripEuler) * w.HandRotation;
                 Vector3 inHand = _armAim.InHand(_hold.fistCentre);
                 bool both = InBothHands(w);
-                if (both ? _hands > 0f : _raise > 0f)
+                if (both ? _hands > 0f : _raise > 0f || reload > 0f)
                 {
                     var hold = new ArmAim.Hold
                     {
@@ -376,18 +493,22 @@ namespace ShiftJam
                         kickTurn = w.PoseRotation,
                         kickSlide = w.PosePosition * s,
                         frame = _hold.gripFromHolder * s,
+                        reload = reload,
                     };
+                    // Measured in the weapon's own space; its size in the world is the weapon's scale.
+                    float size = w.transform.lossyScale.z;
+                    // A reload: where the free hand takes the magazine, as far out of the gun as it is now.
+                    if (reload > 0f && w is BlasterWeapon gun)
+                        hold.magazine = (gun.MagazinePart.Bottom + Vector3.down * (_ammo.magazineDrop * _reload.MagazineOut(_ammo))) * size;
                     Vector3 target = _raise > 0f ? w.AimPoint() : transform.position + transform.forward * (100f * s);
                     if (both)
                     {
-                        // Measured in the weapon's own space; its size in the world is the weapon's scale.
-                        float size = w.transform.lossyScale.z;
                         w.LongGunFit(_hold.longestSupportReach * s / Mathf.Max(1e-5f, size), out float stock, out Vector3 support);
                         hold.stock = stock * size;
                         hold.support = support * size;
                         _armAim.Shoulder2(target, Mathf.SmoothStep(0f, 1f, _raise), Mathf.SmoothStep(0f, 1f, _hands), hold, _hold, s);
                     }
-                    else _armAim.Aim(target, Mathf.SmoothStep(0f, 1f, _raise), hold, _hold, s);
+                    else _armAim.Aim(target, Mathf.Max(Mathf.SmoothStep(0f, 1f, _raise), reload), hold, _hold, s);   // a reload needs the arm even when the gun hung at the side
                 }
                 Quaternion held = _hand.rotation * fist;
                 w.transform.SetPositionAndRotation(_hand.TransformPoint(inHand) + held * (w.HandOffset * s), held);
@@ -409,21 +530,6 @@ namespace ShiftJam
             Quaternion r = frame * w.PoseRotation * w.HandRotation;
             Vector3 grip = _hand != null ? _hand.TransformPoint(_wears != null ? _wears.Palm(palm) : palm) : transform.position + Vector3.up * (chestHeight * s) + transform.right * (0.3f * s) + transform.forward * (0.3f * s);
             w.transform.SetPositionAndRotation(grip + r * ((w.HandOffset + w.PosePosition) * s), r);
-        }
-
-        /// <summary>Third person with a blaster: a small crosshair where the shots go (first person draws its own).</summary>
-        private void OnGUI()
-        {
-            if (Event.current.type != EventType.Repaint || FirstPerson || !(Current is BlasterWeapon) || !Current.gameObject.activeSelf) return;
-            if (Cursor.lockState != CursorLockMode.Locked || GameMode.Current != GameMode.Mode.Play) return;
-            float cx = Screen.width * 0.5f, cy = Screen.height * 0.5f;
-            var old = GUI.color;
-            GUI.color = new Color(1f, 1f, 1f, 0.8f);
-            GUI.DrawTexture(new Rect(cx - 8f, cy - 1f, 5f, 2f), Texture2D.whiteTexture);
-            GUI.DrawTexture(new Rect(cx + 3f, cy - 1f, 5f, 2f), Texture2D.whiteTexture);
-            GUI.DrawTexture(new Rect(cx - 1f, cy - 8f, 2f, 5f), Texture2D.whiteTexture);
-            GUI.DrawTexture(new Rect(cx - 1f, cy + 3f, 2f, 5f), Texture2D.whiteTexture);
-            GUI.color = old;
         }
 
         private static void SetViewModel(Weapon w, bool on)

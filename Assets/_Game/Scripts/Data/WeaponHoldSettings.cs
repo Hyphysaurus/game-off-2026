@@ -104,6 +104,16 @@ namespace ShiftJam
         [Tooltip("A long gun: degrees each bone of the support hand's four fingers bends under the barrel (the test room: 40). Its thumb is left as the animation has it.")]
         public float supportCurl = 40f;
 
+        [Header("A reload")]
+        [Tooltip("Third person: where the gun sits from the chest bone while reloading, in the body's own space: x right, y up, z forward (the test room: 0.04 to the right, 0.12 down, 0.24 forward).")]
+        public Vector3 reloadPosition = new Vector3(0.04f, -0.119f, 0.238f);
+        [Tooltip("First person: where it sits from the camera while reloading: x right, y up, z forward.")]
+        public Vector3 reloadViewPosition = new Vector3(0.05f, -0.198f, 0.297f);
+        [Tooltip("Degrees the barrel tips up while reloading (the test room: 25).")]
+        public float reloadUpDegrees = 25f;
+        [Tooltip("Degrees the gun rolls so its magazine comes round towards the free hand (the test room: 35).")]
+        public float reloadRollDegrees = 35f;
+
         private static WeaponHoldSettings _defaults;
 
         /// <summary>Resources/WeaponHold, or the defaults above when the asset is missing.</summary>

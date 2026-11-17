@@ -52,6 +52,9 @@ namespace ShiftJam
             public bool TipDown;
             /// <summary>Melee: where the fist closes, as a share of the length from the back end. 0 = 0.1 (a cuff, a pommel).</summary>
             public float GripAt;
+            /// <summary>A blaster's magazine (D-0070, the test room's numbers): rounds in a full one, the reserve it starts
+            /// with, the most the reserve holds, and the seconds a reload takes.</summary>
+            public int Rounds, Reserve, ReserveMost; public float ReloadSeconds;
         }
 
         private static readonly WeaponSpec[] Weapons =
@@ -59,9 +62,9 @@ namespace ShiftJam
             // Knife_02 stands ring up, blade tip down: the fist takes the handle just under the finger ring.
             new WeaponSpec { Name = "ToyKnife", Label = "Toy Knife", Model = CW + "Knives/Knife_02.prefab", Kind = Kind.Melee, Length = 0.6f, Damage = 30f, Knock = 7f, TipDown = true, GripAt = 0.35f },
             new WeaponSpec { Name = "FoamFinger", Label = "Foam Finger", Model = BS + "Other/foam_finger_001.prefab", Kind = Kind.Melee, Length = 0.9f, Damage = 20f, Knock = 14f },
-            new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.18f, Spread = 1f, Pellets = 1, Knock = 3f, PackSize = true, Grip = new Vector3(0f, -0.0412f, -0.0258f), MuzzleReach = 0.1726f },
-            new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 9f, Interval = 0.7f, Spread = 6f, Pellets = 7, Knock = 4f, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0305f, -0.006f) },
-            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 7f, Interval = 0.08f, Spread = 3f, Pellets = 1, Knock = 1.5f, Auto = true, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0556f, -0.0267f), MuzzleReach = 0.0985f },
+            new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.18f, Spread = 1f, Pellets = 1, Knock = 3f, PackSize = true, Grip = new Vector3(0f, -0.0412f, -0.0258f), MuzzleReach = 0.1726f, Rounds = 12, Reserve = 48, ReserveMost = 96, ReloadSeconds = 1.3f },   // the test room's pistol
+            new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 9f, Interval = 0.7f, Spread = 6f, Pellets = 7, Knock = 4f, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0305f, -0.006f), Rounds = 6, Reserve = 24, ReserveMost = 48, ReloadSeconds = 2.2f },   // the test room's shotgun
+            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 7f, Interval = 0.08f, Spread = 3f, Pellets = 1, Knock = 1.5f, Auto = true, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0556f, -0.0267f), MuzzleReach = 0.0985f, Rounds = 20, Reserve = 60, ReserveMost = 120, ReloadSeconds = 1.5f },   // no SMG in the test room: between its pistol (12 / 48 / 96, 1.3 s) and its rifle (30 / 90 / 180, 1.8 s)
         };
 
         private static readonly (string name, string model, float height)[] Targets =
@@ -222,6 +225,10 @@ namespace ShiftJam
                 // First person: where the grip sits from the camera. At the pack's size these are the test room's hip
                 // positions (a long gun is held closer), taken to the middle of the grip.
                 Set(b, "viewOffset", !spec.PackSize ? new Vector3(0.2f, -0.2f, 0.42f) : spec.TwoHands ? new Vector3(0.119f, -0.218f, 0.206f) : new Vector3(0.139f, -0.228f, 0.265f));
+                Set(b, "magazine.size", spec.Rounds);
+                Set(b, "magazine.reserveStart", spec.Reserve);
+                Set(b, "magazine.reserveMax", spec.ReserveMost);
+                Set(b, "magazine.reloadSeconds", spec.ReloadSeconds);
                 weapon = b;
             }
             Set(weapon, "displayName", spec.Label);
@@ -948,7 +955,7 @@ namespace ShiftJam
 
         // ---------- helpers ----------
 
-        private static GameObject Load(string path)
+        internal static GameObject Load(string path)
         {
             var go = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (go == null) Debug.LogWarning("[Workshop] Missing pack prefab, skipped: " + path);
@@ -956,7 +963,7 @@ namespace ShiftJam
         }
 
         /// <summary>An instance of a pack prefab under <paramref name="parent"/>, its own colliders switched off (ours replace them).</summary>
-        private static GameObject Place(GameObject prefab, Transform parent)
+        internal static GameObject Place(GameObject prefab, Transform parent)
         {
             var inst = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
             inst.transform.localPosition = Vector3.zero;
@@ -977,7 +984,7 @@ namespace ShiftJam
             b = LocalBounds(space, inst);
         }
 
-        private static Bounds LocalBounds(Transform space, GameObject go)
+        internal static Bounds LocalBounds(Transform space, GameObject go)
         {
             Bounds b = new Bounds(); bool any = false;
             foreach (var r in go.GetComponentsInChildren<Renderer>())
@@ -1034,14 +1041,14 @@ namespace ShiftJam
             return null;
         }
 
-        private static GameObject Save(GameObject root, string path)
+        internal static GameObject Save(GameObject root, string path)
         {
             var saved = PrefabUtility.SaveAsPrefabAsset(root, path);
             Object.DestroyImmediate(root);
             return saved;
         }
 
-        private static T SettingsAsset<T>(string path) where T : ScriptableObject
+        internal static T SettingsAsset<T>(string path) where T : ScriptableObject
         {
             var asset = AssetDatabase.LoadAssetAtPath<T>(path);
             if (asset != null) return asset;
@@ -1074,7 +1081,7 @@ namespace ShiftJam
             return mat;
         }
 
-        private static void EnsureFolder(string path)
+        internal static void EnsureFolder(string path)
         {
             if (AssetDatabase.IsValidFolder(path)) return;
             int slash = path.LastIndexOf('/');
@@ -1087,7 +1094,7 @@ namespace ShiftJam
             go.TryGetComponent(out T c) ? c : Undo.AddComponent<T>(go);
 
         /// <summary>Sets a serialized (private) field by name.</summary>
-        private static void Set(Object target, string field, object value)
+        internal static void Set(Object target, string field, object value)
         {
             var so = new SerializedObject(target);
             var p = so.FindProperty(field);

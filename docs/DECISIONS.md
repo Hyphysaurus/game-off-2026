@@ -1162,3 +1162,27 @@
   - **Mirror note:** Godot's f x t on this rig is the back of the hand; Unity's f x t (mirrored space) is the palm:
     the third number of each measure changes sign coming over.
   - **Open:** pickups' own models, first-person offsets, the 5 % on D-0064's move lengths.
+- **D-0070 (17 Nov, 08:4x) Magazines, reserves and reloading as in the test room; the rounds live on the gun; a weapon HUD.**
+  His "let's continue the work on shift jam (including testing zone)"; the port order of 16 Nov (weapons after paint).
+  - **The test room's rules, kept:** a shot spends one round whatever the pellets; the ammo kinds share one magazine
+    (changing kind only changes what leaves the barrel); a fresh pull on an empty gun clicks once, waits 0.25 s and
+    starts a reload if there is reserve, and a held automatic that runs dry reloads without the click; no aiming or
+    firing while reloading; the reload pose (gun at the chest, 25 degrees up, rolled 35, the magazine towards the
+    left hand), ported from `aim_pose.gd`; the pistol's and the shotgun's numbers.
+  - **Where Shift Jam differs, and why:** the rounds and the reserve are on the weapon, not on the holder, because
+    here a gun is dropped and taken again and the test room never drops one; so a pickup gives only to the guns being
+    carried. The SMG's numbers are ours (20 / 60 / 120, 1.5 s). The pad has no free button: Y reloads when there is
+    nothing to use. The HUD has a faint dark panel (the test room has none; white text on a bright floor does not
+    read) and stands 72 px up to clear the "H Keys" hint; its sizes are the test room's taken from a 648-high screen
+    to 1080. One crosshair: `WeaponHolder`'s drawn cross is gone, the HUD's dot stands in third person.
+  - **Not ported** (this arm code never had them): the support wrist's roll and bend limits, and the forearm's share
+    of the roll.
+  - **Nothing else fires a `BlasterWeapon`** (the soldiers and targets do not use it): no rule needed for them.
+  - **Layout for the next pieces:** per-gun numbers on the prefab's Magazine block and in `WorkshopPieces`'
+    `WeaponSpec`; shared numbers in `Resources/WeaponAmmo`; `GameEvents.AmmoChanged` is what the HUD listens to;
+    `WeaponHud.AddLine` stacks a line (a grenade count); a hit marker goes beside the dot; a new ammo kind is a row on
+    the `AmmoBelt`. The builder's full note: `%TEMP%\shiftjam-stage\weapons\NOTES.md`, "CONTRACT FOR LATER PIECES".
+  - **Checked:** ammo probe 22 of 188 on the old code, 196 of 212 on the first landing, 212 of 212 after the
+    builder's fixes (what it changed between the last two was not written down before the usage limit cut the run);
+    four scenes 0 errors. The hold and camera probes were not re-run. Probe kept at
+    `%TEMP%\shiftjam-stage\weapons\p1\probe-keep\AmmoProbe.cs`. Not played.

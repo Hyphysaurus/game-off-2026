@@ -48,3 +48,7 @@ MonoBehaviour:
   triggerCurl: 35
   thumbCurl: 25
   supportCurl: 40
+  reloadPosition: {x: 0.04, y: -0.119, z: 0.238}
+  reloadViewPosition: {x: 0.05, y: -0.198, z: 0.297}
+  reloadUpDegrees: 25
+  reloadRollDegrees: 35

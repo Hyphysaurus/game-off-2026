@@ -116,7 +116,7 @@ MonoBehaviour:
   displayName: Dart Pistol
   handEuler: {x: 0, y: 0, z: 0}
   handOffset: {x: 0, y: 0, z: 0}
-  viewOffset: {x: 0.2, y: -0.2, z: 0.42}
+  viewOffset: {x: 0.139, y: -0.228, z: 0.265}
   viewEuler: {x: 0, y: 0, z: 0}
   aimsWithView: 1
   projectile: {fileID: 5713214129242039125, guid: afbb0a2c301f7cd49bdd36580013ba56, type: 3}

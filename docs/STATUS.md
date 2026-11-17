@@ -40,8 +40,13 @@ side, showed why:
 - **CHECKED:** hold probe 81 of 81; four scenes 0 errors; stills beside the test room's: the aimed and carried
   shotgun, the aimed pistol and the hands now read the same (`docs/stills/compare_godot_unity_*.jpg`, redone).
   Measurements by `claude-test-views/probes/compare/measure.gd` (reads only).
-- **NOT CHANGED:** the pickups on the Workshop's tables still show the old toy sizes (their own prefabs); first
-  person's view model offsets were set for the old sizes (the shotgun now looks smaller there, the SMG bigger).
+- **23:1x, his "fix em" (the two leftovers), `D-0069` follow-up:** the three pickups show the gun at the pack's size
+  (their models were still 0.89 / 0.75 / 1.18; the check failed on that first, now 1.000 against 1.000 in the hand).
+  First person: each gun's `View Offset` is the test room's hip position taken to the grip's middle (pistol
+  (0.139, -0.228, 0.265), long guns (0.119, -0.218, 0.206)); laid beside the test room's first-person stills the guns
+  sit in the same place (`docs/stills/compare_godot_unity_first_person.jpg`). `WorkshopPieces` writes both on a
+  rebuild. Four scenes 0 errors. STILL DIFFERENT in first person: the test room shows the arms on the gun and brings
+  the sight to the eye on right mouse; here the gun floats and right mouse only zooms.
 FOR HIS EYE: the same walk-through as below, with the SMG and the shotgun; say if the motion (walking, running,
 turning with a long gun) still reads worse than the test room's, and where.
 

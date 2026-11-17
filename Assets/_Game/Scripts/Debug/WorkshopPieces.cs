@@ -219,7 +219,9 @@ namespace ShiftJam
                 Set(b, "automatic", spec.Auto);
                 Set(b, "aimsWithView", true);
                 Set(b, "twoHanded", spec.TwoHands);
-                Set(b, "viewOffset", new Vector3(0.2f, -0.2f, 0.42f));
+                // First person: where the grip sits from the camera. At the pack's size these are the test room's hip
+                // positions (a long gun is held closer), taken to the middle of the grip.
+                Set(b, "viewOffset", !spec.PackSize ? new Vector3(0.2f, -0.2f, 0.42f) : spec.TwoHands ? new Vector3(0.119f, -0.218f, 0.206f) : new Vector3(0.139f, -0.228f, 0.265f));
                 weapon = b;
             }
             Set(weapon, "displayName", spec.Label);
@@ -254,7 +256,7 @@ namespace ShiftJam
             var trigger = stand.AddComponent<SphereCollider>();
             trigger.isTrigger = true;
             trigger.center = Vector3.up * 0.7f;
-            trigger.radius = Mathf.Max(0.5f, spec.Length * 0.7f);
+            trigger.radius = Mathf.Max(0.5f, (spec.PackSize ? db.size.z : spec.Length) * 0.7f);
             var pickup = stand.AddComponent<WeaponPickup>();
             Set(pickup, "weapon", heldPrefab);
             Set(pickup, "display", display.transform);

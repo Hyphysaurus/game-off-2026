@@ -59,6 +59,11 @@ namespace ShiftJam
             /// of the ammo's own speed its shots leave at, and the share of normal speed you move at with it out.
             /// 0 = 1 for each.</summary>
             public float Recoil, ShotSpeed, Walk;
+            /// <summary>A blaster's sight for first person (D-0074): the point aim brings to the middle of the view, in
+            /// the weapon's own axes from the middle of its grip. Zero (every gun so far): found from the model, the
+            /// glass of the sight on its Place_..._Sight mount (Combat/GunSight). SightRoll: degrees the gun rolls over
+            /// as the sight comes to the eye, for a sight that stands at a slant on the gun (the SMG's offset sight).</summary>
+            public Vector3 Sight; public float SightRoll;
         }
 
         private static readonly WeaponSpec[] Weapons =
@@ -68,7 +73,7 @@ namespace ShiftJam
             new WeaponSpec { Name = "FoamFinger", Label = "Foam Finger", Model = BS + "Other/foam_finger_001.prefab", Kind = Kind.Melee, Length = 0.9f, Damage = 20f, Knock = 14f },
             new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.2f, Spread = 0f, Pellets = 1, Knock = 8f, Recoil = 1f, ShotSpeed = 1f, Walk = 1f, PackSize = true, Grip = new Vector3(0f, -0.0412f, -0.0258f), MuzzleReach = 0.1726f, Rounds = 12, Reserve = 48, ReserveMost = 96, ReloadSeconds = 1.3f },   // the test room's pistol: 5 shots a second, damage 1 (15 here), push 8
             new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 7.5f, Interval = 0.8333f, Spread = 2.5f, Pellets = 8, Knock = 2.5f, Recoil = 2.2f, ShotSpeed = 0.9f, Walk = 0.9f, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0305f, -0.006f), Rounds = 6, Reserve = 24, ReserveMost = 48, ReloadSeconds = 2.2f },   // the test room's shotgun: 1.2 shots a second, 8 pellets of damage 0.5 (7.5 here) and push 2.5 within 2.5 degrees
-            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 15f, Interval = 0.1429f, Spread = 0.3f, Pellets = 1, Knock = 7f, Recoil = 0.85f, ShotSpeed = 1.1f, Walk = 0.96f, Auto = true, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0556f, -0.0267f), MuzzleReach = 0.0985f, Rounds = 20, Reserve = 60, ReserveMost = 120, ReloadSeconds = 1.5f },   // no SMG in the test room: every number half way between its pistol (12 / 48 / 96, 1.3 s; 5 a second, push 8, kick 1) and its rifle (30 / 90 / 180, 1.8 s; 9 a second, push 6, spread 0.6, speed 1.2, kick 0.7, walk 0.92)
+            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 15f, Interval = 0.1429f, Spread = 0.3f, Pellets = 1, Knock = 7f, Recoil = 0.85f, ShotSpeed = 1.1f, Walk = 0.96f, Auto = true, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0556f, -0.0267f), MuzzleReach = 0.0985f, SightRoll = 45f, Rounds = 20, Reserve = 60, ReserveMost = 120, ReloadSeconds = 1.5f },   // no SMG in the test room: every number half way between its pistol (12 / 48 / 96, 1.3 s; 5 a second, push 8, kick 1) and its rifle (30 / 90 / 180, 1.8 s; 9 a second, push 6, spread 0.6, speed 1.2, kick 0.7, walk 0.92)
         };
 
         private static readonly (string name, string model, float height)[] Targets =
@@ -263,6 +268,8 @@ namespace ShiftJam
                 // First person: where the grip sits from the camera. At the pack's size these are the test room's hip
                 // positions (a long gun is held closer), taken to the middle of the grip.
                 Set(b, "viewOffset", !spec.PackSize ? new Vector3(0.2f, -0.2f, 0.42f) : spec.TwoHands ? new Vector3(0.119f, -0.218f, 0.206f) : new Vector3(0.139f, -0.228f, 0.265f));
+                Set(b, "sightPoint", spec.Sight);
+                Set(b, "sightRoll", spec.SightRoll);
                 Set(b, "magazine.size", spec.Rounds);
                 Set(b, "magazine.reserveStart", spec.Reserve);
                 Set(b, "magazine.reserveMax", spec.ReserveMost);

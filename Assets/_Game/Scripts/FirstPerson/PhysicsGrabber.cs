@@ -182,13 +182,17 @@ namespace ShiftJam
             _hold.Drive(_eye.position + _eye.forward * _hold.Distance, Quaternion.Euler(0f, _eye.eulerAngles.y, 0f), Scale, t, Time.fixedDeltaTime);
         }
 
+        /// <summary>True while the dot in the middle of the view is drawn: not while a gun's own sight is up at the
+        /// eye (the test room's rule).</summary>
+        public bool DotShowing => _holder == null || !_holder.DownTheSight;
+
         private void OnGUI()
         {
             if (Event.current.type != EventType.Repaint) return;
             float cx = Screen.width * 0.5f, cy = Screen.height * 0.5f;
             var old = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, 0.85f);
-            GUI.DrawTexture(new Rect(cx - 2f, cy - 2f, 4f, 4f), Texture2D.whiteTexture);
+            if (DotShowing) GUI.DrawTexture(new Rect(cx - 2f, cy - 2f, 4f, 4f), Texture2D.whiteTexture);
             if (!string.IsNullOrEmpty(_hint))
             {
                 var style = GUI.skin.label;

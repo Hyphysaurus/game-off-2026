@@ -119,6 +119,8 @@ MonoBehaviour:
   viewOffset: {x: 0.119, y: -0.218, z: 0.206}
   viewEuler: {x: 0, y: 0, z: 0}
   aimsWithView: 1
+  sightPoint: {x: 0, y: 0, z: 0}
+  sightRoll: 45
   moveSpeed: 0.96
   twoHanded: 1
   supportPoint: {x: 0, y: 0, z: 0}

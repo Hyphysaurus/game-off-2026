@@ -20,6 +20,8 @@ namespace ShiftJam
         [SerializeField, Tooltip("On: a blaster. It sits fixed in the hand, and the arm points it at the crosshair while aiming or just after a shot. Off: melee, which follows the arm on the body's heading.")] private bool aimsWithView = true;
         [SerializeField, Tooltip("On: a long gun. Both hands stay on it, it is carried low across the body and comes up to the shoulder to aim (third person).")] private bool twoHanded;
         [SerializeField, Tooltip("A long gun: where the support hand holds, in the weapon's own axes (z along the barrel), units at scale 1. Zero: the model's under-barrel marker (Place_..._BarBottom) if it has one, else a spot ahead of the grip.")] private Vector3 supportPoint;
+        [SerializeField, Tooltip("First person: the middle of this gun's sight, in the weapon's own axes (z along the barrel), units at scale 1. Aim brings this point to the middle of the view. Zero: found from the model (the glass of the sight on its Place_..._Sight mount; a sight without glass: its mount; no mount: the line of the barrel).")] private Vector3 sightPoint;
+        [SerializeField, Tooltip("First person: degrees the gun rolls over to its left as the sight comes to the eye. For a sight that stands at a slant on the gun's right side (an offset sight, made to be used with the gun rolled over): the slant, so the sight stands upright at the eye. 0 = a sight on top.")] private float sightRoll;
         [SerializeField, Tooltip("Field of view while this weapon is aimed in first person, degrees (a scope zooms further). 0 = the first-person settings' aim field of view.")] private float sightFieldOfView;
         [SerializeField, Range(0.5f, 1f), Tooltip("How fast you move with this weapon out, as a share of normal. A heavy gun is a little slower (the test room: rifle 0.92, shotgun 0.9, sniper 0.82). 1 = no slower.")] private float moveSpeed = 1f;
 
@@ -30,6 +32,8 @@ namespace ShiftJam
         public bool TwoHanded => twoHanded;
         /// <summary>This weapon's own field of view while aimed in first person; 0 = none of its own.</summary>
         public float SightFieldOfView => sightFieldOfView;
+        /// <summary>Degrees the gun rolls over as its sight comes to the eye in first person (an offset sight); 0 = none.</summary>
+        public float SightRoll => sightRoll;
         /// <summary>How fast the holder moves with this weapon out, as a share of normal (1 = no slower).</summary>
         public float MoveSpeed => moveSpeed;
         public Quaternion HandRotation => Quaternion.Euler(handEuler);
@@ -56,6 +60,28 @@ namespace ShiftJam
         public virtual void Cancel() { }
 
         private bool _fitted; private float _stock; private Vector3 _support;
+        private bool _sighted, _sightOnMount; private Vector3 _sight;
+
+        /// <summary>The middle of this gun's sight, in the weapon's own (root) space: the point aim brings to the middle
+        /// of the first-person view. <paramref name="onMount"/> says it is only where a sight is mounted (or the line
+        /// of the barrel), so the sight's middle is a little above it. Found once: the prefab's own point if it has
+        /// one, else from the model.</summary>
+        public void SightFit(out Vector3 point, out bool onMount)
+        {
+            if (!_sighted)
+            {
+                _sighted = true;
+                _sight = sightPoint;
+                if (_sight == Vector3.zero && !GunSight.Find(transform, out _sight, out _sightOnMount))
+                {
+                    // No sight on the model: you look along the top of the barrel.
+                    _sight = new Vector3(0f, MuzzleOffset.y / Mathf.Max(1e-5f, transform.lossyScale.y), 0f);
+                    _sightOnMount = true;
+                }
+            }
+            point = _sight;
+            onMount = _sightOnMount;
+        }
 
         /// <summary>A long gun measured for the hold, in the weapon's own (root) space: how far it runs back from the
         /// grip to the end of its stock, and where the support hand holds, never further forward than

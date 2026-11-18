@@ -55,3 +55,14 @@ MonoBehaviour:
   recoilUpDegrees: 4
   recoilBack: 0.0297
   recoilSettle: 14
+  sightTime: 0.15
+  sightDistance: 0.307
+  sightRise: 0.0297
+  dotHidesAt: 0.6
+  eyeAboveHead: 0.198
+  eyeForward: 0.119
+  backLookingDown: 0.34
+  chestFollowsView: 0.6
+  forearmRoll: 0.6
+  wristRoll: 80
+  wristBend: 55

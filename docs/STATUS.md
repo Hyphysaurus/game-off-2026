@@ -2,6 +2,79 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 17 Nov 2026 16:2x — FIRST PERSON AS THE TEST ROOM'S: THE ARMS ARE ON THE GUN, RIGHT MOUSE BRINGS THE SIGHT TO THE EYE (D-0074) — NOT PLAYED
+His words after playing at 12:24 today: "the polishing needed for FPS and TPS for shift jam (still lacking some of the
+finesse from Testing zone)". First person first (his "proceed"). Built headless, no editor open. The new stills
+beside the test room's: `docs/stills/compare_godot_unity_first_person_arms.jpg` (Godot left of each pair).
+- **The arms are on the gun.** With a blaster out in first person the player's own body is drawn again, the test
+  room's way: the same body, its head shrunk to nothing, stood so the head is 0.198 under and 0.119 behind the eye.
+  The gun hand is on the grip with closed fingers; the other hand is under the barrel of the SMG and the shotgun; in
+  a reload it goes to the magazine. The hands come on over 0.2 s as the gun is drawn. The body casts no shadow in
+  first person (it would be a headless one). With empty hands, a melee weapon or the gun put away, first person is
+  as it was: no body.
+- **Right mouse brings the gun's own sight to the eye** in 0.15 s: the middle of the sight sits in the middle of the
+  view, 0.307 in front of the eye. Each gun's sight is found from its model the test room's way: the see-through
+  part of the sight on its `Place_..._Sight` mount (a sight without glass: 0.0297 above the mount; no mount: along
+  the barrel). The dot crosshair hides once the sight is 0.6 of the way up; the hit marker stays; the view narrows as
+  before, and a gun's own Sight Field Of View still wins.
+- **The SMG rolls over 45 degrees as it comes up.** The pack's SMG carries an offset sight: it stands at a slant on
+  the gun's right side, made to be used with the gun rolled over. Held level, the tilted glass sat in the middle
+  with the gun beside it; rolled, the sight stands upright (`DartSMG.prefab` > Sight Roll 45). Ours: the test room
+  has no SMG.
+- **Looking down, the body steps back** (by 0.34 looking straight down), so the chest stays behind the gun and out
+  of the view: you see your arms, then your legs and feet. Looking up, the chest leans back by 0.6 of the look (the
+  test room's). If the gun is further than the arm reaches (looking steeply up), the whole body slides towards it,
+  so the hand never leaves the grip. Both are ours: the test room's view stops 55 down and 80 up, this one goes on
+  to 89 each way.
+- **The legs follow the first-person body:** they walk, step sideways and crouch under the eye. The body is stood by
+  its head every frame, so a crouch or a step never moves the shoulders against the view.
+- **The support hand's wrist is the test room's now, in third person too:** the forearm takes up 0.6 of the hand's
+  roll, and the wrist stops at 80 degrees of roll and 55 of bend. It had not come over with D-0067: the sleeve
+  pinched at the cuff, and first person shows that close up.
+- **As they were:** where each gun sits at the hip (its View Offset), the kick, the reload's tip and roll, the hit
+  marker. The hands ride the kick and the reload.
+- **Where the numbers live.** Same for every gun: `Resources/WeaponHold` > First person: the sight to the eye (Sight
+  Time, Sight Distance, Sight Rise, Dot Hides At); First person: the body under the eye (Eye Above Head, Eye
+  Forward, Back Looking Down, Chest Follows View); under the support hand: Forearm Roll, Wrist Roll, Wrist Bend.
+  Per gun, on its prefab's `BlasterWeapon`: Sight Point (zero = found from the model) and Sight Roll;
+  `WorkshopPieces` writes both on a rebuild (WeaponSpec `Sight`, `SightRoll`).
+- **What each new part owns:** `Combat/GunSight.cs` finds a sight on a model; `Combat/ViewBody.cs` draws the body
+  for first person, hides the head, stands it under the eye and puts everything back; `ArmAim` (TurnChest,
+  OutOfReach, OnGun) bends the arms to a gun the view has placed; `WeaponHolder` runs the sight from hip to eye and
+  calls them; `PlayerAnimation` feeds the legs from the first-person body while the motor is parked.
+- **CHECKED:** a new probe (kept: `%TEMP%\shiftjam-stage\weapons\fp\probe-keep\FpArmsProbe.cs`), pistol, SMG and
+  shotgun at toy size, pistol and shotgun again at kid size, measured in the world and on screen: 160 of 160. On the
+  code before: 48 of 155 (what passed there: the hip position, the kick, the reload's tip, the hit marker, the
+  narrower view, and leaving first person). Measured, the same at both sizes: the wrist is 0.090 from the middle
+  of the grip (0.60 before); the fingers close to 0.81 of the open hand; the support palm is 0.03 from its hold
+  point at the hip and 0.027 (shotgun) and 0.051 (SMG) aimed; the head is 0.001 of its size and 0.119 behind the
+  eye; with aim held the sight's glass (found by the probe itself from the model) is within 1 pixel of the middle
+  of a 960 x 540 still, 0.307 in front of the eye, there 0.15 s after the press; the SMG is rolled 45.0 degrees;
+  the dot is hidden with the sight up and shown at the hip; a shot flips the barrel 4.00, 3.40 and 8.80 degrees
+  and the hand moves 0.0002 against the gun; looking 60 and 85 degrees down and up the wrist stays 0.090 from the
+  grip, and the grip is 0.30 and 0.23 in front of the chest bone looking down; half way through a reload the free
+  palm is 0.030 from the magazine's bottom; walking, the legs get the body's speed; crouched (eye 0.75) the body
+  crouches and the hand stays on; back in third person all 8 parts of the body are drawn with their shadows, the
+  head is its size and the body stands where it did. Third person after it: hold probe 81 of 81, camera probe 64
+  of 64, ammo probe 212 of 212; four scenes: 0 errors in Greybox, Workshop, Raceway and Colour Corner (the Raceway's R still starts the race).
+- **SEEN (stills, mine):** hip and aim for the three guns beside the test room's (the sheet above): the hand is on
+  each grip, the sights sit in the middle as the test room's do, no head in view; looking 60 and 85 down (arms,
+  then the yellow top, legs and shoes below), 60 up, the three reloads and a crouch. The first stills showed two
+  things that were then fixed: the SMG's tilted sight (now rolled upright) and the shotgun's support wrist pinched
+  like a sweet wrapper looking down (the wrist limits above).
+- **NOT CHECKED:** nothing was played or seen in motion (the sight coming up, the roll of the SMG, the legs
+  walking); the Female body; first person with a prop held by the hands while a gun is out; a shift while in first
+  person with a gun; the look from inside the head of a roll or a punch (not in this piece).
+TO PLAY: Workshop or Colour Corner, a gun in hand, V. Look at your hands. Hold right mouse with each gun; fire at
+the hip and aimed; R; look straight down and straight up; walk and look down; C; 1 / 2 or the wheel to swap; X to
+put the gun away (the arms go) and take it out; V back.
+FOR HIS EYE: the arms (bare on the Male; the test room's player is the Female in a blue hoodie); the SMG rolling
+over to its offset sight (Sight Roll 0 on the prefab holds it level, a Sight Point aims it over the top instead);
+the body below when looking down; the shotgun's scope filling the middle; whether the body should also show with
+empty hands.
+NOT YET: the rifle, the sniper and bubbles (D-0072), grenades, the third-person leftovers (the entry above this
+one when they land).
+
 ## 17 Nov 2026 10:4x — SHOT FEEL, WHAT A SHOT SHOWS AND SOUNDS LIKE (D-0071, second landing: hit marker, puff at the barrel, bits and squash where a dart lands, the dart's sounds) — NOT PLAYED, NOT SEEN, NOT HEARD
 On top of the numbers (the entry below), built headless while he was in AoE4. No picture was taken and no sound was
 heard in this piece: all of it is for his eye and ear.

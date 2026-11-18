@@ -1318,3 +1318,40 @@
     as the swirl's (the check was wrong). Stills seen: three portals at rest, mid-ripple and late, front and back,
     and the Workshop's two in place. Kept at `%TEMP%\shiftjam-stage\portal\probe-keep\PortalRingProbe.cs`.
     Not played: no warp, no turning swirl and no ripple has been seen in motion.
+- **D-0074 (17 Nov, 16:2x) First person holds a gun the test room's way: the player's own body under the eye, hands on the gun, and aim brings the gun's sight to the eye.**
+  His words after playing on 17 Nov: first and third person "still lacking some of the finesse from Testing zone";
+  first person first. Read from `aim_pose.gd` (`_gun_first_person`, `_hands_on_gun`, `_turn_chest`),
+  `weapon_holder.gd` (`sight_time`, `_find_sight`, the crosshair rule), `arm_pose.gd` (`_place_hand`),
+  `head_hider.gd`, `camera_rig.gd` (the eye's place) and `player.gd`; laid beside its stills
+  (`docs/stills/compare_godot_unity_first_person_arms.jpg`).
+  - **The test room's method is kept:** the real body, its head bone shrunk to 0.001 (HeadHider), the gun placed
+    from the view, the arms bent to it. Shift Jam's first person is another rig (a Half-Life-style body of its own
+    moves while the player is parked and hidden), so three things had to be added to make that method right here:
+    1. The body is shown only while a blaster is in the hands; `ViewBody` un-hides just the parts first person had
+       hidden and puts them back. Empty hands, melee and props stay as they were (no body): his call to widen.
+    2. The body is stood by its head each frame (0.198 under, 0.119 behind the eye: the test room's eye above and
+       ahead of the head bone, x 0.99), because here the eye belongs to the first-person body (1.62 standing, 0.75
+       crouched), not to the animated head. A crouch or a step then cannot move the shoulders against the view.
+    3. The view here turns 89 degrees up and down (the test room: 80 up, 55 down). Looking down, the hip position
+       swings the gun back into the chest, so the body steps back with the look (0.34 at straight down, `Back
+       Looking Down`); and when the gun is beyond the arm (steeply up) the body slides to it (`ArmAim.OutOfReach`),
+       so the hand is never left short of the grip. The legs are fed from the first-person body.
+  - **The numbers, the test room's x 0.99:** sight 0.307 in front of the eye, rise 0.0297 above a mount, 0.15 s,
+    the dot hides past 0.6, the chest leans back by 0.6 of the look up, a long gun turns the chest 35 degrees. The
+    hip positions are D-0069's View Offsets, untouched. All in `Resources/WeaponHold`.
+  - **The sight is found from the model** (`GunSight`): the box round the see-through surfaces (materials
+    Sight_Glass, Sight_Projection) of what sits on `Place_..._Sight`, its middle. The pack's meshes cannot be read
+    vertex by vertex at run time, so each surface's own box is used (the same middle for a flat pane). Per gun:
+    `Sight Point` overrides it.
+  - **An offset sight rolls the gun (ours).** The SMG's sight stands 45 degrees over on the right side. The test
+    room's rule alone put that tilted glass in the middle with the gun level beside it. `Sight Roll` 45 on the SMG
+    rolls the gun over as it comes up, which is how such a sight is used. The slant is a number on the prefab, not
+    guessed from the model: the line from the mount to the glass gave 74.6 degrees, not the sight's 45.
+  - **The wrist (the test room's `_place_hand`, missing since D-0067):** the forearm takes up 0.6 of the support
+    hand's roll and the wrist is limited to 80 degrees of roll and 55 of bend. Third person has it too: one arm
+    code for both views. The hold probe's 81 checks did not move.
+  - **Kept from before:** the kick (the gun's own, the hands follow), the reload's first-person position, the view
+    punch, the field of view on aim (a gun's Sight Field Of View first).
+  - **Not done:** the rifle, the sniper, bubbles (D-0072, held), grenades, the roll and the punch seen from inside
+    the head.
+  - **Checked:** STATUS, 17 Nov 16:2x. Not played.

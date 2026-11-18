@@ -13,6 +13,8 @@ namespace ShiftJam
     /// chest turns so the support shoulder comes forward; the head stays as it was.
     /// Reloading (Hold.reload above 0): the gun comes in front of the chest, barrel tipped up and the magazine rolled
     /// round towards the free hand, which goes to the magazine and follows it down and back up.
+    /// First person (TurnChest, OutOfReach, OnGun): the gun is where the view has it and the arms are bent to it: the
+    /// right hand on the grip, the left under a long gun's barrel, or on the magazine during a reload.
     /// Not a component: the WeaponHolder owns one and calls it from its LateUpdate.
     /// </summary>
     public sealed class ArmAim
@@ -48,6 +50,8 @@ namespace ShiftJam
         {
             public Transform upper, fore, hand, knuckle;
             public Quaternion upperFix, foreFix;
+            /// <summary>How the hand sits on the forearm at rest (hand rotation = forearm rotation x this).</summary>
+            public Quaternion handRest = Quaternion.identity;
             public Vector3 fingers = Vector3.up, thumb = Vector3.forward, palm = Vector3.right;
             public Quaternion upperWas, foreWas, handWas;
             public bool ok;
@@ -119,6 +123,7 @@ namespace ShiftJam
             if (hinge.sqrMagnitude < 1e-12f) hinge = -body.up;
             arm.upperFix = Quaternion.Inverse(Frame(upperLine, hinge)) * arm.upper.rotation;
             arm.foreFix = Quaternion.Inverse(Frame(foreLine, hinge)) * arm.fore.rotation;
+            arm.handRest = Quaternion.Inverse(arm.fore.rotation) * arm.hand.rotation;
 
             // The hand: which way the knuckles point from the wrist, and which side the thumb is on.
             arm.knuckle = animator.GetBoneTransform(knuckle);
@@ -190,7 +195,7 @@ namespace ShiftJam
             Vector3 fingers = AcrossPalm((palm - _left.upper.position).normalized + barrel * s.fingersAlongBarrel, palmWay);
             Vector3 wrist = palm - fingers * palmLength - palmWay * (s.palmDepth * scale);
             Vector3 freeAt = _left.hand.position; Quaternion freeTurn = _left.hand.rotation;   // the animation's, before we move it
-            Bend(_left, Vector3.Lerp(freeAt, wrist, hold.reload), Quaternion.Slerp(freeTurn, LeftHandTurn(fingers, palmWay), hold.reload), s.supportElbow);
+            Bend(_left, Vector3.Lerp(freeAt, wrist, hold.reload), Quaternion.Slerp(freeTurn, LeftHandTurn(fingers, palmWay), hold.reload), s.supportElbow, s.forearmRoll * hold.reload, s);
         }
 
         /// <summary>Two-handed: both hands on a long gun. <paramref name="aim"/> moves it from the carry (0) up to the
@@ -249,34 +254,9 @@ namespace ShiftJam
             // The right hand on the grip.
             Bend(_right, at - gun * hold.seat, gun * Quaternion.Inverse(hold.grip), s.longElbow);
 
-            // The support hand: under and beside the barrel, palm to the gun, fingers along it.
-            float roll = s.palmRollDegrees * Mathf.Deg2Rad;
-            Vector3 barrel = gun * Vector3.forward;
-            Vector3 palmWay = (gun * Vector3.up * Mathf.Cos(roll) + gun * Vector3.right * Mathf.Sin(roll)).normalized;
-            float palmLength = _left.knuckle != null ? Vector3.Distance(_left.knuckle.position, _left.hand.position) * PalmShare : 0.07f * scale;
-            float palmDepth = s.palmDepth * scale;
-            Vector3 palm = at + gun * Vector3.Lerp(hold.support, hold.magazine, hold.reload);
-            Vector3 reachFrom = _left.upper.position;
-            Vector3 fingers = AcrossPalm((palm - reachFrom).normalized + barrel * s.fingersAlongBarrel, palmWay);
-            Vector3 wrist = palm - fingers * palmLength - palmWay * palmDepth;
-            // Out of reach, the hand would hang in the air short of the gun: the hold slides back along the barrel. Only
-            // as the gun comes up to aim: the carry keeps the hold it has.
-            float armLength = Vector3.Distance(_left.fore.position, reachFrom) + Vector3.Distance(_left.hand.position, _left.fore.position);
-            float back = hold.reload > 0f ? 0f : SlideToReach(wrist - reachFrom, barrel, hold.support.z - s.closestSupport * scale, armLength * MostStretch) * aim;
-            if (back > 0f)
-            {
-                palm -= barrel * back;
-                fingers = AcrossPalm((palm - reachFrom).normalized + barrel * s.fingersAlongBarrel, palmWay);
-                wrist = palm - fingers * palmLength - palmWay * palmDepth;
-            }
-            for (int pass = 0; pass < 2; pass++)
-            {
-                // Bend the arm, see which way the forearm ends up pointing, and line the hand up with it.
-                Bend(_left, wrist, LeftHandTurn(fingers, palmWay), s.supportElbow);
-                fingers = AcrossPalm((wrist - _left.fore.position).normalized + barrel * s.fingersAlongBarrel, palmWay);
-                wrist = palm - fingers * palmLength - palmWay * palmDepth;
-            }
-            Bend(_left, wrist, LeftHandTurn(fingers, palmWay), s.supportElbow);
+            // The support hand: under the barrel, or on its way to the magazine during a reload. Out of reach, its
+            // hold slides back along the barrel, only as the gun comes up to aim: the carry keeps the hold it has.
+            SupportHand(at, gun, hold, s, scale, aim);
 
             if (weight < 1f)
             {
@@ -286,6 +266,78 @@ namespace ShiftJam
                 if (_neck != null) { Quaternion neckNow = _neck.localRotation; _neck.localRotation = Quaternion.Slerp(neckWas, neckNow, weight); }
                 _right.Blend(weight); _left.Blend(weight);
             }
+        }
+
+        /// <summary>A long gun's support hand: under and beside the barrel, palm to the gun, fingers along it; during a
+        /// reload it goes to the magazine instead (Hold.reload). <paramref name="root"/> and <paramref name="gun"/>
+        /// are where the gun is. Out of the arm's reach the hand would hang in the air short of the gun: the hold
+        /// slides back along the barrel towards the grip, by <paramref name="slide"/> of what it takes (0 = never).</summary>
+        private void SupportHand(Vector3 root, Quaternion gun, in Hold hold, WeaponHoldSettings s, float scale, float slide)
+        {
+            float roll = s.palmRollDegrees * Mathf.Deg2Rad;
+            Vector3 barrel = gun * Vector3.forward;
+            Vector3 palmWay = (gun * Vector3.up * Mathf.Cos(roll) + gun * Vector3.right * Mathf.Sin(roll)).normalized;
+            float palmLength = _left.knuckle != null ? Vector3.Distance(_left.knuckle.position, _left.hand.position) * PalmShare : 0.07f * scale;
+            float palmDepth = s.palmDepth * scale;
+            Vector3 palm = root + gun * Vector3.Lerp(hold.support, hold.magazine, hold.reload);
+            Vector3 reachFrom = _left.upper.position;
+            Vector3 fingers = AcrossPalm((palm - reachFrom).normalized + barrel * s.fingersAlongBarrel, palmWay);
+            Vector3 wrist = palm - fingers * palmLength - palmWay * palmDepth;
+            float armLength = Vector3.Distance(_left.fore.position, reachFrom) + Vector3.Distance(_left.hand.position, _left.fore.position);
+            float back = hold.reload > 0f ? 0f : SlideToReach(wrist - reachFrom, barrel, hold.support.z - s.closestSupport * scale, armLength * MostStretch) * slide;
+            if (back > 0f)
+            {
+                palm -= barrel * back;
+                fingers = AcrossPalm((palm - reachFrom).normalized + barrel * s.fingersAlongBarrel, palmWay);
+                wrist = palm - fingers * palmLength - palmWay * palmDepth;
+            }
+            for (int pass = 0; pass < 2; pass++)
+            {
+                // Bend the arm, see which way the forearm ends up pointing, and line the hand up with it.
+                Bend(_left, wrist, LeftHandTurn(fingers, palmWay), s.supportElbow, s.forearmRoll, s);
+                fingers = AcrossPalm((wrist - _left.fore.position).normalized + barrel * s.fingersAlongBarrel, palmWay);
+                wrist = palm - fingers * palmLength - palmWay * palmDepth;
+            }
+            Bend(_left, wrist, LeftHandTurn(fingers, palmWay), s.supportElbow, s.forearmRoll, s);
+        }
+
+        /// <summary>First person: turns the chest to the right by <paramref name="turn"/> degrees (a long gun: the
+        /// support shoulder comes forward) and leans it back by <paramref name="lean"/> degrees (looking up: the
+        /// shoulders stay behind the gun). The neck is put back as it was. Call before the body is stood under the eye.</summary>
+        public void TurnChest(float turn, float lean)
+        {
+            if (_chest == null || (turn == 0f && lean == 0f)) return;
+            Quaternion neckFaces = _neck != null ? _neck.rotation : Quaternion.identity;
+            _chest.rotation = Quaternion.AngleAxis(turn, _body.up) * Quaternion.AngleAxis(-lean, _body.right) * _chest.rotation;
+            if (_neck != null) _neck.rotation = neckFaces;
+        }
+
+        /// <summary>First person: how far the gun hand's place is beyond the right arm's reach (kept a little bent,
+        /// WeaponHoldSettings.reach) with the gun at <paramref name="root"/> turned <paramref name="gun"/>: the way from
+        /// the shoulder to it, as long as the shortfall. Zero when the arm reaches. The body is slid by this.</summary>
+        public Vector3 OutOfReach(Vector3 root, Quaternion gun, in Hold hold, WeaponHoldSettings s)
+        {
+            if (!Ready) return Vector3.zero;
+            Vector3 line = root - gun * hold.seat - _right.upper.position;
+            float length = Vector3.Distance(_right.fore.position, _right.upper.position) + Vector3.Distance(_right.hand.position, _right.fore.position);
+            float over = line.magnitude - length * s.reach;
+            return over > 0f ? line.normalized * over : Vector3.zero;
+        }
+
+        /// <summary>First person: the gun is where the view has it (<paramref name="root"/>, <paramref name="gun"/>, its
+        /// kick already in) and the arms are bent to it. The right hand goes on the grip; the left under a long gun's
+        /// barrel (<paramref name="bothHands"/>), and to the magazine during a reload, a pistol's too.
+        /// <paramref name="weight"/> brings the hands onto the gun (0 leaves the animation).</summary>
+        public void OnGun(Vector3 root, Quaternion gun, bool bothHands, float weight, in Hold hold, WeaponHoldSettings s, float scale)
+        {
+            if (!Ready || weight <= 0f) return;
+            bool left = _left.ok && (bothHands || hold.reload > 0f);
+            _right.Remember();
+            if (left) _left.Remember();
+            Bend(_right, root - gun * hold.seat, gun * Quaternion.Inverse(hold.grip), s.longElbow);
+            if (left && bothHands) SupportHand(root, gun, hold, s, scale, 1f);
+            else if (left) HandToMagazine(root, gun, hold, s, scale);
+            if (weight < 1f) { _right.Blend(weight); if (left) _left.Blend(weight); }
         }
 
         /// <summary>The middle of the support hand's palm, in the world, as the bones stand now.</summary>
@@ -301,8 +353,11 @@ namespace ShiftJam
 
         /// <summary>Bends one arm so its wrist reaches <paramref name="wrist"/>, then turns the hand. The upper arm and
         /// the forearm make a triangle with the line from shoulder to wrist; the elbow points along
-        /// <paramref name="elbowWay"/> (the body's own space).</summary>
-        private void Bend(Arm arm, Vector3 wrist, Quaternion handTurn, Vector3 elbowWay)
+        /// <paramref name="elbowWay"/> (the body's own space). <paramref name="rollShare"/> lets the forearm take up
+        /// that share of the hand's roll, so the sleeve does not pinch at the cuff. With <paramref name="limits"/> the
+        /// hand does not roll or bend at the wrist further than a real one could (its Wrist Roll and Wrist Bend), even
+        /// if it then sits a little off where it was asked to be.</summary>
+        private void Bend(Arm arm, Vector3 wrist, Quaternion handTurn, Vector3 elbowWay, float rollShare = 0f, WeaponHoldSettings limits = null)
         {
             Vector3 shoulder = arm.upper.position;
             float upperLength = Vector3.Distance(arm.fore.position, shoulder), foreLength = Vector3.Distance(arm.hand.position, arm.fore.position);
@@ -319,7 +374,27 @@ namespace ShiftJam
             Vector3 hinge = Vector3.Cross(elbow - shoulder, wrist - elbow);
             if (hinge.sqrMagnitude < 1e-12f) hinge = Vector3.Cross(way, pole);
             arm.upper.rotation = Frame(elbow - shoulder, hinge) * arm.upperFix;
-            arm.fore.rotation = Frame(wrist - elbow, hinge) * arm.foreFix;
+            Quaternion foreFrame = Frame(wrist - elbow, hinge);
+            if (rollShare > 0f || limits != null)
+            {
+                // How far the hand has turned from its rest fit on the forearm, seen in the forearm's frame (y along
+                // its length): a roll about that length, and a bend at the wrist.
+                Quaternion fore = foreFrame * arm.foreFix;
+                Quaternion turned = arm.foreFix * (Quaternion.Inverse(fore) * handTurn * Quaternion.Inverse(arm.handRest)) * Quaternion.Inverse(arm.foreFix);
+                if (turned.w < 0f) turned = new Quaternion(-turned.x, -turned.y, -turned.z, -turned.w);
+                float roll = 2f * Mathf.Atan2(turned.y, turned.w) * Mathf.Rad2Deg;
+                if (limits != null)
+                {
+                    Quaternion bendPart = turned * Quaternion.Inverse(Quaternion.AngleAxis(roll, Vector3.up));
+                    if (bendPart.w < 0f) bendPart = new Quaternion(-bendPart.x, -bendPart.y, -bendPart.z, -bendPart.w);
+                    bendPart.ToAngleAxis(out float bend, out Vector3 bendAxis);
+                    roll = Mathf.Clamp(roll, -limits.wristRoll, limits.wristRoll);
+                    Quaternion allowed = Quaternion.AngleAxis(Mathf.Min(bend, limits.wristBend), bendAxis) * Quaternion.AngleAxis(roll, Vector3.up);
+                    handTurn = fore * (Quaternion.Inverse(arm.foreFix) * allowed * arm.foreFix) * arm.handRest;
+                }
+                foreFrame *= Quaternion.AngleAxis(roll * rollShare, Vector3.up);
+            }
+            arm.fore.rotation = foreFrame * arm.foreFix;
             arm.hand.rotation = handTurn;
         }
 

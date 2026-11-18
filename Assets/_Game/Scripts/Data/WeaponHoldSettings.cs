@@ -3,10 +3,12 @@ using UnityEngine;
 namespace ShiftJam
 {
     /// <summary>
-    /// How the player holds a blaster in third person, as numbers: the test room's rule. The gun is fixed in the right
+    /// How the player holds a blaster, as numbers: the test room's rule. Third person: the gun is fixed in the right
     /// hand. A pistol: at rest the arm is the animation's and the gun hangs with it; while aim is held, and for a moment
     /// after each shot, the arm comes up and points the gun at the crosshair. A long gun (Weapon > Two Handed): both
-    /// hands stay on it; it is carried low across the body and comes up to the shoulder to aim. Lengths are in the
+    /// hands stay on it; it is carried low across the body and comes up to the shoulder to aim. First person: the gun
+    /// sits low in front of the eye, the body stands under the eye with its hands on it, and aim brings the gun's own
+    /// sight to the middle of the view. Lengths are in the
     /// player's own units and scale with the shift; the test room's metres turn into these at 0.99 (the same rig,
     /// fitted at 0.99 of the pack's size). Lives at Resources/WeaponHold; without the asset
     /// these defaults are used.
@@ -91,6 +93,12 @@ namespace ShiftJam
         public float palmRollDegrees = 35f;
         [Tooltip("How strongly the support hand's fingers point along the barrel instead of simply following the forearm.")]
         public float fingersAlongBarrel = 0.8f;
+        [Range(0f, 1f), Tooltip("How much of the support hand's roll the forearm takes up (the test room: 0.6). Without it the sleeve pinches at the cuff, because the hand turns and the forearm does not.")]
+        public float forearmRoll = 0.6f;
+        [Tooltip("The furthest the support hand rolls at the wrist, degrees (the test room: 80). Asked for more, the hand sits a little off the gun instead.")]
+        public float wristRoll = 80f;
+        [Tooltip("The furthest it bends at the wrist, degrees (the test room: 55).")]
+        public float wristBend = 55f;
 
         [Header("The fingers")]
         [Tooltip("Seconds for the fingers to close round the grip, or open (the test room: 0.15).")]
@@ -121,6 +129,26 @@ namespace ShiftJam
         public float recoilBack = 0.0297f;
         [Tooltip("How quickly the kick settles: each second it falls to 1 / e this many times over (the test room: 14). Higher: snappier.")]
         public float recoilSettle = 14f;
+
+        [Header("First person: the sight to the eye")]
+        [Tooltip("Seconds for the gun's sight to come up to the eye when aim is held, and to go back down (the test room: 0.15).")]
+        public float sightTime = 0.15f;
+        [Tooltip("How far in front of the eye the sight sits when aiming down it (the test room: 0.31 m).")]
+        public float sightDistance = 0.307f;
+        [Tooltip("A gun whose sight is found by its mount and not by its glass: the middle of the sight is this far above the mount (the test room: 0.03 m).")]
+        public float sightRise = 0.0297f;
+        [Range(0f, 1f), Tooltip("The dot crosshair hides once the sight is this far up: the gun's own sight takes over (the test room: 0.6).")]
+        public float dotHidesAt = 0.6f;
+
+        [Header("First person: the body under the eye")]
+        [Tooltip("The eye sits this far above the head bone (the test room: 0.2 m).")]
+        public float eyeAboveHead = 0.198f;
+        [Tooltip("The eye sits this far in front of the head bone (the test room: 0.12 m).")]
+        public float eyeForward = 0.119f;
+        [Tooltip("Looking straight down, the body stands this much further back still, so the chest stays behind the gun and out of the view (less at a shallower look, none looking level). Ours: the test room's view stops 55 degrees down, this one goes on to 89.")]
+        public float backLookingDown = 0.34f;
+        [Range(0f, 1f), Tooltip("How much of the look up the chest leans back by, so the shoulders stay behind the gun (the test room: 0.6). 0 keeps the chest upright.")]
+        public float chestFollowsView = 0.6f;
 
         private static WeaponHoldSettings _defaults;
 

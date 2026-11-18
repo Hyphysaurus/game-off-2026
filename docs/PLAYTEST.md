@@ -142,3 +142,15 @@ Space = jump, X = put down (C crouches since D-0064), LMB = toggle the carried l
   mischief soldier; the paint's own splat and sounds as before.
 - Say: the ticks (size, how long they stay, the orange), the puff (seen at all? too much with the SMG?), the squash
   (0.15 on targets, 0.1 on soldiers), each sound and how loud it is.
+
+## First person: arms on the gun, the sight to the eye (D-0074, 17 Nov)
+- Workshop or Colour Corner, the pistol in hand, V. Your hand holds the grip, fingers closed. No head, no shadow.
+- Hold right mouse: the sight comes up to the middle of the view in a blink (0.15 s) and the dot goes; let go: back
+  to the hip. Fire at the hip and aimed: the hand rides the kick. R: the other hand comes to the magazine.
+- 2 for the SMG, then the shotgun from its stand: both hands on the gun. Right mouse: the shotgun's scope in the
+  middle; the SMG rolls over 45 degrees to its offset sight.
+- Look straight down: arms, then your top, legs and shoes. Walk while looking down: the legs walk. C: crouch.
+  Look straight up: the hand stays on the grip.
+- X puts the gun away: the arms go (empty hands show no body). X again. V back to third person: the body is whole.
+- Say: the arms and hands, each sight picture, the SMG's roll, the body seen looking down, whether the body should
+  show with empty hands too.

@@ -6,7 +6,9 @@ namespace ShiftJam
     /// Feeds the body's Animator what the motor does not: which way the body moves against its facing (so it steps
     /// sideways and backwards while aiming), whether it is crouched, and how fast the legs play so the feet keep up with
     /// the ground as far as the cap in PlayerBodySettings allows. It also plays the one-shot clips the moves ask for,
-    /// goes back to walking afterwards, and plays the look-around after standing still a while. The controller it talks
+    /// goes back to walking afterwards, and plays the look-around after standing still a while. In first person the
+    /// motor is parked and the first-person body moves instead: the legs follow that body, so they walk and crouch
+    /// under the eye when the body is in view. The controller it talks
     /// to is made by Shift Jam / Player / Build Player Port; the names below are that controller's.
     /// </summary>
     [DefaultExecutionOrder(10)]   // after the motor has moved this frame
@@ -85,12 +87,16 @@ namespace ShiftJam
 
         private void Update()
         {
-            if (!_ours || !_motor.enabled) { _idle = 0f; return; }   // parked (driving, first person, waking up)
+            // First person: the body that moves is the first-person one.
+            FirstPersonMode mode = FirstPersonMode.Active;
+            FirstPersonBody stand = !_motor.enabled && mode != null && mode.gameObject == gameObject ? mode.Body : null;
+            if (!_ours || (!_motor.enabled && stand == null)) { _idle = 0f; return; }   // parked (driving, waking up)
             float dt = Time.deltaTime;
-            float scale = Mathf.Max(1e-4f, _motor.Scale);
-            Vector3 local = transform.InverseTransformDirection(_motor.PlanarVelocity) / scale;
+            float scale = Mathf.Max(1e-4f, stand != null ? stand.Scale : _motor.Scale);
+            Vector3 velocity = stand != null ? Vector3.ProjectOnPlane(stand.Velocity, Vector3.up) : _motor.PlanarVelocity;
+            Vector3 local = transform.InverseTransformDirection(velocity) / scale;
             float speed = new Vector2(local.x, local.z).magnitude;
-            bool crouched = _stance != null && _stance.Crouched;
+            bool crouched = stand != null ? stand.Crouched : _stance != null && _stance.Crouched;
             _animator.SetFloat(MoveX, local.x, Damp, dt);
             _animator.SetFloat(MoveZ, local.z, Damp, dt);
             _animator.SetBool(CrouchedParam, crouched);
@@ -104,7 +110,8 @@ namespace ShiftJam
             }
             _animator.SetFloat(Pace, LegPlayback);
 
-            Idle(speed, crouched, profile, dt);
+            if (stand != null) Busy();   // no look-around under the eye
+            else Idle(speed, crouched, profile, dt);
         }
 
         /// <summary>The look-around: after standing still, upright and free for a while it plays once, then the wait starts again.</summary>

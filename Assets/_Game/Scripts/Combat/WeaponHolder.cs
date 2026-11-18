@@ -18,8 +18,10 @@ namespace ShiftJam
     /// the arm to be up so it leaves along the barrel. A long gun (Weapon.TwoHanded) has both hands on it the whole time
     /// it is out: carried low across the body, raised to the shoulder the same way. Melee: the arm is raised through the Animator's Arms layer, like
     /// the Carrier, and the weapon follows it.
-    /// First person: it floats in front of the camera as a view model. Weapons are parented to the player so they shift
-    /// size with it.
+    /// First person (the test room's rule): a blaster sits low in front of the eye at its View Offset, the player's own
+    /// body stands under the eye with its head hidden (ViewBody) and its hands on the gun (ArmAim.OnGun), and aim
+    /// brings the gun's own sight to the middle of the view (Weapon.SightFit). Melee floats in front of the camera
+    /// as a view model. Weapons are parented to the player so they shift size with it.
     /// </summary>
     [DefaultExecutionOrder(100)]   // after the Carrier's arm weight and the cameras, so the weapon never lags a frame
     public sealed class WeaponHolder : MonoBehaviour
@@ -51,7 +53,9 @@ namespace ShiftJam
         private WeaponHoldSettings _hold;    // how a blaster is held in third person
         private ArmAim _armAim;              // bends the right arm to point the gun
         private float _raise;                // 0 the arm is the animation's (a long gun: carried), 1 it is up and on the crosshair
-        private float _hands;                // a long gun: 0 the arms are the animation's, 1 both hands are on the gun
+        private float _hands;                // a long gun, and any gun in first person: 0 the arms are the animation's, 1 the hands are on the gun
+        private ViewBody _viewBody;          // first person: the player's own body under the eye, head hidden
+        private float _sight;                // first person: 0 the gun is at the hip, 1 its sight is at the eye
         private FingerCurl _fist, _support;  // the fingers of the gun hand, and of the hand under a long gun
         private float _grip;                 // 0 the gun hand is the animation's open hand, 1 it is closed round the grip
         private float _aimTime;              // seconds the arm stays up yet after a shot
@@ -73,6 +77,12 @@ namespace ShiftJam
         public bool Aiming => AimHeld || (Armed && !Locked && !FirstPerson && (_aimTime > 0f || _trigger));
         /// <summary>How far the gun arm is up: 0 at rest, 1 on the crosshair.</summary>
         public float Raise => _raise;
+        /// <summary>First person: how far the gun's sight is up to the eye, 0 at the hip to 1.</summary>
+        public float Sight => _sight;
+        /// <summary>First person: true once the sight is far enough up that the gun's own sight takes over from the dot.</summary>
+        public bool DownTheSight => FirstPerson && _sight > _hold.dotHidesAt;
+        /// <summary>First person: true while the player's own body is drawn with its hands on the gun.</summary>
+        public bool ArmsInView => _viewBody != null && _viewBody.Shown;
         /// <summary>True while the gun in hand is being reloaded: it cannot fire or aim.</summary>
         public bool Reloading => _reload.Active;
         /// <summary>How far through the reload we are, 0 to 1 (0 when none runs).</summary>
@@ -123,6 +133,7 @@ namespace ShiftJam
             _interactor = GetComponent<Interactor>();
             _motor = GetComponent<PlayerMotor>();
             _armAim = new ArmAim(animator, transform);   // here, before the Animator poses the arm: it reads the rest pose
+            _viewBody = new ViewBody(animator, transform);
             _fist = new FingerCurl(animator, right: true);
             _support = new FingerCurl(animator, right: false);
             _audio = gameObject.AddComponent<AudioSource>();
@@ -148,6 +159,8 @@ namespace ShiftJam
             _raise = 0f;
             _hands = 0f;
             _grip = 0f;
+            _sight = 0f;
+            _viewBody.Show(false);
             StandDown();
             EndReload();
             SlowBy(1f);   // seated, or the player is off: nothing in the hands slows anything
@@ -171,11 +184,19 @@ namespace ShiftJam
         /// <summary>A long gun on a body that can hold one in both hands.</summary>
         private bool InBothHands(Weapon w) => ByArm(w) && w.TwoHanded && _armAim.BothHands;
 
-        /// <summary>Called by FirstPersonMode: hold the weapon as a view model in front of <paramref name="view"/>, or back in
+        /// <summary>First person, a blaster out and a body whose arms can hold it: the body is drawn under the eye
+        /// with its hands on the gun.</summary>
+        private bool InView(Weapon w) => w != null && w.AimsWithView && FirstPerson && _armAim != null && _armAim.Ready && _viewBody.Ready;
+
+        /// <summary>Called by FirstPersonMode: hold the weapon in front of <paramref name="view"/>, or back in
         /// the hand with nulls.</summary>
         public void SetFirstPerson(Transform body, Transform view, FirstPersonLook look, PhysicsGrabber hands)
         {
             if (_fpMotor != null) _fpMotor.SpeedShare = 1f;
+            _viewBody.Show(false);   // the body goes back as first person hid it; Update shows it again if a gun is out
+            _sight = 0f;
+            _hands = 0f;
+            _grip = 0f;
             _fpBody = body; _fpView = view; _fpLook = look; _fpHands = hands;
             _fpMotor = body != null ? body.GetComponent<FirstPersonBody>() : null;
             foreach (var w in _weapons) SetViewModel(w, view != null);
@@ -453,12 +474,19 @@ namespace ShiftJam
             _aimTime = Mathf.Max(0f, _aimTime - Time.deltaTime);
             float seconds = aiming ? _hold.raiseTime : _hold.lowerTime;
             _raise = !byArm ? 0f : seconds > 0f ? Mathf.MoveTowards(_raise, aiming ? 1f : 0f, Time.deltaTime / seconds) : aiming ? 1f : 0f;
+            // First person: the body is drawn under the eye while a blaster is out, and the gun's sight comes up to the
+            // eye while aim is held (the test room's rule).
+            bool inView = visible && InView(w);
+            _viewBody.Show(inView);
+            bool sighting = inView && AimHeld;
+            _sight = !inView ? 0f : _hold.sightTime > 0f ? Mathf.MoveTowards(_sight, sighting ? 1f : 0f, Time.deltaTime / _hold.sightTime) : sighting ? 1f : 0f;
             // A long gun: both hands come onto it as it is drawn and stay there; a move (a roll, a hit) takes them off.
+            // In first person the hands are on any gun the same way.
             bool both = byArm && InBothHands(w);
-            _hands = !both ? 0f : _hold.holdTime > 0f ? Mathf.MoveTowards(_hands, Locked ? 0f : 1f, Time.deltaTime / _hold.holdTime) : Locked ? 0f : 1f;
+            _hands = !both && !inView ? 0f : _hold.holdTime > 0f ? Mathf.MoveTowards(_hands, Locked ? 0f : 1f, Time.deltaTime / _hold.holdTime) : Locked ? 0f : 1f;
             bool up = !byArm || (_raise >= _hold.raisedAt && (!both || _hands >= _hold.raisedAt));
             // The fingers close round the grip while a blaster is in the hand.
-            _grip = !byArm ? 0f : _hold.gripTime > 0f ? Mathf.MoveTowards(_grip, 1f, Time.deltaTime / _hold.gripTime) : 1f;
+            _grip = !byArm && !inView ? 0f : _hold.gripTime > 0f ? Mathf.MoveTowards(_grip, 1f, Time.deltaTime / _hold.gripTime) : 1f;
             if (_trigger && up && Time.timeScale > 0f)
             {
                 _trigger = false;
@@ -486,6 +514,17 @@ namespace ShiftJam
             if (_fpView != null)
             {
                 Quaternion turn = w.ViewRotation; Vector3 at = w.ViewOffset * s;
+                if (_sight > 0f)
+                {
+                    // Aim held: the gun's own sight comes to the middle of the view, a little in front of the eye. A
+                    // sight that stands at a slant on the gun (an offset sight) is used with the gun rolled over
+                    // (its Sight Roll), so the sight stands upright.
+                    w.SightFit(out Vector3 sight, out bool onMount);
+                    Vector3 toSight = sight * w.transform.lossyScale.z + (onMount ? Vector3.up * (_hold.sightRise * s) : Vector3.zero);
+                    Quaternion atEye = turn * Quaternion.AngleAxis(w.SightRoll, Vector3.forward);
+                    at = Vector3.Lerp(at, Vector3.forward * (_hold.sightDistance * s) - atEye * toSight, _sight);
+                    turn = Quaternion.Slerp(turn, atEye, _sight);
+                }
                 if (reload > 0f)
                 {
                     // Reloading: the gun comes to the middle of the view, barrel tipped up, magazine rolled round.
@@ -496,40 +535,21 @@ namespace ShiftJam
                 Quaternion rot = _fpView.rotation * turn * w.PoseRotation;
                 Vector3 pos = _fpView.position + _fpView.rotation * at + rot * (w.PosePosition * s);
                 w.transform.SetPositionAndRotation(pos, rot);
+                if (_viewBody.Shown && _hands > 0f) HandsInView(w, pos, rot, reload, s);
                 return;
             }
             if (ByArm(w))
             {
                 // The gun is fixed in the fist the way the test room seats it: the middle of its grip at the fist's
                 // centre, the barrel and the top set against the hand's own knuckles, thumb and palm.
-                Quaternion fist = _armAim.Grip(_hold.barrelInHand, _hold.topInHand) * Quaternion.Euler(_hold.gripEuler) * w.HandRotation;
+                Quaternion fist = FistTurn(w);
                 Vector3 inHand = _armAim.InHand(_hold.fistCentre);
                 bool both = InBothHands(w);
                 if (both ? _hands > 0f : _raise > 0f || reload > 0f)
                 {
-                    var hold = new ArmAim.Hold
-                    {
-                        grip = fist,
-                        seat = Quaternion.Inverse(fist) * Vector3.Scale(inHand, _hand.lossyScale) + w.HandOffset * s,
-                        muzzle = w.MuzzleOffset,
-                        kickTurn = w.PoseRotation,
-                        kickSlide = w.PosePosition * s,
-                        frame = _hold.gripFromHolder * s,
-                        reload = reload,
-                    };
-                    // Measured in the weapon's own space; its size in the world is the weapon's scale.
-                    float size = w.transform.lossyScale.z;
-                    // A reload: where the free hand takes the magazine, as far out of the gun as it is now.
-                    if (reload > 0f && w is BlasterWeapon gun)
-                        hold.magazine = (gun.MagazinePart.Bottom + Vector3.down * (_ammo.magazineDrop * _reload.MagazineOut(_ammo))) * size;
+                    ArmAim.Hold hold = Grasp(w, fist, inHand, reload, both, s);
                     Vector3 target = _raise > 0f ? w.AimPoint() : transform.position + transform.forward * (100f * s);
-                    if (both)
-                    {
-                        w.LongGunFit(_hold.longestSupportReach * s / Mathf.Max(1e-5f, size), out float stock, out Vector3 support);
-                        hold.stock = stock * size;
-                        hold.support = support * size;
-                        _armAim.Shoulder2(target, Mathf.SmoothStep(0f, 1f, _raise), Mathf.SmoothStep(0f, 1f, _hands), hold, _hold, s);
-                    }
+                    if (both) _armAim.Shoulder2(target, Mathf.SmoothStep(0f, 1f, _raise), Mathf.SmoothStep(0f, 1f, _hands), hold, _hold, s);
                     else _armAim.Aim(target, Mathf.Max(Mathf.SmoothStep(0f, 1f, _raise), reload), hold, _hold, s);   // a reload needs the arm even when the gun hung at the side
                 }
                 Quaternion held = _hand.rotation * fist;
@@ -552,6 +572,55 @@ namespace ShiftJam
             Quaternion r = frame * w.PoseRotation * w.HandRotation;
             Vector3 grip = _hand != null ? _hand.TransformPoint(_wears != null ? _wears.Palm(palm) : palm) : transform.position + Vector3.up * (chestHeight * s) + transform.right * (0.3f * s) + transform.forward * (0.3f * s);
             w.transform.SetPositionAndRotation(grip + r * ((w.HandOffset + w.PosePosition) * s), r);
+        }
+
+        /// <summary>How a blaster is turned in the fist (gun rotation = right hand rotation x this).</summary>
+        private Quaternion FistTurn(Weapon w) => _armAim.Grip(_hold.barrelInHand, _hold.topInHand) * Quaternion.Euler(_hold.gripEuler) * w.HandRotation;
+
+        /// <summary>What the arms need to know about the gun they hold: how it sits in the fist, its kick this frame,
+        /// where the support hand holds a long gun, and during a reload where the magazine is.</summary>
+        private ArmAim.Hold Grasp(Weapon w, Quaternion fist, Vector3 inHand, float reload, bool both, float s)
+        {
+            var hold = new ArmAim.Hold
+            {
+                grip = fist,
+                seat = Quaternion.Inverse(fist) * Vector3.Scale(inHand, _hand.lossyScale) + w.HandOffset * s,
+                muzzle = w.MuzzleOffset,
+                kickTurn = w.PoseRotation,
+                kickSlide = w.PosePosition * s,
+                frame = _hold.gripFromHolder * s,
+                reload = reload,
+            };
+            // Measured in the weapon's own space; its size in the world is the weapon's scale.
+            float size = w.transform.lossyScale.z;
+            // A reload: where the free hand takes the magazine, as far out of the gun as it is now.
+            if (reload > 0f && w is BlasterWeapon gun)
+                hold.magazine = (gun.MagazinePart.Bottom + Vector3.down * (_ammo.magazineDrop * _reload.MagazineOut(_ammo))) * size;
+            if (both)
+            {
+                w.LongGunFit(_hold.longestSupportReach * s / Mathf.Max(1e-5f, size), out float stock, out Vector3 support);
+                hold.stock = stock * size;
+                hold.support = support * size;
+            }
+            return hold;
+        }
+
+        /// <summary>First person: the gun is where the view has it (<paramref name="root"/>, <paramref name="gun"/>).
+        /// The chest turns and leans with the look, the body is stood under the eye, slid towards the gun if the arm
+        /// cannot reach it, and the hands are put on the gun.</summary>
+        private void HandsInView(Weapon w, Vector3 root, Quaternion gun, float reload, float s)
+        {
+            float weight = Mathf.SmoothStep(0f, 1f, _hands);
+            bool both = w.TwoHanded && _armAim.BothHands;
+            Vector3 look = _fpView.forward;
+            float lookUp = Mathf.Max(0f, Mathf.Asin(Mathf.Clamp(look.y, -1f, 1f)) * Mathf.Rad2Deg);
+            _armAim.TurnChest((both ? _hold.aimChestTurn : 0f) * weight, lookUp * _hold.chestFollowsView * weight);
+            _viewBody.Stand(_fpView.position, transform.forward, -look.y, _hold, s);
+            ArmAim.Hold hold = Grasp(w, FistTurn(w), _armAim.InHand(_hold.fistCentre), reload, both, s);
+            _viewBody.Slide(_armAim.OutOfReach(root, gun, hold, _hold));
+            _armAim.OnGun(root, gun, both, weight, hold, _hold, s);
+            _fist.Close(Mathf.SmoothStep(0f, 1f, _grip), _hold.fingerCurl, _hold.triggerCurl, _hold.thumbCurl);
+            if (both) _support.Close(Mathf.SmoothStep(0f, 1f, Mathf.Min(_grip, _hands)), _hold.supportCurl, _hold.supportCurl, 0f);
         }
 
         private static void SetViewModel(Weapon w, bool on)

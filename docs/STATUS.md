@@ -2,6 +2,26 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 18 Nov 2026 08:5x — THE RELOAD BESIDE THE TEST ROOM'S, PICTURE BY PICTURE: NO DIFFERENCE FOUND IN A STILL (no code changed)
+His "Testing Zone ... has grenades, a strong reload anim, proper IK animation for hands and wrists", then "1"
+(port them) and "proceed". Grenades are the next entry (D-0077). The reload and the arm code were ported on 16 and
+17 Nov (D-0066 to D-0075); his last play (17 Nov 12:24 to 13:00) was before D-0074 and D-0075 landed.
+- **The sheet owed since D-0070 is made:** `docs/stills/compare_godot_unity_reload.jpg` (git-ignored folder): pistol,
+  shotgun, and the test room's rifle beside the SMG, from the side and the front, at 20 %, 50 % and 80 % of a reload.
+  Shift Jam's side was shot today with the kept ammo probe (`-ammoStills`); the test room's on 17 Nov.
+- **What the stills show:** the same pose on both sides at each moment: the gun in front of the chest, barrel
+  tipped up, the free hand under it at the magazine, the magazine gone in the middle frame. The numbers are the
+  same too: tip 25 degrees, roll 35, magazine out 25 to 45 %, back 55 to 75 %, gone 44 to 56 %, drop 0.198 (0.2 x
+  0.99), pistol 1.3 s, shotgun 2.2 s. The arm code has the test room's wrist limits (roll 80, bend 55), forearm
+  share 0.6 and stretch 0.985.
+- **What differs in the pictures, none of it the reload:** the body (the test room's girl, Shift Jam's boy, whose
+  head sits chin-up in every still, at rest too: the model's idle); the probe's bare stage; the test room's stills
+  show its HUD (RELOADING, Grenades 3), Shift Jam's are a camera render without the HUD.
+- **So what he finds weaker is not in a still.** It is in motion, in sound, or it was the state before D-0074 and
+  D-0075. His play of those two is the test (the play log records it; F12 where it looks wrong). Still known and
+  open: the SMG's hand holds still while its magazine slides through it; the SMG rolls 45 degrees on aim.
+- **NOT DONE:** the hold-in-motion sheet (walk and run with a long gun, both engines): still owed.
+
 ## 18 Nov 2026 08:3x — THE PLAY LOG: EVERY PLAY WRITES ITSELF DOWN (D-0076) — NOT PLAYED
 His "create a script that automatically logs my playtests", Shift Jam first. Built headless, no editor open.
 - **What it does.** Press Play: a record starts. Stop: it closes. Nothing else to do. The row goes to

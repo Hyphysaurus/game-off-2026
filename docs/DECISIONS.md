@@ -1481,3 +1481,77 @@
     engine's units, x the size squared so a big blast reads the same from further off: not looked at. A flying
     grenade is kinematic: a dart or a car does not move it.
   - **Checked:** STATUS, 18 Nov 09:4x. Not played.
+- **D-0079 (18 Nov, 13:5x) Darts stick where they land (the test room's rule) and ride with what they hit; a landing on something with health is heard at the ear and seen (ours); a target goes down with a burst and the test room's thud.**
+  - **What is the test room's and what is ours.** The test room's: a dart stays 8 s, its middle 0.15 m back from
+    the point it hit (0.1485 here), on whatever it hit (`foam_dart.gd`); the thud of a figure and of a target going
+    down (`dummy.gd`, `target.gd`: `down_sound`). Ours: the quiver, the cap of 40, the drop-off, no darts on a
+    player, the dart's shape, the sound at the ear, the bigger bits and the ring, the knock-down's burst and bigger
+    squash, the splat's pop, the camera nudge, the play log's two lines.
+  - **The foam dart is its own kind of ammo:** `Combat/FoamDart.cs` extends `Projectile`, as the test room's does
+    and as the paint ball already did. `Projectile` got two more hooks for an ammo: `Stays` (asked after the hit:
+    true keeps the shot in the scene where it landed, no longer flying) and `OnRecycled` (it is going back to the
+    pool). A shot that stays is still in the list `ClearAll` empties, so the Workshop reset and the paint's clear
+    take stuck darts with no new code. Its velocity is zeroed, so anything that counts flying darts by their
+    speed still counts right.
+  - **A stuck dart follows what it hit; it is not made its child.** Each frame, after everything has moved, it
+    is put back on its point of that thing (`TransformPoint`) with its own direction. So a thing that is
+    squashed or scaled unevenly cannot skew it (a child would be: the probe's target is 5 x 4 x 0.5), and a thing
+    that is destroyed, switched off, hidden or pooled only makes the dart let go: nothing of the dart dies with
+    it. Cost: one point and one turn worked out per stuck dart per frame, 40 at most.
+  - **What it rides with is the paint's rule** (`PaintSplats.HolderOf`): the drawn part of what was hit that is
+    nearest the hit, so the bear's rocking pivot and a soldier's tipping body carry it. The test room's
+    `stick_parent` (a pop-up target's hinge, a body part's hit box) is the same idea with its own hit boxes.
+  - **Known and left, his call: a dart hovers in front of a figure.** It sticks on the hit shape's surface, and
+    the bear's, the skittle's and the soldiers' hit shape is one capsule, wider than the body. The test room's
+    dummy has a hit box per body part at 0.9 of the part's size, so its darts sit on the body. Porting that
+    (fitted hit shapes on the four targets) is its own piece: it changes what shots and the player meet, and a
+    soldier's walking capsule must then be kept out of the shots' way. Not done here. STATUS has the two ways.
+  - **No darts on a player** (`PlayerMotor` or the first-person body above the collider that was hit): in first
+    person a dart in your own body would hang in front of the camera. The test room has nothing that shoots the
+    player, so it has no rule to port. His call; in third person darts in the toy's back might be fun.
+  - **The cap is 40, the oldest lets go first.** By time alone an SMG can have about 56 stuck (7 a second for
+    8 s) and a shotgun 77; 40 keeps five shotgun blasts on a wall. A dart pushed out drops off like one whose
+    time is up.
+  - **The drop-off:** the dart backs out by its own tip length while it falls (9 a second squared, x the
+    shooter's size) and shrinks to nothing, 0.35 s; no collision, no physics body. The test room's comment says
+    "drops off after a while" and its code just removes it.
+  - **The shape:** the pack's `Bullet_Shotgun`, referenced by path as a nested prefab (never copied: the pack is
+    git-ignored), under a child "Shape", scaled so it is 0.2376 long (the test room's dart body x 0.99) with its
+    nose 0.1683 ahead of the dart's middle (the test room's nose), which puts 0.02 of it in the surface. Which
+    end leads is found by the builder by measuring the model (the editor can read the pack's meshes outside
+    play): the shell's wide rim, 0.067 across against the body's 0.050. In Unity the shell is red with a grey
+    rim. The rim leading reads as a dart's head; it is the back of a real shell. `WideEndLeads` in the builder.
+    The capsule stays in the prefab, switched off, and is switched on at a dart's first flight when the shape
+    has no mesh (a clone without the pack).
+  - **The prefab was changed in place by its own builder** (`Debug/DartPieces.cs`, Shift Jam > Workshop > Build
+    Foam Dart, run in a batch): the plain `Projectile` component was given the `FoamDart` script through its
+    serialized script field, so the component's id is the same and every gun and the toy soldier still name it.
+    `WorkshopPieces.BuildDart` moved there (the full build calls it). The one hand edit: the prefab's
+    `m_EditorClassIdentifier` line, which Unity had left saying Projectile.
+  - **The sound at the ear is its own small listener** (`Combat/HitConfirm.cs`, added by the WeaponHolder to a
+    player as the grenade thrower is): it hears `GameEvents.ShotLanded` and `GrenadeWentOff`, the two the hit
+    marker hears, and knows nothing else. Two 2D sources, so a hit's pitch never bends a knock-down's sound.
+    **Hits closer than 0.05 s make one sound, by the clock and not by the frame**: at a high frame rate a
+    shotgun's pellets land in different frames (in a hidden run every frame is about a millisecond), and eight
+    ticks would play. The dart's own landing sound in the room still goes by the frame (D-0071): not changed.
+  - **The camera nudge uses what was there:** `ShoulderCamera.Shake` (the driving camera's shake, its size from
+    `Resources/VehicleCamera`) in third person, the first-person view's own punch in first person. Measured with
+    the player standing still and the game's own event raised: up to 0.33 degrees, and 1.09 degrees. The shake's
+    size is a share of the driving shake's: a change to that asset moves this too.
+  - **Bits on something with health, and the ring:** numbers on the ammo (`Projectile` > Feedback), off unless a
+    prefab sets them, so the paint ball is untouched. The ring is 16 bits of the existing kind that do not fall,
+    all leaving at one speed in the flat across the shot (`PaintDrops.Ring`): no new shader, no new material.
+    Across the shot and not along the surface, because a capsule's surface is often edge-on to the shooter.
+  - **A target going down:** `FX/KnockDown.cs`, one static call from each target's own death (`PracticeTarget`,
+    `ToySoldier`, `MischiefSoldier`), so a fist or a grenade gets it too. Its squash is asked of the same part the
+    `Damageable` has just squashed, so it takes that squash's place (measured 0.70 of its height, not 0.60). The
+    numbers and the two thuds are shared (`Resources/WeaponAmmo`), not on each target: one look for all four. The
+    test room keeps its `down_sound` on each scene; here a flag in the call picks the figure's or the target's.
+  - **Paint:** `PaintBook.Grow` takes a pop: the splat and its shell spread on past full size by `spreadPop` and
+    ease back over `spreadSettle` (`PaintSettings`). The spatter and the runs do not pop. With either number at
+    0 it is the test room's spread again.
+  - **Events:** `GameEvents.DartStuck(shooter)`. `PlayLogEvents` counts the player's and tells the ammo kind from
+    `AmmoBelt.Changed`, once a frame at most. `PlayLog.cs` is unchanged (three copies across projects).
+  - **Sounds** picked by name and length, not heard: STATUS lists the six. Licensed, under the git-ignored
+    `_Imports`; `Resources/WeaponAmmo.asset` names them by id, as it names the reload's.
+  - **Checked:** STATUS, 18 Nov 13:5x. Not played.

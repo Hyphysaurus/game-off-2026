@@ -40,6 +40,9 @@ namespace ShiftJam
         /// <summary>A holder's shot landed on something with health and the hit counted; the bool says whether that hit
         /// finished it off. The hit marker listens.</summary>
         public static event Action<WeaponHolder, bool> ShotLanded;
+        /// <summary>A foam dart stuck where it landed; the Transform is whoever fired it (a player, a toy soldier; it
+        /// can be gone). The play log counts the player's.</summary>
+        public static event Action<UnityEngine.Transform> DartStuck;
         /// <summary>A thrower's grenade count changed: one was thrown, a supply crate filled it up, or the reset key
         /// did. Read the number from the thrower (Carried).</summary>
         public static event Action<GrenadeThrower> GrenadesChanged;
@@ -64,6 +67,7 @@ namespace ShiftJam
         internal static void RaiseDryFired(WeaponHolder holder, BlasterWeapon gun) => DryFired?.Invoke(holder, gun);
         internal static void RaiseAmmoTaken(WeaponHolder holder, int rounds) => AmmoTaken?.Invoke(holder, rounds);
         internal static void RaiseShotLanded(WeaponHolder holder, bool finished) => ShotLanded?.Invoke(holder, finished);
+        internal static void RaiseDartStuck(UnityEngine.Transform shooter) => DartStuck?.Invoke(shooter);
         internal static void RaiseGrenadesChanged(GrenadeThrower thrower) => GrenadesChanged?.Invoke(thrower);
         internal static void RaiseGrenadeThrown(GrenadeThrower thrower) => GrenadeThrown?.Invoke(thrower);
         internal static void RaiseGrenadeWentOff(GrenadeThrower thrower, int hits, bool finished) => GrenadeWentOff?.Invoke(thrower, hits, finished);

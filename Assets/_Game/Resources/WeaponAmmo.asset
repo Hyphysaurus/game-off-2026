@@ -40,6 +40,30 @@ MonoBehaviour:
   puffSize: 0.018
   puffSeconds: 0.2
   firePitchSpread: 1.1
+  landedClips:
+  - {fileID: 8300000, guid: bcdcdd20384145cf8cbce45289f621ee, type: 3}
+  - {fileID: 8300000, guid: 5f7652d8fe7c4965acb5c2675a6c7822, type: 3}
+  landedVolume: 0.5
+  downedClips:
+  - {fileID: 8300000, guid: 485eccbd3ec34590a5c02c887e5a9a29, type: 3}
+  - {fileID: 8300000, guid: fad0637c708747e99b25df66e271ddf4, type: 3}
+  downedVolume: 0.8
+  landedPitchSpread: 1.06
+  landedGap: 0.05
+  downNudge: 0.3
+  downNudgeSeconds: 0.2
+  downViewPunch: 1.5
+  downBits: 16
+  downBitsColour: {r: 1, g: 0.85, b: 0.35, a: 1}
+  downBitsSpeed: 6
+  downBitsSize: 0.08
+  downBitsGravity: 9
+  downBitsSeconds: 0.5
+  downSquash: 0.3
+  downSquashSeconds: 0.3
+  figureDownClip: {fileID: 8300000, guid: f58c8b43114547509d9cf8b8e535a475, type: 3}
+  targetDownClip: {fileID: 8300000, guid: b1685731561a4a2cb4770db0173abfaf, type: 3}
+  downVolume: 1
   dryClip: {fileID: 8300000, guid: 761119b7e262a804c8c7286ee838379a, type: 3}
   reloadStartClip: {fileID: 8300000, guid: 11b166b899305ae49bc602d06dacf49a, type: 3}
   reloadSeatClip: {fileID: 8300000, guid: 1597530dcb1c1374d9d761d95c323995, type: 3}

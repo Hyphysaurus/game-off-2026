@@ -4,7 +4,9 @@ namespace ShiftJam
 {
     /// <summary>
     /// Ammo and reloading as numbers, the same for every gun: what an empty gun does, how a reload runs through its
-    /// length, the read-out on the HUD, the hit marker, the puff at the barrel, and the sounds. After the test room. Each gun's own numbers (magazine size,
+    /// length, the read-out on the HUD, the hit marker, the puff at the barrel, and the sounds. After the test room.
+    /// Ours, not the test room's: what the shooter hears and feels when a shot lands on something with health, and the
+    /// burst when a target goes down (the thud there is the test room's). Each gun's own numbers (magazine size,
     /// reserve, reload seconds) are on its prefab (BlasterWeapon > Magazine); where the gun is held during a reload is
     /// in WeaponHold > A reload. Lives at Resources/WeaponAmmo; without the asset these defaults are used.
     /// </summary>
@@ -76,6 +78,50 @@ namespace ShiftJam
         public float puffSeconds = 0.2f;
         [Min(1f), Tooltip("An ammo's own firing sound plays up to this many times higher or lower each shot (the test room: 1.1). 1 = always the same.")]
         public float firePitchSpread = 1.1f;
+
+        [Header("A shot landing on something with health: at the shooter's ear (ours, not the test room's)")]
+        [Tooltip("One of these plays at the player's ear (not placed in the room) when one of the player's shots lands on something with health. Licensed clips under _Imports: with none, or the clips gone, nothing plays.")]
+        public AudioClip[] landedClips = System.Array.Empty<AudioClip>();
+        [Range(0f, 1f), Tooltip("How loud that is. 0 = off.")]
+        public float landedVolume = 0.5f;
+        [Tooltip("One of these plays instead for the hit that knocks it down.")]
+        public AudioClip[] downedClips = System.Array.Empty<AudioClip>();
+        [Range(0f, 1f), Tooltip("How loud that is. 0 = off.")]
+        public float downedVolume = 0.8f;
+        [Min(1f), Tooltip("Each of them plays up to this many times higher or lower. 1 = always the same.")]
+        public float landedPitchSpread = 1.06f;
+        [Min(0f), Tooltip("Seconds: hits that land closer together than this make one sound, so a shotgun's eight pellets are heard once, not eight times. 0 = every hit sounds.")]
+        public float landedGap = 0.05f;
+        [Range(0f, 1f), Tooltip("Third person: how hard a knock-down nudges the camera, as a share of the strongest shake (Resources/VehicleCamera > Shake: its tilt and travel). 0 = no nudge.")]
+        public float downNudge = 0.3f;
+        [Min(0f), Tooltip("Seconds that nudge takes to die away. 0 = no nudge.")]
+        public float downNudgeSeconds = 0.2f;
+        [Min(0f), Tooltip("First person: how far a knock-down kicks the view up, degrees; it springs back like a shot's kick (a pistol shot kicks 1.2). 0 = no kick.")]
+        public float downViewPunch = 1.5f;
+
+        [Header("A target going down (practice targets, toy soldiers)")]
+        [Min(0), Tooltip("Ours: bits thrown up from where the last hit landed. 0 = none.")]
+        public int downBits = 16;
+        [Tooltip("Ours: their colour.")]
+        public Color downBitsColour = new Color(1f, 0.85f, 0.35f);
+        [Tooltip("Ours: how fast the fastest flies, units per second for a target of scale 1.")]
+        public float downBitsSpeed = 6f;
+        [Tooltip("Ours: a bit's radius, units for a target of scale 1.")]
+        public float downBitsSize = 0.08f;
+        [Tooltip("Ours: how fast they fall, units per second squared for a target of scale 1.")]
+        public float downBitsGravity = 9f;
+        [Tooltip("Ours: seconds a bit lasts.")]
+        public float downBitsSeconds = 0.5f;
+        [Range(0f, 0.5f), Tooltip("Ours: the hit that knocks it down squashes it this much, in place of its usual squash (a bear's is 0.15, a soldier's 0.1). 0 = its usual squash.")]
+        public float downSquash = 0.3f;
+        [Min(0.01f), Tooltip("Ours: seconds that squash takes to spring back.")]
+        public float downSquashSeconds = 0.3f;
+        [Tooltip("The test room's: the thud where a toy soldier goes down (its dummy's). Licensed, under _Imports.")]
+        public AudioClip figureDownClip;
+        [Tooltip("The test room's: the thud where a practice target goes down (its target crate's). Licensed, under _Imports.")]
+        public AudioClip targetDownClip;
+        [Range(0f, 1f), Tooltip("How loud the thud is. 0 = off.")]
+        public float downVolume = 1f;
 
         [Header("Sounds (licensed clips under _Imports: a project without them plays nothing)")]
         [Tooltip("The trigger pulled on an empty gun.")]

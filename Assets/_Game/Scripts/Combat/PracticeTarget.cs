@@ -4,7 +4,8 @@ namespace ShiftJam
 {
     /// <summary>
     /// A training dummy on a spring: every hit rocks it away from the blow and it wobbles back upright. Knocked out (health
-    /// gone), it topples flat, lies there a moment and pops back up at full health. The Workshop reset stands it up at once.
+    /// gone), it topples flat with a burst of bits and a thud (KnockDown), lies there a moment and pops back up at full
+    /// health. The Workshop reset stands it up at once.
     /// The visual is a child pivot (at the base) so the root's collider and position never move. Lying flat it has no
     /// collider: the upright capsule would stop shots and the player where nothing is drawn.
     /// </summary>
@@ -61,6 +62,7 @@ namespace ShiftJam
             _downAt = Time.time;
             _upAt = Time.time + downTime;
             SetSolid(false);
+            KnockDown.Show(transform, hit, pivot, false);   // a burst of bits, a bigger squash and the thud
         }
 
         public void ResetState()

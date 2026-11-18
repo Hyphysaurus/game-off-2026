@@ -141,6 +141,8 @@ namespace ShiftJam
             _audio.spatialBlend = 0.6f;
             // A player's holder also throws grenades with the free hand (its own piece; numbers in Resources/Grenades).
             if (input != null && !TryGetComponent(out GrenadeThrower _)) gameObject.AddComponent<GrenadeThrower>();
+            // ...and hears and feels its own shots land on things with health (its own piece; numbers in Resources/WeaponAmmo).
+            if (input != null && !TryGetComponent(out HitConfirm _)) gameObject.AddComponent<HitConfirm>();
         }
 
         private void Start() { if (input != null) WeaponHud.Create(this); }   // a player's holder shows its ammo on screen

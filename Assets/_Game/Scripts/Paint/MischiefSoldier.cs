@@ -74,10 +74,11 @@ namespace ShiftJam
 
         private void OnDamaged(DamageInfo _) => _pausedUntil = Time.time + _settings.hitPause;
 
-        private void OnDied(DamageInfo _)
+        private void OnDied(DamageInfo hit)
         {
             _mood = Mood.Down; _downAt = Time.time;
             _cc.enabled = false;   // lying down it stops nothing
+            KnockDown.Show(transform, hit, visual, true);   // a burst of bits, a bigger squash and the thud
         }
 
         private void Update()

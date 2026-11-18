@@ -2,6 +2,112 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 18 Nov 2026 13:5x — DARTS STICK, AND MORE AT THE LANDING (D-0079) — NOT PLAYED
+His "the missing foam darts and lack of juice when landing darts or paintballs", "proceed". Built with the editor
+closed (it was open until about 13:25; nothing was written into the project before it closed).
+- **Darts, the test room's rule.** A dart stays where it lands for 8 s, its front end 2 cm into the surface,
+  pointing the way it flew, and it rides with what it hit: it rocks and topples with the practice bear, tips over
+  with a soldier, flies off with a loose crate. When its time is up it drops off.
+- **Darts, ours on top.** It quivers as it lands (12 degrees about its tip, three swings, still after 0.4 s). It
+  drops off instead of vanishing: backs out, falls and shrinks away over 0.35 s (the test room's just vanishes).
+  No more than 40 are stuck at once: one more, and the oldest lets go. It lets go when what it rode is destroyed,
+  switched off or hidden (a wrecked car's body). It does not stick to a player: a dart in your own body would
+  hang in front of the first-person view, so on you it is gone at the hit, as before. Nothing on a stuck dart
+  can be hit or stood on. F9 in the Workshop and the paint's clear take every stuck dart.
+- **The dart's shape** is the pack's `Bullet_Shotgun` (`_Imports/ithappy/Cartoon_Weapons/Prefabs/Bullets`), one
+  shape for every gun, as the child "Shape" of `Prefabs/Combat/FoamDart.prefab` (a per-gun shape is a prefab
+  change). **Seen in Unity it is a red shell with a grey rim**, not the "grey body with a striped head" the 12:2x
+  entry below said (that was a Blender render with the texture laid on by hand: wrong). Scaled 3.725 times: 0.24
+  long (the test room's dart body; the capsule was 0.18), 0.05 thick, the rim 0.067 across. **The grey rim leads
+  in flight and is the end in the wall**: it reads as a toy dart's rubber head; on a real shell that is the back
+  end. One line flips it (`Debug/DartPieces.cs` > `WideEndLeads`, then Shift Jam > Workshop > Build Foam Dart).
+  The old capsule is still in the prefab, switched off: a project without the pack (a fresh clone) shows it
+  instead. It is red, not glowing orange as the capsule was: from behind the gun a dart stuck 14 away is a few
+  pixels. The streak in flight is unchanged.
+- **FOUND, NOT FIXED, HIS CALL: a dart hovers in front of a figure.** A dart sticks on the surface of the thing's
+  hit shape. The bear's, the skittle's and both soldiers' hit shape is one capsule, wider than the drawn body.
+  From the stills, by eye: about 0.25 to 0.5 in front of the bear, 0.05 to 0.2 in front of a soldier. On walls,
+  floors and crates it is exact (measured: 0.0000 from the wall's face). The test room has no such gap because
+  its dummy's hit boxes are fitted to each body part (`dummy.gd`, `box_fit` 0.9). Two ways: (1) port that: hit
+  shapes fitted to the drawn body on the four targets, so shots also stop landing on thin air beside them; it
+  changes what the player bumps into, and a soldier's walking capsule has to be kept out of the shots' way;
+  (2) leave the hit shapes and give darts alone a coarse map of each drawn body. I would do 1, as its own piece.
+- **More at the landing (ours, unless said).**
+  1. **At your ear:** a short sound when one of your shots lands on something with health, and another, bigger
+     one for the hit that knocks it down. Not placed in the room, so it is as clear at any range. A shotgun's 8
+     pellets make one sound (hits less than 0.05 s apart count as one). Paint and a grenade's blast count too.
+  2. **Bits:** on something with health a dart throws 14 warm yellow bits of 0.05 in place of the wall's 8 pale
+     blue ones of 0.035, and a white ring of 16 small bits widens from the spot to 0.35 in 0.18 s, flat across
+     the shot so you see it face on.
+  3. **A target going down** (bear, skittle, toy soldier, mischief soldier; whatever knocks it down: dart, paint,
+     grenade, fist): a burst of 16 yellow bits thrown up from the last hit, a squash of 0.30 in place of its
+     usual 0.15 or 0.10 (one squash, not two), and a thud where it stands. **The thud is the test room's**:
+     found while building, its dummy and its target crate each play a sound as they go down (`dummy.gd`,
+     `target.gd`: `down_sound`). The 12:2x entry said the test room had no more at a landing than Shift Jam: wrong
+     on this one.
+  4. **Paint:** a splat was already spreading from 35 % to its full size in 0.08 s (the test room's), with no
+     overshoot. Now it swells to 115 % and settles back in 0.12 s, and so does its shell. Paint keeps its own
+     splat, bits and sounds: no ring, nothing sticks.
+  5. **The camera, on a knock-down only:** third person, a brief shake (0.3 of the strongest, 0.2 s: measured up
+     to 0.33 degrees off its line); first person, the view kicks up and springs back (measured 1.09 degrees; a
+     pistol shot's own kick is 1.2 on the dial). No freeze-frames.
+  6. **The play log** writes "ammo loaded: Paint" when T changes the kind (once a frame at most) and counts
+     "darts stuck" (yours only).
+- **Where each number is.**
+  - The dart: `Prefabs/Combat/FoamDart.prefab` > Foam Dart: Stick Seconds 8, Tip Length 0.1485 (the test room's
+    0.15 x 0.99), Quiver Degrees / Seconds / Swings, Most Stuck 40, Let Go Seconds 0.35, Let Go Fall 9; and under
+    Feedback: Target Burst Amount 14 / Colour / Speed 4 / Size 0.05, Ring Amount 16 / Colour / Reach 0.35 / Size
+    0.02 / Seconds 0.18. 0 switches each off. The shape's size (0.2376 long, nose 0.1683 ahead) is in the
+    builder, `Debug/DartPieces.cs`. **A rebuild writes the builder's numbers over the prefab's**: change both.
+  - The ear, the nudge, the knock-down: `Resources/WeaponAmmo.asset` > "A shot landing on something with health"
+    (Landed Clips, Landed Volume 0.5, Downed Clips, Downed Volume 0.8, Landed Pitch Spread 1.06, Landed Gap 0.05,
+    Down Nudge 0.3, Down Nudge Seconds 0.2, Down View Punch 1.5) and "A target going down" (Down Bits 16, their
+    colour, speed 6, size 0.08, fall 9, seconds 0.5; Down Squash 0.3 over 0.3 s; Figure Down Clip, Target Down
+    Clip, Down Volume 1).
+  - The splat's pop: `Resources/PaintSettings.asset` > The splat > Spread Pop 0.15, Spread Settle 0.12 (they show
+    in the Inspector; the file itself gets the two lines the next time Unity saves it).
+- **Sounds: picked by name and by length, NOT by ear.** Case Portman's two packs, copied to the git-ignored
+  `Assets/_Imports/CasePortman/Weapons`: `ear_hit_1`, `ear_hit_2` = Highlight_01, _02 (Cute & Cozy UI; 0.08 and
+  0.09 s); `ear_down_1`, `ear_down_2` = Currency_02, _03 (the test room's score sounds; 0.37 and 0.42 s);
+  `figure_down` = Impact_Body_01 (the test room's dummy_down); `target_down` = Impact_Powerful_01 (its
+  crate_down). A project without them is silent at these points and runs the same.
+- **CHECKED** with a temporary probe (kept: `%TEMP%\shiftjam-stage\weapons\darts\probe-keep\DartProbe.cs`), Colour
+  Corner, a bare floor, hidden: **50 of 50; on the code before, 11 of 47** (3 checks need the sounds, which were
+  not in the project yet). Measured: a dart still in the scene 1.05 s after landing, its middle 0.1483 back from
+  the wall, its nose 0.0219 in and its tail 0.22 out, 0.17 degrees off the way it flew; the quiver up to 10.1
+  degrees with the tip not moving; still stuck at 7.6 s, gone at 8.35 s after dropping 0.55 and shrinking to
+  nothing; a second dart down the same line lands on the wall 0.011 from the first (its own fall); 6 shotgun
+  blasts = 48 darts stuck in all, never more than 40 at once, none of the first blast's 8 left; an SMG magazine =
+  20 hits, 20 stuck, 20 sounds at the ear; a blast of 8 pellets = 1 sound; on a loose thing that went 5.05 in
+  0.6 s the dart went 5.05 and moved 0.00000 on it; switched off or destroyed, the dart lets go; on a thing
+  (5, 4, 0.5) squashed to half its height the dart keeps its size (1, 1, 1) and its tip follows; on the bear's
+  rocking part 0.0006 of drift, and 0.0001 after it toppled 90 degrees (the dart 1.56 from where it stuck); the
+  same on both soldiers; ClearAll and the paint clear leave 0; a dart on the player does not stick; a kid's dart
+  is 35 times the size and sits 0.1483 kid sizes back; with its shape taken away the capsule shows and it still
+  sticks; 8 bits on a wall, 14 and a 16-bit ring on health (ring 0.348 wide, flat within 0.0003); the bear down:
+  30 bits, squashed to 0.70, 1 sound at the ear and no hit sound, 2 in the room, 1 nudge, the marker orange;
+  each soldier down by a blow: 16 bits, 0.70, 1 thud, nothing at the ear; the splat 1.150 of its size at its
+  peak; 0 errors. Kept probes after: shot 64 of 64 (no check of it had to change), grenade 38 of 38, hold 81 of 81, ammo 210 of 212 (the same two SMG lines, word for word), first person 160 of 160, four-scene smoke 0 errors: each the same as before this piece (the counts of 09:4x today).
+- **NOT CHECKED:** nothing was played, seen moving, or heard (every run hidden and muted). The play log's two
+  lines (a hidden run records nothing: compiled only). A grenade's blast heard at the ear (the same
+  listener, not run). A project without the pack: only "the shape taken away"
+  was run, not Unity loading the prefab with the pack's model missing. A full rebuild through Shift Jam >
+  Workshop > Build Combat & Vehicle Pieces (it now calls the dart's own maker: compiled, not run; Build Foam Dart
+  itself was run). Darts on cars, on the skittle, on a grenade in flight, on a soldier walking. The ring and the
+  bits at kid size. A real pad. First person beyond the view kick (a dart seen landing from the eyes). The
+  leftovers probe of D-0075 (it picks "the dart in the scene" and may now pick a stuck one) was not re-run.
+- **TO PLAY:** Colour Corner or the Workshop. Shoot a wall from the side and up close; empty an SMG magazine into
+  the bear; knock the bear and a soldier down; shotgun a wall; T to paint and hit a soldier; first person (V) and
+  knock something down.
+- **FOR HIS EYE AND EAR (each is one number or one line):** which end of the shell leads (the grey rim now); the
+  dart's size (0.24 long) and colour (red, no glow); the hover in front of figures (above); the cap of 40; the
+  drop-off (0.35 s) against vanishing; no darts on the player; the quiver; the six clips, none heard; the two
+  volumes (0.5, 0.8); three sounds at once on a knock-down (the dart's landing, the thud, the one at your ear);
+  the nudge's size in both views; the yellow of the bits and whether the ring reads; the splat's 115 %.
+- **Stills** (outside the repo): `%TEMP%\shiftjam-stage\weapons\darts\stills` (19): the dart in flight from the
+  side, darts in a wall, the shotgun's pattern, a landing on a wall and on the bear, the bear's knock-down, darts
+  on the bear and on a soldier from the side (the hover), a kid's dart.
+
 ## 18 Nov 2026 12:2x — CHECKPOINT: the usage limit cut "darts stick + more at the landing" BEFORE ANY CODE (his "proceed"; nothing built, nothing in Assets touched)
 - **His play, 12:01 (the play log's first real row, `docs/PLAYLOG.md`):** 9:38, about 2 minutes active in Colour Corner; first person twice, 5 grenades, 10 SMG reloads, 5 knock-downs, 0 errors, 0 frames over 100 ms. His words: "those feel better" (read as the throw, the reload and the hands), and what stood out: "the missing foam darts and lack of juice when landing darts or paintballs".
 - **Found by reading:** a dart goes back to its pool at the hit (`Projectile.Update` > `Recycle`); the test room's sticks 8 s and rides with what it hit (`foam_dart.gd`: `stick_time` 8, `tip_length` 0.15, a target's `stick_parent`). The dart's shape is Unity's capsule, 0.05 x 0.18. A landing shows 8 bits of 0.035 for 0.45 s, a placed sound, four ticks, a squash of 0.1 to 0.15. The T key (ammo kinds) IS in Colour Corner (`AmmoBelt`); only bubbles are missing.

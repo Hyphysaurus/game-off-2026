@@ -109,6 +109,8 @@ namespace ShiftJam
         [Tooltip("Within this many degrees of square-on a hit has no downrange: the splat turns any way.")] public float squareOn = 85f;
         [Tooltip("A splat spreads from this share of its size to full...")] [Range(0f, 1f)] public float spreadStart = 0.35f;
         [Tooltip("...in this many seconds.")] public float spreadTime = 0.08f;
+        [Tooltip("Ours, not the test room's: the splat and its shell swell this share past their full size as they finish spreading (0.15 = to 115 %), then settle back. 0 = no pop: they stop at full size, as in the test room.")] [Range(0f, 0.5f)] public float spreadPop = 0.15f;
+        [Tooltip("...and settle back to full size in this many seconds. 0 = no pop.")] public float spreadSettle = 0.12f;
         [Tooltip("The broken shell covers this many core widths.")] public float flakesShare = 1.2f;
         [Tooltip("Shell flakes are drawn over the paint: decals with a higher number are drawn later.")] public int flakesDrawOrder = 1;
 

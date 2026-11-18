@@ -6,8 +6,9 @@ namespace ShiftJam
     /// <summary>
     /// Shift Jam's side of the play log (<see cref="PlayLog"/>): listens to the game's own events and passes them on in
     /// plain words, so a play's record says what was done, not only that the scene was open. One line each for what
-    /// happens now and then (a shift, a checkpoint, a reload, a lap); a count for what happens all the time (shots
-    /// landed, grenades thrown). The player's place is followed. Only the player's own gun and size are recorded, never a toy soldier's.
+    /// happens now and then (a shift, a checkpoint, a reload, a lap, another kind of ammo loaded); a count for what
+    /// happens all the time (shots landed, darts stuck, grenades thrown). The player's place is followed. Only the
+    /// player's own gun, ammo, darts and size are recorded, never a toy soldier's.
     /// Spawns itself whenever a play is being recorded; nothing to place in a scene. F12 (mark) and the console's
     /// "note" put his notes in the same record (DebugConsole).
     /// </summary>
@@ -24,9 +25,10 @@ namespace ShiftJam
 
         private GameObject _player;
         private WeaponHolder _holder;
+        private AmmoBelt _belt;          // the player's kinds of ammo, when it carries any
         private string _gun = "";
         private float _nextLook;
-        private bool _gunChanged;
+        private bool _gunChanged, _ammoChanged;
 
         private void OnEnable()
         {
@@ -35,6 +37,7 @@ namespace ShiftJam
             GameEvents.CheckpointClaimed += OnCheckpointClaimed; GameEvents.PlayerReset += OnPlayerReset; GameEvents.GoalReached += OnGoalReached;
             GameEvents.AmmoChanged += OnAmmoChanged; GameEvents.ReloadStarted += OnReloadStarted; GameEvents.ReloadEnded += OnReloadEnded;
             GameEvents.DryFired += OnDryFired; GameEvents.AmmoTaken += OnAmmoTaken; GameEvents.ShotLanded += OnShotLanded;
+            GameEvents.DartStuck += OnDartStuck;
             GameEvents.GrenadeThrown += OnGrenadeThrown; GameEvents.GrenadeWentOff += OnGrenadeWentOff;
             GameMode.Changed += OnModeChanged;
             RaceState.Started += OnRaceStarted; RaceState.LapDone += OnLapDone; RaceState.Finished += OnRaceFinished; RaceState.Stopped += OnRaceStopped;
@@ -47,8 +50,11 @@ namespace ShiftJam
             GameEvents.CheckpointClaimed -= OnCheckpointClaimed; GameEvents.PlayerReset -= OnPlayerReset; GameEvents.GoalReached -= OnGoalReached;
             GameEvents.AmmoChanged -= OnAmmoChanged; GameEvents.ReloadStarted -= OnReloadStarted; GameEvents.ReloadEnded -= OnReloadEnded;
             GameEvents.DryFired -= OnDryFired; GameEvents.AmmoTaken -= OnAmmoTaken; GameEvents.ShotLanded -= OnShotLanded;
+            GameEvents.DartStuck -= OnDartStuck;
             GameEvents.GrenadeThrown -= OnGrenadeThrown; GameEvents.GrenadeWentOff -= OnGrenadeWentOff;
             GameMode.Changed -= OnModeChanged;
+            if (_belt != null) _belt.Changed -= OnBeltChanged;
+            _belt = null;
             RaceState.Started -= OnRaceStarted; RaceState.LapDone -= OnLapDone; RaceState.Finished -= OnRaceFinished; RaceState.Stopped -= OnRaceStopped;
         }
 
@@ -57,6 +63,8 @@ namespace ShiftJam
             // The gun in hand is told once a frame at most: a scene's start hands the player its guns one after
             // another, and only the one left in the hand is worth a line.
             if (_gunChanged) { _gunChanged = false; TellGun(); }
+            // So is the ammo loaded: T pressed three times in a frame is one line, for the kind it ended on.
+            if (_ammoChanged) { _ammoChanged = false; if (_belt != null) PlayLog.Tell("ammo loaded: " + _belt.CurrentName); }
             if (_player != null || Time.unscaledTime < _nextLook) return;
             _nextLook = Time.unscaledTime + LookEvery;
             Bind();
@@ -69,6 +77,9 @@ namespace ShiftJam
             _player = GameObject.Find("Player");
             if (_player == null) return false;
             _holder = _player.GetComponent<WeaponHolder>();
+            if (_belt != null) _belt.Changed -= OnBeltChanged;   // the scene before's player
+            _belt = _player.GetComponent<AmmoBelt>();
+            if (_belt != null) _belt.Changed += OnBeltChanged;
             _gun = "";
             PlayLog.Follow(_player.transform);
             _gunChanged = true;
@@ -109,6 +120,9 @@ namespace ShiftJam
             PlayLog.Count("shots landed");
             if (finished) { PlayLog.Count("knock-downs"); PlayLog.Tell("knocked a target down"); }
         }
+
+        private void OnBeltChanged(AmmoBelt belt) => _ammoChanged = true;
+        private void OnDartStuck(Transform shooter) { if (Mine(shooter)) PlayLog.Count("darts stuck"); }
 
         private void OnGrenadeThrown(GrenadeThrower who) { if (!Mine(who)) return; PlayLog.Tell("grenade thrown, " + who.Carried + " left"); PlayLog.Count("grenades thrown"); }
         private void OnGrenadeWentOff(GrenadeThrower who, int hits, bool finished)

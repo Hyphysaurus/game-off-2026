@@ -109,7 +109,7 @@ namespace ShiftJam
             var fp = SettingsAsset<FirstPersonSettings>(Data + "/FirstPersonSettings.asset");
             var car = SettingsAsset<ArcadeCarSettings>(Data + "/ArcadeCarSettings.asset");
             var dartMat = DartMaterial();
-            var dart = BuildDart(dartMat);
+            var dart = DartPieces.BuildDart(dartMat);   // the foam dart has its own maker (Build Foam Dart)
             var made = new List<string>();
             MissingFields.Clear();
             var extras = LoadCarExtras();
@@ -170,58 +170,8 @@ namespace ShiftJam
 
         // ---------- pieces ----------
 
-        private static Projectile BuildDart(Material mat)
-        {
-            var root = new GameObject("FoamDart");
-            var body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            Object.DestroyImmediate(body.GetComponent<Collider>());
-            body.name = "Dart";
-            body.transform.SetParent(root.transform, false);
-            body.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);   // long axis along +Z, the way it flies
-            body.transform.localScale = new Vector3(0.05f, 0.09f, 0.05f);
-            var r = body.GetComponent<MeshRenderer>();
-            r.sharedMaterial = mat;
-            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            var dart = root.AddComponent<Projectile>();
-            // The test room's foam dart: 34 a second, falling at 3, gone after 4 s if it hits nothing.
-            Set(dart, "speed", 34f);
-            Set(dart, "drop", 3f);
-            Set(dart, "lifetime", 4f);
-            // Its feedback (foam_dart.tscn): 8 pale blue bits where it lands, and its own sounds when the licensed
-            // clips are in _Imports (a project without them plays nothing).
-            Set(dart, "burstAmount", 8);
-            Set(dart, "burstColour", new Color(0.75f, 0.88f, 1f));
-            Set(dart, "burstSpeed", 2.5f);
-            Set(dart, "burstSize", 0.035f);
-            Set(dart, "burstGravity", 9f);
-            Set(dart, "burstSeconds", 0.45f);
-            // Its streak (foam_dart.tscn: 1.6 long, 0.045 thick, pale blue at 0.75), drawn with the paint streak's
-            // material (made by Shift Jam > Paint; without it the dart flies without a streak).
-            var streakLook = AssetDatabase.LoadAssetAtPath<Material>(Data + "/PaintStreak.mat");
-            if (streakLook != null)
-            {
-                var tail = new GameObject("Streak");
-                tail.transform.SetParent(root.transform, false);
-                var trail = tail.AddComponent<TrailRenderer>();
-                trail.sharedMaterial = streakLook;
-                trail.minVertexDistance = 0.01f;
-                trail.numCapVertices = 2;
-                trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                trail.receiveShadows = false;
-                Set(dart, "streak", trail);
-                Set(dart, "streakLength", 1.584f);
-                Set(dart, "streakWidth", 0.0446f);
-                Set(dart, "streakColour", new Color(0.9f, 0.97f, 1f, 0.75f));
-            }
-            else Debug.LogWarning("[Workshop] " + Data + "/PaintStreak.mat is missing (Shift Jam > Paint makes it): the dart is built without its streak.");
-            WireClips(dart, "fireClips", "fire_dart_");
-            WireClips(dart, "hitClips", "hit_dart_");
-            var saved = Save(root, Combat + "/FoamDart.prefab");
-            return saved.GetComponent<Projectile>();
-        }
-
         /// <summary>Fills a list of clips from _Imports/CasePortman/Weapons: name1.ogg, name2.ogg, name3.ogg, those that are there.</summary>
-        private static void WireClips(Object target, string field, string name)
+        internal static void WireClips(Object target, string field, string name)
         {
             var so = new SerializedObject(target);
             var list = so.FindProperty(field);
@@ -1125,8 +1075,8 @@ namespace ShiftJam
             return asset;
         }
 
-        /// <summary>Orange foam: a copy of our own lit material (ShiftCore), recoloured. No shader lookups.</summary>
-        private static Material DartMaterial()
+        /// <summary>Orange foam, for the dart's plain capsule: a copy of our own lit material (ShiftCore), recoloured. No shader lookups.</summary>
+        internal static Material DartMaterial()
         {
             const string path = Data + "/FoamDart.mat";
             var mat = AssetDatabase.LoadAssetAtPath<Material>(path);

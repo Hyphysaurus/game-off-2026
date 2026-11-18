@@ -90,10 +90,11 @@ namespace ShiftJam
             _routeIndex = 0; _routeStep = 1; _waitUntil = 0f; _stuckFor = 0f; _vertical = 0f;
         }
 
-        private void OnDied(DamageInfo _)
+        private void OnDied(DamageInfo hit)
         {
             _state = State.Down; _downAt = Time.time; _sees = false; _seenFor = 0f;
             _cc.enabled = false;
+            KnockDown.Show(transform, hit, visual, true);   // a burst of bits, a bigger squash and the thud
         }
 
         private void Update()

@@ -11,10 +11,11 @@ namespace ShiftJam
         internal float Born, FadeAt, GoneAt;
         internal bool Pushed, Drop;
         // Growing: the full size (across, along, deep), how far its middle sits downrange of its fixed point in lengths,
-        // the seconds it takes, the seconds before it starts, and whether it is a run (hidden until it starts).
+        // the seconds it takes, the seconds before it starts, whether it is a run (hidden until it starts), and how far
+        // past its full size it swells before it settles (a share of that size; 0 = it stops at full).
         internal bool Growing, Run;
         internal Vector3 Full;
-        internal float Shift, Seconds, Delay, Centre;
+        internal float Shift, Seconds, Delay, Centre, Pop;
     }
 
     /// <summary>
@@ -82,11 +83,14 @@ namespace ShiftJam
         }
 
         /// <summary>Makes a decal grow: a splat spreading out from where the ball touched, or a run growing down from its
-        /// top. <paramref name="shift"/> is how far its middle sits downrange of that point, in lengths.</summary>
-        public void Grow(PaintSpot spot, bool run, float shift, float seconds, float delay = 0f)
+        /// top. <paramref name="shift"/> is how far its middle sits downrange of that point, in lengths. With
+        /// <paramref name="pop"/> above 0 a splat swells that share past its full size as it finishes spreading and
+        /// settles back over the settings' Spread Settle (runs never pop).</summary>
+        public void Grow(PaintSpot spot, bool run, float shift, float seconds, float delay = 0f, float pop = 0f)
         {
             if (spot == null) return;
             spot.Growing = true; spot.Run = run; spot.Shift = shift; spot.Seconds = Mathf.Max(seconds, 1e-4f); spot.Delay = delay;
+            spot.Pop = run || _settings.spreadSettle <= 0f ? 0f : Mathf.Max(pop, 0f);
             _growing.Add(spot);
             Shape(spot);
         }
@@ -131,7 +135,18 @@ namespace ShiftJam
             float age = _clock - spot.Born;
             float done = Mathf.Clamp01((age - spot.Delay) / spot.Seconds);
             float share;
-            if (!spot.Run) share = Mathf.Lerp(_settings.spreadStart, 1f, EaseOut(done));
+            bool settling = false;
+            if (!spot.Run)
+            {
+                // Spreads to its full size and, if it pops, on past it by Pop; then eases back to full.
+                share = Mathf.Lerp(_settings.spreadStart, 1f + spot.Pop, EaseOut(done));
+                if (spot.Pop > 0f && done >= 1f)
+                {
+                    float back = Mathf.Clamp01((age - spot.Delay - spot.Seconds) / _settings.spreadSettle);
+                    share = 1f + spot.Pop * (1f - Mathf.SmoothStep(0f, 1f, back));
+                    settling = back < 1f;
+                }
+            }
             else
             {
                 // A run grows wider as it grows longer, keeping the shape it was drawn at, so its bead stays round.
@@ -142,7 +157,7 @@ namespace ShiftJam
             float along = spot.Full.y * share;
             spot.Decal.size = new Vector3(spot.Full.x * share, along, spot.Full.z);
             spot.Decal.pivot = new Vector3(0f, -spot.Shift * along, spot.Centre);   // downrange is the decal's -Y
-            return done < 1f;
+            return done < 1f || settling;
         }
 
         /// <summary>Keeps a budget, the drops' or the rest's: past it, the oldest of that kind fades out quickly.</summary>

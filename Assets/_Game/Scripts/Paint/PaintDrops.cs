@@ -7,7 +7,8 @@ namespace ShiftJam
     /// <summary>
     /// Everything of the paint that is in the air: the drops thrown off a break (flown here with gravity and air drag,
     /// each step checked with a ray, drawn as one particle system) and the quick bursts of bits (shell, paint mist,
-    /// the Colour Corner's confetti). A drop that meets something is handed back to the keeper to leave its spot.
+    /// the Colour Corner's confetti, a dart's bits, the ring where a shot lands on something with health). A drop that
+    /// meets something is handed back to the keeper to leave its spot.
     /// </summary>
     public sealed class PaintDrops
     {
@@ -113,6 +114,24 @@ namespace ShiftJam
                 bit.velocity = dir * (speed * Random.Range(_settings.burstLeast.x, 1f));
                 bit.startSize = 2f * size * Random.Range(_settings.burstLeast.y, 1f);
                 system.Emit(bit, 1);
+            }
+        }
+
+        /// <summary>A flat ring of bits that widens from a point, across <paramref name="axis"/>: every bit leaves at the
+        /// same speed and size, evenly spaced round the ring, and none of them falls, so it reads as one ring growing
+        /// and thinning away. <paramref name="size"/> is a bit's radius.</summary>
+        public void Ring(Vector3 point, Vector3 axis, Color colour, int amount, float speed, float size, float seconds)
+        {
+            if (amount <= 0 || seconds <= 0f || _floats == null) return;
+            if (axis.sqrMagnitude < 1e-6f) axis = Vector3.up;
+            axis.Normalize();
+            Vector3 side = Vector3.Cross(axis, Mathf.Abs(axis.y) > 0.99f ? Vector3.right : Vector3.up).normalized;
+            var bit = new ParticleSystem.EmitParams { startColor = colour, startLifetime = seconds, position = point, startSize = 2f * size };
+            float turn = Random.Range(0f, 360f);   // no two rings start at the same bit
+            for (int i = 0; i < amount; i++)
+            {
+                bit.velocity = Quaternion.AngleAxis(turn + 360f * i / amount, axis) * side * speed;
+                _floats.Emit(bit, 1);
             }
         }
 

@@ -126,14 +126,14 @@ namespace ShiftJam
             float width = core / s.coreShare;
             PaintSpot spot = _book.Lay(_looks.For(family.looks[Variant(family.looks.Length, speedIn / paint.Scale)], paint.Fill),
                 holder, point, facing, along, new Vector3(width, width * stretch, deep), reach, paint.Life, false);
-            _book.Grow(spot, false, 0.5f - family.anchor, s.spreadTime);
+            _book.Grow(spot, false, 0.5f - family.anchor, s.spreadTime, 0f, s.spreadPop);   // it pops: past its size and back (ours)
 
             // The broken shell, lying on the paint (drawn after it).
             if (s.flakes.Length > 0)
             {
                 PaintSpot shell = _book.Lay(_looks.For(s.flakes[Random.Range(0, s.flakes.Length)], paint.Shell, s.flakesDrawOrder),
                     holder, point, facing, along, new Vector3(core * s.flakesShare, core * s.flakesShare * stretch, deep), reach, paint.Life, false);
-                _book.Grow(shell, false, 0f, s.spreadTime);
+                _book.Grow(shell, false, 0f, s.spreadTime, 0f, s.spreadPop);
             }
 
             if (!soft && facing.y < s.runSteepness) AddRuns(paint, holder, point, facing, along, core, stretch, reach);
@@ -187,6 +187,11 @@ namespace ShiftJam
         /// <paramref name="size"/> is a bit's radius.</summary>
         public void Puff(Vector3 point, Vector3 way, Color colour, int amount, float speed, float size, float gravity, float seconds)
             => _drops.Puff(point, way, colour, amount, speed, size, gravity, seconds);
+
+        /// <summary>A flat ring of bits that widens from a point, across <paramref name="axis"/> (a shot landing on
+        /// something with health). <paramref name="size"/> is a bit's radius.</summary>
+        public void Ring(Vector3 point, Vector3 axis, Color colour, int amount, float speed, float size, float seconds)
+            => _drops.Ring(point, axis, colour, amount, speed, size, seconds);
 
         /// <summary>The wet hit sound of a break.</summary>
         public void PlayHit(Vector3 point)

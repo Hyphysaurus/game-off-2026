@@ -12,7 +12,7 @@ namespace ShiftJam
     /// about as many kid sizes as a toy's shot carries it toy sizes; all of it threw crates across the room).
     /// The weapon that fires it can make it faster or slower (its Shot Speed).
     /// Each kind of ammo carries its own feedback, as in the test room: the sounds of the shot and of the landing, and
-    /// the small bits thrown off where it lands. Whoever fired it is told when it lands on something with health
+    /// the small bits thrown off where it lands, and a bright streak behind it in flight. Whoever fired it is told when it lands on something with health
     /// (GameEvents.ShotLanded: the hit marker).
     /// Another kind of ammo (the paint ball) extends this and changes only what happens at a hit: it can glance off
     /// before the hit counts (Deflects) and leave something behind after it (OnLanded).
@@ -35,6 +35,10 @@ namespace ShiftJam
         [SerializeField, Tooltip("A bit's radius, units at scale 1 (the test room: 0.035).")] private float burstSize = 0.035f;
         [SerializeField, Tooltip("How fast the bits fall, units per second squared at scale 1 (the test room: 9).")] private float burstGravity = 9f;
         [SerializeField, Tooltip("Seconds a bit lasts (the test room: 0.45).")] private float burstSeconds = 0.45f;
+        [SerializeField, Tooltip("The bright streak behind the shot: a Trail Renderer on this prefab. None = no streak (paint draws its own).")] private TrailRenderer streak;
+        [SerializeField, Tooltip("How long the streak gets, units at scale 1 (the test room's dart: 1.6 m). It starts at nothing and grows as the shot flies away, so it never pokes back through the gun.")] private float streakLength = 1.584f;
+        [SerializeField, Tooltip("How thick the streak is, units at scale 1 (the test room's dart: 0.045 m).")] private float streakWidth = 0.0446f;
+        [SerializeField, Tooltip("The streak's colour, the same from the shot to its tail; its alpha is how solid it is (the test room's dart: pale blue at 0.75).")] private Color streakColour = new Color(0.9f, 0.97f, 1f, 0.75f);
 
         private static readonly Dictionary<Projectile, Stack<Projectile>> Pools = new Dictionary<Projectile, Stack<Projectile>>();
         private static readonly List<Projectile> Live = new List<Projectile>();
@@ -96,6 +100,16 @@ namespace ShiftJam
             transform.SetPositionAndRotation(position, Quaternion.LookRotation(_velocity));
             transform.localScale = _baseScale * _scale;
             gameObject.SetActive(true);
+            if (streak != null)
+            {
+                // The streak lasts as long as the shot takes to fly its length: it grows from nothing as the shot
+                // leaves, and is gone with the shot when it lands (the shot goes back to its pool).
+                float pace = _velocity.magnitude;
+                streak.Clear();
+                streak.time = pace > 1e-4f ? streakLength * _scale / pace : 0f;
+                streak.widthMultiplier = streakWidth * _scale;
+                streak.startColor = streak.endColor = streakColour;
+            }
             Live.Add(this);
             OnLaunched();
         }

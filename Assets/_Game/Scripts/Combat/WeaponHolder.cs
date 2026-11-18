@@ -595,7 +595,10 @@ namespace ShiftJam
             float size = w.transform.lossyScale.z;
             // A reload: where the free hand takes the magazine, as far out of the gun as it is now.
             if (reload > 0f && w is BlasterWeapon gun)
-                hold.magazine = (gun.MagazinePart.Bottom + Vector3.down * (_ammo.magazineDrop * _reload.MagazineOut(_ammo))) * size;
+            {
+                hold.magazineOut = _ammo.magazineDrop * _reload.MagazineOut(_ammo) * size;
+                hold.magazine = gun.MagazinePart.Bottom * size + Vector3.down * hold.magazineOut;
+            }
             if (both)
             {
                 w.LongGunFit(_hold.longestSupportReach * s / Mathf.Max(1e-5f, size), out float stock, out Vector3 support);

@@ -2,6 +2,57 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 17 Nov 2026 16:5x — THE THIRD-PERSON LEFTOVERS: THE RELOAD HAND IS ON THE MAGAZINE, THE DART'S STREAK, THE MOVES AT 0.99 (D-0075) — NOT PLAYED
+The second half of his "polishing needed for FPS and TPS" (first person is the entry below). Built headless.
+- **The free hand holds the magazine in a reload, the SMG's too.** Measured first: with the magazine pulled out, its
+  bottom hangs lower than the free arm reaches, on every gun (each arm at its full length). A hand sent to a point
+  it cannot reach stops short on the way there, so it hung in the air beside the magazine: 5.9 cm off the pistol's,
+  6.9 off the shotgun's, 9.3 off the SMG's long one (the "12 cm" of D-0071 was measured to the magazine's bottom).
+  Now the hold slides up the magazine, back towards the gun, as far as it takes for the arm to reach, never higher
+  than the magazine has come out (`ArmAim.MagazinePalm`; no new number). The palm is 1.5 cm from all three
+  magazines: the hand is round the magazine, with its lower end showing below (7, 10 and 15.5 cm of it). The gun
+  stays where the test room holds it. First person uses the same code (there the arm reached already).
+  **What it costs the SMG:** its magazine's bottom is at the end of the arm even before it comes out, so the hand
+  now waits there while the long magazine slides down through it: it goes 1 cm down with the magazine, where it
+  went 4 cm down beside it. The pistol's and the shotgun's hands still go down with theirs (7.9 and 5.3 cm).
+- **The dart has its bright streak** (the test room's: 1.6 long, 0.045 thick, pale blue, 0.75 solid, the same from
+  the dart to its tail). It starts at nothing as the dart leaves the barrel and is gone when the dart lands. It is
+  data on the ammo: `Prefabs/Combat/FoamDart.prefab` > Feedback > Streak, Streak Length 1.584, Streak Width 0.0446,
+  Streak Colour, drawn by a Trail Renderer on the prefab's "Streak" child with the paint streak's material
+  (`Data/PaintStreak.mat`, unchanged). A kind of ammo without a Streak draws none; paint keeps its own. The toy
+  soldiers fire the same dart, so theirs have it too. `WorkshopPieces` builds the dart with it.
+- **D-0064's move lengths are the test room's at 0.99** (they were at 0.9375, 5 % short; `Resources/PlayerMoves`):
+  a roll carries 3.37 (was 3.19): Roll Distance 1.87 body heights (was 1.77). A punch's hit ball: reach 0.4125,
+  height 0.6875, width 0.2475, shove 2.2 (were 0.39, 0.65, 0.234, 2.1). A kick's: 0.495, 0.44, 0.33, 4.95 (were
+  0.47, 0.417, 0.3125, 4.7). The crouch walks at 1.67 (was 1.65): the crouch clip's own pace (1.046) at the legs'
+  cap of 1.6, so the feet match the floor. The defaults in `PlayerMoveSettings` say the same.
+  NOT changed: Crouch Height (0.833 of the standing capsule = 1.5; the test room's 1.6 m at 0.99 would be 0.88 =
+  1.58). It decides what you can crouch under, so it is his call.
+- **CHECKED:** a new probe (kept: `%TEMP%\shiftjam-stage\weapons\fpb\probe-keep\LeftoversBProbe.cs`), toy size,
+  measured in the world: 10 of 10; on the code before, 1 of 9 (only "no errors" passed; the streak's own numbers
+  can only be read once it exists; the reload hand's before-measure was taken in a second run, with only the arm
+  code put back). At 43 % of a reload, the magazine 0.195 out and still drawn, the free palm is 0.015, 0.015 and 0.016
+  from the magazine of the pistol, the shotgun and the SMG (0.059, 0.069 and 0.093 before), each arm at 0.98 of
+  its length; a dart in flight trails a streak 1.60 long (the middle one of 183 frames of flight; 1.58 asked),
+  0.0446 thick, 0.75 solid at both ends (none before); a roll carries 3.36 (3.18 before); a crouch walks at 1.670
+  (1.650); a loose block hung where only the new reach touches it is knocked away by a punch (near face 1.156
+  ahead, the hit ball ends at 1.188; it ended at 1.123) and by a kick (1.447; 1.485; 1.409), and was not before.
+  After it: first-person probe 160 of 160, hold probe 81 of 81, shot probe 64 of 64, camera probe 64 of 64, four scenes 0 errors; AMMO PROBE 210 OF 212: its SMG line fails at toy and kid size (the cost above: the hand goes 0.011 down with the magazine, the line asks for more than 0.03); the line was left as it is.
+- **SEEN (stills, mine):** the dart from the side with its streak (a thin pale line behind the orange dart); the
+  three reloads from the front at 43 %: each free hand is round its magazine, the SMG's about half way up it.
+  (`%TEMP%\shiftjam-stage\weapons\fpb\stills`, not in the repo.)
+- **NOT CHECKED:** nothing played; the streak at kid size and from the game's own camera (seen from behind it is a
+  short line); the streak with the shotgun's 8 darts; how the longer roll fits the course's gaps.
+TO PLAY: Colour Corner (T until Darts) or Workshop: fire the pistol across the room and watch the dart from the
+side; the shotgun's 8 streaks. Each gun, R: watch the free hand take the magazine. X (put away), then
+Left Ctrl: the roll goes a little further; left mouse and right mouse at a practice target from the edge of reach;
+hold C and walk.
+FOR HIS EYE: the streak (length, how solid; it is the test room's); the hand on each magazine, and the SMG's long
+magazine sliding through a hand that holds still (his call: the hand could take it higher from the start and be
+pulled down with it, which needs one number a gun: how much of its magazine shows below it); the roll's new length where a course gap was sized for the old one; the kick's shove (4.95, was 4.7).
+OWED: the hold IN MOTION beside the test room (walk and run with the shotgun, third person, 4 frames each): not
+shot in this piece; the shots are listed in the weapons NOTES.
+
 ## 17 Nov 2026 16:2x — FIRST PERSON AS THE TEST ROOM'S: THE ARMS ARE ON THE GUN, RIGHT MOUSE BRINGS THE SIGHT TO THE EYE (D-0074) — NOT PLAYED
 His words after playing at 12:24 today: "the polishing needed for FPS and TPS for shift jam (still lacking some of the
 finesse from Testing zone)". First person first (his "proceed"). Built headless, no editor open. The new stills

@@ -154,3 +154,12 @@ Space = jump, X = put down (C crouches since D-0064), LMB = toggle the carried l
 - X puts the gun away: the arms go (empty hands show no body). X again. V back to third person: the body is whole.
 - Say: the arms and hands, each sight picture, the SMG's roll, the body seen looking down, whether the body should
   show with empty hands too.
+
+## Third-person leftovers (D-0075, 17 Nov)
+- Colour Corner (T until the name line says Darts): fire the pistol across the room, watch from a little to the
+  side: a pale streak behind each dart, gone when it lands. Shotgun: 8 of them.
+- Each gun: fire a few, R: the free hand takes the magazine as it comes out (the SMG's long one half way up) and
+  puts the new one in.
+- X (gun away). Left Ctrl: the roll (a little longer than before). Left mouse / right mouse at a practice target
+  from as far as still hits. Hold C and walk: the feet should not slide.
+- Say: the streak, the hand on the magazine, the roll's length against any gap you know.

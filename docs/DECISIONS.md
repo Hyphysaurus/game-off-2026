@@ -1355,3 +1355,39 @@
   - **Not done:** the rifle, the sniper, bubbles (D-0072, held), grenades, the roll and the punch seen from inside
     the head.
   - **Checked:** STATUS, 17 Nov 16:2x. Not played.
+- **D-0075 (17 Nov, 16:5x) The third-person leftovers: the reload hand takes the magazine where the arm reaches it, the dart's streak is data on the ammo, D-0064's lengths at 0.99.**
+  - **The reload hand (fixed in the game, for every gun).** Measured first: half way through a reload all three
+    free arms are at their full length (0.985 of the arm): the magazine's bottom, pulled 0.2 out, is out of reach,
+    and the arm code stops a hand short ALONG THE LINE from the shoulder, which is not along the magazine. So the
+    hand hung beside the magazine: 0.059 (pistol), 0.069 (shotgun), 0.093 (SMG) from it; 0.067, 0.088 and 0.121
+    from its bottom (the test room's own, to the bottom: 0.073, 0.096, rifle 0.049: the port did what the source
+    does). Rule added (`ArmAim.MagazinePalm`): the hold slides up the magazine towards the gun by what the arm
+    lacks (the support hand's slide-to-reach, turned along the magazine), never higher than the magazine has come
+    out. All three hands end 0.015 from their magazine. Measured to the BOTTOM the hands are now further (0.072,
+    0.100, 0.156): that number was the wrong one to shrink, and the new probe measures to the magazine itself.
+    - **Tried first and thrown out:** sliding the reloading gun back along its barrel until the hand reached (only
+      guns whose magazine sits ahead of the grip, so only the SMG). It took the whole 15.6 cm of slide to gain 3 cm
+      (0.124 to 0.094 from the bottom) and left the SMG 0.098 in front of the chest bone where the test room
+      holds a gun at 0.240. The ammo probe's place check caught it (210 of 212).
+    - **One kept check now fails, and was left as it is:** the ammo probe's SMG line (D-0070, a loose bound for a
+      gun the test room does not have: the hand goes down more than 0.03 with the magazine and ends within 0.16
+      of its bottom). The SMG's hand now goes 0.011 down (it went 0.044 down, beside the magazine) and ends 0.153
+      from the bottom: 210 of 212, the same line at toy and kid size. A hand on the magazine cannot also go down
+      3 cm with it here: the arm is at its end with the magazine still seated. Open, his call: take hold higher
+      up the part of the magazine that shows below the gun (a per-gun length the models do not give), or a nearer
+      reload place for the SMG.
+    - Not chosen: a per-gun reload position (a number to keep in step with each model), a shorter magazine drop
+      (shared by all guns, the test room's 0.2).
+  - **The dart's streak.** The test room draws a thin unlit box behind the shot, grown from nothing to its length
+    (`projectile.gd` `_make_trail`, `_stretch_trail`; foam_dart.tscn: 1.6, 0.045, (0.9, 0.97, 1, 0.75)). Here it is
+    a Trail Renderer on the ammo prefab, sized at launch from the ammo's own numbers (`Projectile` > Feedback:
+    Streak, Streak Length, Streak Width, Streak Colour), the way the paint ball's was ported: its time is the
+    length over the shot's speed, so it too grows from nothing and scales with the shooter and the gun's Shot
+    Speed. One colour end to end, as the test room's box. The paint streak's material is shared, not changed.
+  - **D-0064's lengths.** D-0068 found every length from the test room 5 % short (x 0.9375, the capsules' ratio,
+    where the rig is fitted at 0.99) and left the moves as his call; his 17 Nov "proceed" covers them. New value =
+    the test room's metres x 0.99 / 1.8 body heights: roll 3.4 m, punch 0.75 / 1.25 / 0.45, kick 0.9 / 0.8 / 0.6;
+    the shoves (4 and 9 a second) carried the same factor and were corrected with them. The crouch speed was never
+    the test room's (its 1.06 is the clip unhurried); it is the clip's measured pace at the legs' cap, now exact
+    (1.046 x 1.6 = 1.67). Crouch Height is not touched (clearance under things).
+  - **Checked:** STATUS, 17 Nov 16:5x. Not played.

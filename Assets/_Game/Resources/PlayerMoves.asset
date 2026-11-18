@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: PlayerMoves
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.PlayerMoveSettings
   crouchHeight: 0.833
-  crouchSpeed: 1.65
+  crouchSpeed: 1.67
   standInset: 0.003
-  rollDistance: 1.77
+  rollDistance: 1.87
   rollPlayback: 1.5
   rollCooldown: 0
   rollSafeFrom: 0.2
@@ -23,18 +23,18 @@ MonoBehaviour:
   blockDamage: 0.5
   punch:
     playback: 1.5
-    reach: 0.39
-    height: 0.65
-    width: 0.234
+    reach: 0.4125
+    height: 0.6875
+    width: 0.2475
     damage: 10
-    shove: 2.1
+    shove: 2.2
   kick:
     playback: 1.5
-    reach: 0.47
-    height: 0.417
-    width: 0.3125
+    reach: 0.495
+    height: 0.44
+    width: 0.33
     damage: 20
-    shove: 4.7
+    shove: 4.95
   shoveUp: 0.35
   shoveGrowsWithSize: 1
   strikeMask:

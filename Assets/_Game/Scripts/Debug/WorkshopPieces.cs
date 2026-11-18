@@ -195,6 +195,25 @@ namespace ShiftJam
             Set(dart, "burstSize", 0.035f);
             Set(dart, "burstGravity", 9f);
             Set(dart, "burstSeconds", 0.45f);
+            // Its streak (foam_dart.tscn: 1.6 long, 0.045 thick, pale blue at 0.75), drawn with the paint streak's
+            // material (made by Shift Jam > Paint; without it the dart flies without a streak).
+            var streakLook = AssetDatabase.LoadAssetAtPath<Material>(Data + "/PaintStreak.mat");
+            if (streakLook != null)
+            {
+                var tail = new GameObject("Streak");
+                tail.transform.SetParent(root.transform, false);
+                var trail = tail.AddComponent<TrailRenderer>();
+                trail.sharedMaterial = streakLook;
+                trail.minVertexDistance = 0.01f;
+                trail.numCapVertices = 2;
+                trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                trail.receiveShadows = false;
+                Set(dart, "streak", trail);
+                Set(dart, "streakLength", 1.584f);
+                Set(dart, "streakWidth", 0.0446f);
+                Set(dart, "streakColour", new Color(0.9f, 0.97f, 1f, 0.75f));
+            }
+            else Debug.LogWarning("[Workshop] " + Data + "/PaintStreak.mat is missing (Shift Jam > Paint makes it): the dart is built without its streak.");
             WireClips(dart, "fireClips", "fire_dart_");
             WireClips(dart, "hitClips", "hit_dart_");
             var saved = Save(root, Combat + "/FoamDart.prefab");

@@ -1391,3 +1391,31 @@
     the test room's (its 1.06 is the clip unhurried); it is the clip's measured pace at the legs' cap, now exact
     (1.046 x 1.6 = 1.67). Crouch Height is not touched (clearance under things).
   - **Checked:** STATUS, 17 Nov 16:5x. Not played.
+- **D-0076 (18 Nov, 08:3x) The play log: every play of the game writes itself down (his "create a script that automatically logs my playtests for each project").**
+  - **Why.** STATUS says NOT PLAYED on almost everything, and those tags go stale: nothing recorded which scenes he
+    ran, for how long, or on which commit. Now each play leaves a row, so "has D-00NN been played?" is a look-up.
+    It cannot say he judged a feature; his notes (F12) say that.
+  - **What.** `Scripts/Debug/PlayLog.cs` (namespace `Playtest`): starts with Play, closes when the play stops, nothing
+    to press. Detail of a play in `Playtests/play-DATE-TIME.txt` beside Assets (git-ignored): each scene, his notes,
+    errors and warnings once each, frames over 100 ms, idle spans (no input for 30 s), the editor's pause, the
+    window losing focus, the player's place every 2 s as it moves. One row per play in `docs/PLAYLOG.md` (committed):
+    when, length, what the project was at (newest D-number in this file, the commit, the count of uncommitted
+    files), time in each scene, notes, errors, frame time, counts. A play that never closed its log (a crash) gets
+    its row at the next play. A play under 5 s leaves nothing.
+  - **The game's side** is `Scripts/Debug/PlayLogEvents.cs`: it listens to `GameEvents`, `GameMode` and `RaceState`
+    and passes on, for the player only: shifts, refused shifts, cores, switches, doors, checkpoints, resets, goals,
+    the gun in hand, reloads (and those cut short), ammo taken, knock-downs, build mode and first person, a race's
+    start, laps and finish; counted, not listed: shots landed, dry clicks. A new thing worth a line (grenades, the
+    rifle) = one `PlayLog.Tell` or `PlayLog.Count` there.
+  - **His notes.** F12 (the console's existing "mark") and the console's `note <words>` now also number the note in
+    the play's record; F12's still goes beside the record, named after the note (`...-note-02.png`), where it went
+    to `docs/stills` before. `docs/PLAYTEST_NOTES.md` is still written.
+  - **One file for every project.** `PlayLog.cs` has nothing of Shift Jam in it and is meant to be copied as it is
+    into the other projects (the Hummingbird, Goblin Delivery Service), each with its own small listener. Chosen
+    over a shared package: a package path would put a folder of his PC into this public repo.
+  - **Where it does not run:** a release build; batch mode (the headless checks), unless the command line has
+    `-playlog FOLDER`, which sends both files there; a Multiplayer Play Mode virtual player. Editor only: the
+    commit and the uncommitted count (a `git status` that takes no lock, on a background thread).
+  - **Not chosen:** a line for every shot (too many: counted); the detail files in git (they grow every play);
+    writing rows from a report script run afterwards (then it is not automatic).
+  - **Checked:** STATUS, 18 Nov 08:3x. Not played.

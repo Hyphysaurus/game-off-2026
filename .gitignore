@@ -153,3 +153,6 @@ Logs/
 **/_Game/Art/Thumbs.meta
 **/_Game/Resources/BuildCatalog.asset
 **/_Game/Resources/BuildCatalog.asset.meta
+
+# the play log's detail files and note stills, one set per play (PlayLog.cs); the rows are in docs/PLAYLOG.md
+/Playtests/

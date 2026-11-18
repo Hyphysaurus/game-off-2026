@@ -2,6 +2,33 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 18 Nov 2026 08:3x — THE PLAY LOG: EVERY PLAY WRITES ITSELF DOWN (D-0076) — NOT PLAYED
+His "create a script that automatically logs my playtests", Shift Jam first. Built headless, no editor open.
+- **What it does.** Press Play: a record starts. Stop: it closes. Nothing else to do. The row goes to
+  `docs/PLAYLOG.md` (made by the first play; commit it with the work), the detail to `Playtests/` beside Assets
+  (git-ignored). A row: when, how long (with idle, paused and away time), what the project was at (D-number,
+  commit, uncommitted count), each scene and the time in it, notes, errors and warnings, frame time, counts.
+- **What it records of the game:** shifts, checkpoints, resets, goals, switches, doors, the gun in hand, reloads,
+  ammo taken, knock-downs, first person and build mode, race laps; counts of shots landed and dry clicks; the
+  player's place as it moves (`Scripts/Debug/PlayLogEvents.cs`). Grenades and the rifle get their lines when they
+  are ported.
+- **His notes: F12.** A numbered note with the room, the size and the place, and a still beside the record. Or the
+  console (`) and `note <words>`. Say the words afterwards by number.
+- **CHECKED** with a temporary probe (kept: `%TEMP%\shiftjam-stage\playlog\probe-keep\PlayLogProbe.cs`), one play
+  of 46 s in the Workshop then Colour Corner, stopped the way a play is stopped, read back from the files: 33 of
+  34; run first without the logging switch, 29 lines failed and no file was written (a batch run records
+  nothing, as meant). Passing: both scenes with
+  their times, a shift, a knock-down, counts (shots landed 4), an error logged twice told once, a warning, note 1,
+  F12 making note 2 through the console, 33 s without a key told as idle and its end, the place as the player
+  walks, "D-0075, 648761f (main), 23 uncommitted", the end lines, the row's nine cells, a planted record that
+  never closed getting its row, a play of 2 s leaving nothing. Outside compile 0 errors.
+- **NOT CHECKED:** F12's still on disk (the 1 of 34: a hidden batch run draws no picture to save; in his editor it
+  is the same call the console's `shot` has always used); the editor's pause and the window losing focus in a
+  real editor (the code is there, a batch run has neither); a development build; a virtual player being skipped.
+  Nothing played.
+TO PLAY: any play at all. Afterwards open `docs/PLAYLOG.md`: one new row. Press F12 once in it and look for the
+still in `Playtests/`.
+
 ## 17 Nov 2026 16:5x — THE THIRD-PERSON LEFTOVERS: THE RELOAD HAND IS ON THE MAGAZINE, THE DART'S STREAK, THE MOVES AT 0.99 (D-0075) — NOT PLAYED
 The second half of his "polishing needed for FPS and TPS" (first person is the entry below). Built headless.
 - **The free hand holds the magazine in a reload, the SMG's too.** Measured first: with the magazine pulled out, its

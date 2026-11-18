@@ -12,7 +12,7 @@ namespace ShiftJam
     /// <summary>
     /// Playtest tools, on screen. F1 = the readout (speed, size, ground, last drop, what E would do); ` (backquote) = the
     /// console (log tail + commands). Hotkeys: F5 respawn, F6 fly, F7 god (no fall rule), F8 toy/kid, PgUp/PgDn previous
-    /// /next checkpoint, F12 mark (a note line + a screenshot into docs). Spawns itself in the editor and in development
+    /// /next checkpoint, F12 mark (a numbered note + a still in the play log, see PlayLog). Spawns itself in the editor and in development
     /// builds; nothing to place in a scene. Type "help" in the console.
     /// </summary>
     public sealed class DebugConsole : MonoBehaviour
@@ -132,7 +132,7 @@ namespace ShiftJam
                         Say("core (F2): calls the Pocket Core, a shift core you can use anywhere, a step in front of you");
                         Say("workshop (load the Workshop sandbox) | course (back to the course scene)");
                         Say("save (here, active slot) | save clear (empties the active slot)");
-                        Say("note <text> -> docs/PLAYTEST_NOTES.md with room, size, position   mark (F12) = note + screenshot   shot   clear");
+                        Say("note <text> -> docs/PLAYTEST_NOTES.md with room, size, position   mark (F12) = numbered note + still in the play log (Playtests/)   shot   clear");
                         break;
                     case "clear": _log.Clear(); break;
                     case "toy": _shifter.ShiftTo(ShiftSize.Toy); Say("toy"); break;
@@ -159,7 +159,11 @@ namespace ShiftJam
                     case "tune": Tune(a); break;
                     case "set": case "get": SetGet(a, cmd == "set"); break;
                     case "note": Note(line.Substring(4).Trim()); break;
-                    case "mark": Note("mark"); Shot(); break;
+                    case "mark":
+                        // the still goes beside the play's record when one is being kept, named after the note's number
+                        Note("mark");
+                        if (Playtest.PlayLog.On) Say("still " + System.IO.Path.GetFileName(Playtest.PlayLog.Still())); else Shot();
+                        break;
                     case "core": Say(PocketCore.Summon()); break;
                     case "shot": Shot(); break;
                     case "workshop": Time.timeScale = 1f; SceneManager.LoadScene(TitleMenu.WorkshopScene); break;
@@ -254,7 +258,9 @@ namespace ShiftJam
             string file = System.IO.Path.Combine(DocsDir, "PLAYTEST_NOTES.md");
             string line = $"- {DateTime.Now:MM-dd HH:mm:ss} [{Room()}] {(_shifter != null ? _shifter.Size.ToString() : "?")} at {_player.transform.position:0.0}: {text}   ({Footing()})";
             File.AppendAllText(file, line + Environment.NewLine);
-            Say("noted: " + text);
+            // the same note goes into this play's record (the play log), numbered, so his words afterwards find their moment
+            int number = Playtest.PlayLog.Note($"[{Room()}] {(_shifter != null ? _shifter.Size.ToString() : "?")}: {text}");
+            Say("noted" + (number > 0 ? " #" + number : "") + ": " + text);
         }
 
         /// <summary>How the body sits on what is under it, in the player's own units (so toy and kid read alike): "sunk" is

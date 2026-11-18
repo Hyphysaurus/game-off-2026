@@ -1419,3 +1419,65 @@
   - **Not chosen:** a line for every shot (too many: counted); the detail files in git (they grow every play);
     writing rows from a report script run afterwards (then it is not automatic).
   - **Checked:** STATUS, 18 Nov 08:3x. Not played.
+- **D-0077 (18 Nov, 09:4x) Grenades, ported from the test room: thrown with the free hand, a blast that falls away with distance, sized to the thrower; the flight is our own code.**
+  - **Three small pieces, as there.** `Combat/GrenadeThrower.cs` (the count, the wait, the swing's timing, the
+    release), `Combat/ThrowPose.cs` (the free arm's swing: one more use of `ArmAim`'s arm bend, on the left arm,
+    through the new `ArmAim.FreeHandTo`; it runs after the WeaponHolder has posed the arms, so it sits on top of a
+    two-handed hold) and `Combat/Grenade.cs` (the fuse and the blast). A fourth, `Combat/BallFlight.cs`, is the
+    ball's flight (below). Numbers: `Resources/Grenades.asset` (`Data/GrenadeSettings.cs`) for the thrower and the
+    arm, the prefab `Prefabs/Combat/Grenade.prefab` for the fuse, the blast and the flight. Builder:
+    `Debug/GrenadePieces.cs` (Shift Jam > Workshop > Build Grenade).
+  - **The player gets its thrower from the WeaponHolder** (`Awake`, a holder with a PlayerInput), the way it gets
+    its HUD. Chosen over adding the component to the three scenes' players by hand-editing scene files with no
+    editor open. A toy soldier's holder has no PlayerInput and gets none.
+  - **Conversions.** Lengths on the body x 0.99 (the release point 0.198, 1.4355, 0.5445; the hand's two places).
+    The throw's speed 16, the fall 30 and the blast's reach 4.5 are number for number, D-0071's rule for flight.
+    The ball is the pack's model at its own size (radius 0.085). Damage 90 = the test room's 6 x 15.
+  - **The grenade's fall is its own number** (`BallFlight` > Fall 30), as decided: the project's gravity setting
+    does not move it. Found on the way: in play `Physics.gravity` is -60, not the -20 or -9.81 of the settings
+    file: `PlayerMotor` sets it at start from its Prop Gravity. The arc is the same at -60, -9.81 and -20.
+  - **The flight is not the physics engine's.** A Rigidbody with the test room's numbers did not land like the
+    test room's ball. Measured, one throw at toy size, against the test room's ball run headless in Godot (same
+    throw: 10.73 away at 1.52 s): swept collision 8.2 (the ball went 0.08 into the floor in one step, the floor's
+    grip then worked on the wrong side of it, and it came out spinning backwards at 118 a second and braked), or
+    12.7 (it bounced with no grip at all and slid); speculative collision 14.3 (the same slide, and the ball
+    hovers a hair over the floor); with a grip rule added on the first touch 12.65, and 16.3 at kid size. A
+    kid's ball also behaved differently from a toy's (the engine's contact gap and no-bounce speed are fixed
+    lengths). So `BallFlight` moves a kinematic ball itself, each physics step: fall, drag, a swept move, and at
+    each touch the bounce, the grip (the slide of the touching point is taken off, 2/7 of it for a solid ball,
+    by no more than grip x how hard it pressed), the spin that gives, capped. Lying and rolling are the same
+    rule every step. Now 10.67 at toy, 10.60 body sizes at kid.
+  - **Three facts of the test room's engine that the scene file does not show,** each measured from its ball's
+    path, each a number on the prefab: nothing spins faster than 47.12 radians a second (this is why its ball
+    skids to a walk after landing and does not roll on); every body has 0.1 of drag on top of its own (so 0.6
+    and 2.1); a landing slower than 1 does not bounce.
+  - **The throw takes the thrower's speed, without the push that holds a standing body to the floor.**
+    `PlayerMotor.Velocity` is 2 down (x the size) while standing; added as it was, it cancelled the throw's rise
+    (the first run peaked no higher than it left). On the ground the downward part is left out.
+  - **The blast, the test room's rules, where they differ from a dart's here:** loose things only are thrown (a
+    player in the blast is hurt, not shoved; a dart here shoves a player); they leave at the same speed whatever
+    they weigh (the test room multiplies by the weight; a dart's shove here is sized for a weight of 1); the size
+    rule is the shove's (`Knockback.Apply(.., loose)`, the square root of the size). It reaches through walls and
+    hurts its thrower. Hits that count: `Damageable.Hit` returning true, as for `ShotLanded`.
+  - **The kid's blast reaches the scaled distance** (4.5 x 35 = 157 here; 27 m in the test room, whose kid is 6
+    times). Kept as decided; flagged for his veto in STATUS.
+  - **Events** (`GameEvents`): `GrenadesChanged(thrower)`, `GrenadeThrown(thrower)`, `GrenadeWentOff(thrower, hits,
+    finished)`. The grenade itself announces nothing: its thrower listens to its `WentOff` and tells the game, as
+    in the test room. The weapon HUD writes the count line and flashes the hit marker; the play log writes its
+    lines. Nothing knows who listens.
+  - **The count is a line on the weapon read-out** (`AddLine`), so it is on screen only while a blaster is out,
+    and the hit marker with it. The test room shows the count always. Not changed here: it means deciding what
+    the read-out shows with empty hands. His call.
+  - **More grenades the test room's way:** `AmmoBox.Give` asks the thrower too when the pickup is a supply crate
+    (Magazines 0), beside `WeaponHolder.AddAmmo`; a box gives none. Ours: the Workshop's reset key gives the
+    starting 3 back and takes a grenade out of the air (the Workshop has no crate).
+  - **The pad: hold Crouch (right stick in), press Sprint (left stick in).** All 16 buttons were taken. Looked
+    at: Block + Attack (needs a throw during a block, which the test room forbids), Aim + D-pad up (kicks with
+    empty hands, and flips the ammo kind), anything with Shift, Dodge, Holster or Drop Weapon (the second button
+    does its own job on the press). The two stick presses are the only pair that are both "hold". Cost: a crouch
+    while you throw, and a player who crouches and then clicks run throws. His call.
+  - **Known and left:** the smoke does not rise (`PaintDrops` flies every falling bit with one pull; the smoke's
+    fall is 0 on the prefab, the test room's is -1). The flash's brightness is the test room's 6 in this
+    engine's units, x the size squared so a big blast reads the same from further off: not looked at. A flying
+    grenade is kinematic: a dart or a car does not move it.
+  - **Checked:** STATUS, 18 Nov 09:4x. Not played.

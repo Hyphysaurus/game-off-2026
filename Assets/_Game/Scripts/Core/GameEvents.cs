@@ -40,6 +40,14 @@ namespace ShiftJam
         /// <summary>A holder's shot landed on something with health and the hit counted; the bool says whether that hit
         /// finished it off. The hit marker listens.</summary>
         public static event Action<WeaponHolder, bool> ShotLanded;
+        /// <summary>A thrower's grenade count changed: one was thrown, a supply crate filled it up, or the reset key
+        /// did. Read the number from the thrower (Carried).</summary>
+        public static event Action<GrenadeThrower> GrenadesChanged;
+        /// <summary>A grenade left the thrower's hand.</summary>
+        public static event Action<GrenadeThrower> GrenadeThrown;
+        /// <summary>A thrower's grenade went off: the int is how many things with health its blast hit, the bool whether
+        /// it finished any of them off. The hit marker listens.</summary>
+        public static event Action<GrenadeThrower, int, bool> GrenadeWentOff;
 
         internal static void RaiseShiftStarted(Shifter who, ShiftSize size) => ShiftStarted?.Invoke(who, size);
         internal static void RaiseShifted(Shifter who, ShiftSize size) => Shifted?.Invoke(who, size);
@@ -56,5 +64,8 @@ namespace ShiftJam
         internal static void RaiseDryFired(WeaponHolder holder, BlasterWeapon gun) => DryFired?.Invoke(holder, gun);
         internal static void RaiseAmmoTaken(WeaponHolder holder, int rounds) => AmmoTaken?.Invoke(holder, rounds);
         internal static void RaiseShotLanded(WeaponHolder holder, bool finished) => ShotLanded?.Invoke(holder, finished);
+        internal static void RaiseGrenadesChanged(GrenadeThrower thrower) => GrenadesChanged?.Invoke(thrower);
+        internal static void RaiseGrenadeThrown(GrenadeThrower thrower) => GrenadeThrown?.Invoke(thrower);
+        internal static void RaiseGrenadeWentOff(GrenadeThrower thrower, int hits, bool finished) => GrenadeWentOff?.Invoke(thrower, hits, finished);
     }
 }

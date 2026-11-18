@@ -78,6 +78,8 @@ namespace ShiftJam
         public bool Ready => _right.ok;
         /// <summary>True when the body can hold a gun in both hands (a left arm and a chest bone as well).</summary>
         public bool BothHands => _right.ok && _left.ok && _chest != null;
+        /// <summary>True when the body has a humanoid left arm: the free arm can be posed on its own (a throw).</summary>
+        public bool FreeArm => _left.ok;
         /// <summary>A direction or a point in the right hand's own space, from its parts along the hand's own
         /// directions: x along the knuckles (from the wrist), y towards the thumb's side, z the way the palm faces.</summary>
         public Vector3 InHand(Vector3 knucklesThumbPalm) => _right.fingers * knucklesThumbPalm.x + _right.thumb * knucklesThumbPalm.y + _right.palm * knucklesThumbPalm.z;
@@ -367,6 +369,19 @@ namespace ShiftJam
         {
             Vector3 thumb = Vector3.Cross(fingers, palmWay);
             return Quaternion.LookRotation(fingers, thumb) * Quaternion.Inverse(Quaternion.LookRotation(_left.fingers, _left.thumb));
+        }
+
+        /// <summary>The free (left) arm on its own, for a throw: its wrist goes to <paramref name="fromShoulder"/> (from
+        /// the left shoulder, in the body's own space, world lengths), the elbow points along
+        /// <paramref name="elbowWay"/>, and the hand keeps the turn it has. Blended in by <paramref name="weight"/> over
+        /// whatever the arm was doing this frame (the animation, or a gun's support hold), so call it last.</summary>
+        public void FreeHandTo(Vector3 fromShoulder, Vector3 elbowWay, float weight)
+        {
+            if (!_left.ok || weight <= 0f) return;
+            _left.Remember();
+            Quaternion hand = _left.hand.rotation;
+            Bend(_left, _left.upper.position + _body.rotation * fromShoulder, hand, elbowWay);
+            _left.Blend(Mathf.Clamp01(weight));
         }
 
         /// <summary>Bends one arm so its wrist reaches <paramref name="wrist"/>, then turns the hand. The upper arm and

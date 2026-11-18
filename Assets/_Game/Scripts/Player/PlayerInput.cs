@@ -8,7 +8,7 @@ namespace ShiftJam
     /// The only script that knows about devices. It turns the Input System asset's "Player" map into
     /// intents the rest of the game reads: Move, Sprint, a look delta, and Jump / Interact presses. On foot the keys
     /// follow the test room: C crouch (hold), Left Ctrl dodge roll, Q block (hold), left mouse fire or punch, right mouse
-    /// aim or kick, X put down what is carried or holster / draw, Z drop the weapon, R reload.
+    /// aim or kick, X put down what is carried or holster / draw, Z drop the weapon, R reload, G throw a grenade.
     /// A car reads it as its driver (ICarDriver: Move, JumpHeld and Sprint, as they are).
     /// </summary>
     public sealed class PlayerInput : MonoBehaviour, ICarDriver
@@ -20,7 +20,7 @@ namespace ShiftJam
         private InputActionMap _player;
         private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop, _previous, _next, _shift, _crouch, _aim, _dodge, _block;
         // Workshop extras the asset has no actions for: made here so this stays the only script that knows devices.
-        private InputAction _dropWeapon, _scroll, _rotate, _reload;
+        private InputAction _dropWeapon, _scroll, _rotate, _reload, _grenade, _grenadePad, _grenadePadHold;
         private Vector2 _mouseLook;   // pixels moved since the last read
         private Vector2 _stickLook;   // current right-stick value, -1..1
 
@@ -64,6 +64,9 @@ namespace ShiftJam
         /// the button that is also Interact (the pad has no button to spare): the listener leaves it alone when there
         /// is something to use.</summary>
         public event Action<bool> Reload;
+        /// <summary>Raised on G: throw a grenade. The pad has no button to spare, so there it is two at once: hold
+        /// Crouch (the right stick pressed in) and press Sprint (the left stick in).</summary>
+        public event Action Grenade;
 
         private void Awake()
         {
@@ -91,6 +94,11 @@ namespace ShiftJam
             _rotate.AddBinding("<Gamepad>/leftShoulder");
             _reload = new InputAction("Reload", InputActionType.Button, "<Keyboard>/r");
             _reload.AddBinding("<Gamepad>/buttonNorth");
+            _grenade = new InputAction("Grenade", InputActionType.Button, "<Keyboard>/g");
+            // The pad: both sticks pressed in, the right one first. The only pair on the pad whose own jobs are both
+            // "hold" (crouch, run), so the press that throws does nothing else.
+            _grenadePadHold = new InputAction("GrenadePadHold", InputActionType.Button, "<Gamepad>/rightStickPress");
+            _grenadePad = new InputAction("GrenadePad", InputActionType.Button, "<Gamepad>/leftStickPress");
         }
 
         private void OnEnable()
@@ -108,15 +116,19 @@ namespace ShiftJam
             _shift.performed += OnShift;
             _dropWeapon.performed += OnDropWeapon;
             _reload.performed += OnReload;
+            _grenade.performed += OnGrenade;
+            _grenadePad.performed += OnGrenadePad;
             _player.Enable();
-            _dropWeapon.Enable(); _scroll.Enable(); _rotate.Enable(); _reload.Enable();
+            _dropWeapon.Enable(); _scroll.Enable(); _rotate.Enable(); _reload.Enable(); _grenade.Enable(); _grenadePad.Enable(); _grenadePadHold.Enable();
         }
 
         private void OnDisable()
         {
             _player.Disable();
-            _dropWeapon.Disable(); _scroll.Disable(); _rotate.Disable(); _reload.Disable();
+            _dropWeapon.Disable(); _scroll.Disable(); _rotate.Disable(); _reload.Disable(); _grenade.Disable(); _grenadePad.Disable(); _grenadePadHold.Disable();
             _reload.performed -= OnReload;
+            _grenade.performed -= OnGrenade;
+            _grenadePad.performed -= OnGrenadePad;
             _previous.performed -= OnPrevious;
             _next.performed -= OnNext;
             _shift.performed -= OnShift;
@@ -135,7 +147,7 @@ namespace ShiftJam
         private void OnDestroy()
         {
             if (_instance != null) Destroy(_instance);
-            _dropWeapon?.Dispose(); _scroll?.Dispose(); _rotate?.Dispose(); _reload?.Dispose();
+            _dropWeapon?.Dispose(); _scroll?.Dispose(); _rotate?.Dispose(); _reload?.Dispose(); _grenade?.Dispose(); _grenadePad?.Dispose(); _grenadePadHold?.Dispose();
         }
 
         private void OnJump(InputAction.CallbackContext _) => Jump?.Invoke();
@@ -148,6 +160,8 @@ namespace ShiftJam
         private void OnNext(InputAction.CallbackContext _) => Next?.Invoke();
         private void OnShift(InputAction.CallbackContext _) => Shift?.Invoke();
         private void OnDropWeapon(InputAction.CallbackContext _) => DropWeapon?.Invoke();
+        private void OnGrenade(InputAction.CallbackContext _) => Grenade?.Invoke();
+        private void OnGrenadePad(InputAction.CallbackContext _) { if (_grenadePadHold.IsPressed()) Grenade?.Invoke(); }
         private void OnReload(InputAction.CallbackContext ctx) => Reload?.Invoke(ctx.control != null && ctx.control.device is Gamepad);
 
         private void OnLook(InputAction.CallbackContext ctx)

@@ -2,9 +2,80 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 18 Nov 2026 09:4x — GRENADES, THE TEST ROOM'S (D-0077) — NOT PLAYED
+His "Testing Zone ... has grenades", "1" (port them), "proceed". Built headless, no editor open.
+- **What you get.** G throws a grenade with the free (left) hand. The arm swings up and forward over 0.4 s; the
+  grenade leaves 0.18 s in, from just in front of the chest, tilted up a little above where you look, and it takes
+  your own speed with it. 0.8 s between throws. 3 carried, 3 the most. It bounces, skids, rolls, and goes off 1.5 s
+  after it leaves the hand. Works with a gun out or with empty hands, in third and first person. Not while a move
+  is under way (roll, block, hit), not with a prop in the hands, not in Build Mode, not in a car.
+- **The blast:** 90 at the middle (the test room's 6), falling to nothing at 4.5 away. A body made of several
+  parts is hit once, by its closest part. Loose things are thrown outward and up, the same speed whatever they
+  weigh (9 at the middle). Two bursts of bits (bright, then smoke), a flash of light that fades in 0.18 s, the
+  boom. A hit on something with health flashes the hit marker. As in the test room: it reaches through walls, it
+  hurts you too if you stand in it (you have 100), and it throws loose things only (it does not shove a player).
+- **More grenades:** a supply crate fills them to 3 (the Colour Corner has one). An ammo box gives none (the test
+  room's rule). F9 in the Workshop gives the 3 back (ours: the Workshop has no crate).
+- **On screen:** "Grenades  3" above the rounds on the weapon read-out, dimmed at 0. **It shows only while a
+  blaster is out**, like the rest of that read-out, and so does the hit marker. The test room shows the count
+  always. His call.
+- **Size.** A kid's grenade leaves from the kid's chest, is 35 times as big and as fast and falls 35 times as
+  fast, so the arc is the same shape and takes the same time. The fuse and the damage stay. Its blast reaches 35
+  times as far: 157 units (the test room's kid is 6 times, so 27 m there). Loose things are thrown the square root
+  of 35 harder (5.9 times). **The 157 is flagged for his veto** (`Grenade` > Size To Thrower turns all of it off).
+- **The flight is worked out in our own code, not by the physics engine** (`Combat/BallFlight.cs`). Tried the
+  engine first, three ways, and measured each beside the test room's ball run headless in Godot: it went off 8.2
+  away (the ball sank into the floor and came out spinning backwards), 14.3 (it bounced without the floor
+  gripping it) and 12.7; the test room's goes 10.7. Now: 10.67 at toy size, 10.60 body sizes at kid size, the same
+  whatever `Physics.gravity` is (-60 in play, -9.81 and -20 tried). The grenade falls by its own number (30).
+  What made the test room's ball stop where it does was found by measuring: its engine lets nothing spin faster
+  than 47.12 radians a second, so a ball that lands fast skids before it rolls; it adds 0.1 of drag to
+  everything; it does not bounce a landing slower than 1. All of that is data on the prefab.
+- **Where the numbers are.** The thrower's: `Resources/Grenades.asset` (carried, most, throw speed 16, loft 0.35,
+  the release point, wait 0.8, the arm's swing, the count's text and colours). The grenade's:
+  `Prefabs/Combat/Grenade.prefab`: `Grenade` (fuse, reach, damage, push, lift, the bits, the flash, the sounds) and
+  `BallFlight` (fall 30, bounce 0.35, grip 0.9, drag 0.6, spin drag 2.1, most spin 47.12). Lengths on the body are
+  the test room's x 0.99; speed, fall and the blast's reach are number for number (D-0071's rule for flight).
+  Rebuild: Shift Jam > Workshop > Build Grenade (run in a batch for this). The player gets its thrower from the
+  WeaponHolder at start: no scene was changed. Sounds (boom x2, throw) are in the git-ignored `_Imports`.
+- **Pad: hold the right stick in (crouch), press the left stick in (run).** Every button was taken. This pair's
+  own jobs are both "hold", so the press that throws does nothing else, but you crouch while you do it. The
+  other order throws nothing. His call.
+- **The play log** gets "grenade thrown, 2 left", "grenade blast hit 2 things with health, and knocked one down"
+  or "hit nothing", and counts grenades thrown. The key sheet (H) has the G line.
+- **CHECKED** with a temporary probe (kept: `%TEMP%\shiftjam-stage\weapons\gren\probe-keep\GrenadeProbe.cs`),
+  Workshop, a bare floor: 38 of 38; on the code before, 1 of 38 (only "no errors" passed). With the camera at the
+  test room's rest pitch (12 down), toy: leaves 1.436 up, peaks at 1.500, goes off 10.67 away 1.51 s after the
+  hand; kid, in body sizes: 1.435, 1.500, 10.60, 1.52. The test room's ball, run again today in Godot the same
+  way: 1.45, 1.517, 10.73 (its STATUS says 1.49, 1.55, 10.6; the probes that measured those are gone from disk).
+  Also passing: G by a made-up key press; the release at 0.18 s; the hand forward of its shoulder at the release;
+  3, 2, 1, 0 and nothing at 0; nothing inside the 0.8 s wait; the read-out's line and its dimming; box, crate,
+  full crate; 90 at the middle, 45 at half reach, 0 just past the edge; one hit for a three-part body (70, not
+  150); a loose crate of weight 4 leaving at 5.83 and 0.6 up for 1 out, and 5.92 times faster at kid size; the
+  hit marker; the pad pair on a made-up pad; no errors. Kept probes after: hold 81 of 81, shot 64 of 64, ammo
+  210 of 212 (the two SMG lines, the open call of D-0075), first person 160 of 160, the four scenes 0 errors.
+  Outside compile 0 errors.
+- **Stills** (`%TEMP%\shiftjam-stage\weapons\gren\stills`, 5, from the free-hand side): the hand wound up beside
+  the head; the arm thrown forward with the grenade just past the fingers; the grenade a small red dot in the air
+  3 to 4 ahead; the flash on the floor 10.6 away with the bits still one pale lump; a tenth of a second on, the yellow bits
+  spread up and out over the smoke, the flash still on the floor. The smoke stays a tight pale ball in both.
+- **NOT CHECKED:** nothing played, nothing heard (every run muted). First person (the same code, not run). A
+  throw while walking, running or jumping. A bounce off a wall, a step or a slope (only a flat floor was run). The
+  blast on the game's own soldiers, bears and cars, and on the player. A real pad. The throw with a long gun in
+  both hands (the free hand leaves the gun and comes back: not looked at). The kid's blast seen (its flash is made
+  1225 times brighter to carry 35 times further: worked out, not looked at). The play log's lines (a batch run
+  records nothing). The fingers: the hand stays open through the throw, as in the test room.
+- **Known, small:** the smoke does not rise (the test room's does): every falling bit in the scene shares one
+  pull, so rising smoke would lift the bright bits too. In the air the grenade cannot be knocked about (a dart or
+  a car does not move it; it lies there as a fixed bump until it goes off).
+TO PLAY: Workshop. Take a gun from a stand (the count shows only with a blaster out). Press G, three times, at
+the practice bear and skittle. Stand close once: it hurts you. F9 gives the 3 back. Then F to grow and
+throw one as the kid (the 157 reach is the thing to judge). In the Colour Corner walk into the supply crate with
+fewer than 3. F12 where it looks or sounds wrong.
+
 ## 18 Nov 2026 08:5x — THE RELOAD BESIDE THE TEST ROOM'S, PICTURE BY PICTURE: NO DIFFERENCE FOUND IN A STILL (no code changed)
 His "Testing Zone ... has grenades, a strong reload anim, proper IK animation for hands and wrists", then "1"
-(port them) and "proceed". Grenades are the next entry (D-0077). The reload and the arm code were ported on 16 and
+(port them) and "proceed". Grenades are the entry above (D-0077). The reload and the arm code were ported on 16 and
 17 Nov (D-0066 to D-0075); his last play (17 Nov 12:24 to 13:00) was before D-0074 and D-0075 landed.
 - **The sheet owed since D-0070 is made:** `docs/stills/compare_godot_unity_reload.jpg` (git-ignored folder): pistol,
   shotgun, and the test room's rifle beside the SMG, from the side and the front, at 20 %, 50 % and 80 % of a reload.

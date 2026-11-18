@@ -13,7 +13,10 @@ namespace ShiftJam
     /// blaster is out: not holstered or carrying, not in Build Mode, a menu, the key sheet or the console, not while
     /// driving. It only listens (GameEvents.AmmoChanged and ShotLanded, the AmmoBelt) and reads the holder; nothing knows it exists.
     /// Made by the WeaponHolder at start; built in code like the other HUDs. Numbers in Resources/WeaponAmmo.
-    /// Later lines (a grenade count) stack above the count with AddLine.
+    /// A player who throws grenades gets one more line above the count: how many are carried ("Grenades  3", dimmed at
+    /// none; it listens to GameEvents.GrenadesChanged), and a grenade's blast flashes the same hit marker
+    /// (GrenadeWentOff). Like the rest it is on screen only while a blaster is out. Numbers in Resources/Grenades.
+    /// Later lines stack above with AddLine.
     /// </summary>
     public sealed class WeaponHud : MonoBehaviour
     {
@@ -35,6 +38,8 @@ namespace ShiftJam
         private CanvasGroup _markerGroup;
         private Image[] _ticks;
         private float _flashAt = -100f, _flashSeconds = 0.2f, _flashScale = 1.25f;
+        private GrenadeThrower _thrower;        // the holder's grenades, when it throws any
+        private TextMeshProUGUI _grenades;      // their count, the line above the rounds
 
         /// <summary>What the count shows now ("12 / 48", "RELOADING").</summary>
         public string CountText => _count.text;
@@ -50,6 +55,10 @@ namespace ShiftJam
         public bool MarkerShowing => Showing && _markerGroup.alpha > 0f;
         /// <summary>The colour of the hit marker's last flash.</summary>
         public Color MarkerColour => _ticks[0].color;
+        /// <summary>What the grenade line shows now ("Grenades  3"); empty when the holder throws none.</summary>
+        public string GrenadeText => _grenades != null ? _grenades.text : "";
+        /// <summary>The grenade line's colour now.</summary>
+        public Color GrenadeColour => _grenades != null ? _grenades.color : Color.clear;
 
         public static WeaponHud Create(WeaponHolder holder)
         {
@@ -58,9 +67,11 @@ namespace ShiftJam
             hud._holder = holder;
             hud._s = WeaponAmmoSettings.Load();
             holder.TryGetComponent(out hud._belt);
+            holder.TryGetComponent(out hud._thrower);
             if (hud._belt != null) hud._belt.Changed += hud.OnBeltChanged;
             hud.Build();
             hud.Refresh();
+            hud.WriteGrenades();
             return hud;
         }
 
@@ -76,13 +87,24 @@ namespace ShiftJam
             return text;
         }
 
-        private void OnEnable() { GameEvents.AmmoChanged += OnAmmoChanged; GameEvents.ShotLanded += OnShotLanded; }
-        private void OnDisable() { GameEvents.AmmoChanged -= OnAmmoChanged; GameEvents.ShotLanded -= OnShotLanded; }
+        private void OnEnable() { GameEvents.AmmoChanged += OnAmmoChanged; GameEvents.ShotLanded += OnShotLanded; GameEvents.GrenadesChanged += OnGrenadesChanged; GameEvents.GrenadeWentOff += OnGrenadeWentOff; }
+        private void OnDisable() { GameEvents.AmmoChanged -= OnAmmoChanged; GameEvents.ShotLanded -= OnShotLanded; GameEvents.GrenadesChanged -= OnGrenadesChanged; GameEvents.GrenadeWentOff -= OnGrenadeWentOff; }
         private void OnDestroy() { if (_belt != null) _belt.Changed -= OnBeltChanged; }
 
         private void OnAmmoChanged(WeaponHolder who) { if (who == _holder) _stale = true; }
         private void OnBeltChanged(AmmoBelt belt) => _stale = true;
         private void OnShotLanded(WeaponHolder who, bool finished) { if (who == _holder) Flash(finished); }
+        private void OnGrenadesChanged(GrenadeThrower who) { if (who == _thrower) WriteGrenades(); }
+        private void OnGrenadeWentOff(GrenadeThrower who, int hits, bool finished) { if (who == _thrower && hits > 0) Flash(finished); }
+
+        /// <summary>Writes the grenade line: how many are carried, dimmed when there are none.</summary>
+        private void WriteGrenades()
+        {
+            if (_grenades == null || _thrower == null) return;
+            GrenadeSettings g = _thrower.Settings;
+            _grenades.text = string.Format(g.countText, _thrower.Carried);
+            _grenades.color = _thrower.Carried > 0 ? g.countColour : g.emptyColour;
+        }
 
         /// <summary>Flashes the hit marker: bigger, longer and in the other colour for the hit that finished something.</summary>
         public void Flash(bool finished)
@@ -140,6 +162,7 @@ namespace ShiftJam
             _top = Pad * 0.5f;
             _name = AddLine("Name", _s.nameSize, false);
             _count = AddLine("Count", _s.countSize, true);
+            if (_thrower != null) _grenades = AddLine("Grenades", _thrower.Settings.countSize, false);
 
             // The crosshair: a white dot in a dark square, in the middle of the screen.
             var centre = new Vector2(0.5f, 0.5f);

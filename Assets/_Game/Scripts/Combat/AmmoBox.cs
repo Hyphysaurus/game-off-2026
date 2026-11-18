@@ -5,7 +5,7 @@ namespace ShiftJam
     /// <summary>
     /// Ammo to walk into, after the test room's. A box gives every blaster the player carries a magazine or two for its
     /// reserve, disappears, and comes back after a while; a supply crate (Magazines 0, Respawn Seconds 0) fills every
-    /// reserve to the top and is never used up. A player whose reserves are already full leaves it where it is. Only
+    /// reserve to the top, fills up the grenades too, and is never used up. A player with nothing to gain leaves it where it is. Only
     /// the guns being carried gain: one lying dropped on the floor does not. It turns slowly to catch the eye and
     /// squashes when taken. The Workshop's reset key (F9) brings a taken box straight back.
     /// </summary>
@@ -52,7 +52,11 @@ namespace ShiftJam
         /// box is away.</summary>
         public bool Give(WeaponHolder holder)
         {
-            if (_away || holder == null || holder.AddAmmo(magazines) <= 0) return false;
+            if (_away || holder == null) return false;
+            bool took = holder.AddAmmo(magazines) > 0;
+            // A supply crate also tops up the grenades (the test room's rule: only the crate, not a box).
+            if (magazines <= 0 && holder.TryGetComponent(out GrenadeThrower thrower)) took = thrower.Add(thrower.MostCarried) || took;
+            if (!took) return false;
             holder.PlayClip(WeaponAmmoSettings.Load().pickupClip, 1f);
             _squashedAt = Time.time;
             if (respawnSeconds <= 0f) return true;   // a supply crate: never used up

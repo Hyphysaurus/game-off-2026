@@ -7,7 +7,7 @@ namespace ShiftJam
     /// Shift Jam's side of the play log (<see cref="PlayLog"/>): listens to the game's own events and passes them on in
     /// plain words, so a play's record says what was done, not only that the scene was open. One line each for what
     /// happens now and then (a shift, a checkpoint, a reload, a lap); a count for what happens all the time (shots
-    /// landed). The player's place is followed. Only the player's own gun and size are recorded, never a toy soldier's.
+    /// landed, grenades thrown). The player's place is followed. Only the player's own gun and size are recorded, never a toy soldier's.
     /// Spawns itself whenever a play is being recorded; nothing to place in a scene. F12 (mark) and the console's
     /// "note" put his notes in the same record (DebugConsole).
     /// </summary>
@@ -35,6 +35,7 @@ namespace ShiftJam
             GameEvents.CheckpointClaimed += OnCheckpointClaimed; GameEvents.PlayerReset += OnPlayerReset; GameEvents.GoalReached += OnGoalReached;
             GameEvents.AmmoChanged += OnAmmoChanged; GameEvents.ReloadStarted += OnReloadStarted; GameEvents.ReloadEnded += OnReloadEnded;
             GameEvents.DryFired += OnDryFired; GameEvents.AmmoTaken += OnAmmoTaken; GameEvents.ShotLanded += OnShotLanded;
+            GameEvents.GrenadeThrown += OnGrenadeThrown; GameEvents.GrenadeWentOff += OnGrenadeWentOff;
             GameMode.Changed += OnModeChanged;
             RaceState.Started += OnRaceStarted; RaceState.LapDone += OnLapDone; RaceState.Finished += OnRaceFinished; RaceState.Stopped += OnRaceStopped;
         }
@@ -46,6 +47,7 @@ namespace ShiftJam
             GameEvents.CheckpointClaimed -= OnCheckpointClaimed; GameEvents.PlayerReset -= OnPlayerReset; GameEvents.GoalReached -= OnGoalReached;
             GameEvents.AmmoChanged -= OnAmmoChanged; GameEvents.ReloadStarted -= OnReloadStarted; GameEvents.ReloadEnded -= OnReloadEnded;
             GameEvents.DryFired -= OnDryFired; GameEvents.AmmoTaken -= OnAmmoTaken; GameEvents.ShotLanded -= OnShotLanded;
+            GameEvents.GrenadeThrown -= OnGrenadeThrown; GameEvents.GrenadeWentOff -= OnGrenadeWentOff;
             GameMode.Changed -= OnModeChanged;
             RaceState.Started -= OnRaceStarted; RaceState.LapDone -= OnLapDone; RaceState.Finished -= OnRaceFinished; RaceState.Stopped -= OnRaceStopped;
         }
@@ -106,6 +108,14 @@ namespace ShiftJam
             if (!Mine(holder)) return;
             PlayLog.Count("shots landed");
             if (finished) { PlayLog.Count("knock-downs"); PlayLog.Tell("knocked a target down"); }
+        }
+
+        private void OnGrenadeThrown(GrenadeThrower who) { if (!Mine(who)) return; PlayLog.Tell("grenade thrown, " + who.Carried + " left"); PlayLog.Count("grenades thrown"); }
+        private void OnGrenadeWentOff(GrenadeThrower who, int hits, bool finished)
+        {
+            if (!Mine(who)) return;
+            PlayLog.Tell(hits <= 0 ? "grenade blast hit nothing" : "grenade blast hit " + hits + (hits == 1 ? " thing" : " things") + " with health" + (finished ? ", and knocked one down" : ""));
+            if (finished) PlayLog.Count("knock-downs");
         }
 
         private void OnModeChanged(GameMode.Mode from, GameMode.Mode to) =>

@@ -139,6 +139,8 @@ namespace ShiftJam
             _audio = gameObject.AddComponent<AudioSource>();
             _audio.playOnAwake = false;
             _audio.spatialBlend = 0.6f;
+            // A player's holder also throws grenades with the free hand (its own piece; numbers in Resources/Grenades).
+            if (input != null && !TryGetComponent(out GrenadeThrower _)) gameObject.AddComponent<GrenadeThrower>();
         }
 
         private void Start() { if (input != null) WeaponHud.Create(this); }   // a player's holder shows its ammo on screen
@@ -271,6 +273,10 @@ namespace ShiftJam
         /// is being typed. Unlike a click it does not need the mouse captured: a pad has no mouse, and in the editor the
         /// capture can be missing while the game still plays.</summary>
         private bool KeysAct() => isActiveAndEnabled && Time.timeScale > 0f && !Locked && GameMode.Current != GameMode.Mode.Build && !DebugConsole.IsOpen;
+
+        /// <summary>True when a key may use the hands for something else (a grenade): the keys are ours, no move is
+        /// under way, and the hands hold no prop (a weapon out is fine: the free hand does it).</summary>
+        public bool FreeToAct => KeysAct() && !HandsFull && !(_fpHands != null && _fpHands.Held != null);
 
         /// <summary>X with empty hands: put the weapon away, or take it out again. The same key puts down what is carried;
         /// a press that did that (the hands were full this frame or the last) does not also holster.</summary>

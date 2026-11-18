@@ -40,7 +40,7 @@ namespace ShiftJam
             {
                 Load(); _volume = Mathf.Clamp01(Mathf.Round(value / VolumeStep) * VolumeStep);
                 PlayerPrefs.SetFloat(VolumeKey, _volume); PlayerPrefs.Save();
-                AudioListener.volume = _volume;
+                AudioListener.volume = Silent ? 0f : _volume;
             }
         }
 
@@ -59,11 +59,16 @@ namespace ShiftJam
             set => Screen.fullScreen = value;
         }
 
+        /// <summary>A hidden run (the smoke test, or any batch run of a check) makes no sound. 18 Nov: the checks muted
+        /// themselves in the same start-up step this class sets the saved volume in, in no fixed order, so he heard
+        /// the game's sounds on his speakers while checks ran. Now the game itself stays silent whenever nobody is at it.</summary>
+        private static bool Silent => SmokeRun.Asked || Application.isBatchMode;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void ApplyAtStart()
         {
             _loaded = false;   // a fresh play session (the editor may keep statics between plays)
-            if (!SmokeRun.Asked) AudioListener.volume = Volume;
+            AudioListener.volume = Silent ? 0f : Volume;
         }
 
         private static void Load()

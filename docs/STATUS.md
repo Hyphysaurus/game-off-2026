@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 18 Nov 2026 09:4x — HIDDEN CHECK RUNS ARE SILENT NOW (his "why do i keep hearing some shift jam sfx?"; no decision number, one line of the game)
+- **What he heard:** the headless checks of today's grenade build, on his speakers. Each check mutes itself as the
+  play starts; `PlayerOptions` sets the saved volume back in the same start-up step, and Unity runs the two in no
+  fixed order. So every headless check of this game could be heard, not only today's.
+- **Fixed in the game:** `Core/PlayerOptions.cs` keeps the listener at 0 in any batch run (and the smoke test, as
+  before). His own plays and a build are untouched: they use the saved volume.
+- **CHECKED** with a probe that does not mute itself (kept: `%TEMP%\shiftjam-stage\mute\probe-keep\MuteProbe.cs`):
+  the listener's volume one second into a hidden play was 1.00 before, 0.00 after. Not checked by ear.
+
 ## 18 Nov 2026 09:4x — GRENADES, THE TEST ROOM'S (D-0077) — NOT PLAYED
 His "Testing Zone ... has grenades", "1" (port them), "proceed". Built headless, no editor open.
 - **What you get.** G throws a grenade with the free (left) hand. The arm swings up and forward over 0.4 s; the

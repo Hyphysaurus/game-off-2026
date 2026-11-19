@@ -96,6 +96,27 @@ Built with the editor closed the whole time.
   side. Shoot a soldier in the chest, the helmet and the rifle. Walk into each. Knock one down and shoot where it
   lies. T to paint and hit the bear. Throw a grenade at a soldier.
 
+## 19 Nov 2026 09:5x — HIS PLAY OF 18 NOV 21:53 READ; THE FOAM FINGER'S DROP ERROR FIXED (`f73a895`, one file, no decision number) — COMPILED OUTSIDE, NOT RUN IN UNITY
+- **The play** (`docs/PLAYLOG.md`, `Playtests/play-20261118-215304.txt`): 1:08:11 on D-0079, the window away for
+  1:01:22 of it; the Workshop and 1:11 of the Greybox; 127 darts stuck, 3 grenades, 6 reloads, 4 shifts, 2 races
+  started, first person once; 5.7 ms a frame on average, one frame over 100 ms; no F12 notes. He has not said how
+  the stuck darts looked. So D-0079 is PLAYED; what he thought of it is not known.
+- **Its one error** (66:54.7): "Concave Mesh Colliders are not supported when used with dynamic Rigidbody
+  GameObjects", in the same tenth of a second as taking the Dart Shotgun with both hands full. The gun in hand was
+  the Foam Finger, dropped to make room. Its pack model (`_Imports/ithappy/Battle_Stadium/Prefabs/Other/
+  foam_finger_001.prefab`) carries a concave mesh collider, which the weapon prefab has switched off; but
+  `WeaponLooks.SetLoose` switched on every collider under a dropped weapon. Unity ignores such a collider on a
+  moving body, so the game went on as normal (the finger landed on its own box): the only harm was the error line.
+- **Fix:** `Combat/WeaponLooks.cs`: on a dropped weapon a concave mesh collider stays off; a weapon with nothing
+  else still gets the fallback box. The other four weapons' models carry no mesh collider.
+- **Checked:** compiles outside Unity, 0 errors. Not run in Unity by itself (C: had 3.2 GB free at the time, so no
+  run was started); D-0080's runs an hour later compiled it in Unity with the rest, and its four-scene smoke check
+  had 0 errors, but no check drops the Foam Finger. To see it: Workshop, Foam Finger in hand with a second weapon
+  carried, take a third: no red line in the Console.
+- **The disk:** C: had fallen to 3.2 GB free (his OBS drawing recordings). November's recordings are now in
+  `D:\Videos` and OBS records there; C: has 37 GB free. Old builds `Builds/Windows/v5` (0.5 GB) and `v6` (0.4 GB)
+  are still on disk; v5 is on the list of things he may let go.
+
 ## 18 Nov 2026 13:5x — DARTS STICK, AND MORE AT THE LANDING (D-0079) — NOT PLAYED
 His "the missing foam darts and lack of juice when landing darts or paintballs", "proceed". Built with the editor
 closed (it was open until about 13:25; nothing was written into the project before it closed).

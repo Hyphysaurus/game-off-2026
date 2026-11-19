@@ -56,6 +56,16 @@ MonoBehaviour:
   viewOffset: {x: 0.3, y: -0.32, z: 0.5}
   viewEuler: {x: -35, y: -12, z: 0}
   aimsWithView: 0
+  twoHanded: 0
+  supportPoint: {x: 0, y: 0, z: 0}
+  supportRoll: -1
+  supportCurl: 0
+  gripCurl: {x: 0, y: 0, z: 0}
+  sightPoint: {x: 0, y: 0, z: 0}
+  sightRoll: 0
+  sightFieldOfView: 0
+  sightDistance: 0
+  moveSpeed: 1
   windup: 0.12
   active: 0.12
   recovery: 0.22

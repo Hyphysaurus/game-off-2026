@@ -524,13 +524,14 @@ namespace ShiftJam
                 Quaternion turn = w.ViewRotation; Vector3 at = w.ViewOffset * s;
                 if (_sight > 0f)
                 {
-                    // Aim held: the gun's own sight comes to the middle of the view, a little in front of the eye. A
+                    // Aim held: the gun's own sight comes to the middle of the view, in front of the eye by the gun's own
+                    // Sight Distance (held further out, the hand on the grip comes up into view). A
                     // sight that stands at a slant on the gun (an offset sight) is used with the gun rolled over
                     // (its Sight Roll), so the sight stands upright.
                     w.SightFit(out Vector3 sight, out bool onMount);
                     Vector3 toSight = sight * w.transform.lossyScale.z + (onMount ? Vector3.up * (_hold.sightRise * s) : Vector3.zero);
                     Quaternion atEye = turn * Quaternion.AngleAxis(w.SightRoll, Vector3.forward);
-                    at = Vector3.Lerp(at, Vector3.forward * (_hold.sightDistance * s) - atEye * toSight, _sight);
+                    at = Vector3.Lerp(at, Vector3.forward * (w.SightDistance(_hold) * s) - atEye * toSight, _sight);
                     turn = Quaternion.Slerp(turn, atEye, _sight);
                 }
                 if (reload > 0f)
@@ -562,9 +563,7 @@ namespace ShiftJam
                 }
                 Quaternion held = _hand.rotation * fist;
                 w.transform.SetPositionAndRotation(_hand.TransformPoint(inHand) + held * (w.HandOffset * s), held);
-                // The fingers: the gun hand closes round the grip, the other curls under a long gun.
-                _fist.Close(Mathf.SmoothStep(0f, 1f, _grip), _hold.fingerCurl, _hold.triggerCurl, _hold.thumbCurl);
-                if (both) _support.Close(Mathf.SmoothStep(0f, 1f, Mathf.Min(_grip, _hands)), _hold.supportCurl, _hold.supportCurl, 0f);
+                CloseFingers(w, both);
                 return;
             }
             Quaternion frame;
@@ -598,6 +597,7 @@ namespace ShiftJam
                 kickSlide = w.PosePosition * s,
                 frame = _hold.gripFromHolder * s,
                 reload = reload,
+                palmRoll = w.SupportRoll(_hold),
             };
             // Measured in the weapon's own space; its size in the world is the weapon's scale.
             float size = w.transform.lossyScale.z;
@@ -630,8 +630,17 @@ namespace ShiftJam
             ArmAim.Hold hold = Grasp(w, FistTurn(w), _armAim.InHand(_hold.fistCentre), reload, both, s);
             _viewBody.Slide(_armAim.OutOfReach(root, gun, hold, _hold));
             _armAim.OnGun(root, gun, both, weight, hold, _hold, s);
-            _fist.Close(Mathf.SmoothStep(0f, 1f, _grip), _hold.fingerCurl, _hold.triggerCurl, _hold.thumbCurl);
-            if (both) _support.Close(Mathf.SmoothStep(0f, 1f, Mathf.Min(_grip, _hands)), _hold.supportCurl, _hold.supportCurl, 0f);
+            CloseFingers(w, both);
+        }
+
+        /// <summary>The fingers: the gun hand closes round the grip, the other curls under a long gun. How far is the
+        /// gun's own (a thick grip, a fat fore-end), else the shared numbers.</summary>
+        private void CloseFingers(Weapon w, bool both)
+        {
+            Vector3 curl = w.GripCurl(_hold);
+            _fist.Close(Mathf.SmoothStep(0f, 1f, _grip), curl.x, curl.y, curl.z);
+            float under = w.SupportCurl(_hold);
+            if (both) _support.Close(Mathf.SmoothStep(0f, 1f, Mathf.Min(_grip, _hands)), under, under, 0f);
         }
 
         private static void SetViewModel(Weapon w, bool on)

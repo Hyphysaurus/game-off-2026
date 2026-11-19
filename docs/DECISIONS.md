@@ -1604,3 +1604,31 @@
     `DartPieces`.
   - **Checked:** STATUS, 19 Nov 10:4x. The hover measured against the drawn meshes: up to 0.367 before, 0.000
     after; near misses stick in thin air before, fly on after. Not played.
+
+- **D-0078 (19 Nov, 12:3x) The hands on the guns are each gun's own data: grip slide, finger bends, support hold and roll, and how far out the sight sits when aimed in first person (the pistol and the SMG held further out, so the gun hand shows).**
+  - **Why the number comes after D-0080:** D-0078 was kept for this piece on 17 Nov (plan given, then waiting for his
+    proceed); D-0079 and D-0080 were built first.
+  - **Data, not code per gun.** `Weapon` has `handOffset` (already there), `gripCurl` (x fingers, y trigger finger,
+    z thumb), `supportPoint` (already there), `supportRoll`, `supportCurl` and `sightDistance`. Each falls back to the
+    shared number in `Resources/WeaponHold` (0, or below 0 for the roll). `ArmAim.LeftWrist` takes the roll as an
+    argument; the reload hand on the magazine keeps the shared roll. `WeaponHolder.CloseFingers` reads the curls;
+    `WeaponHolder.Pose` reads `SightDistance`. No `if` for any gun.
+  - **The builder writes them.** `WorkshopPieces.WeaponSpec` has `Hand, GripCurl, Support, SupportRoll, SupportCurl,
+    SightDistance`; `FitHold` writes them in the full build and in a narrow menu, Shift Jam > Workshop > Fit Weapon
+    Holds (batch `-executeMethod ShiftJam.WorkshopPieces.FitHolds -quit`), which changes only those fields on the five
+    held prefabs, in place.
+  - **The numbers.** Pistol: grip slide (0, 0.016, 0), trigger finger 20, sight 0.55 from the eye. SMG: grip slide
+    (-0.006, 0, 0), trigger finger 20, thumb 1, support (-0.02, 0.065, 0.2731) rolled 90, sight 0.46. Shotgun: grip
+    slide (0.006, 0.016, 0), trigger finger 8, support (0, 0.026, 0.286) rolled 50. Chosen from runs of a probe
+    that measures the drawn meshes (it knows none of these numbers), each against third person too.
+  - **Why the sight moves out, not the view widens.** The test room holds every sight 0.307 from the eye, and its
+    own pistol aimed shows no hand either (its still `godot_pistol_fp_aim.png`). A pistol aimed at arm's length is how
+    one is really held, and it keeps the aim zoom. Cost: the gun looks smaller when aimed. A long gun cannot go far:
+    its support arm runs out of reach and the support hand slides back along the barrel (SMG at 0.55: 11 cm, into
+    the magazine), so the SMG stops at 0.46 (its support palm 7.3 cm from the hold point; the first-person probe asks
+    under 7). The shotgun is left at 0.307 (at 0.55 its gun hand is still all behind the gun).
+  - **Tried and thrown out:** the pistol's grip slid 1.2 cm sideways (best when standing, but the free hand swings
+    into the slide while walking in third person: 1.68 cm, worse than before); the shotgun's support lower (0.015:
+    best for clipping, but the hold probe's "support hand on the barrel" reads 0.15 against its 0.14); support curl
+    alone (no change: the fingers that clip are wrapped round by the roll, not the bend).
+  - **Checked:** STATUS 19 Nov 12:3x. Not played.

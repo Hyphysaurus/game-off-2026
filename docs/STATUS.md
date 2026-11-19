@@ -2,6 +2,44 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 19 Nov 2026 12:3x — THE HANDS ON THE GUNS: LESS CLIPPING, AND THE GUN HAND SHOWS WHEN AIMED (D-0078) — NOT PLAYED
+His words: "i couldnt see the hand holding either pistol or smg" (his play of 17 Nov, which was before D-0074 put
+arms in first person at all) and "some of the hands and clothing clip into the gun slightly" (the first-person
+stills). Started by a builder the usage limit cut at 11:13; finished by a second one. Built with the editor closed.
+- **Aimed in first person, the pistol is held out further** (its sight 0.55 from the eye, was 0.307), so the hand
+  on the grip shows at the bottom of the view. The SMG goes out a little (0.46). The gun looks smaller when aimed.
+  The shotgun is unchanged (held out, its gun hand still sits behind the gun).
+- **Fewer fingers inside the guns.** Each gun now has its own grip slide, finger bends, support-hand spot and how
+  far round the barrel the support palm sits. All of it is numbers on the gun, written by the Workshop builder
+  (new menu: Shift Jam > Workshop > Fit Weapon Holds). A new gun sets the same numbers (weapons NOTES, "HANDS ON THE
+  GUNS").
+- **MEASURED against the drawn meshes** (the probe knows none of the numbers above). Deepest point of a hand,
+  sleeve or body inside the gun, cm, before -> after:
+  - Third person. Pistol: rest 1.25 -> 0.97, aim 1.02 -> 0.97, walk 1.53 -> 1.02, reload 0.95.
+    SMG: rest 1.93 -> 1.50, aim 1.69 -> 1.66, walk 1.94 -> 1.50, reload 1.51.
+    Shotgun: rest 2.46 -> 2.05, aim 2.65 -> 1.23, walk 2.75 -> 1.54, reload 1.33.
+    Foam Finger 3.13 -> 3.13, Toy Knife 1.37 -> 1.38 (not worked on: the fist goes through the foam hand's
+    cuff and the knife's ring; that is the melee arm pose, not the hold).
+  - First person. Pistol: every pose 1.0 or a little under (was 0.97 to 1.05). SMG: hip 1.69 -> 1.51, aim 1.64 ->
+    1.50, walk 1.96 -> 1.54, run 2.07 -> 1.55; **worse: looking 45 up 1.69 -> 1.95 and aimed while walking 1.65 ->
+    1.91** (the support palm into the magazine). Shotgun: hip 2.96 -> 1.21, aim 2.78 -> 1.56, walk 3.29 -> 3.05,
+    run 3.30 -> 2.55. Reloads (no before reading): pistol 1.00, SMG 1.79, shotgun 1.50.
+  - The gun hand in the view when aimed in first person (share of the hand in the frame / not hidden by the gun):
+    pistol 0 / 0 % -> 30 / 9 %; SMG 0 / 0 % -> 10 / 7 %; shotgun 0 / 0 % (unchanged).
+- **Checks:** first person 156 of 160: three are the sight-distance line (pistol toy and kid, SMG: "the sight sits
+  0.307 in front of the eye", the test room's number, now each gun's own on purpose) and one is real: aimed, the
+  SMG's support palm is 7.3 cm from its hold point (the check asks under 7; its arm runs out of reach). Hold 81 of
+  81, ammo 210 of 212 (the same two SMG lines as before), four scenes 0 errors.
+- **Seen in the stills** (`docs/stills/hands_d0078.jpg`): the pistol hand shows at the bottom when aimed. On the SMG
+  only a sliver of the gun hand shows, and its folding stock comes into the bottom left. Shotgun side view: the
+  support hand sits on the fore-end. Stills do not show any clipping a person would notice at the game's size.
+- **His calls:** is the smaller aimed pistol worth the hand in view (0.55; set back to 0 = the test room's 0.307);
+  the SMG: further out (more hand, stock in view, support hand slides back) or back to 0.307; the SMG's 45-degree
+  roll on aim (unchanged, it decides where the SMG hand lands); the ammo probe's two SMG lines (unchanged);
+  third person is not worse anywhere.
+- Not done: nothing played; the Foam Finger and Toy Knife; the full Workshop rebuild was not run (the narrow Fit
+  Weapon Holds was).
+
 ## 19 Nov 2026 10:4x — DARTS LAND ON THE DRAWN BODY, AND THE DART IS A FOAM DART (D-0080) — NOT PLAYED
 His pick of 19 Nov from the D-0079 list: the hover in front of figures (way 1 of the two), and the dart's shape.
 Built with the editor closed the whole time.

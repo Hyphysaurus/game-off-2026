@@ -38,6 +38,9 @@ namespace ShiftJam
             public float stock;
             /// <summary>A long gun: where the support hand holds, from the root.</summary>
             public Vector3 support;
+            /// <summary>A long gun: degrees the support palm sits round the barrel towards the support side (0 flat
+            /// underneath, 90 flat against the gun's side). The gun's own, else the shared number.</summary>
+            public float palmRoll;
             /// <summary>0 the normal hold, 1 the gun tipped in front of the chest for a reload.</summary>
             public float reload;
             /// <summary>Where the free hand takes the magazine: its bottom, from the root, as far out of the gun as it is now.</summary>
@@ -192,7 +195,7 @@ namespace ShiftJam
         private void HandToMagazine(Vector3 root, Quaternion gun, in Hold hold, WeaponHoldSettings s, float scale)
         {
             Vector3 palm = MagazinePalm(root, gun, hold, s, scale);
-            Vector3 wrist = LeftWrist(palm, (palm - _left.upper.position).normalized, gun, s, scale, out Vector3 fingers, out Vector3 palmWay);
+            Vector3 wrist = LeftWrist(palm, (palm - _left.upper.position).normalized, gun, s, scale, s.palmRollDegrees, out Vector3 fingers, out Vector3 palmWay);
             Vector3 freeAt = _left.hand.position; Quaternion freeTurn = _left.hand.rotation;   // the animation's, before we move it
             Bend(_left, Vector3.Lerp(freeAt, wrist, hold.reload), Quaternion.Slerp(freeTurn, LeftHandTurn(fingers, palmWay), hold.reload), s.supportElbow, s.forearmRoll * hold.reload, s);
         }
@@ -277,28 +280,31 @@ namespace ShiftJam
             Vector3 palm = root + gun * hold.support;
             if (hold.reload > 0f) palm = Vector3.Lerp(palm, MagazinePalm(root, gun, hold, s, scale), hold.reload);
             Vector3 reachFrom = _left.upper.position;
-            Vector3 wrist = LeftWrist(palm, (palm - reachFrom).normalized, gun, s, scale, out Vector3 fingers, out Vector3 palmWay);
+            // Round the barrel as this gun is held; on the way to the magazine, as every magazine is taken.
+            float roll = Mathf.Lerp(hold.palmRoll, s.palmRollDegrees, hold.reload);
+            Vector3 wrist = LeftWrist(palm, (palm - reachFrom).normalized, gun, s, scale, roll, out Vector3 fingers, out Vector3 palmWay);
             float back = hold.reload > 0f ? 0f : SlideToReach(wrist - reachFrom, barrel, hold.support.z - s.closestSupport * scale, LeftArmLength * MostStretch) * slide;
             if (back > 0f)
             {
                 palm -= barrel * back;
-                wrist = LeftWrist(palm, (palm - reachFrom).normalized, gun, s, scale, out fingers, out palmWay);
+                wrist = LeftWrist(palm, (palm - reachFrom).normalized, gun, s, scale, roll, out fingers, out palmWay);
             }
             for (int pass = 0; pass < 2; pass++)
             {
                 // Bend the arm, see which way the forearm ends up pointing, and line the hand up with it.
                 Bend(_left, wrist, LeftHandTurn(fingers, palmWay), s.supportElbow, s.forearmRoll, s);
-                wrist = LeftWrist(palm, (wrist - _left.fore.position).normalized, gun, s, scale, out fingers, out palmWay);
+                wrist = LeftWrist(palm, (wrist - _left.fore.position).normalized, gun, s, scale, roll, out fingers, out palmWay);
             }
             Bend(_left, wrist, LeftHandTurn(fingers, palmWay), s.supportElbow, s.forearmRoll, s);
         }
 
         /// <summary>The left hand holding the gun at <paramref name="palm"/> from below and beside it: where its wrist
         /// goes, which way its fingers point (along the barrel, and along <paramref name="reachWay"/>, the way the arm
-        /// comes to it) and which way its palm faces (towards the gun).</summary>
-        private Vector3 LeftWrist(Vector3 palm, Vector3 reachWay, Quaternion gun, WeaponHoldSettings s, float scale, out Vector3 fingers, out Vector3 palmWay)
+        /// comes to it) and which way its palm faces (towards the gun, from <paramref name="rollDegrees"/> round the
+        /// barrel to the support side: 0 from straight underneath).</summary>
+        private Vector3 LeftWrist(Vector3 palm, Vector3 reachWay, Quaternion gun, WeaponHoldSettings s, float scale, float rollDegrees, out Vector3 fingers, out Vector3 palmWay)
         {
-            float roll = s.palmRollDegrees * Mathf.Deg2Rad;
+            float roll = rollDegrees * Mathf.Deg2Rad;
             palmWay = (gun * Vector3.up * Mathf.Cos(roll) + gun * Vector3.right * Mathf.Sin(roll)).normalized;
             fingers = AcrossPalm(reachWay + gun * Vector3.forward * s.fingersAlongBarrel, palmWay);
             float palmLength = _left.knuckle != null ? Vector3.Distance(_left.knuckle.position, _left.hand.position) * PalmShare : 0.07f * scale;
@@ -317,7 +323,7 @@ namespace ShiftJam
             Vector3 palm = root + gun * hold.magazine;
             if (hold.magazineOut <= 0f) return palm;
             Vector3 shoulder = _left.upper.position;
-            Vector3 wrist = LeftWrist(palm, (palm - shoulder).normalized, gun, s, scale, out _, out _);
+            Vector3 wrist = LeftWrist(palm, (palm - shoulder).normalized, gun, s, scale, s.palmRollDegrees, out _, out _);
             return palm + gun * Vector3.up * SlideToReach(wrist - shoulder, gun * Vector3.down, hold.magazineOut, LeftArmLength * MostStretch);
         }
 

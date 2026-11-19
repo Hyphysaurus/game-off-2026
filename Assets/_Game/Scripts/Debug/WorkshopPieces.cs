@@ -64,6 +64,16 @@ namespace ShiftJam
             /// glass of the sight on its Place_..._Sight mount (Combat/GunSight). SightRoll: degrees the gun rolls over
             /// as the sight comes to the eye, for a sight that stands at a slant on the gun (the SMG's offset sight).</summary>
             public Vector3 Sight; public float SightRoll;
+            /// <summary>The hands on this gun (D-0078), set so that nothing of a hand is drawn inside the model (measured
+            /// against the drawn meshes, STATUS 19 Nov). Support: where the support hand holds a long gun, in the
+            /// weapon's own axes from the middle of its grip (zero: the model's under-barrel marker, which on a fat
+            /// fore-end is inside it). SupportRoll: degrees the support palm sits round the barrel to the support side
+            /// (0: the shared number). SupportCurl: degrees each bone of its fingers bends (0: shared). GripCurl:
+            /// degrees each bone of the gun hand's fingers bends, x the three gripping fingers, y the trigger finger,
+            /// z the thumb (0 in a part: shared). Hand: the gun's slide from the palm, in the weapon's own axes.
+            /// SightDistance: first person, how far in front of the eye the sight sits while aimed (0: the shared
+            /// 0.307); further out brings the hand on the grip up into view.</summary>
+            public Vector3 Support, GripCurl, Hand; public float SupportRoll, SupportCurl, SightDistance;
         }
 
         private static readonly WeaponSpec[] Weapons =
@@ -71,9 +81,9 @@ namespace ShiftJam
             // Knife_02 stands ring up, blade tip down: the fist takes the handle just under the finger ring.
             new WeaponSpec { Name = "ToyKnife", Label = "Toy Knife", Model = CW + "Knives/Knife_02.prefab", Kind = Kind.Melee, Length = 0.6f, Damage = 30f, Knock = 7f, TipDown = true, GripAt = 0.35f },
             new WeaponSpec { Name = "FoamFinger", Label = "Foam Finger", Model = BS + "Other/foam_finger_001.prefab", Kind = Kind.Melee, Length = 0.9f, Damage = 20f, Knock = 14f },
-            new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.2f, Spread = 0f, Pellets = 1, Knock = 8f, Recoil = 1f, ShotSpeed = 1f, Walk = 1f, PackSize = true, Grip = new Vector3(0f, -0.0412f, -0.0258f), MuzzleReach = 0.1726f, Rounds = 12, Reserve = 48, ReserveMost = 96, ReloadSeconds = 1.3f },   // the test room's pistol: 5 shots a second, damage 1 (15 here), push 8
-            new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 7.5f, Interval = 0.8333f, Spread = 2.5f, Pellets = 8, Knock = 2.5f, Recoil = 2.2f, ShotSpeed = 0.9f, Walk = 0.9f, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0305f, -0.006f), Rounds = 6, Reserve = 24, ReserveMost = 48, ReloadSeconds = 2.2f },   // the test room's shotgun: 1.2 shots a second, 8 pellets of damage 0.5 (7.5 here) and push 2.5 within 2.5 degrees
-            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 15f, Interval = 0.1429f, Spread = 0.3f, Pellets = 1, Knock = 7f, Recoil = 0.85f, ShotSpeed = 1.1f, Walk = 0.96f, Auto = true, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0556f, -0.0267f), MuzzleReach = 0.0985f, SightRoll = 45f, Rounds = 20, Reserve = 60, ReserveMost = 120, ReloadSeconds = 1.5f },   // no SMG in the test room: every number half way between its pistol (12 / 48 / 96, 1.3 s; 5 a second, push 8, kick 1) and its rifle (30 / 90 / 180, 1.8 s; 9 a second, push 6, spread 0.6, speed 1.2, kick 0.7, walk 0.92)
+            new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.2f, Spread = 0f, Pellets = 1, Knock = 8f, Recoil = 1f, ShotSpeed = 1f, Walk = 1f, PackSize = true, Grip = new Vector3(0f, -0.0412f, -0.0258f), MuzzleReach = 0.1726f, Hand = new Vector3(0f, 0.016f, 0f), GripCurl = new Vector3(0f, 20f, 0f), SightDistance = 0.55f, Rounds = 12, Reserve = 48, ReserveMost = 96, ReloadSeconds = 1.3f },   // the test room's pistol: 5 shots a second, damage 1 (15 here), push 8
+            new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 7.5f, Interval = 0.8333f, Spread = 2.5f, Pellets = 8, Knock = 2.5f, Recoil = 2.2f, ShotSpeed = 0.9f, Walk = 0.9f, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0305f, -0.006f), Hand = new Vector3(0.006f, 0.016f, 0f), GripCurl = new Vector3(0f, 8f, 0f), Support = new Vector3(0f, 0.026f, 0.286f), SupportRoll = 50f, Rounds = 6, Reserve = 24, ReserveMost = 48, ReloadSeconds = 2.2f },   // the test room's shotgun: 1.2 shots a second, 8 pellets of damage 0.5 (7.5 here) and push 2.5 within 2.5 degrees
+            new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 15f, Interval = 0.1429f, Spread = 0.3f, Pellets = 1, Knock = 7f, Recoil = 0.85f, ShotSpeed = 1.1f, Walk = 0.96f, Auto = true, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0556f, -0.0267f), MuzzleReach = 0.0985f, SightRoll = 45f, Hand = new Vector3(-0.006f, 0f, 0f), GripCurl = new Vector3(0f, 20f, 1f), Support = new Vector3(-0.02f, 0.065f, 0.2731f), SupportRoll = 90f, SightDistance = 0.46f, Rounds = 20, Reserve = 60, ReserveMost = 120, ReloadSeconds = 1.5f },   // no SMG in the test room: every number half way between its pistol (12 / 48 / 96, 1.3 s; 5 a second, push 8, kick 1) and its rifle (30 / 90 / 180, 1.8 s; 9 a second, push 6, spread 0.6, speed 1.2, kick 0.7, walk 0.92)
         };
 
         private static readonly (string name, string model, float height)[] Targets =
@@ -246,6 +256,7 @@ namespace ShiftJam
                 weapon = b;
             }
             Set(weapon, "displayName", spec.Label);
+            FitHold(weapon, spec);
 
             // Loose-in-the-world parts, switched off while held.
             var box = root.AddComponent<BoxCollider>();
@@ -284,6 +295,42 @@ namespace ShiftJam
             Set(pickup, "respawnSeconds", 2f);
             Save(stand, PieceWeapons + "/" + spec.Name + "Pickup.prefab");
             return true;
+        }
+
+        /// <summary>Writes a weapon's own hold numbers (the hands on this gun) from its row.</summary>
+        private static void FitHold(Weapon weapon, WeaponSpec spec)
+        {
+            Set(weapon, "handOffset", spec.Hand);
+            Set(weapon, "supportPoint", spec.Support);
+            Set(weapon, "supportRoll", spec.SupportRoll > 0f ? spec.SupportRoll : -1f);
+            Set(weapon, "supportCurl", spec.SupportCurl);
+            Set(weapon, "gripCurl", spec.GripCurl);
+            Set(weapon, "sightDistance", spec.SightDistance);
+        }
+
+        /// <summary>Writes only the hold numbers onto the held weapons that are there, in place (ids kept, nothing else
+        /// of a prefab is rebuilt). The full build writes the same numbers through the same FitHold.
+        /// Batch: -executeMethod ShiftJam.WorkshopPieces.FitHolds -quit.</summary>
+        [MenuItem("Shift Jam/Workshop/Fit Weapon Holds (hands on the guns)")]
+        public static void FitHolds()
+        {
+            var done = new List<string>();
+            foreach (WeaponSpec spec in Weapons)
+            {
+                string path = HeldWeapons + "/" + spec.Name + ".prefab";
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null) { Debug.LogWarning("[Workshop] " + path + " is not there: skipped."); continue; }
+                GameObject root = PrefabUtility.LoadPrefabContents(path);
+                try
+                {
+                    if (!root.TryGetComponent(out Weapon weapon)) { Debug.LogWarning("[Workshop] " + path + " has no Weapon on its root: skipped."); continue; }
+                    FitHold(weapon, spec);
+                    PrefabUtility.SaveAsPrefabAsset(root, path);
+                    done.Add(spec.Name);
+                }
+                finally { PrefabUtility.UnloadPrefabContents(root); }
+            }
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[Workshop] hold numbers written on {done.Count} held weapons: {string.Join(", ", done)}.");
         }
 
         /// <summary>Turns the model so its barrel (muzzle socket, else its longest side) runs along +Z and sizes it to the

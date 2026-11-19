@@ -52,15 +52,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.BlasterWeapon
   displayName: Dart Shotgun
   handEuler: {x: 0, y: 0, z: 0}
-  handOffset: {x: 0, y: 0, z: 0}
+  handOffset: {x: 0.006, y: 0.016, z: 0}
   viewOffset: {x: 0.119, y: -0.218, z: 0.206}
   viewEuler: {x: 0, y: 0, z: 0}
   aimsWithView: 1
+  twoHanded: 1
+  supportPoint: {x: 0, y: 0.026, z: 0.286}
+  supportRoll: 50
+  supportCurl: 0
+  gripCurl: {x: 0, y: 8, z: 0}
   sightPoint: {x: 0, y: 0, z: 0}
   sightRoll: 0
+  sightFieldOfView: 0
+  sightDistance: 0
   moveSpeed: 0.9
-  twoHanded: 1
-  supportPoint: {x: 0, y: 0, z: 0}
   projectile: {fileID: 5713214129242039125, guid: afbb0a2c301f7cd49bdd36580013ba56, type: 3}
   muzzle: {fileID: 2394273124398010903}
   interval: 0.8333

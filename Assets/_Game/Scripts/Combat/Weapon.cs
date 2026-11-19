@@ -20,9 +20,13 @@ namespace ShiftJam
         [SerializeField, Tooltip("On: a blaster. It sits fixed in the hand, and the arm points it at the crosshair while aiming or just after a shot. Off: melee, which follows the arm on the body's heading.")] private bool aimsWithView = true;
         [SerializeField, Tooltip("On: a long gun. Both hands stay on it, it is carried low across the body and comes up to the shoulder to aim (third person).")] private bool twoHanded;
         [SerializeField, Tooltip("A long gun: where the support hand holds, in the weapon's own axes (z along the barrel), units at scale 1. Zero: the model's under-barrel marker (Place_..._BarBottom) if it has one, else a spot ahead of the grip.")] private Vector3 supportPoint;
+        [SerializeField, Tooltip("A long gun: degrees the support palm sits round the barrel towards the support side: 0 flat underneath, 90 flat against the gun's side. A fat fore-end, or a gun aimed rolled over, is held more from the side. Below 0 = the shared number (Resources/WeaponHold > Palm Roll Degrees).")] private float supportRoll = -1f;
+        [SerializeField, Tooltip("A long gun: degrees each bone of the support hand's four fingers bends round THIS gun's fore-end. A fat fore-end wants less, or the fingers sink into it. 0 = the shared number (WeaponHold > Support Curl).")] private float supportCurl;
+        [SerializeField, Tooltip("A blaster: degrees each bone of the gun hand's fingers bends round THIS gun's grip: x the three gripping fingers, y the trigger finger, z the thumb. A thick grip wants less, or the fingers sink into it. 0 in a part = the shared number (WeaponHold > The fingers).")] private Vector3 gripCurl;
         [SerializeField, Tooltip("First person: the middle of this gun's sight, in the weapon's own axes (z along the barrel), units at scale 1. Aim brings this point to the middle of the view. Zero: found from the model (the glass of the sight on its Place_..._Sight mount; a sight without glass: its mount; no mount: the line of the barrel).")] private Vector3 sightPoint;
         [SerializeField, Tooltip("First person: degrees the gun rolls over to its left as the sight comes to the eye. For a sight that stands at a slant on the gun's right side (an offset sight, made to be used with the gun rolled over): the slant, so the sight stands upright at the eye. 0 = a sight on top.")] private float sightRoll;
         [SerializeField, Tooltip("Field of view while this weapon is aimed in first person, degrees (a scope zooms further). 0 = the first-person settings' aim field of view.")] private float sightFieldOfView;
+        [SerializeField, Tooltip("First person: how far in front of the eye this gun's sight sits while aimed, units at scale 1. Further out, the gun is held out more and the hand holding it comes up into view (a pistol at arm's length). 0 = the shared number (Resources/WeaponHold > Sight Distance, the test room's 0.307).")] private float sightDistance;
         [SerializeField, Range(0.5f, 1f), Tooltip("How fast you move with this weapon out, as a share of normal. A heavy gun is a little slower (the test room: rifle 0.92, shotgun 0.9, sniper 0.82). 1 = no slower.")] private float moveSpeed = 1f;
 
         public string DisplayName => displayName;
@@ -34,10 +38,19 @@ namespace ShiftJam
         public float SightFieldOfView => sightFieldOfView;
         /// <summary>Degrees the gun rolls over as its sight comes to the eye in first person (an offset sight); 0 = none.</summary>
         public float SightRoll => sightRoll;
+        /// <summary>First person: how far in front of the eye the sight sits while aimed: this gun's own, else the shared one.</summary>
+        public float SightDistance(WeaponHoldSettings shared) => sightDistance > 0f ? sightDistance : shared.sightDistance;
         /// <summary>How fast the holder moves with this weapon out, as a share of normal (1 = no slower).</summary>
         public float MoveSpeed => moveSpeed;
         public Quaternion HandRotation => Quaternion.Euler(handEuler);
         public Vector3 HandOffset => handOffset;
+        /// <summary>How far round the barrel the support palm sits on this gun, degrees: its own number, else the shared one.</summary>
+        public float SupportRoll(WeaponHoldSettings shared) => supportRoll >= 0f ? supportRoll : shared.palmRollDegrees;
+        /// <summary>Degrees each bone of the support hand's fingers bends round this gun: its own number, else the shared one.</summary>
+        public float SupportCurl(WeaponHoldSettings shared) => supportCurl > 0f ? supportCurl : shared.supportCurl;
+        /// <summary>Degrees each bone of the gun hand's fingers bends round this grip (x the three gripping fingers, y the
+        /// trigger finger, z the thumb): its own number for each, else the shared one.</summary>
+        public Vector3 GripCurl(WeaponHoldSettings shared) => new Vector3(gripCurl.x > 0f ? gripCurl.x : shared.fingerCurl, gripCurl.y > 0f ? gripCurl.y : shared.triggerCurl, gripCurl.z > 0f ? gripCurl.z : shared.thumbCurl);
         public Vector3 ViewOffset => viewOffset;
         public Quaternion ViewRotation => Quaternion.Euler(viewEuler);
         /// <summary>The weapon's own motion this frame (swing, recoil), applied in the hold frame.</summary>

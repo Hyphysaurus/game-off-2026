@@ -83,11 +83,12 @@ Built with the editor closed the whole time.
   room's furniture uses the same kind of collider). A project without the packs (there the hit shapes are empty
   and shots land on the capsule as before: read from the code, not run). The full Workshop rebuild (it now calls
   the hit-shape fitter: compiled, not run; the two narrow builders were run). First person, kid size, a real pad.
-- **KNOWN, LEFT AS IT IS, HIS CALL:** (1) checks that are not shots still see a hit shape where it reaches out
-  of the capsule (a soldier's rifle and boots, the bear's ears and feet): the camera can pull in for a rifle
-  between it and the player; a grenade can bounce off a rifle; a knife or a fist can connect with the rifle.
-  The player's own "is there room" checks (standing up, growing, stepping out of a car, first person) were told
-  to skip hit shapes, so a rifle never blocks those. (2) A hit on the rifle counts as a hit on the soldier.
+- **KNOWN, LEFT AS IT IS, HIS CALL (read from the code, none of it run or seen):** (1) checks that are not shots
+  still see a hit shape where it reaches out of the capsule (a soldier's rifle and boots, the bear's ears and
+  feet): the camera can pull in for a rifle between it and the player; a grenade can bounce off a rifle; a knife
+  or a fist can connect with the rifle. The player's own "is there room" checks (standing up, growing, stepping
+  out of a car, first person) were told to skip hit shapes, so a rifle should never block those: one line in
+  each of five files, compiled, not run. (2) A hit on the rifle counts as a hit on the soldier.
 - **FOR HIS EYE (each is one number or one line):** how deep the head sits when stuck (Tip Length 0.1485 on the
   prefab; about 0.10 would leave the whole head outside); the dart's size on a soldier; blue and orange against
   the old red; the glow; whether a hit on the rifle should count.

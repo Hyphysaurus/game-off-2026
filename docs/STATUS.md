@@ -2,6 +2,99 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 19 Nov 2026 10:4x — DARTS LAND ON THE DRAWN BODY, AND THE DART IS A FOAM DART (D-0080) — NOT PLAYED
+His pick of 19 Nov from the D-0079 list: the hover in front of figures (way 1 of the two), and the dart's shape.
+Built with the editor closed the whole time.
+- **Shots land on what is drawn.** On the four figure targets (practice skittle, practice bear, toy soldier,
+  mischief soldier) a dart, a shotgun pellet, a paint ball and a paint drop land on the drawn body itself and fly
+  on where nothing is drawn. The crosshair does the same: a blaster aims at the drawn body, not at the capsule.
+- **How.** Each of the four has a new part, Hit Shapes (`Combat/HitShapes.cs`), which names its hit shape: the
+  drawn mesh itself, as a mesh collider on the model (the pack ships one on every model; our builders had it
+  switched off). The test room fits a box to each body part, at 0.9 of the part's size, because its dummy bends
+  at the joints. Ours are rigid toys, so the mesh itself is the fit: no box corners, nothing to tune. The hit shape
+  sits on the model, so it rocks with the bear and tips over with a soldier.
+- **What you bump into is the same as before.** The bear's and the skittle's capsule and the soldiers' walking
+  capsule are still there, and they are all that the player, cars, crates and the soldier's own legs feel. A hit
+  shape touches nothing (it is shut out of every contact on the collider itself: no new layer, nothing under
+  ProjectSettings). A shot tells the two apart by the Hit Shapes part: the capsule of a thing that has hit shapes
+  is "body only", and shots go through it.
+- **While a target is down** its hit shapes are off (the test room's rule): a shot passes over it, as before.
+  They are back when it stands up, or at F9.
+- **New, and worth a look in play:** a soldier's rifle, hands and boots are drawn, so they can be hit now (a dart
+  sticks in the rifle, and it counts as a hit). Before, a shot at the rifle flew through, and a shot beside the
+  legs landed on thin air. On the bear the ears and the feet reach outside the capsule: they can be hit too.
+- **The dart is the test room's own foam dart:** a blue foam body (0.24 long, 0.075 thick) and a round orange
+  head (0.107 across, 0.079 high), both glowing a little as in the test room. It is made of Unity's plain cylinder
+  and ball, so it is there in any copy of the project (the red shell came from the pack). **No toy foam dart is
+  in what we own:** looked through the ithappy packs in the project and the Asset Library catalogue (bullets,
+  shells, a foam finger, pencils, a wooden rocket; nothing that is a dart). Its two colours are two materials
+  (`Data/FoamDartBody.mat`, `Data/FoamDartHead.mat`). The streak in flight is unchanged. The old capsule is still
+  in the prefab, off; it shows only if the shape is taken away.
+- **MEASURED against the drawn meshes** (probe kept: `%TEMP%\shiftjam-stage\weapons\bodyhit\probe-keep\BodyHitProbe.cs`,
+  run with a graphics device; it reads each figure's triangles before play and knows nothing of the hit shapes).
+  The number is where a stuck dart sits against the drawn surface on its own line, with a plain wall's own
+  distance taken off (measured: its middle 0.1485 out from a wall). Above 0 = that far out in the air in front
+  of the body. Four shots a figure: chest, head, low and off the middle (a leg), chest from 45 degrees.
+  - Skittle: before +0.216, +0.201, -0.007, +0.215. After 0.000 on all four.
+  - Bear: before +0.325, +0.293, -0.038, +0.367. After 0.000 on all four.
+  - Toy soldier: before +0.035, -0.066 (the head: too deep), -0.011, +0.016. After 0.000 on all four.
+  - Mischief soldier: before +0.035, -0.067, -0.011, +0.016. After 0.000 on all four.
+  - A near miss, 0.11 to 0.13 beside the drawn outline (a dart's own radius is 0.06): before, on all four, the
+    dart STUCK in thin air. After, on all four, it flew on.
+  - The point each dart is stuck by, after: within 0.0002 of the nearest drawn triangle, all 16.
+  - The whole probe: **37 of 57 before, 57 of 57 after.** (One of the after-runs read 56 of 57: the probe's own
+    line test slipped between two triangles on the seam down the bear's middle and read the back of its head,
+    0.539. The dart was on the surface. Fixed in the probe; the runs after that: 57 of 57.)
+- **The same before and after, in the same runs:** the player, pushed straight at each target, stops 0.731
+  (skittle), 0.959 (bear) and 0.587 (each soldier) from its middle. The player walks across a soldier's front
+  through where the rifle is drawn (3.00 in a second, as before). A soldier's body pushed forward goes 3.30 in
+  1.5 s. A toy soldier left alone for 6 s wanders 5.27 before, 5.28 after. A grenade 1.5 away takes 60.3 of the
+  skittle's 120, 60.6 of the bear's, all 60 of the toy soldier's and all 45 of the mischief soldier's. One dart
+  with all its health in it knocks each of the four down: down, the burst shown once, the shooter told once (the
+  hit marker's event), the dart rides it to the floor. While it lies there a dart on the same line passes. Stood
+  up again by the reset, a dart at the chest sticks 0.000 from the drawn surface (before: 0.03 to 0.33 out).
+- **Paint on a figure:** a paint ball at the chest counts and lands on the drawn surface: 0.000 on each soldier
+  (before 0.033 out), and within 0.03 on the skittle and the bear, read while they were still rocking from the
+  hit (before 0.197 and 0.342 out). Paint on a figure now sits as it does on any model in the room: a thin coat
+  on the surface it hit. Not looked at in a picture.
+- **Kept checks after:** the dart check 50 of 50 (with a graphics device), the shot check 64 of 64, the grenade
+  check 38 of 38, the four-scene smoke run 0 errors in each scene. One line of the dart check was changed with the shape: it
+  now expects the new dart (nose 0.1822 ahead of its middle, 0.3010 long over all; it was the shell's 0.1683 and
+  0.2376). Its copy as it was is in `bodyhit\snapshot\DartProbe.d0079.cs`.
+- **SEEN IN THE STILLS** (`docs/stills/darts_d0080.jpg`, before beside after; stills are not in git): before, the
+  darts hang in the air in front of the skittle and the bear, and beside a soldier's leg. After, every dart's
+  orange head is in the body: forehead, nose, belly and foot of the bear; face, rifle hand, arm, belly, thigh and
+  shin of a soldier. **Faults I see:** (1) a stuck dart shows mostly its blue body; only a thin ring of the orange
+  head stays out of the surface (the test room's numbers do that). (2) On a soldier the dart is big: its body is
+  about as thick as his arm (it is the test room's size, and the same size as on the bear). (3) The orange head
+  looks dull brown-orange in the close-ups, not bright. (4) The dart's back end is a flat blue disc. (5) From
+  over the shoulder, 6 away, a stuck dart is a small blue dot: easier to pick out than the red shell was, still
+  small. The grey block behind the skittle in its two stills is the probe's own wall, far behind.
+- **Where each thing is.** The hit shapes: each target's prefab > Hit Shapes (Shapes = the model's mesh collider;
+  Off While Down). Made by Shift Jam > Workshop > Fit Hit Shapes (targets) (`Debug/HitShapePieces.cs`), which
+  changes the four prefabs in place; the full builders call the same code. The dart's sizes: `Debug/DartPieces.cs`
+  (BodyLength, BodyRadius, HeadAhead, HeadRadii), written to `Prefabs/Combat/FoamDart.prefab` > Shape > Body and
+  Head by Build Foam Dart (a rebuild writes them over the prefab's: change both). The two colours: on the two
+  materials (a rebuild keeps them).
+- **NOT CHECKED:** nothing was played, seen moving, or heard. No shot through a real gun at a WALKING soldier
+  (the hit shape follows it a physics step late, as its capsule always did). Shotgun pellets and the SMG on the
+  new shapes only through the kept dart check's bear and soldiers. Paint on a figure not seen in a picture. A
+  Windows build (a mesh collider on a pack model that is squashed for a moment has not been run in a build; the
+  room's furniture uses the same kind of collider). A project without the packs (there the hit shapes are empty
+  and shots land on the capsule as before: read from the code, not run). The full Workshop rebuild (it now calls
+  the hit-shape fitter: compiled, not run; the two narrow builders were run). First person, kid size, a real pad.
+- **KNOWN, LEFT AS IT IS, HIS CALL:** (1) checks that are not shots still see a hit shape where it reaches out
+  of the capsule (a soldier's rifle and boots, the bear's ears and feet): the camera can pull in for a rifle
+  between it and the player; a grenade can bounce off a rifle; a knife or a fist can connect with the rifle.
+  The player's own "is there room" checks (standing up, growing, stepping out of a car, first person) were told
+  to skip hit shapes, so a rifle never blocks those. (2) A hit on the rifle counts as a hit on the soldier.
+- **FOR HIS EYE (each is one number or one line):** how deep the head sits when stuck (Tip Length 0.1485 on the
+  prefab; about 0.10 would leave the whole head outside); the dart's size on a soldier; blue and orange against
+  the old red; the glow; whether a hit on the rifle should count.
+- **TO PLAY:** Workshop or Colour Corner. Shoot the bear in the belly, the head and a foot, and just past its
+  side. Shoot a soldier in the chest, the helmet and the rifle. Walk into each. Knock one down and shoot where it
+  lies. T to paint and hit the bear. Throw a grenade at a soldier.
+
 ## 18 Nov 2026 13:5x — DARTS STICK, AND MORE AT THE LANDING (D-0079) — NOT PLAYED
 His "the missing foam darts and lack of juice when landing darts or paintballs", "proceed". Built with the editor
 closed (it was open until about 13:25; nothing was written into the project before it closed).
@@ -24,7 +117,7 @@ closed (it was open until about 13:25; nothing was written into the project befo
   The old capsule is still in the prefab, switched off: a project without the pack (a fresh clone) shows it
   instead. It is red, not glowing orange as the capsule was: from behind the gun a dart stuck 14 away is a few
   pixels. The streak in flight is unchanged.
-- **FOUND, NOT FIXED, HIS CALL: a dart hovers in front of a figure.** A dart sticks on the surface of the thing's
+- **FOUND HERE, FIXED IN D-0080 (19 Nov, above): a dart hovers in front of a figure.** A dart sticks on the surface of the thing's
   hit shape. The bear's, the skittle's and both soldiers' hit shape is one capsule, wider than the drawn body.
   From the stills, by eye: about 0.25 to 0.5 in front of the bear, 0.05 to 0.2 in front of a soldier. On walls,
   floors and crates it is exact (measured: 0.0000 from the wall's face). The test room has no such gap because

@@ -20,6 +20,8 @@ namespace ShiftJam
     /// Another kind of ammo extends this and changes only what happens at a hit: it can glance off before the hit
     /// counts (Deflects), leave something behind after it (OnLanded: the paint ball), or stay where it landed instead
     /// of going back to the pool (Stays: the foam dart).
+    /// On a figure with hit shapes (HitShapes) a shot lands on those, fitted to what is drawn, and passes through the
+    /// wider capsule the figure walks or is bumped with.
     /// </summary>
     public class Projectile : MonoBehaviour
     {
@@ -219,6 +221,7 @@ namespace ShiftJam
             for (int i = 0; i < count; i++)
             {
                 if (IsOwner(_hits[i].transform)) continue;
+                if (HitShapes.BodyOnly(_hits[i].collider)) continue;   // a figure's walking capsule: the shot lands on its hit shapes, fitted to what is drawn
                 if (best < 0 || _hits[i].distance < _hits[best].distance) best = i;
             }
             if (best >= 0)

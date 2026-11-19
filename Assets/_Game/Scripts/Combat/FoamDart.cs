@@ -14,8 +14,11 @@ namespace ShiftJam
     /// it, and a thing that is destroyed, switched off, hidden or put away only makes it let go. It has no collider: later
     /// shots and the player pass through it. It does not stick to a player. The reset key and Projectile.ClearAll
     /// put every stuck dart back in the pool at once.
-    /// What is drawn is a child of the prefab (Shape: the Cartoon Weapons pack's toy shell, its wide striped head
-    /// first); with the pack missing the plain capsule is shown instead. Built by Shift Jam > Workshop > Build Foam Dart.
+    /// On a figure with hit shapes (HitShapes) it lands on the drawn body itself, so it is stuck in the body and not
+    /// in the air in front of it.
+    /// What is drawn is a child of the prefab (Shape: the test room's foam dart, a blue foam body with a round orange
+    /// head first, made of Unity's plain cylinder and ball); with that child gone the plain capsule is shown instead.
+    /// Built by Shift Jam > Workshop > Build Foam Dart.
     /// </summary>
     public sealed class FoamDart : Projectile
     {
@@ -32,8 +35,8 @@ namespace ShiftJam
         [SerializeField, Min(0f), Tooltip("Seconds a dart takes to drop off when it lets go: it backs out, falls and shrinks to nothing. 0 = it is gone at once.")] private float letGoSeconds = 0.35f;
         [SerializeField, Tooltip("How fast it falls as it lets go, units per second squared at scale 1.")] private float letGoFall = 9f;
         [Header("Shape")]
-        [SerializeField, Tooltip("The drawn dart: a child holding the pack's model, its head toward +Z.")] private Transform shape;
-        [SerializeField, Tooltip("The plain capsule, shown only when the shape has nothing to draw (the pack is not in the project).")] private GameObject plain;
+        [SerializeField, Tooltip("The drawn dart: a child holding its body and its head, the head toward +Z.")] private Transform shape;
+        [SerializeField, Tooltip("The plain capsule, shown only when the shape has nothing to draw.")] private GameObject plain;
 
         private static readonly List<FoamDart> Stuck = new List<FoamDart>();   // every dart stuck now, oldest first
 

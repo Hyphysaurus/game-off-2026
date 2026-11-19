@@ -350,6 +350,7 @@ namespace ShiftJam
             Set(health, "squashSeconds", 0.3f);
             var target = root.AddComponent<PracticeTarget>();
             Set(target, "pivot", pivot.transform);
+            HitShapePieces.Fit(root);   // shots land on the drawn mesh, not on the capsule (which stays what is bumped into)
             Save(root, PieceInteractables + "/" + name + ".prefab");
             return true;
         }
@@ -388,6 +389,7 @@ namespace ShiftJam
                 muzzle.localPosition = tip + Vector3.forward * 0.03f;
                 Set(soldier, "muzzle", muzzle);
             }
+            HitShapePieces.Fit(root);   // shots land on the drawn mesh, not on the walking capsule
             Save(root, PieceInteractables + "/ToySoldier.prefab");
             return true;
         }
@@ -951,7 +953,7 @@ namespace ShiftJam
             return false;
         }
 
-        private static void SetArray(Object target, string field, List<Object> values)
+        internal static void SetArray(Object target, string field, List<Object> values)
         {
             var so = new SerializedObject(target);
             var p = so.FindProperty(field);

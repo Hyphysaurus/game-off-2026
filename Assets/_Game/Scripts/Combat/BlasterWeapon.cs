@@ -76,6 +76,7 @@ namespace ShiftJam
             for (int i = 0; i < n; i++)
             {
                 if (Holder.IsSelf(_hits[i].transform) || _hits[i].transform.IsChildOf(transform)) continue;
+                if (HitShapes.BodyOnly(_hits[i].collider)) continue;   // the shot will pass a figure's walking capsule: aim at what is drawn
                 if (_hits[i].distance < nearest) { nearest = _hits[i].distance; target = _hits[i].point; }
             }
             return target;
@@ -122,6 +123,7 @@ namespace ShiftJam
                 for (int i = 0; i < m; i++)
                 {
                     if (Holder.IsSelf(_hits[i].transform) || _hits[i].transform.IsChildOf(transform)) continue;
+                    if (HitShapes.BodyOnly(_hits[i].collider)) continue;   // a shot is not stopped by a figure's walking capsule
                     from = chest;
                     break;
                 }

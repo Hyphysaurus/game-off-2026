@@ -98,6 +98,7 @@ namespace ShiftJam
             {
                 var c = _overlap[i];
                 if (c == _cc || c.transform.IsChildOf(transform) || (Owner != null && c.transform.IsChildOf(Owner))) continue;
+                if (HitShapes.IsShape(c)) continue;   // a figure's hit shape stops nothing
                 if (_hands != null && _hands.Held != null && c.attachedRigidbody == _hands.Held) continue;
                 return true;
             }

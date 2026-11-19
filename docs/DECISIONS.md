@@ -1555,3 +1555,52 @@
   - **Sounds** picked by name and length, not heard: STATUS lists the six. Licensed, under the git-ignored
     `_Imports`; `Resources/WeaponAmmo.asset` names them by id, as it names the reload's.
   - **Checked:** STATUS, 18 Nov 13:5x. Not played.
+- **D-0080 (19 Nov, 10:4x) Shots land on the drawn body of the four figure targets: the drawn mesh is the hit shape, the old capsule is only what is bumped into; the dart is the test room's own foam dart from plain shapes.**
+  - **The rule is the test room's, the shape is not its box.** `dummy.gd` gives each bone a box around the part
+    of the model that follows it, at 0.9 of the part's size (`box_fit`), because that model is skinned and bends.
+    Our four targets are rigid pack models. Boxes were tried on paper first, measured against the real meshes
+    outside Unity: boxes fitted piece by piece needed over a thousand to get the bear's hover under 0.05, and
+    convex pieces a few hundred. The mesh itself needs one collider and has no gap at all, and the pack already
+    ships that collider on every model (our builders switched it off). So: one hit shape for each drawn mesh, the
+    mesh itself. A skinned target would need the test room's boxes on its bones; the fitter says so in the log
+    and gives it none.
+  - **Hit shape and bump shape are two things, told apart by a component, not a layer.** `Combat/HitShapes.cs`
+    sits on the target's root and lists the fitted colliders. As it wakes it shuts them out of every contact
+    (`Collider.excludeLayers` = everything), so nothing feels them: measured, the player's and the soldiers'
+    character controllers ignore them too. Every other collider under the root (the capsule, the character
+    controller) is noted as "body only". `HitShapes.BodyOnly(collider)` is asked by the casts that stand for a
+    shot: `Projectile` (darts, pellets, paint balls), `PaintDrops`, and the blaster's two aim rays.
+    `ProjectSettings` is untouched: no new layer.
+  - **Why not triggers:** a mesh that is not convex cannot be a trigger in Unity. A trigger would have been
+    unseen by every other cast in the game for free (they all ignore triggers). As it is, casts that are not
+    shots do see a hit shape. Where that would have been wrong they were told to skip it
+    (`HitShapes.IsShape`): the player's "is there room" checks (`PlayerStance`, `ShiftCharge`, `SafeGround`,
+    `FirstPersonBody`, `CarSeat`), since a hit shape stops nothing. Left seeing it, his call: the camera's
+    collision, a grenade's bounce (`BallFlight`), melee, a soldier's sight and feel, the grab, Build Mode. It only
+    differs from before where the drawn body reaches outside the capsule (a soldier's rifle and boots, the bear's
+    ears and feet).
+  - **Down means nothing to hit** (the test room disables its boxes on a downed dummy): `HitShapes` listens to
+    its own `Damageable` (`Died`, `Restored`) and switches the shapes off and on. No target script was changed
+    for it. `Off While Down` on the component turns that off for a thing that should stay hittable.
+  - **A project without the packs** has no model, so the list is empty: `HitShapes` then notes nothing as body
+    only and shots land on the capsule as they did before D-0080.
+  - **The dart rides the mesh it hit** with no new code: `PaintSplats.HolderOf` already picks the drawn part
+    nearest the hit, and that is now the very object the collider is on.
+  - **Paint** reaches into a figure as it does into any mesh in the room (a mesh is a skin to `PaintSplats`, a
+    capsule was a solid): a thin coat where it hit.
+  - **The fitter** is its own small maker, `Debug/HitShapePieces.cs` (Shift Jam > Workshop > Fit Hit Shapes
+    (targets); batch `-executeMethod ShiftJam.HitShapePieces.Build`). It changes the four prefabs in place (ids
+    kept, scenes keep their copies) and `WorkshopPieces.BuildTarget` / `BuildSoldier` call the same `Fit`, so a
+    full rebuild makes the same thing. The mischief soldier is made once from the toy soldier and then kept, so
+    the fitter names its prefab too. The full Workshop rebuild was not run (not since 17 Nov).
+  - **The dart's shape: nothing we own is a toy foam dart** (the ithappy packs in the project and the Asset
+    Library catalogue were searched by name), so it is the test room's own (`foam_dart.tscn`), x 0.99: a foam
+    cylinder 0.24 long and 0.038 in radius, and a head that is a ball of radius 0.054 pressed to 0.04 up and down,
+    its middle 0.13 ahead. D-0079 read that head as 0.04 along the dart (nose at 0.17); the scene does not turn
+    it, so it is 0.054 along (nose at 0.184) and 0.04 high. With the test room's tip length of 0.15 the head is
+    sunk 0.034 into what it hit, to about its widest ring. Made of Unity's own cylinder and ball: no pack, no
+    mesh of ours, no generated art. Colours are the test room's, on two materials copied from `ShiftCore.mat`
+    (made once, then kept). `WideEndLeads`, the pack model and the measuring of its head are gone from
+    `DartPieces`.
+  - **Checked:** STATUS, 19 Nov 10:4x. The hover measured against the drawn meshes: up to 0.367 before, 0.000
+    after; near misses stick in thin air before, fly on after. Not played.

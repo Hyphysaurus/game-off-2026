@@ -75,6 +75,7 @@ GameObject:
   - component: {fileID: 6988032191446266702}
   - component: {fileID: 3606686055907102782}
   - component: {fileID: 7613846837478699875}
+  - component: {fileID: 3987198928976549143}
   m_Layer: 0
   m_Name: ToySoldier
   m_TagString: Untagged
@@ -188,6 +189,21 @@ MonoBehaviour:
   gravity: 25
   downTime: 4
   chestHeight: 1
+--- !u!114 &3987198928976549143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8979847652353356667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0fcc673bf70de74d8bf9bb5e3c409ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.HitShapes
+  shapes:
+  - {fileID: 5540933216591936462}
+  offWhileDown: 1
 --- !u!1001 &5497291220540676745
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -198,7 +214,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -9174091537134608057, guid: 670e3a8bc78b31644b743a56a07e2e07, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -9174091537134608057, guid: 670e3a8bc78b31644b743a56a07e2e07, type: 3}
+      propertyPath: m_ExcludeLayers.m_Bits
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 8380052255065325986, guid: 670e3a8bc78b31644b743a56a07e2e07, type: 3}
       propertyPath: m_Name
@@ -264,5 +284,10 @@ PrefabInstance:
 --- !u!4 &3695890353075929489 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9151382118563126040, guid: 670e3a8bc78b31644b743a56a07e2e07, type: 3}
+  m_PrefabInstance: {fileID: 5497291220540676745}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &5540933216591936462 stripped
+MeshCollider:
+  m_CorrespondingSourceObject: {fileID: -9174091537134608057, guid: 670e3a8bc78b31644b743a56a07e2e07, type: 3}
   m_PrefabInstance: {fileID: 5497291220540676745}
   m_PrefabAsset: {fileID: 0}

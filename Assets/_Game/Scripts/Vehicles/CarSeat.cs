@@ -222,7 +222,7 @@ namespace ShiftJam
         {
             Vector3 a = feet + Vector3.up * (r + 0.05f * r), top = feet + Vector3.up * Mathf.Max(r * 1.1f, h - r);
             int n = Physics.OverlapCapsuleNonAlloc(a, top, r * 0.95f, _overlap, ~0, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < n; i++) if (!_overlap[i].transform.IsChildOf(_driver)) return false;
+            for (int i = 0; i < n; i++) if (!_overlap[i].transform.IsChildOf(_driver) && !HitShapes.IsShape(_overlap[i])) return false;   // a figure's hit shape stops nothing
             return true;
         }
     }

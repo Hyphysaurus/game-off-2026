@@ -7,7 +7,9 @@ namespace ShiftJam
     /// gone), it topples flat with a burst of bits and a thud (KnockDown), lies there a moment and pops back up at full
     /// health. The Workshop reset stands it up at once.
     /// The visual is a child pivot (at the base) so the root's collider and position never move. Lying flat it has no
-    /// collider: the upright capsule would stop shots and the player where nothing is drawn.
+    /// collider: the upright capsule would stop the player where nothing is drawn. Shots never land on that capsule
+    /// when the target has hit shapes (HitShapes: the drawn mesh itself, riding the pivot); those are off too while it
+    /// lies down.
     /// </summary>
     [RequireComponent(typeof(Damageable))]
     public sealed class PracticeTarget : MonoBehaviour, IResettable

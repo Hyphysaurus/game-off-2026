@@ -146,6 +146,7 @@ namespace ShiftJam
                 if (self != null && c.transform.IsChildOf(self)) continue;
                 Rigidbody body = c.attachedRigidbody;
                 if (body != null && !body.isKinematic) continue;
+                if (HitShapes.IsShape(c)) continue;   // a figure's hit shape stops nothing
                 return false;
             }
             return true;

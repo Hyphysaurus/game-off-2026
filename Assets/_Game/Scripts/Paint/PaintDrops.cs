@@ -71,6 +71,7 @@ namespace ShiftJam
                     for (int h = 0; h < count; h++)
                     {
                         if (drop.Paint.IsOwner(_hits[h].transform)) continue;
+                        if (HitShapes.BodyOnly(_hits[h].collider)) continue;   // a drop lands on what is drawn of a figure, as the ball does
                         if (best < 0 || _hits[h].distance < _hits[best].distance) best = h;
                     }
                 }

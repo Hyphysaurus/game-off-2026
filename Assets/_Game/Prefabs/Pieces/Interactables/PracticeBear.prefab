@@ -44,6 +44,7 @@ GameObject:
   - component: {fileID: 677800395291093210}
   - component: {fileID: 5044413404829428600}
   - component: {fileID: 3354080784514915456}
+  - component: {fileID: 4781467420885230262}
   m_Layer: 0
   m_Name: PracticeBear
   m_TagString: Untagged
@@ -137,6 +138,21 @@ MonoBehaviour:
   maxLean: 40
   downTime: 2.5
   popClip: {fileID: 0}
+--- !u!114 &4781467420885230262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4173964520068346762}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0fcc673bf70de74d8bf9bb5e3c409ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.HitShapes
+  shapes:
+  - {fileID: 8773613340553527686}
+  offWhileDown: 1
 --- !u!1001 &5824754918747041557
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -203,7 +219,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2960990747566943891, guid: e4c48b1b393a9c949be8662e6925ef70, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2960990747566943891, guid: e4c48b1b393a9c949be8662e6925ef70, type: 3}
+      propertyPath: m_ExcludeLayers.m_Bits
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -213,5 +233,10 @@ PrefabInstance:
 --- !u!4 &5206535057846107985 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1771317288443088964, guid: e4c48b1b393a9c949be8662e6925ef70, type: 3}
+  m_PrefabInstance: {fileID: 5824754918747041557}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &8773613340553527686 stripped
+MeshCollider:
+  m_CorrespondingSourceObject: {fileID: 2960990747566943891, guid: e4c48b1b393a9c949be8662e6925ef70, type: 3}
   m_PrefabInstance: {fileID: 5824754918747041557}
   m_PrefabAsset: {fileID: 0}

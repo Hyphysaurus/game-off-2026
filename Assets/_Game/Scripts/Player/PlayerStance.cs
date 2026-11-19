@@ -91,6 +91,7 @@ namespace ShiftJam
                 Collider c = _overlap[i];
                 if (c.transform.IsChildOf(transform)) continue;
                 if (c.attachedRigidbody != null && !c.attachedRigidbody.isKinematic) continue;
+                if (HitShapes.IsShape(c)) continue;   // a figure's hit shape stops nothing
                 return false;
             }
             return true;

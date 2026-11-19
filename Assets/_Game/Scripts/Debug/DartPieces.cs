@@ -5,13 +5,15 @@ using UnityEngine;
 namespace ShiftJam
 {
     /// <summary>
-    /// Editor maker for the foam dart (D-0079): Prefabs/Combat/FoamDart.prefab, the shot every blaster and the toy
-    /// soldier fire. An existing prefab is changed in place, so its ids stay and every gun that names it still does;
-    /// a plain Projectile left by an older build becomes a FoamDart with its numbers kept. What it makes:
-    /// the dart's shape (child "Shape": the Cartoon Weapons pack's Bullet_Shotgun, scaled up, its wide striped head
-    /// first, referenced from the pack by path, never copied), the plain capsule kept as a stand-in for a project
-    /// without the pack (child "Plain"), the streak, and the dart's numbers: the test room's flight, bits and
-    /// sticking, and our own bits and ring for a landing on something with health.
+    /// Editor maker for the foam dart (D-0079, its shape D-0080): Prefabs/Combat/FoamDart.prefab, the shot every
+    /// blaster and the toy soldier fire. An existing prefab is changed in place, so its ids stay and every gun that
+    /// names it still does; a plain Projectile left by an older build becomes a FoamDart with its numbers kept. What
+    /// it makes: the dart's shape (child "Shape": the test room's own foam dart, a blue foam body and a round orange
+    /// head, from Unity's plain cylinder and ball: no pack model, so it is there in any copy of the project), the
+    /// older plain capsule (child "Plain", switched off; shown only if the shape is taken away), the streak, and the
+    /// dart's numbers: the test room's flight, bits and sticking, and our own bits and ring for a landing on
+    /// something with health. The two colours are materials of their own (Data/FoamDartBody, Data/FoamDartHead):
+    /// made once with the test room's colours, then kept, so a colour changed on the material stays.
     /// "Build Foam Dart" also gives Resources/WeaponAmmo its landing sounds when those are in _Imports and it has
     /// none yet (a number already in that asset is never overwritten). A number changed by hand on the prefab is
     /// written over by a rebuild: change it here too.
@@ -24,13 +26,21 @@ namespace ShiftJam
         private const string StreakLook = "Assets/_Game/Data/PaintStreak.mat";
         private const string Sounds = "Assets/_Imports/CasePortman/Weapons/";
 
-        // The shape. One model for every gun for now; another gun's dart is another model here, or a prefab change.
-        private const string Model = "Assets/_Imports/ithappy/Cartoon_Weapons/Prefabs/Bullets/Bullet_Shotgun.prefab";
-        // The pack's shell is 64 mm long with a wide striped rim at one end. That rim leads, like a toy dart's suction
-        // head (a pointed bullet would lead with its narrow end instead).
-        private const bool WideEndLeads = true;
-        private const float ShapeLength = 0.2376f;   // the test room's dart body, 0.24 m x 0.99 (the capsule it replaces was 0.18)
-        private const float NoseAhead = 0.1683f;     // the test room's nose, 0.17 m x 0.99 ahead of the dart's middle: 0.02 past the point it sticks at
+        // The shape: the test room's foam dart (foam_dart.tscn), every length x 0.99. One shape for every gun for now;
+        // another gun's dart is other numbers here, or a prefab change.
+        private const string BodyLook = "Assets/_Game/Data/FoamDartBody.mat", HeadLook = "Assets/_Game/Data/FoamDartHead.mat";
+        private const string LookSource = "Assets/_Game/Data/ShiftCore.mat";   // our own lit material: the two looks are recoloured copies of it
+        private const float BodyLength = 0.2376f;    // the foam body: a cylinder 0.24 m long, its middle at the dart's middle
+        private const float BodyRadius = 0.0376f;    // and 0.038 m in radius
+        private const float HeadAhead = 0.1287f;     // the head's middle, 0.13 m ahead of the dart's middle
+        // The head: a ball 0.054 m in radius across and along the dart, pressed to 0.04 m up and down (the test room's
+        // SphereMesh: radius 0.054, height 0.08, not turned). Its front is 0.184 m ahead of the middle: 0.034 past the
+        // point the dart sticks at, so a stuck dart's head is sunk in up to about its widest ring.
+        private static readonly Vector3 HeadRadii = new Vector3(0.0535f, 0.0396f, 0.0535f);
+        // Its colours as the materials are first made (the test room's: blue foam, an orange head, both glowing a
+        // little so a dart in flight shows). After that the materials hold them.
+        private static readonly Color BodyColour = new Color(0.15f, 0.55f, 1f), BodyGlow = new Color(0.12f, 0.4f, 0.8f);     // emission (0.15, 0.5, 1) x 0.8
+        private static readonly Color HeadColour = new Color(1f, 0.45f, 0.1f), HeadGlow = new Color(1.2f, 0.48f, 0.06f);    // emission (1, 0.4, 0.05) x 1.2
 
         [MenuItem("Shift Jam/Workshop/Build Foam Dart")]
         public static void Build()
@@ -68,7 +78,7 @@ namespace ShiftJam
                 }
                 Transform plain = Plain(root.transform, mat);
                 Transform shape = Shape(root.transform);
-                plain.gameObject.SetActive(shape == null);   // the capsule stands in only when the pack's model is not there
+                plain.gameObject.SetActive(shape == null);   // the capsule stands in only when there is no shape
                 WorkshopPieces.Set(dart, "shape", shape);
                 WorkshopPieces.Set(dart, "plain", plain.gameObject);
 
@@ -159,63 +169,57 @@ namespace ShiftJam
             return plain;
         }
 
-        /// <summary>The drawn dart: the pack's model under a child "Shape", turned head first, scaled to ShapeLength and
-        /// put with its nose NoseAhead in front of the dart's middle. Null when the pack is not in the project.</summary>
+        /// <summary>The drawn dart under a child "Shape", its head toward +Z (the way it flies): the foam body, Unity's
+        /// plain cylinder laid along Z, and the head, Unity's plain ball pressed to its three radii.</summary>
         private static Transform Shape(Transform root)
         {
             Transform old = root.Find("Shape");
             if (old != null) Object.DestroyImmediate(old.gameObject);
-            GameObject model = WorkshopPieces.Load(Model);
-            if (model == null) return null;
             Transform shape = new GameObject("Shape").transform;
             shape.SetParent(root, false);
-            GameObject inst = WorkshopPieces.Place(model, shape);
-            MeshFilter mesh = inst.GetComponentInChildren<MeshFilter>(true);
-            if (mesh == null || mesh.sharedMesh == null || !Head(mesh, out Vector3 headInMesh, out string measured))
-            {
-                Debug.LogWarning("[Dart] " + Model + " has no mesh that can be measured: the dart keeps its plain capsule.");
-                Object.DestroyImmediate(shape.gameObject);
-                return null;
-            }
-            foreach (Renderer r in inst.GetComponentsInChildren<Renderer>(true)) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;   // as the capsule: a shot casts no shadow
-
-            Vector3 head = shape.InverseTransformDirection(mesh.transform.TransformDirection(headInMesh)).normalized;
-            inst.transform.localRotation = Quaternion.FromToRotation(head, Vector3.forward) * inst.transform.localRotation;
-            Bounds b = WorkshopPieces.LocalBounds(shape, inst);
-            inst.transform.localScale *= ShapeLength / Mathf.Max(1e-5f, b.size.z);
-            b = WorkshopPieces.LocalBounds(shape, inst);
-            inst.transform.localPosition += new Vector3(-b.center.x, -b.center.y, NoseAhead - b.max.z);
-            b = WorkshopPieces.LocalBounds(shape, inst);
-            Debug.Log($"[Dart] shape {Model}: {measured}; in the dart it is {b.size.z:F4} long and {b.size.x:F4} x {b.size.y:F4} across, from z {b.min.z:F4} to {b.max.z:F4} (the head end).");
+            // Unity's cylinder stands along Y, 2 long and 1 across; its ball is 1 across.
+            Transform body = Round(PrimitiveType.Cylinder, "Body", shape, Look(BodyLook, BodyColour, BodyGlow));
+            body.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            body.localScale = new Vector3(BodyRadius * 2f, BodyLength * 0.5f, BodyRadius * 2f);
+            Transform head = Round(PrimitiveType.Sphere, "Head", shape, Look(HeadLook, HeadColour, HeadGlow));
+            head.localPosition = Vector3.forward * HeadAhead;
+            head.localScale = HeadRadii * 2f;
+            Bounds b = WorkshopPieces.LocalBounds(shape, shape.gameObject);
+            Debug.Log($"[Dart] shape: a foam body {BodyLength:F4} long and {BodyRadius * 2f:F4} across, a head {HeadRadii.x * 2f:F4} x {HeadRadii.y * 2f:F4} across and {HeadRadii.z * 2f:F4} long; in the dart it is {b.size.z:F4} long, from z {b.min.z:F4} to {b.max.z:F4} (the head end).");
             return shape;
         }
 
-        /// <summary>Which way the model's head points, in the mesh's own space: along its longest side, toward its wide
-        /// end (or its narrow one), found by measuring how far the vertices of each end's fifth stand off the long axis.
-        /// Pack meshes are not Read/Write, but the editor can read them outside play.</summary>
-        private static bool Head(MeshFilter filter, out Vector3 head, out string measured)
+        /// <summary>One of Unity's plain round shapes as a part of the dart: no collider, no shadow.</summary>
+        private static Transform Round(PrimitiveType kind, string name, Transform parent, Material look)
         {
-            head = Vector3.forward; measured = "";
-            Mesh mesh = filter.sharedMesh;
-            Vector3[] points = mesh.vertices;
-            if (points == null || points.Length == 0) return false;
-            Bounds b = mesh.bounds;
-            int along = b.size.x >= b.size.y && b.size.x >= b.size.z ? 0 : b.size.y >= b.size.z ? 1 : 2;
-            float low = b.min[along], length = b.size[along];
-            if (length < 1e-6f) return false;
-            float lowWide = 0f, highWide = 0f;
-            foreach (Vector3 p in points)
+            GameObject part = GameObject.CreatePrimitive(kind);
+            Object.DestroyImmediate(part.GetComponent<Collider>());
+            part.name = name;
+            part.transform.SetParent(parent, false);
+            var drawn = part.GetComponent<MeshRenderer>();
+            if (look != null) drawn.sharedMaterial = look;
+            drawn.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;   // as the capsule: a shot casts no shadow
+            return part.transform;
+        }
+
+        /// <summary>One of the dart's two materials: kept as it is when it is there (its colours are its own), made as
+        /// a recoloured copy of our lit material when it is not.</summary>
+        private static Material Look(string path, Color colour, Color glow)
+        {
+            var look = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (look != null) return look;
+            if (!AssetDatabase.CopyAsset(LookSource, path)) { Debug.LogWarning("[Dart] could not copy " + LookSource + " to " + path + ": that part of the dart keeps Unity's plain grey."); return null; }
+            look = AssetDatabase.LoadAssetAtPath<Material>(path);
+            look.SetColor("_BaseColor", colour);
+            if (look.HasProperty("_Color")) look.SetColor("_Color", colour);
+            if (look.HasProperty("_EmissionColor"))
             {
-                Vector3 off = p - b.center; off[along] = 0f;
-                float share = (p[along] - low) / length;
-                if (share <= 0.2f) lowWide = Mathf.Max(lowWide, off.magnitude);
-                else if (share >= 0.8f) highWide = Mathf.Max(highWide, off.magnitude);
+                look.EnableKeyword("_EMISSION");
+                look.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                look.SetColor("_EmissionColor", glow);
             }
-            bool highIsWide = highWide > lowWide;
-            Vector3 axis = Vector3.zero; axis[along] = 1f;
-            head = highIsWide == WideEndLeads ? axis : -axis;
-            measured = $"the mesh is longest along its own {"XYZ"[along]} ({length:F4}); its low end is {lowWide:F4} wide (radius), its high end {highWide:F4}; the head is the {(WideEndLeads ? "wide" : "narrow")} end, toward {(head[along] > 0f ? "+" : "-")}{"XYZ"[along]}";
-            return true;
+            EditorUtility.SetDirty(look);
+            return look;
         }
 
         /// <summary>The streak (foam_dart.tscn: 1.6 long, 0.045 thick, pale blue at 0.75), drawn with the paint streak's

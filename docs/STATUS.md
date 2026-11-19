@@ -2,6 +2,34 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 19 Nov 2026 13:5x — CHECKPOINT: THE FOAM FINGER AND TOY KNIFE HOLDS (no change kept, nothing built)
+Asked to fit the two melee weapons' hold numbers (Hand, GripCurl) the way D-0078 fitted the guns, so the fist stops
+sinking into the foam hand's cuff and the knife's handle. **Tried, measured, thrown out. The game is as it was at
+`346dca7`.** The editor was closed the whole time.
+- **Measured now** (third person, the D-0078 probe's way, deepest point of the hand inside the weapon). Toy and Kid
+  read the same within 0.03 cm. Foam Finger: rest 3.13, swing up to 3.48 cm (about 156 hand points inside). Toy
+  Knife: rest 1.37, swing up to 1.82 cm (16 to 65 points inside).
+- **Why the numbers alone can't do it.**
+  1. A melee weapon is not turned by the hand. It points along the arm's flat heading, tipped up 35 degrees
+     (`WeaponHolder.Pose`, last branch), with its grip at the palm point. The swing spins it round that point while
+     the hand stays still. So the handle never lines up with the fist.
+  2. The fingers never close on melee. `GripCurl` only works while `_grip` is above 0, and that happens only for a
+     gun held by the arm or in first person. Melee keeps the Arms-layer clip's hand. (I tried closing it: a small
+     change in `WeaponHolder`. It was not enough on its own.)
+  3. The models are flat and thick. The foam hand is 6.7 cm thick and 48 cm wide at the cuff, so a closed fist can't
+     go round it. The knife's handle is 3.4 cm thick. Any hand point inside reads about half that thickness, so the
+     depth hardly moves until no point is inside.
+- **What the sweeps found** (probe at `%TEMP%\shiftjam-stage\weapons\melee\`, logs and stills there). Finger bend,
+  turn in the hand and small slides (up to 4 cm) change nothing: worst 3.2 to 3.5 cm and 1.6 to 1.8 cm. Large slides
+  get 0 cm, but only by taking the weapon out of the hand. The foam (slid 8 cm up and 11 cm forward) floats above
+  the fist. The knife (7 cm sideways, 7 cm back) goes behind the wrist with its ring in the belly. Sheet:
+  `docs/stills/melee_holds.jpg` (local only, docs/stills is git-ignored; the knife's two pictures are from opposite sides).
+- **His call / next (needs a plan and his proceed, it is code):** hold melee in the fist like the guns. The handle
+  runs through the fist (`FistTurn`) with the fingers closed by the weapon's own `GripCurl`, and the swing turns the
+  arm and wrist instead of spinning the weapon round the palm. Then fit Hand / GripCurl with the same probe. The foam
+  finger may need its own idea (worn on the hand, the fist hidden inside the cuff), because no fist closes round 6.7 cm.
+- Not played. Checks not re-run: nothing changed.
+
 ## 19 Nov 2026 12:3x — THE HANDS ON THE GUNS: LESS CLIPPING, AND THE GUN HAND SHOWS WHEN AIMED (D-0078) — NOT PLAYED
 His words: "i couldnt see the hand holding either pistol or smg" (his play of 17 Nov, which was before D-0074 put
 arms in first person at all) and "some of the hands and clothing clip into the gun slightly" (the first-person

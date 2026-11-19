@@ -41,7 +41,9 @@ namespace ShiftJam
                 rb.collisionDetectionMode = loose ? CollisionDetectionMode.ContinuousDynamic : CollisionDetectionMode.Discrete;
             }
             var cols = GetComponentsInChildren<Collider>(true);
-            if (loose && cols.Length == 0)
+            bool anyUsable = false;
+            foreach (var c in cols) if (Usable(c)) { anyUsable = true; break; }
+            if (loose && !anyUsable)
             {
                 var box = gameObject.AddComponent<BoxCollider>();
                 var rs = GetComponentsInChildren<Renderer>();
@@ -53,12 +55,16 @@ namespace ShiftJam
                     Vector3 ls = transform.lossyScale;
                     box.size = new Vector3(b.size.x / Mathf.Max(1e-4f, ls.x), b.size.y / Mathf.Max(1e-4f, ls.y), b.size.z / Mathf.Max(1e-4f, ls.z));
                 }
-                cols = new Collider[] { box };
+                cols = GetComponentsInChildren<Collider>(true);
             }
-            foreach (var c in cols) c.enabled = loose;
+            foreach (var c in cols) c.enabled = loose && Usable(c);
             var pickup = GetComponent<WeaponPickup>();
             if (loose && pickup == null) { pickup = gameObject.AddComponent<WeaponPickup>(); pickup.Offer(GetComponent<Weapon>()); }
             if (pickup != null) pickup.enabled = loose;
         }
+
+        /// <summary>A concave mesh collider cannot be on a moving body (Unity logs an error and ignores it), and a pack
+        /// model can carry one (the Foam Finger's does). It stays off; the weapon's own box is what lands.</summary>
+        private static bool Usable(Collider c) => !(c is MeshCollider mesh && !mesh.convex);
     }
 }

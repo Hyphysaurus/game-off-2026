@@ -246,6 +246,7 @@ namespace ShiftJam
             ruler.AddComponent<Carried>();   // kid-only pick-up prompt
             // core B: shrink, on the table, near the south edge
             var coreB = Core("CoreB_Shrink", r4, new Vector3(tb.center.x - 20f, tb.max.y + 2.5f, tb.min.z + 10f), ShiftSource.Mode.ShrinkOnly, coreMat, false);
+            Set(coreB.GetComponent<ShiftSource>(), "standWithin", CoreStandWithin);   // used from the desk only, so the toy goes down the ruler ramps (D-0087)
             Checkpoint("CP_table", r4, new Vector3(tb.center.x, tb.max.y + 3f, tb.center.z), new Vector3(tb.size.x - 4f, 6f, tb.size.z - 4f), ShiftSize.Toy);
 
             // --- Toy Army (NE): a sandbag maze with core A in the middle

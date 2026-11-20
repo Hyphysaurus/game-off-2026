@@ -17,6 +17,7 @@ namespace ShiftJam
     ///   between them.
     /// - R2: the shelf switch takes a shot (a Damageable) and moves off the shelf to the bare wall just past it, where a
     ///   toy on the floor can see it; a dart pistol on its stand at the foot of the step books.
+    /// - R4: core B is used only from the desk top (D-0087), so the toy goes down the desk by the three ruler ramps.
     /// - R6: core D is used only from the sill, so the toy is shrunk at the goal and not on the floor 41 below it.
     /// - The end card's second choice: the playroom (the Workshop).
     /// Batch: -executeMethod ShiftJam.CourseBuilder.LandSlice (-nographics is fine). Greybox saved.
@@ -41,6 +42,12 @@ namespace ShiftJam
             SliceBedroom(room);
             Physics.SyncTransforms();
             SliceSwitch(room);
+
+            // R4, core B (D-0087): used only from the desk top, as the bed core and core D are: from the floor beside the desk the
+            // kid made the toy on the floor and the desk's way down (the three ruler ramps) was skipped.
+            var coreB = GameObject.Find("Room/Course/R4_Playroom/CoreB_Shrink");
+            if (coreB != null) { Set(coreB.GetComponent<ShiftSource>(), "standWithin", CoreStandWithin); Log.AppendLine($"R4: core B at {coreB.transform.position} used from the desk only (within {CoreStandWithin})"); }
+            else Log.AppendLine("R4: NO CoreB_Shrink");
 
             var coreD = GameObject.Find("Room/Course/R6_Window/CoreD_Window");
             if (coreD != null) { Set(coreD.GetComponent<ShiftSource>(), "standWithin", CoreStandWithin); Log.AppendLine($"R6: core D at {coreD.transform.position} used from the sill only (within {CoreStandWithin})"); }

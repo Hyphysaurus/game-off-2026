@@ -33,6 +33,7 @@ namespace ShiftJam
 
         private struct Fall { public Transform t; public Vector3 point; public Vector3 axis; public float angle; public float delay; public float seconds; public float turned; public bool wall; public bool landed; }
         private readonly List<Fall> _falls = new List<Fall>();
+        private readonly List<Collider> _turnedOff = new List<Collider>();
         private float _elapsed;
 
         public bool Burst { get; private set; }
@@ -106,7 +107,8 @@ namespace ShiftJam
 
         private static Vector3 Flat(Vector3 v) { v.y = 0f; return v.sqrMagnitude < 0.0001f ? Vector3.zero : v.normalized; }
         private static float Along(Vector3 extents, Vector3 dir) => Mathf.Abs(extents.x * dir.x) + Mathf.Abs(extents.z * dir.z);
-        private static void Off(Transform t) { foreach (var c in t.GetComponentsInChildren<Collider>()) c.enabled = false; }
+        /// <summary>Out of the physics while it swings (Update turns it back on once every piece has landed).</summary>
+        private void Off(Transform t) { foreach (var c in t.GetComponentsInChildren<Collider>()) if (c.enabled) { c.enabled = false; _turnedOff.Add(c); } }
 
         /// <summary>The piece's own board: its renderer, or a child named "Mesh" when the piece is an unscaled hinge
         /// (walls are: a stretched cube must never be a parent, or folding children skew, 5 Nov).</summary>
@@ -149,7 +151,12 @@ namespace ShiftJam
                 _falls[i] = f;
                 if (k < 1f) done = false;
             }
-            if (done) _falls.Clear();
+            if (!done) return;
+            // Every piece is down: solid again, so the flattened box is something to walk and drive on (19 Nov, his play:
+            // the player and the toy car went through it). They were off only so a swinging wall could not shove anyone.
+            foreach (var c in _turnedOff) if (c != null) c.enabled = true;
+            _turnedOff.Clear();
+            _falls.Clear();
         }
 
         private void Landed(Transform wall)

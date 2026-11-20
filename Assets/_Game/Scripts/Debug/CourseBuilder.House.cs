@@ -418,6 +418,22 @@ namespace ShiftJam
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
         }
 
+        /// <summary>A trigger column standing on a core, up to a kid's chest: the Interactor ranks what is in reach by how near
+        /// it comes to the chest, and on the desk the computer (a tall thing) beat core B (5 high) from every spot a kid can
+        /// stand on (walk check 20 Nov, D-0093). The column makes the core as near as the computer is; darts, soldiers'
+        /// sight and the player's capsule all pass through triggers.</summary>
+        static void ReachColumn(GameObject core, float height)
+        {
+            if (core == null) return;
+            var old = core.transform.Find("ReachColumn"); if (old != null) Object.DestroyImmediate(old.gameObject);
+            var col = new GameObject("ReachColumn"); col.transform.SetParent(core.transform, false);
+            col.transform.position = core.transform.position; col.transform.rotation = Quaternion.identity;
+            var box = col.AddComponent<BoxCollider>(); box.isTrigger = true;
+            Vector3 s = col.transform.lossyScale;
+            box.size = new Vector3(5f / Mathf.Max(1e-4f, s.x), height / Mathf.Max(1e-4f, s.y), 5f / Mathf.Max(1e-4f, s.z));
+            box.center = new Vector3(0f, height / 2f / Mathf.Max(1e-4f, s.y), 0f);
+        }
+
         public static void LandHouse()
         {
             Log.Clear();
@@ -433,6 +449,7 @@ namespace ShiftJam
             Transform r3Start = BuildHallway(r3, dark, glowMat);
             WireLane(r3, r3Start, r4, entry);
             var stand = GameObject.Find("Room/Bedroom/PistolStand"); if (stand != null) { Object.DestroyImmediate(stand); Log.AppendLine("R2: the bedroom pistol stand taken out"); }
+            var coreB = r4.Find("CoreB_Shrink"); if (coreB != null) { ReachColumn(coreB.gameObject, 28f); Log.AppendLine("R4: core B has its reach column (28 up)"); }   // D-0093
             var taken = PlayroomDoors(r4);
             ArmoryCorner(r4, taken);   // D-0092
             LightRooms();

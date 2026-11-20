@@ -17,7 +17,9 @@ namespace ShiftJam
         [SerializeField, Tooltip("Height of the search centre above the feet, at kid size.")] private float height = 0.9f;
         [SerializeField] private LayerMask mask = ~0;
 
-        private readonly Collider[] _hits = new Collider[64];   // 24 filled up beside the desk (its keyboard is 20 keys) and core B went unseen (D-0081)
+        // 24 filled up beside the desk (its keyboard is 20 keys) and core B went unseen (D-0081); on the desk top a kid's search
+        // holds 72 and core B came 67th, past 64 (walk check 20 Nov, D-0093)
+        private readonly Collider[] _hits = new Collider[128];
 
         public Shifter Shifter => shifter;
         public IInteractable Target { get; private set; }

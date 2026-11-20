@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 namespace ShiftJam
 {
     /// <summary>
-    /// The playroom's one weapons beat (D-0081). A dart pistol on its stand by the toy's arrival (the mouse hole by the
+    /// The playroom's one weapons beat (D-0082). A dart pistol on its stand by the toy's arrival (the mouse hole by the
     /// Hoop), and four toy soldiers standing guard in the Toy Army's sandbag maze between the toy and core A: one at each
     /// turn of the walk round the rings and one by the core. They are the Workshop's ToySoldier piece as it is (sight
     /// cone, fire, tip over when knocked out, up again at their post). The sandbags (2 high) are cover: a soldier's eye
@@ -145,18 +145,18 @@ namespace ShiftJam
             Log.AppendLine("army beat: NO FREE SPOT for " + go.name + ", left at " + want);
         }
 
-        /// <summary>Batch: -executeMethod ShiftJam.CourseBuilder.LandArmyBeat (-nographics is fine). D-0081 without a full
+        /// <summary>Batch: -executeMethod ShiftJam.CourseBuilder.LandArmyBeat (-nographics is fine). D-0082 without a full
         /// course rebuild: the soldiers, the pistol stand, the ammo box and the player's WeaponHolder in Greybox, saved.</summary>
         public static void LandArmyBeat()
         {
             Log.Clear();
             EditorSceneManager.OpenScene(ScenePath);
             var r4 = GameObject.Find("Room/Course/R4_Playroom");
-            if (r4 == null) { Debug.LogError("D-0081: no Room/Course/R4_Playroom in " + ScenePath); EditorApplication.Exit(1); return; }
+            if (r4 == null) { Debug.LogError("D-0082: no Room/Course/R4_Playroom in " + ScenePath); EditorApplication.Exit(1); return; }
             ArmyBeat(r4.transform);
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
             AssetDatabase.SaveAssets();
-            Debug.Log("D-0081 LANDED\n" + Log);
+            Debug.Log("D-0082 LANDED\n" + Log);
         }
     }
 }

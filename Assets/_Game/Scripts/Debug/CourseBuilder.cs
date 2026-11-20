@@ -70,7 +70,7 @@ namespace ShiftJam
             WireWardrobe(r4, r5, r5Start, wardrobeFront);
             PuzzleCues();
             PlaceRides(course);
-            ArmyBeat(r4);   // the weapons beat (D-0081), last: it places round what stands
+            ArmyBeat(r4);   // the weapons beat (D-0082), last: it places round what stands
             EditorSceneManager.MarkAllScenesDirty();
             Log.AppendLine("built");
         }
@@ -614,6 +614,11 @@ namespace ShiftJam
             Cube("Shelf_" + shelfY[1], r5, c + new Vector3(0, shelfY[1] - 1f, hd * 0.75f), new Vector3(hw * 2, 2f, hd / 2f), wood);         // back half only: open air above shelf 1's front
             // flight 0: floor -> shelf 1, running +x along the back wall from the left
             BookStairs(r5, c + new Vector3(-hw + 6f, 0, hd * 0.5f), Vector3.right, 0f, shelfY[0], "Flight0");
+            {   // shelf 1 covers the back half (z 0..+60): a flight laid along the back wall ran UNDER it, and its top books met the
+                // shelf's underside, not its top. It stands in front of the shelf's edge instead, so its top book (40) meets the
+                // shelf's top (walk check 19 Nov, D-0081)
+                var flight = r5.Find("Flight0"); flight.position += Vector3.forward * ((c.z - 0.05f) - B(flight.gameObject).max.z);
+            }
             // flight 1 is a trampoline: a pillow on shelf 1's open front, just in front of the lip of shelf 2 (z +30); drift back in
             // the air to land on it. It stood at z +12: 18 to drift once over the lip, and the toy drifts about 14 at a sprint
             // (sprint 8 since D-0039) in the time it is above shelf 2, so it fell short every time (walk check 19 Nov, D-0081).

@@ -197,3 +197,8 @@ Logs/
 # LLMUnity downloads its runtime libraries here (3.9 GB on 20 Nov)
 /Assets/StreamingAssets/LlamaLib*
 /Assets/StreamingAssets/LlamaLib*.meta
+# Plugin-made files (DOTween setup writes its settings here; the StreamingAssets folder stub comes with LLMUnity)
+/Assets/Resources/DOTweenSettings.asset
+/Assets/Resources/DOTweenSettings.asset.meta
+/Assets/Resources.meta
+/Assets/StreamingAssets.meta

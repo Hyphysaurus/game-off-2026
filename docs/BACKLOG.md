@@ -25,7 +25,11 @@ The jam entry (submit 30 Nov) is a snapshot of this, not the end of it. One buil
    (Goblin's climbing reused), the toy tank (drive + foam balls), the claw machine (kid plays it / toy rides the claw),
    bouncy / sticky paint, the kid's gun as a toy's turret, D-0072 rifle / sniper / bubbles, a boss (truck or
    helicopter at kid scale).
-6. After the jam: the whole house and a backyard.
+6. After the jam: the whole house and a backyard. The project goes on past the jam; nearly everything in the pack
+   inventory below is going in (his word, 20 Nov).
+7. Later, past the jam: a room-decorating minigame, the player furnishing their own room from the modular packs
+   (Cute Furniture, Christmas, Playroom). Head start: the game already has a build mode (`Scripts/Build/`: placing,
+   moving, outlines, catalog, history/undo, layouts).
 
 
 ## What the packs give us (inventory 20 Nov 2026, read from the files; nothing placed yet)

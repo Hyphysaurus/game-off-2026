@@ -27,6 +27,26 @@ The jam entry (submit 30 Nov) is a snapshot of this, not the end of it. One buil
    helicopter at kid scale).
 6. After the jam: the whole house and a backyard.
 
+
+## What the packs give us (inventory 20 Nov 2026, read from the files; nothing placed yet)
+- Easy (existing systems, mostly data / placement): music for the course from Claw Machine (4 tracks) and Playroom;
+  kid melee from Weapons_FREE (baseball bat, hockey stick) as WeaponSpec rows (melee hold fix first); Battle Stadium
+  inflatables (arches, bouncy shapes) as bounce pads like the pillow (PillowPad); Fraggo breakables (plates, cups, food);
+  Feel feedbacks on our events (Feel is installed, no game script calls it); Polygon Arsenal FX for the hookshot line,
+  zip line and glide.
+- Medium: the playable claw machine (own scripts and input: map to ours); the toy train on Railway pieces (the Playroom
+  pack's SplineSpeed follows a spline); pets from Animals_FREE (dog, kitty) walking the house, a hazard at toy size and
+  harmless at kid size, patrolled with Battle Stadium's patrol / spline-patrol scripts; a chess board as a toy-scale
+  arena (Chess_Pack_Free); Battle Stadium's obstacle kit (ladder, jump, teleport obstacles, bonus items) for ideas and
+  props; Arcade Bike Physics (Ash Assets) as a ridable bike.
+- The whole house (after the jam): Cute_Furniture_Free (bathroom, kitchen, bedroom, PC corner) and Christmas_Pack_FREE
+  (living room with fireplace, kitchen, doors); Food_Free for a kitchen counter at toy scale. The backyard / street:
+  Cartoon_City_Free, Animals_FREE (chicken, horse, deer), Fantasy_FREE trees.
+- Later: Creative_Characters_FREE's customiser (outfits for the toy); Battle Stadium tanks (roadmap).
+- Off-theme or a style clash: Apocalypse_Free (survivor car, characters), Synty POLYGON Generic / Starter (Synty style,
+  keep the ithappy look). The free ithappy packs ship Built-In demo scenes and a Render_Pipeline_Convert folder: check
+  their materials draw in URP before using them.
+
 ## Week 1 (to 10 Nov): the loop works end to end
 1. His first walk of the course with docs/PLAYTEST.md; my fixes to the builder from his notes (re-run, re-walk).
 2. Mine: Hazard on the pins (done 3 Nov evening, lands on the next builder run), a visible checkpoint marker (a small

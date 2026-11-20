@@ -156,3 +156,40 @@ Logs/
 
 # the play log's detail files and note stills, one set per play (PlayLog.cs); the rows are in docs/PLAYLOG.md
 /Playtests/
+# Packs added 19-20 Nov (Asset Store EULA / their own licences: no redistribution; LLMUnity can hold model files)
+**/ARTnGAME/
+**/ARTnGAME.meta
+**/Amazing Assets/
+**/Amazing Assets.meta
+**/Animation Workbench/
+**/Animation Workbench.meta
+/Assets/Gizmos/
+/Assets/Gizmos.meta
+**/LLMUnity/
+**/LLMUnity.meta
+**/MudBun/
+**/MudBun.meta
+/Assets/Plugins/
+/Assets/Plugins.meta
+**/Procedural Worlds/
+**/Procedural Worlds.meta
+**/SnowStarGames/
+**/SnowStarGames.meta
+**/Tiny Giant Studio/
+**/Tiny Giant Studio.meta
+# Coming in: Staggart (Spline Mesher Pro, Stylized Water 3) and Distant Lands (COZY)
+**/Staggart Creations/
+**/Staggart Creations.meta
+**/StylizedWater3/
+**/StylizedWater3.meta
+**/Stylized Water 3/
+**/Stylized Water 3.meta
+**/Distant Lands/
+**/Distant Lands.meta
+# Embedded Asset Store packages (no redistribution)
+/Packages/com.febucci.text-animator-unity/
+/Packages/com.heath.lattice/
+/Packages/com.jbooth.microsplat.core/
+/Packages/xyz.staggart-creations.splinemesher-pro/
+/Packages/com.staggart.*/
+/Packages/xyz.staggart-creations.*/

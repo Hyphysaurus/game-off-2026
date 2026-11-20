@@ -66,27 +66,20 @@ namespace ShiftJam
             BuildExpressway(r4);   // the raised loop round the room (D-0048), after everything it has to route round is standing
 
             // ---- portals between rooms ----
-            // bedroom toy door -> R3 start (replace the old Goal with a Portal)
-            var toyGoal = GameObject.Find("Room/Bedroom/Goal");
-            if (toyGoal != null)
-            {
-                var g = toyGoal.GetComponent<Goal>(); if (g != null) Object.DestroyImmediate(g);
-                var p = toyGoal.GetComponent<Portal>() ?? toyGoal.AddComponent<Portal>();
-                Set(p, "target", r3Start); Set(p, "requiredSize", (int)ShiftSize.Toy);
-                Log.AppendLine("toy door -> R3");
-            }
-            // R3 end -> R4 entry
-            var laneExit = r3.Find("ExitPortal"); if (laneExit != null) Set(laneExit.GetComponent<Portal>(), "target", r4Entry);
-            // ...and the first time through, the playroom reveal plays (D-0023)
-            var reveal = r4.Find("Reveal"); if (laneExit != null && reveal != null)
-            {
-                var pso = new SerializedObject(laneExit.GetComponent<Portal>()); var calls = pso.FindProperty("onUsed.m_PersistentCalls.m_Calls");
-                calls.arraySize = 1; Listener(calls.GetArrayElementAtIndex(0), reveal.GetComponent<RoomReveal>(), typeof(RoomReveal).AssemblyQualifiedName, "Play"); pso.ApplyModifiedPropertiesWithoutUndo();
-                Log.AppendLine("lane exit -> playroom reveal");
-            }
-            // R4 hole under the wardrobe -> R5 start
+            WireLane(r3, r3Start, r4, r4Entry);
+            WireWardrobe(r4, r5, r5Start, wardrobeFront);
+            PuzzleCues();
+            PlaceRides(course);
+            ArmyBeat(r4);   // the weapons beat (D-0081), last: it places round what stands
+            EditorSceneManager.MarkAllScenesDirty();
+            Log.AppendLine("built");
+        }
+
+        /// <summary>The wardrobe's two doors: the hole under it (R4) to R5's start, and R5's top (kid) to the wardrobe's front in
+        /// R4, opening the wardrobe's doors as it is used.</summary>
+        static void WireWardrobe(Transform r4, Transform r5, Transform r5Start, Transform wardrobeFront)
+        {
             var hole = r4.Find("WardrobeHole"); if (hole != null) Set(hole.GetComponent<Portal>(), "target", r5Start);
-            // R5 top -> R4 in front of the wardrobe (kid), opening the wardrobe doors
             var top = r5.Find("TopPortal");
             if (top != null)
             {
@@ -97,10 +90,27 @@ namespace ShiftJam
                 so.ApplyModifiedPropertiesWithoutUndo();
                 Log.AppendLine("R5 top -> wardrobe front, opens " + doors.Length + " doors");
             }
-            PuzzleCues();
-            PlaceRides(course);
-            EditorSceneManager.MarkAllScenesDirty();
-            Log.AppendLine("built");
+        }
+
+        /// <summary>The lane's two doors: the bedroom's toy door (its old Goal becomes a Portal) to the lane's start, the
+        /// lane's exit to the playroom entry, and the first time through the exit the playroom reveal plays (D-0023).</summary>
+        static void WireLane(Transform r3, Transform r3Start, Transform r4, Transform r4Entry)
+        {
+            var toyGoal = GameObject.Find("Room/Bedroom/Goal");
+            if (toyGoal != null)
+            {
+                var g = toyGoal.GetComponent<Goal>(); if (g != null) Object.DestroyImmediate(g);
+                var p = toyGoal.GetComponent<Portal>() ?? toyGoal.AddComponent<Portal>();
+                Set(p, "target", r3Start); Set(p, "requiredSize", (int)ShiftSize.Toy);
+                Log.AppendLine("toy door -> R3");
+            }
+            var laneExit = r3.Find("ExitPortal"); if (laneExit != null) Set(laneExit.GetComponent<Portal>(), "target", r4Entry);
+            var reveal = r4.Find("Reveal"); if (laneExit != null && reveal != null)
+            {
+                var pso = new SerializedObject(laneExit.GetComponent<Portal>()); var calls = pso.FindProperty("onUsed.m_PersistentCalls.m_Calls");
+                calls.arraySize = 1; Listener(calls.GetArrayElementAtIndex(0), reveal.GetComponent<RoomReveal>(), typeof(RoomReveal).AssemblyQualifiedName, "Play"); pso.ApplyModifiedPropertiesWithoutUndo();
+                Log.AppendLine("lane exit -> playroom reveal");
+            }
         }
 
         // =====================================================================================
@@ -109,8 +119,10 @@ namespace ShiftJam
         {
             float z = LaneZ, w = 20f, h = 14f;
             float x0 = LaneX0, x1 = LaneX1;
-            // floor in pieces, leaving two pits: 38..72 (pencil bridge) and 100..103.5 (hop) and 230..234.5 (sprint)
-            float[][] floors = { new[] { x0, 38f }, new[] { 72f, 100f }, new[] { 103.5f, 230f }, new[] { 234.5f, x1 } };
+            // floor in pieces, leaving three pits: 38..72 (pencil bridge), 100..103.5 (hop) and 229..234.5 (sprint). The sprint gap is
+            // 5.5: the toy jumps 4.4 at a walk and 6.4 at a sprint (jump 2.0, walk 5.5, sprint 8), so it needs Shift; at 4.5 a
+            // walking jump made it (walk check 19 Nov, D-0081)
+            float[][] floors = { new[] { x0, 38f }, new[] { 72f, 100f }, new[] { 103.5f, 229f }, new[] { 234.5f, x1 } };
             foreach (var f in floors) Cube("Floor", r3, new Vector3((f[0] + f[1]) / 2f, -0.5f, z), new Vector3(f[1] - f[0], 1f, w), dark);
             Cube("PitFloor", r3, new Vector3((x0 + x1) / 2f, -25f, z), new Vector3(x1 - x0, 1f, w), dark);   // 24 down: a fall past 14 = respawn
             Cube("WallN", r3, new Vector3((x0 + x1) / 2f, h / 2f, z + w / 2f + 0.5f), new Vector3(x1 - x0, h + 26f, 1f), dark);
@@ -123,24 +135,32 @@ namespace ShiftJam
 
             // 1. pencil bridge over the first pit: five pencils end to end (7 long each) at the lane's centre line
             for (int i = 0; i < 5; i++) Rest(Spawn("Pencil_01", "Pencil_" + i, r3, new Vector3(37f + 3.5f + i * 7f, 0f, z), new Vector3(0, 90, 0), 1f), 0f, null);
-            // 2. hop gap at 100..103.5, then a checkpoint
-            Checkpoint("CP_afterHop", r3, new Vector3(112f, 2f, z), new Vector3(6f, 4f, w));
+            // 2. hop gap at 100..103.5, then a checkpoint on the landing strip (the book stairs start after it, at 112: they
+            //    started at the gap's far edge, so the hop landed on a book 2 high and fell back in: walk check 19 Nov, D-0081)
+            Checkpoint("CP_afterHop", r3, new Vector3(107f, 2f, z), new Vector3(6f, 4f, w));
             // 3. book stairs up onto a 12-high box (ten risers of 1.2 on 2.4-deep treads: easy hops, 5 Nov his "can't climb"),
             //    then a 12 drop off the far side (under the 14 fall rule)
             var box = Rest(Spawn("Cardboard_Box_06", "StepBox", r3, new Vector3(142f, 0f, z), Vector3.zero, 1f), 0f, null);
             float boxTop = B(box).max.y;
-            BookStairs(r3, new Vector3(B(box).min.x - 10f * 2.4f, 0f, z), Vector3.right, 0f, boxTop, "UpStairs");
+            int stairBooks = Mathf.CeilToInt(boxTop / 1.2f);   // BookStairs' own count: books 0..n, the last one against the box
+            box.transform.position += Vector3.right * ((112f + (stairBooks + 0.5f) * 2.4f) - B(box).min.x);
+            BookStairs(r3, new Vector3(B(box).min.x - (stairBooks + 0.5f) * 2.4f + 1.2f, 0f, z), Vector3.right, 0f, boxTop, "UpStairs");
+            {   // the books are long (they lie along the lane): slide the box and the stairs on together so the first book starts at
+                // 110, leaving the hop's landing (103.5..110) clear floor with its checkpoint
+                var stairs = r3.Find("UpStairs"); float lead = 110f - B(stairs.gameObject).min.x;
+                stairs.position += Vector3.right * lead; box.transform.position += Vector3.right * lead;
+            }
             // 4. three pins standing in the lane, walk between them (no hazard yet: dressing + a squeeze)
             foreach (float px in new[] { 180f, 190f, 200f })
             {
                 var pin = Rest(Spawn("Pin_01", "Pin", r3, new Vector3(px, 0f, z + ((px / 10f) % 2 == 0 ? 3f : -3f)), new Vector3(-90, 0, 0), 1f), 0f, null);
                 var hz = Trigger("Hazard", pin.transform, B(pin).center, new Vector3(1.6f, B(pin).size.y, 1.6f)); hz.AddComponent<Hazard>();
             }
-            // 5. sprint gap 230..234.5 with a checkpoint before and after
+            // 5. sprint gap 229..234.5 with a checkpoint before and after
             Checkpoint("CP_beforeSprint", r3, new Vector3(222f, 2f, z), new Vector3(6f, 4f, w));
             Checkpoint("CP_afterSprint", r3, new Vector3(244f, 2f, z), new Vector3(6f, 4f, w));
             // dressing: a lantern, chalk, a leaning CD, clips
-            Rest(Spawn("Night_Lamp_02", "Lantern", r3, new Vector3(160f, 0f, z + 6f), Vector3.zero, 1f), 0f, null);
+            Rest(Spawn("Night_Lamp_02", "Lantern", r3, new Vector3(170f, 0f, z + 6f), Vector3.zero, 1f), 0f, null);   // past the step box (moved east, D-0081)
             Rest(Spawn("Chalk_01", "Chalk", r3, new Vector3(20f, 0f, z - 6f), new Vector3(0, 30, 0), 1f), 0f, null);
             Rest(Spawn("Clip_01", "Clip", r3, new Vector3(115f, 0f, z + 7f), new Vector3(0, 70, 0), 1f), 0f, null);
             Rest(Spawn("Clip_02", "Clip2", r3, new Vector3(260f, 0f, z - 7f), new Vector3(0, 20, 0), 1f), 0f, null);
@@ -594,8 +614,11 @@ namespace ShiftJam
             Cube("Shelf_" + shelfY[1], r5, c + new Vector3(0, shelfY[1] - 1f, hd * 0.75f), new Vector3(hw * 2, 2f, hd / 2f), wood);         // back half only: open air above shelf 1's front
             // flight 0: floor -> shelf 1, running +x along the back wall from the left
             BookStairs(r5, c + new Vector3(-hw + 6f, 0, hd * 0.5f), Vector3.right, 0f, shelfY[0], "Flight0");
-            // flight 1 is a trampoline: a pillow on shelf 1's open front, under the lip of shelf 2; drift back in the air to land on it
-            var pillow = Rest(Spawn("Pillow_01", "Trampoline", r5, c + new Vector3(hw - 30f, 0, hd * 0.2f), new Vector3(0, 10, 0), 1f), shelfY[0], null);
+            // flight 1 is a trampoline: a pillow on shelf 1's open front, just in front of the lip of shelf 2 (z +30); drift back in
+            // the air to land on it. It stood at z +12: 18 to drift once over the lip, and the toy drifts about 14 at a sprint
+            // (sprint 8 since D-0039) in the time it is above shelf 2, so it fell short every time (walk check 19 Nov, D-0081).
+            // At +21 it is about 8: a walk makes it.
+            var pillow = Rest(Spawn("Pillow_01", "Trampoline", r5, c + new Vector3(hw - 30f, 0, hd * 0.35f), new Vector3(0, 10, 0), 1f), shelfY[0], null);
             PillowPad(pillow, (shelfY[1] - B(pillow).max.y) + 10f);
             Checkpoint("CP_shelf" + shelfY[0], r5, c + new Vector3(0, shelfY[0] + 2f, hd * 0.5f), new Vector3(hw * 2 - 10f, 4f, hd - 4f), ShiftSize.Toy);
             Checkpoint("CP_shelf" + shelfY[1], r5, c + new Vector3(0, shelfY[1] + 2f, hd * 0.75f), new Vector3(hw * 2 - 10f, 4f, hd / 2f - 4f), ShiftSize.Toy);
@@ -610,7 +633,7 @@ namespace ShiftJam
             Rest(torch, shelfY[1], null);
             var mf = torch.GetComponentInChildren<MeshFilter>(); Bounds mb = mf.sharedMesh.bounds;
             var beamGo = new GameObject("Beam"); beamGo.transform.SetParent(torch.transform, false); beamGo.transform.localPosition = new Vector3(mb.center.x, mb.center.y, mb.max.z + 0.4f);
-            var beam = beamGo.AddComponent<Light>(); beam.type = LightType.Spot; beam.spotAngle = 50f; beam.innerSpotAngle = 30f; beam.range = 90f; beam.intensity = 4f; beam.shadows = LightShadows.Soft; beam.enabled = false;
+            var beam = beamGo.AddComponent<Light>(); beam.type = LightType.Spot; beam.spotAngle = 50f; beam.innerSpotAngle = 30f; beam.range = 120f;   // core C is 95 from the beam's start: at 90 the beam never reached it (walk check 19 Nov, D-0081) beam.intensity = 4f; beam.shadows = LightShadows.Soft; beam.enabled = false;
             var carry = torch.AddComponent<Carryable>();
             var fl = torch.AddComponent<Flashlight>(); Set(fl, "beam", beam); Set(fl, "startOn", false); Set(fl, "toyUsesE", false);
             // the push switch: a trigger over the bump with a Safe_Button cap that slides
@@ -749,22 +772,36 @@ namespace ShiftJam
             glow.SetActive(!dormant); sparksGo.SetActive(!dormant); ember.SetActive(dormant);
             return core;
         }
-        /// <summary>A staircase of books from the floor (y0) up to y1 along dir: risers of at most 1.3 (a 2.0 hop with margin), 1.5 along, each book overlapping the last.</summary>
+        /// <summary>A staircase of books from the floor (y0) up to y1 along dir, 2.4 along each: every book's TOP is one even
+        /// riser (at most 1.2) above the last, whatever the book's thickness (the pack's books run 1 to 2.4 thick; set by
+        /// their bottoms the risers came out 0.4 to 2.4, and 2.3 / 2.4 are over the toy's 2.0 jump: walk check 19 Nov, D-0081).
+        /// The last book's top is y1.</summary>
         static void BookStairs(Transform parent, Vector3 from, Vector3 dir, float y0, float y1, string name)
         {
             var holder = Child(parent, name); int n = Mathf.CeilToInt(Mathf.Abs(y1 - y0) / 1.2f); float step = (y1 - y0) / Mathf.Max(1, n);
             string[] books = { "Book_01", "Book_02", "Book_03", "Book_04", "Book_06", "Book_07", "Book_08", "Book_09", "Book_10", "Book_11", "Book_12" };
             float yaw = Quaternion.LookRotation(dir).eulerAngles.y;
+            // The books lie along dir and are longer than a tread, and each title is a different length: every book's BACK end goes
+            // at from + i * 2.4, so each one shows exactly one 2.4 tread before the next begins. Set by their middles, a longer
+            // book reached back over the one before it and the first step was two or three risers high (D-0081).
+            Vector3 along = new Vector3(Mathf.Abs(dir.x), Mathf.Abs(dir.y), Mathf.Abs(dir.z));
             for (int i = 0; i <= n; i++)
             {
                 var b = Spawn(books[i % books.Length], "Book" + i, holder, from + dir * (i * 2.4f), new Vector3(0, yaw, 0), 1f);
+                { var b0 = B(b); float back = Vector3.Dot(b0.center - b0.min, along); float off = Vector3.Dot(b0.center - (from + dir * (i * 2.4f)), dir);
+                  b.transform.position += dir * (back - off); }
                 var bb = B(b);
-                b.transform.position += Vector3.up * ((y0 + i * step) - bb.min.y);
+                float top = y0 + (i + 1) * step;   // book 0's top is one riser up; the book after the last tops out at y1 + step (none)
+                if (i == n) top = y1;
+                b.transform.position += Vector3.up * (top - bb.max.y);
             }
         }
-        static void SandbagRing(Transform parent, Vector3 centre, float half, float gapAngle)
+        /// <summary>A square ring of Army_Sandbags_01 (9 long) with one side's middle piece left out (the gap faces gapAngle:
+        /// 90 = the +x side, 270 = the -x side), <paramref name="layers"/> sandbags high. One sandbag is 1.57 high and the toy
+        /// jumps 2.0 (D-0039), so a ring one sandbag high is hopped: two (3.1) make it a maze again (walk check 19 Nov, D-0081).</summary>
+        static void SandbagRing(Transform parent, Vector3 centre, float half, float gapAngle, int layers = 2)
         {
-            // a square ring of Army_Sandbags_01 (9 long) with one side's middle piece left out (the gap faces gapAngle: 90 = south... pack dir)
+            for (int layer = 0; layer < layers; layer++)
             for (int side = 0; side < 4; side++)
             {
                 float yaw = side * 90f; Vector3 normal = Quaternion.Euler(0, yaw, 0) * Vector3.forward; Vector3 along = Quaternion.Euler(0, yaw, 0) * Vector3.right;
@@ -774,7 +811,8 @@ namespace ShiftJam
                     bool middle = i == pieces / 2;
                     if (middle && Mathf.Abs(Mathf.DeltaAngle(yaw, gapAngle)) < 1f) continue;
                     Vector3 p = centre + normal * half + along * (-half + 4.5f + i * 9f);
-                    Rest(Spawn("Army_Sandbags_01", "Sandbag", parent, p, new Vector3(0, yaw, 0), 1f), centre.y, null);
+                    var bag = Spawn("Army_Sandbags_01", "Sandbag", parent, p, new Vector3(0, yaw, 0), 1f);
+                    Rest(bag, centre.y + layer * B(bag).size.y, null);
                 }
             }
         }

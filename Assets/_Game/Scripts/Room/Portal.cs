@@ -21,7 +21,14 @@ namespace ShiftJam
 
         private void Reset() { GetComponent<Collider>().isTrigger = true; }
 
-        private void OnTriggerEnter(Collider other)
+        private void OnTriggerEnter(Collider other) => TryUse(other);
+
+        /// <summary>Also while inside: a player who becomes the right size in here goes through when the shift ends. The
+        /// wardrobe's top portal is entered by the kid's body growing into it, mid-shift, and Enter alone turned that away
+        /// for good: the kid stayed shut in the wardrobe (walk check 19 Nov, D-0081).</summary>
+        private void OnTriggerStay(Collider other) => TryUse(other);
+
+        private void TryUse(Collider other)
         {
             if (Time.time < _readyAt || target == null) return;
             Shifter shifter = other.GetComponentInParent<Shifter>();

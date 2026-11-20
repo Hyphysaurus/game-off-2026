@@ -17,7 +17,7 @@ namespace ShiftJam
         [SerializeField, Tooltip("Height of the search centre above the feet, at kid size.")] private float height = 0.9f;
         [SerializeField] private LayerMask mask = ~0;
 
-        private readonly Collider[] _hits = new Collider[24];
+        private readonly Collider[] _hits = new Collider[64];   // 24 filled up beside the desk (its keyboard is 20 keys) and core B went unseen (D-0081)
 
         public Shifter Shifter => shifter;
         public IInteractable Target { get; private set; }
@@ -48,7 +48,11 @@ namespace ShiftJam
             float scale = shifter != null ? shifter.Scale : 1f;
             float radius = reach * scale * 0.5f;
             Vector3 centre = transform.position + Vector3.up * (height * scale) + transform.forward * radius;
-            int count = Physics.OverlapSphereNonAlloc(centre, radius, _hits, mask, QueryTriggerInteraction.Collide);
+            // The search runs from the chest sphere down to just over the feet: a ruler or a torch lying flat on the floor
+            // was below a kid's sphere (its bottom is 3.5 above the feet at kid size) and could never be picked up (walk
+            // check 19 Nov, D-0081). The nearest to the chest still wins, so nothing at chest height loses to the floor.
+            Vector3 low = transform.position + Vector3.up * Mathf.Min(height * scale, radius * 0.8f) + transform.forward * radius;   // its bottom just under the floor
+            int count = Physics.OverlapCapsuleNonAlloc(low, centre, radius, _hits, mask, QueryTriggerInteraction.Collide);
 
             IInteractable best = null;
             float bestDistance = float.MaxValue;

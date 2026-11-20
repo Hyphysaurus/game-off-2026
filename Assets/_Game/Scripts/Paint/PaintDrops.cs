@@ -67,7 +67,7 @@ namespace ShiftJam
                 int best = -1;
                 if (distance > 1e-6f)
                 {
-                    int count = Physics.RaycastNonAlloc(drop.Position, step / distance, _hits, distance, _settings.hitMask, QueryTriggerInteraction.Ignore);
+                    int count = Physics.RaycastNonAlloc(drop.Position, step / distance, _hits, distance, Layers.Seen(_settings.hitMask), QueryTriggerInteraction.Ignore);
                     for (int h = 0; h < count; h++)
                     {
                         if (drop.Paint.IsOwner(_hits[h].transform)) continue;

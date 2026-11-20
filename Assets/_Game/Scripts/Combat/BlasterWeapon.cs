@@ -71,7 +71,7 @@ namespace ShiftJam
             Vector3 eye = Holder.AimOrigin, look = Holder.AimForward;
             float skip = Holder.FirstPerson ? 0f : Mathf.Clamp(Vector3.Dot(Holder.AttackOrigin - eye, look), 0f, reach * 0.5f);
             Vector3 target = eye + look * reach;
-            int n = Physics.RaycastNonAlloc(eye + look * skip, look, _hits, reach - skip, aimMask, QueryTriggerInteraction.Ignore);
+            int n = Physics.RaycastNonAlloc(eye + look * skip, look, _hits, reach - skip, Layers.Seen(aimMask), QueryTriggerInteraction.Ignore);
             float nearest = float.MaxValue;
             for (int i = 0; i < n; i++)
             {
@@ -119,7 +119,7 @@ namespace ShiftJam
             float gapLen = gap.magnitude;
             if (gapLen > 1e-4f)
             {
-                int m = Physics.RaycastNonAlloc(chest, gap / gapLen, _hits, gapLen, aimMask, QueryTriggerInteraction.Ignore);
+                int m = Physics.RaycastNonAlloc(chest, gap / gapLen, _hits, gapLen, Layers.Seen(aimMask), QueryTriggerInteraction.Ignore);
                 for (int i = 0; i < m; i++)
                 {
                     if (Holder.IsSelf(_hits[i].transform) || _hits[i].transform.IsChildOf(transform)) continue;

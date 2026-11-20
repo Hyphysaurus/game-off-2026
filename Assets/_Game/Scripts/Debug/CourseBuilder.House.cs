@@ -90,12 +90,12 @@ namespace ShiftJam
             }
             float boxEnd = B(box).max.x;
             Log.AppendLine($"hallway: book stairs from {HallStairs} onto the {boxTop:F1} box, box ends at x {boxEnd:F1}{(boxEnd > 42f ? "  (OVER 42: the flat run before the sprint gap is short)" : "")}");
-            Sign("Sign1_Sprint", r3, new Vector3(HallSprint0 - 12f, 3.2f, zn - 0.15f), Vector3.back, "Too far to jump?\nHold <b>Shift</b> to run, then jump", 7f, 3f);
+            TapeSign("Sign1_Sprint", r3, new Vector3(HallSprint0 - 12f, 3.2f, zn - 0.15f), Vector3.back, "Too far to jump?\nHold <b>Shift</b> to run, then jump", 7f, 3f);
             Checkpoint("CP_beforeSprint", r3, new Vector3(HallSprint0 - 6f, 2f, z), new Vector3(6f, 4f, w));
             Checkpoint("CP_afterSprint", r3, new Vector3(HallSprint1 + 6f, 2f, z), new Vector3(6f, 4f, w));
 
             // ==== lesson 2: darts. The pistol on its stand, an ammo box, skittles that tip over, one soldier that shoots back
-            Sign("Sign2_Darts", r3, new Vector3(HallStand - 5f, 3.2f, zn - 0.15f), Vector3.back, "<b>E</b>  take the dart pistol\n<b>Click</b> shoot   <b>Right click</b> aim   <b>R</b> reload", 8f, 3f);
+            TapeSign("Sign2_Darts", r3, new Vector3(HallStand - 5f, 3.2f, zn - 0.15f), Vector3.back, "<b>E</b>  take the dart pistol\n<b>Click</b> shoot   <b>Right click</b> aim   <b>R</b> reload", 8f, 3f);
             var pistol = AssetDatabase.LoadAssetAtPath<GameObject>(PistolPiece);
             var ammo = AssetDatabase.LoadAssetAtPath<GameObject>(AmmoPiece);
             var skittle = AssetDatabase.LoadAssetAtPath<GameObject>(SkittlePiece);
@@ -115,7 +115,7 @@ namespace ShiftJam
                 }
             }
             else Log.AppendLine("hallway: NO " + SkittlePiece);
-            Sign("Sign2_Soldier", r3, new Vector3(HallCover - 8f, 3.2f, zn - 0.15f), Vector3.back, "This one shoots back.\nIts darts only push you.", 7f, 3f);
+            TapeSign("Sign2_Soldier", r3, new Vector3(HallCover - 8f, 3.2f, zn - 0.15f), Vector3.back, "This one shoots back.\nIts darts only push you.", 7f, 3f);
             var cover = Rest(Spawn("Cardboard_Box_02", "Cover", r3, new Vector3(HallCover, 0f, z + 5f), new Vector3(0, 15, 0), 1f), 0f, null);
             {   // a low wall across the north half of the hallway: at most 8 across and 4 high, the south half left to walk
                 var cb0 = B(cover); float k = Mathf.Min(1f, Mathf.Min(8f / Mathf.Max(0.01f, cb0.size.x), Mathf.Min(8f / Mathf.Max(0.01f, cb0.size.z), 4f / Mathf.Max(0.01f, cb0.size.y))));
@@ -134,7 +134,7 @@ namespace ShiftJam
 
             // ==== lesson 3: the shift charge. A core that only fills it, and F (which the tunnel is too low for)
             Material coreMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/ShiftCore.mat");
-            Sign("Sign3_Charge", r3, new Vector3(HallCore - 6f, 3.4f, zn - 0.15f), Vector3.back, "A core fills your <b>shift charge</b>.\n<b>F</b>  shift anywhere there is room.\nToo low in here: try it.", 8f, 3.6f);
+            TapeSign("Sign3_Charge", r3, new Vector3(HallCore - 6f, 3.4f, zn - 0.15f), Vector3.back, "A core fills your <b>shift charge</b>.\n<b>F</b>  shift anywhere there is room.\nToo low in here: try it.", 8f, 3.6f);
             var charger = Core("ChargeCore", r3, new Vector3(HallCore, 2.5f, z + 5f), ShiftSource.Mode.ChargeOnly, coreMat, false);
             Checkpoint("CP_charge", r3, new Vector3(HallCore - 4f, 2f, z), new Vector3(4f, 4f, w));
             Rest(Spawn("Night_Lamp_02", "Lantern", r3, new Vector3(HallCore + 4f, 0f, z - 6f), Vector3.zero, 1f), 0f, null);
@@ -149,16 +149,16 @@ namespace ShiftJam
                 var hz = Trigger("Hazard", pin.transform, B(pin).center, new Vector3(1.6f, B(pin).size.y, 1.6f)); hz.AddComponent<Hazard>();
             }
 
-            // ==== the tall end: grow (F), up onto the shelf, the shelf's core makes you small, out through the hole
+            // ==== the tall end: grow (F), the switch opens the toy door on the shelf, up onto the shelf, its core makes you small, out through the door
             Checkpoint("CP_tall", r3, new Vector3(HallTall0 + 6f, 2f, z), new Vector3(6f, 4f, w), ShiftSize.Toy);
-            Sign("Sign3_Grow", r3, new Vector3(HallTall0 + 10f, 3.6f, zn - 0.15f), Vector3.back, "Room to grow here.\nStep into the middle and press <b>F</b>.\nUp on the shelf a core makes you small again.", 9f, 3.8f);
-            Sign("Sign3_GrowKid", r3, new Vector3(HallTall0 + 20f, 62f, zn - 0.15f), Vector3.back, "Up on the shelf: the core makes you small.\nThe way out: the glowing hole in the end wall, on the shelf.", 34f, 12f);
+            TapeSign("Sign3_Grow", r3, new Vector3(HallTall0 + 10f, 3.6f, zn - 0.15f), Vector3.back, "Room to grow here.\nStep into the middle and press <b>F</b>.\nUp on the shelf a core makes you small again.", 9f, 3.8f);
+            TapeSign("Sign3_GrowKid", r3, new Vector3(HallTall0 + 20f, 62f, zn - 0.15f), Vector3.back, GrowKidWords, 34f, 12f);
             var shelfCore = Core("CoreE_Shelf", r3, new Vector3((HallShelfX + x1) / 2f - 1f, HallShelfTop + 2.5f, HallShelfCoreZ), ShiftSource.Mode.ShrinkOnly, coreMat, false);
             Set(shelfCore.GetComponent<ShiftSource>(), "standWithin", CoreStandWithin);   // from the shelf only (D-0083): a kid on the floor reaches 60 up
-            Quad("ExitGlow", r3, new Vector3(x1 - 0.1f, HallShelfTop + 3f, HallHoleZ), new Vector3(0, -90, 0), new Vector3(6f, 6f, 1f), glow);
             PointLight("ExitLight", r3, new Vector3(x1 - 6f, HallShelfTop + 4f, HallHoleZ), 20f, 2.5f, new Color(1f, 0.85f, 0.55f));
             var exit = Trigger("ExitPortal", r3, new Vector3(x1 - 2f, HallShelfTop + 3f, HallHoleZ), new Vector3(2f, 6f, 8f));
             var portal = exit.AddComponent<Portal>(); Set(portal, "requiredSize", (int)ShiftSize.Toy);
+            HallExitDoor(r3, exit);   // the bedroom's toy door and switch, again (D-0099)
             var hum = exit.AddComponent<AudioSource>(); hum.clip = Clip("Room_Ambience_Loop_v1"); hum.loop = true; hum.playOnAwake = true; hum.spatialBlend = 1f; hum.rolloffMode = AudioRolloffMode.Linear; hum.minDistance = 4f; hum.maxDistance = 90f; hum.volume = 0.7f;
             Log.AppendLine($"hallway built x {x0}..{x1} at z {z}; tall end x {HallTall0}..{x1}, z {tz0}..{zn}, {th} high; shelf top {HallShelfTop} from x {HallShelfX}; charge core at {charger.transform.position}, shelf core at {shelfCore.transform.position}; exit at the shelf's level");
             return start;
@@ -331,7 +331,8 @@ namespace ShiftJam
                 // the name over the door for a kid, and at a toy's eye beside it
                 // the name over the door for a kid (30 up at least: a toy's door is at a kid's feet), and at a toy's eye beside it
                 float over = Mathf.Max(door.max.y + 7f, 30f);
-                Sign("Sign_Title", holder, new Vector3(door.center.x, over, door.center.z) + inward * (Vector3.Dot(door.extents, new Vector3(Mathf.Abs(inward.x), 0f, Mathf.Abs(inward.z))) + 0.4f), inward, plan.title, Mathf.Max(30f, plan.title.Length * 4f), 9f);
+                var title = Sign("Sign_Title", holder, new Vector3(door.center.x, over, door.center.z) + inward * (Vector3.Dot(door.extents, new Vector3(Mathf.Abs(inward.x), 0f, Mathf.Abs(inward.z))) + 0.4f), inward, plan.title, Mathf.Max(30f, plan.title.Length * 4f), 9f);
+                Physics.SyncTransforms(); ClearOfProps(title, r4, holder);   // the RACEWAY card ran through the hoop (D-0099)
                 float side = Mathf.Abs(Vector3.Dot(door.extents, new Vector3(Mathf.Abs(along.x), 0f, Mathf.Abs(along.z)))) + 3.5f;
                 Sign("Sign_Toy", holder, at + along * side + inward * 0.4f + Vector3.up * 3.2f, inward, plan.title + "\n<b>E</b>  go in", 5f, 2.6f);
                 // its dressing: the room it leads to, in the playroom's own props

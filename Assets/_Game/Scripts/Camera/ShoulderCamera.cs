@@ -308,7 +308,7 @@ namespace ShiftJam
             if (length <= 1e-5f) return 0f;
             float skin = radius * SweepSkin;
             float free = length;
-            int count = Physics.SphereCastNonAlloc(from, radius, direction, _hits, length + skin, collisionMask, QueryTriggerInteraction.Ignore);
+            int count = Physics.SphereCastNonAlloc(from, radius, direction, _hits, length + skin, Layers.Seen(collisionMask), QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
             {
                 if (_hits[i].transform.IsChildOf(target)) continue;
@@ -418,7 +418,7 @@ namespace ShiftJam
             float wanted = _chaseLength * v.distance * (showroom ? _showroomZoom : closer);
             float distance = wanted;
             float probe = Mathf.Max(0.02f, _chaseHeight * 0.12f);
-            int count = Physics.SphereCastNonAlloc(_aim, probe, back, _hits, wanted, collisionMask, QueryTriggerInteraction.Ignore);
+            int count = Physics.SphereCastNonAlloc(_aim, probe, back, _hits, wanted, Layers.Seen(collisionMask), QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
             {
                 var hit = _hits[i];
@@ -443,7 +443,7 @@ namespace ShiftJam
                 Quaternion held = _holdRot * Quaternion.Euler(_pitch, 0f, 0f);
                 Vector3 heldAim = centre + _holdRot * Vector3.up * (_chaseHeight * v.lookHeight), heldBack = held * Vector3.back;
                 float heldDistance = wanted;
-                count = Physics.SphereCastNonAlloc(heldAim, probe, heldBack, _hits, wanted, collisionMask, QueryTriggerInteraction.Ignore);
+                count = Physics.SphereCastNonAlloc(heldAim, probe, heldBack, _hits, wanted, Layers.Seen(collisionMask), QueryTriggerInteraction.Ignore);
                 for (int i = 0; i < count; i++)
                 {
                     var hit = _hits[i];

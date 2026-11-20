@@ -245,7 +245,7 @@ namespace ShiftJam
             float s = Scale;
             Vector3 chest = transform.position + Vector3.up * (chestHeight * s);
             float far = Vector3.Distance(_view.position, chest) + reach * s;
-            int n = Physics.SphereCastNonAlloc(_view.position, 0.12f * s, _view.forward, _hits, far, ~0, QueryTriggerInteraction.Ignore);
+            int n = Physics.SphereCastNonAlloc(_view.position, 0.12f * s, _view.forward, _hits, far, Layers.Seen(~0), QueryTriggerInteraction.Ignore);
             float nearest = float.MaxValue; RaycastHit best = default; bool found = false;
             for (int i = 0; i < n; i++)
             {

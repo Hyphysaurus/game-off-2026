@@ -93,7 +93,7 @@ namespace ShiftJam
                 float distance = step.magnitude;
                 if (distance < 1e-7f) break;
                 Vector3 way = step / distance;
-                int count = Physics.SphereCastNonAlloc(_place, radius, way, Hits, distance, hitMask, QueryTriggerInteraction.Ignore);
+                int count = Physics.SphereCastNonAlloc(_place, radius, way, Hits, distance, Layers.Seen(hitMask), QueryTriggerInteraction.Ignore);
                 int first = -1;
                 for (int h = 0; h < count; h++)
                 {

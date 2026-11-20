@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 20 Nov 2026 11:4x — TITLE ART BIGGER + ON THE END CARD, HALLWAY SIGNS ON TAPE, THE TOY DOOR OUT, NO INVISIBLE WALLS ON SHOTS (D-0099): LANDED IN HIS EDITOR, NOT PLAYED; NOT COMMITTED
+- Compiled outside Unity first, then landed between his plays; the hallway pass ran in his editor and saved Greybox.
+- **Title:** his drawing about 23 % larger on the menu, pops in and breathes; every window shape uses it; on the end card
+  above the words. Icon crops for his pick in `docs/stills/icon_option_*.png` (not set).
+- **Hallway:** all six cards are marker on tape. The way out is the bedroom's puzzle again: a toy door on the shelf (it
+  was hidden behind the playroom's wall, as was the old glow), a kid's switch on the shelf's front (or a dart).
+- **RACEWAY card** slid 24 along the wall, clear of the hoop.
+- **Darts and the camera** no longer stop on the Expressway's 106 invisible guards (layer 9 CarGuard).
+- HIS PLAYTEST: the title (size, pop, breathing: too much?); the tall end from the floor as a kid (is the little door
+  seen? the warm light in front of it), the switch by hand and by a dart, the door opening, the toy through it into the
+  playroom; the tape signs reading (letters pop on as you come near); shooting along the Expressway.
+- OPEN: the icon pick; delete the unused stacked title PNG?; the itch header (not made).
+
 ## 20 Nov 2026 10:1x — THE OPENING (D-0097) AND THE 3D LETTERING SAMPLE (D-0098): BUILT, CHECKED HIDDEN, NOT PLAYED; NOT COMMITTED
 - **The opening (D-0097):** New Game only. Dark, the flaps open, warm light and dust, a tiny shift orb swirls down onto the
   toy and strikes (flash, slow motion, shake), the toy gets up as the camera rises behind it, then the player's camera.

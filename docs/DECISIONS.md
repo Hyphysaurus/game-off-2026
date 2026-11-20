@@ -1912,4 +1912,32 @@
     motion too. The notice fades by a CanvasGroup now (Text Animator owns the letters' colours).
   - **Landed by** `Shift Jam / Text / Land Lettering Sample` (`CourseBuilder.LandLettering`, idempotent), which also put the
     reworded tall-end sign (D-0097) into the scene.
-
+- **D-0099 (20 Nov, 11:4x) His playtest notes: his title drawing bigger and on the end card, marker tape for every hallway
+  sign, the bedroom's toy door and switch as the hallway's way out, the car guards off every shot.**
+  - **Title (TitleArt):** one drawing for every window shape (the old white stacked lettering is no longer used;
+    `Resources/Titles/title_shift_stacked.png` stays on disk until he says delete). Menu box 1500 x 540 (it shows at
+    1160 x 540 on 16:9, was 946 x 440); buttons start at 0.45 and sit closer, the hint moved to the bottom edge. It pops
+    in (springy, 0.55 s) and breathes 1.2 % every 3.6 s, on real time. A narrow window shrinks it to fit. The end card
+    shows it above "You made it to the window" (GameFlow adds it). The start card is not changed: the title menu hides
+    it, so it never shows in Greybox.
+  - **Icon:** two crops in `docs/stills/icon_option_a_emblem.png` (the arrows and spark) and `icon_option_b_whole.png`
+    (the whole word). A reads at 64 px, B does not. Not set as the build's icon: his pick.
+  - **Hallway signs:** every card in R3 is marker on tape (`MarkerSigns`), same place, size and words, tags dropped (3D
+    letters have no bold). Lettering fits to the tape's height too, and "near" is measured across the floor, so the
+    kid's sign 62 up pops on for whoever stands under it.
+  - **The way out:** a copy of the bedroom's toy doorway, door, glow and light against the end face on the shelf (the
+    face is the first wall a ray meets: the playroom's `Wall_W` stands a unit in front of the hallway's own end wall,
+    and it hid the old glowing hole: why he saw no glow), the ExitPortal in the doorway behind the shut door (the
+    bedroom Goal's box, 1.4 x 3 x 0.36, was 2 x 6 x 8), and a copy of the bedroom switch on the shelf's front, 22 up,
+    z -178: the kid presses it, or a dart does. The door's hint reads "Shut. A switch opens it." The kid sign now says
+    so.
+  - **The RACEWAY name card ran through the hoop:** `ClearOfProps` slides a hub door's name along its wall (or up) to the
+    nearest place clear of props. RACEWAY moved 24 along; COLOUR CORNER was clear.
+  - **Invisible walls on shots:** the 106 Expressway guards (collision-only boxes, 2 high, D-0048) are on a new layer
+    9 `CarGuard`. Everything is on Default, so the collision matrix is unchanged (cars and the player still bump them);
+    `Layers.Seen(mask)` leaves the layer out of every aimed or looked-through query: darts and bullets (Projectile,
+    BlasterWeapon aim), grenades (BallFlight), melee sight, toy soldiers' sight, paint drops, the shoulder camera, the
+    grab ray. The other invisible solids found (6 MatBed smooth colliders under visible mats, the supply crate's Solid,
+    ToyCarBall) sit under things that show, so they were left.
+  - **Landed by** `Shift Jam / House / Land Hallway Pass (D-0099)` (`CourseBuilder.LandHallwayPass`, idempotent); the
+    full builders (LandHouse, the Expressway) do the same on a rebuild.

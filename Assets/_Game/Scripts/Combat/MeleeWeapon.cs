@@ -112,7 +112,7 @@ namespace ShiftJam
             Vector3 d = to - from;
             float len = d.magnitude;
             if (len < 1e-4f) return false;
-            int n = Physics.RaycastNonAlloc(from, d / len, _los, len, hitMask, QueryTriggerInteraction.Ignore);
+            int n = Physics.RaycastNonAlloc(from, d / len, _los, len, Layers.Seen(hitMask), QueryTriggerInteraction.Ignore);
             for (int i = 0; i < n; i++)
             {
                 var t = _los[i].transform;

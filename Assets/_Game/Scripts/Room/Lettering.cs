@@ -20,9 +20,10 @@ namespace ShiftJam
         [SerializeField] private Material material;
         [SerializeField, TextArea] private string words = "WORDS";
         [SerializeField, Tooltip("The widest line fills this, in the object's own units.")] private float width = 6f;
+        [SerializeField, Tooltip("The lines together are at most this tall, in the object's own units (0 = only the width counts).")] private float height;
         [SerializeField, Tooltip("Letter depth, as a share of their height.")] private float depth = 0.15f;
         [SerializeField] private Reveal reveal = Reveal.Always;
-        [SerializeField, Tooltip("WhenNear: the player within this many units (world) starts the letters popping on.")] private float nearRange = 14f;
+        [SerializeField, Tooltip("WhenNear: the player within this many units (world, measured across the floor) starts the letters popping on.")] private float nearRange = 14f;
         [SerializeField, Tooltip("Seconds between one letter popping on and the next.")] private float popEach = 0.045f;
         [SerializeField, Tooltip("Seconds one letter takes to pop on.")] private float popTime = 0.28f;
 
@@ -79,6 +80,7 @@ namespace ShiftJam
             // Fit: the letters' bounds in this object's space, scaled to the width and centred on it.
             Bounds b = LocalBounds();
             float s = b.size.x > 0.0001f ? width / b.size.x : 1f;
+            if (height > 0f && b.size.y > 0.0001f) s = Mathf.Min(s, height / b.size.y);   // three lines on a short strip
             _holder.localScale = Vector3.one * s;
             b = LocalBounds();
             _holder.localPosition -= new Vector3(b.center.x, b.center.y, 0f);
@@ -112,7 +114,9 @@ namespace ShiftJam
         {
             if (!_ready || _shown || _tumbled || reveal != Reveal.WhenNear) return;
             if (_player == null) { var p = GameObject.Find("Player"); if (p == null) return; _player = p.transform; }
-            if ((_player.position - transform.position).sqrMagnitude > nearRange * nearRange) return;
+            // across the floor only: a sign high on a wall (the kid's, 62 up) pops on for whoever stands below it too
+            Vector3 d = _player.position - transform.position; d.y = 0f;
+            if (d.sqrMagnitude > nearRange * nearRange) return;
             PopOn();
         }
 

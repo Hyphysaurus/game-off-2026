@@ -216,7 +216,7 @@ namespace ShiftJam
             if (distance < 1e-6f) return;
             Vector3 dir = step / distance;
 
-            int count = Physics.SphereCastNonAlloc(transform.position, radius * _scale, dir, _hits, distance, hitMask, QueryTriggerInteraction.Ignore);
+            int count = Physics.SphereCastNonAlloc(transform.position, radius * _scale, dir, _hits, distance, Layers.Seen(hitMask), QueryTriggerInteraction.Ignore);
             int best = -1;
             for (int i = 0; i < count; i++)
             {

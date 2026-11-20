@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -17,7 +18,7 @@ namespace ShiftJam
         const string LetterFonts = "Assets/Plugins/Tiny Giant Studio/Modular 3D Text/Fonts/";
         const string MarkerFont = LetterFonts + "Permanent Marker Regular.asset";
         const string StampFont = LetterFonts + "Bungee.asset";
-        const string GrowKidWords = "Up on the shelf: the core makes you small.\nThe way out: the glowing hole in the end wall, on the shelf.";
+        const string GrowKidWords = "The way out: the little door on the shelf.\nIts switch is on the shelf's front.\nThe core up there makes you small.";
 
         [MenuItem("Shift Jam/Text/Land Lettering Sample")]
         public static void LandLettering()
@@ -49,9 +50,11 @@ namespace ShiftJam
             Debug.Log("D-0098 LETTERING LANDED\n" + Log);
         }
 
-        /// <summary>A sign as a strip of packing tape with marker letters on it, read from <paramref name="toViewer"/>.</summary>
+        /// <summary>A sign as a strip of packing tape with marker letters on it, read from <paramref name="toViewer"/>. Rich
+        /// text tags (the cards' &lt;b&gt;) are dropped: the 3D letters have no bold.</summary>
         static GameObject TapeSign(string name, Transform parent, Vector3 centre, Vector3 toViewer, string words, float width, float height)
         {
+            words = Regex.Replace(words, "<[^>]+>", "");
             toViewer.y = 0f; toViewer.Normalize();
             var root = new GameObject(name); root.transform.SetParent(parent, false);
             root.transform.SetPositionAndRotation(centre, Quaternion.LookRotation(-toViewer));   // read from its -Z side, as the cards
@@ -62,7 +65,7 @@ namespace ShiftJam
             strip.transform.localRotation = Quaternion.Euler(0f, 0f, -1.5f);   // stuck on by hand
             strip.transform.localScale = new Vector3(width * 1.08f, height * 1.05f, 0.05f);
             strip.GetComponent<Renderer>().sharedMaterial = tape;
-            Letters(root.transform, "Lettering", new Vector3(0f, 0f, -0.02f), words, width * 0.9f, MarkerFont, Ink("Assets/_Game/Data/MarkerInk.mat", new Color(0.09f, 0.09f, 0.12f)), Lettering.Reveal.WhenNear, 0.12f);
+            Letters(root.transform, "Lettering", new Vector3(0f, 0f, -0.02f), words, width * 0.9f, MarkerFont, Ink("Assets/_Game/Data/MarkerInk.mat", new Color(0.09f, 0.09f, 0.12f)), Lettering.Reveal.WhenNear, 0.12f, height * 0.85f);
             return root;
         }
 
@@ -90,7 +93,7 @@ namespace ShiftJam
             Log.AppendLine($"{n} stamps in the toy box");
         }
 
-        static void Letters(Transform parent, string name, Vector3 local, string words, float width, string fontPath, Material ink, Lettering.Reveal reveal, float depth)
+        static void Letters(Transform parent, string name, Vector3 local, string words, float width, string fontPath, Material ink, Lettering.Reveal reveal, float depth, float height = 0f)
         {
             var go = new GameObject(name); go.transform.SetParent(parent, false); go.transform.localPosition = local;
             var l = go.AddComponent<Lettering>();
@@ -99,6 +102,7 @@ namespace ShiftJam
             so.FindProperty("material").objectReferenceValue = ink;
             so.FindProperty("words").stringValue = words;
             so.FindProperty("width").floatValue = width;
+            so.FindProperty("height").floatValue = height;
             so.FindProperty("depth").floatValue = depth;
             so.FindProperty("reveal").enumValueIndex = (int)reveal;
             so.ApplyModifiedPropertiesWithoutUndo();

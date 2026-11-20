@@ -383,7 +383,7 @@ namespace ShiftJam
             float railWidth = kit.Shape.OuterHalf - kit.Shape.RoadHalf, guard = XwGuard / XwScale, mid = zStart + kit.Shape.Length * 0.5f;
             void Guard(string label, Vector3 centre, Vector3 size)
             {
-                var g = new GameObject(label); g.transform.SetParent(go.transform, false);
+                var g = new GameObject(label); g.transform.SetParent(go.transform, false); GuardLayer(g);
                 var box = g.AddComponent<BoxCollider>(); box.center = centre; box.size = size;
             }
             if (guardLeft && keepLeft) Guard("GuardLeft", new Vector3(-(kit.Shape.RoadHalf + railWidth * 0.5f), guard * 0.5f, mid), new Vector3(railWidth, guard, kit.Shape.Length));
@@ -423,7 +423,7 @@ namespace ShiftJam
                 foreach (float sideX in new[] { -(kit.Shape.RoadHalf + railWidth * 0.5f), kit.Shape.RoadHalf + railWidth * 0.5f })
                 {
                     Vector3 p0 = TrackBender.Bend(new Vector3(sideX, guard * 0.5f, 0f), a0, radius), p1 = TrackBender.Bend(new Vector3(sideX, guard * 0.5f, 0f), a1, radius);
-                    var g = new GameObject(sideX < 0f ? "GuardLeft" : "GuardRight"); g.transform.SetParent(go.transform, false);
+                    var g = new GameObject(sideX < 0f ? "GuardLeft" : "GuardRight"); g.transform.SetParent(go.transform, false); GuardLayer(g);
                     g.transform.localPosition = (p0 + p1) * 0.5f; g.transform.localRotation = Quaternion.LookRotation(p1 - p0);
                     g.AddComponent<BoxCollider>().size = new Vector3(railWidth, guard, (p1 - p0).magnitude + 0.05f);
                 }
@@ -433,6 +433,13 @@ namespace ShiftJam
             at += turn * (TrackBender.Bend(Vector3.zero, degrees, radius) * XwScale);
             heading = Quaternion.Euler(0f, degrees, 0f) * heading;
             return piece;
+        }
+
+        /// <summary>A guard goes on the CarGuard layer (D-0099): cars still bump it, shots and the camera pass through.</summary>
+        static void GuardLayer(GameObject g)
+        {
+            if (Layers.CarGuard < 0) { Log.AppendLine("NO CarGuard LAYER: guards left on Default (Project Settings > Tags and Layers)"); return; }
+            g.layer = Layers.CarGuard;
         }
 
         /// <summary>The space a stretch of road takes, for the checks: from just above its underside to the top of its guard.</summary>

@@ -10,8 +10,8 @@ namespace ShiftJam
     /// The title screen: the name, three save slots, Continue / New Game / Quit. It builds its own canvas at run time
     /// (nothing to place; it spawns in any scene with a Player) and holds the player still until a choice is made.
     /// Continue loads the active slot through Respawn (standing); New Game empties it and plays the opening in the toy box (D-0097). Mouse, keyboard
-    /// and gamepad all work through the scene's EventSystem. The title is his lettering from Resources/Titles: the wide one
-    /// on landscape screens, the stacked one beside the buttons when the window is near square or taller.
+    /// and gamepad all work through the scene's EventSystem. The title is his drawing (TitleArt, D-0099): one drawing for
+    /// every window shape, as large as the top of the screen allows, popping in and then breathing a little.
     /// </summary>
     public sealed class TitleMenu : MonoBehaviour
     {
@@ -46,7 +46,6 @@ namespace ShiftJam
         public static bool IsOpen { get; private set; }
 
         private OptionsPanel _options; private Button _optionsButton;
-        private const string WideTitle = "Titles/title_shift_wide", StackedTitle = "Titles/title_shift_stacked";
         private float _menuX = 0.5f;
 
         private Respawn _respawn; private PlayerInput _input; private ShoulderCamera _camera;
@@ -145,34 +144,27 @@ namespace ShiftJam
             var dim = Rect("Dim", _root.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             dim.gameObject.AddComponent<Image>().color = new Color(0.03f, 0.03f, 0.06f, 0.72f);
 
-            bool stacked = Screen.width < Screen.height * 1.2f;
-            var titleArt = Resources.Load<Sprite>(stacked ? StackedTitle : WideTitle);
-            if (titleArt != null)
-            {
-                _menuX = stacked ? 0.64f : 0.5f;
-                var at = stacked ? new Vector2(0.24f, 0.5f) : new Vector2(0.5f, 0.75f);
-                var art = Rect("TitleArt", _root.transform, at, at, Vector2.zero, stacked ? new Vector2(420, 1000) : new Vector2(1300, 440));
-                var img = art.gameObject.AddComponent<Image>(); img.sprite = titleArt; img.preserveAspect = true; img.raycastTarget = false;
-            }
-            else
+            // His drawing over the buttons, 1160 x 540 on a 16:9 screen (it was 946 x 440 in a 1300 x 440 box); the
+            // buttons and the hint sit a little lower and closer to make the room (D-0099).
+            if (TitleArt.Place(_root.transform, new Vector2(0.5f, 0.74f), Vector2.zero, new Vector2(1500f, 540f)) == null)
             {
                 var t = Text("Title", _root.transform, "SHIFT", 180, new Vector2(0.5f, 0.72f), new Vector2(1400, 240));
                 t.fontStyle = FontStyles.Bold; t.characterSpacing = 18f;
             }
 
-            float y = 0.47f;
-            _continue = MenuButton("Continue", y, Continue); _continueLabel = _continue.GetComponentInChildren<TMP_Text>(); y -= 0.065f;
-            MenuButton("New Game", y, NewGame); y -= 0.085f;
-            for (int i = 0; i < SaveGame.Slots; i++) { int k = i; _slots[i] = MenuButton("Slot", y, () => PickSlot(k), 560f, 30); y -= 0.058f; }
-            y -= 0.025f;
+            float y = 0.45f;
+            _continue = MenuButton("Continue", y, Continue); _continueLabel = _continue.GetComponentInChildren<TMP_Text>(); y -= 0.06f;
+            MenuButton("New Game", y, NewGame); y -= 0.08f;
+            for (int i = 0; i < SaveGame.Slots; i++) { int k = i; _slots[i] = MenuButton("Slot", y, () => PickSlot(k), 560f, 30); y -= 0.055f; }
+            y -= 0.02f;
             // The three sandboxes share a row (a row more would run into the hint line), in smaller letters to fit.
             MenuButton("Workshop", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); }, 120f, 26f, -130f);
             MenuButton("Raceway", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(RacewayScene); }, 120f, 26f, 0f);
-            MenuButton("Colours", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(ColourCornerScene); }, 120f, 26f, 130f); y -= 0.065f;
+            MenuButton("Colours", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(ColourCornerScene); }, 120f, 26f, 130f); y -= 0.062f;
             // Options and Quit share the last row (a full row more would run into the hint line).
             _optionsButton = MenuButton("Options", y, OpenOptions, 185f, 40f, -97.5f);
             MenuButton("Quit", y, Quit, 185f, 40f, 97.5f);
-            Text("Hint", _root.transform, "mouse, arrows or stick · Enter / A to choose", 22, new Vector2(0.5f, 0.05f), new Vector2(900, 40)).alpha = 0.6f;
+            Text("Hint", _root.transform, "mouse, arrows or stick · Enter / A to choose", 20, new Vector2(0.5f, 0.017f), new Vector2(900, 30)).alpha = 0.6f;
             // Which build this is (D-0040): BuildTools stamps the whole version number into the player settings; "dev" = a development build (D-0043).
             var version = Text("Version", _root.transform, "v" + Application.version + (Debug.isDebugBuild && !Application.isEditor ? " dev" : ""), 20, new Vector2(0.95f, 0.035f), new Vector2(160, 32));
             version.alignment = TextAlignmentOptions.Right; version.alpha = 0.45f;

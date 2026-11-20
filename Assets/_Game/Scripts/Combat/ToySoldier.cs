@@ -189,7 +189,7 @@ namespace ShiftJam
             if (distance > sightRange * Scale) return false;
             if (_state != State.Engage && Vector3.Angle(transform.forward, Vector3.ProjectOnPlane(to, Vector3.up)) > viewAngle) return false;
             if (distance < 1e-3f) return true;
-            int n = Physics.RaycastNonAlloc(from, to / distance, _hits, distance, sightMask, QueryTriggerInteraction.Ignore);
+            int n = Physics.RaycastNonAlloc(from, to / distance, _hits, distance, Layers.Seen(sightMask), QueryTriggerInteraction.Ignore);
             float nearest = float.MaxValue; Transform first = null;
             for (int i = 0; i < n; i++)
             {

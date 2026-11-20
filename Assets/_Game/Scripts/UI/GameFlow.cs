@@ -5,7 +5,8 @@ using UnityEngine.SceneManagement;
 namespace ShiftJam
 {
     /// <summary>
-    /// The frame around the game: a start card that goes away on the first press, an end card the last Goal
+    /// The frame around the game: a start card that goes away on the first press (the title menu hides it: it shows only
+    /// in a scene with no title), an end card with his title drawing over it that the last Goal
     /// raises, and its two choices: R (pad A) to play again, P (pad Y) to go to the playroom, the Workshop sandbox
     /// (D-0086). Lives on the HUD; the cards are plain objects it shows and hides.
     /// </summary>
@@ -21,6 +22,9 @@ namespace ShiftJam
         private void Awake()
         {
             if (fade == null) fade = ScreenFade.Find();
+            // His drawing over the end card's words (D-0099); it pops in when the card comes up.
+            if (endCard != null && endCard.transform.Find("TitleArt") == null)
+                TitleArt.Place(endCard.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, 330f), new Vector2(900f, 340f));
             // Unity runs Awake even on a switched-off component. A switched-off flow (the Workshop's) must not raise a
             // start card that only its own Update can take down.
             if (!enabled) return;

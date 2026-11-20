@@ -28,7 +28,6 @@ namespace ShiftJam
         private CharacterController _controller;
         private Vector3 _planar;            // horizontal velocity, world space
         private float _vertical;            // vertical speed, positive up
-        private float _peakFall;            // the fastest fall since leaving the ground, in the player's own units a second
         private float _lastScale;           // the size the speeds above were last moving at
         private float _lastGroundedTime = -10f;
         private float _jumpPressedTime = -10f;
@@ -47,8 +46,19 @@ namespace ShiftJam
         /// <summary>Raised at the end of every Warp (respawn, portal, console tp): whoever holds the player elsewhere (first
         /// person) follows it instead of undoing it.</summary>
         public event Action<Vector3, Quaternion> Warped;
-        /// <summary>Raised on landing with the fall speed at impact in the player's own units a second (the world speed over its size, taken as it fell).</summary>
+        /// <summary>Raised on landing with the speed it came down at, in the player's own units a second (the world speed over
+        /// its size at the moment it touched down). A free fall lands at its fastest; a glide lands at its sink (D-0096).</summary>
         public event Action<float> Landed;
+        /// <summary>The speed of the last landing, own units a second (what Landed said).</summary>
+        public float LandingSpeed { get; private set; }
+        /// <summary>Gravity in the player's own units (MovementSettings.gravity): the fall rule turns a height into a landing speed with it.</summary>
+        public float OwnGravity => settings.gravity;
+        /// <summary>The paper plane's numbers while it is open under the toy (D-0095; the Glider sets it, null = not gliding):
+        /// a fixed sink and a forward glide the stick steers, in place of gravity and the walk.</summary>
+        public GlideSettings Glide { get; set; }
+        /// <summary>Asked on a Jump press in the air (past the coyote time) and on every press while gliding. True: the press
+        /// opened or folded the glider and is no jump. The Glider sets it.</summary>
+        public Func<bool> AirJump { get; set; }
 
         // What the moves ask of the motor (PlayerStance and PlayerMoves write these; left alone they change nothing).
         /// <summary>Top speed in the player's own units a second (a crouch); infinity = the motor's own walk and sprint.</summary>
@@ -102,7 +112,14 @@ namespace ShiftJam
 
         private void OnEnable() { input.Jump += OnJumpPressed; }
         private void OnDisable() { input.Jump -= OnJumpPressed; }
-        private void OnJumpPressed() { _jumpPressedTime = Time.time; }
+
+        private void OnJumpPressed()
+        {
+            // In the air past the coyote time, or while gliding, the press may be the glider's (it opens or folds it): no jump then.
+            bool inAir = !Grounded && Time.time - _lastGroundedTime > settings.coyoteTime;
+            if ((inAir || Glide != null) && AirJump != null && AirJump()) { _jumpPressedTime = -10f; return; }
+            _jumpPressedTime = Time.time;
+        }
 
         private void Update()
         {
@@ -111,12 +128,18 @@ namespace ShiftJam
             float scale = Scale;
             // A shift changes the body's size mid-motion, and its speeds change with it: a kid's speeds are not a toy's. Kept
             // at the old size, a shrink that lost the ground for a frame fell at a kid's speed, which the fall rule read as a
-            // toy's fatal fall, and the player went back to the checkpoint (D-0041).
+            // toy's fatal fall, and the player went back to the checkpoint (D-0041). The direction is kept: a kid's leap
+            // becomes a toy-sized leap and a toy's hop a kid-sized one.
+            float pivot = 0f;
             if (_lastScale > 0f && !Mathf.Approximately(scale, _lastScale))
             {
                 float k = scale / _lastScale;
                 _planar *= k;
                 _vertical *= k;
+                // A shift in the air keeps the body's middle where it is (D-0094): the toy appears where the kid's chest was
+                // and the kid grows round the toy. The feet move by what the middle would have; near a floor the capsule's
+                // own move stops them on it, and the kid stands there instead.
+                if (shifter != null && shifter.AroundMiddle) pivot = -_controller.center.y * (scale - _lastScale);
             }
             _lastScale = scale;
 
@@ -129,14 +152,20 @@ namespace ShiftJam
             Vector3 wish = forward * move.y + right * move.x;
             bool steering = wish.sqrMagnitude > 0.0001f;
 
-            // Horizontal speed eases toward the target instead of snapping: that is the "weight".
-            float topSpeed = Mathf.Min(input.Sprint && !SprintLocked ? settings.sprintSpeed : settings.walkSpeed, SpeedCap) * SpeedShare * scale;
-            float rate = (steering ? settings.acceleration : settings.deceleration) * scale;
-            if (!Grounded) rate *= settings.airControl;
-            _planar = Drive ?? Vector3.MoveTowards(_planar, wish * topSpeed, rate * dt);
+            if (Glide != null && !Drive.HasValue) _planar = GlidePlanar(wish, steering, scale, dt);
+            else
+            {
+                // Horizontal speed eases toward the target instead of snapping: that is the "weight".
+                float topSpeed = Mathf.Min(input.Sprint && !SprintLocked ? settings.sprintSpeed : settings.walkSpeed, SpeedCap) * SpeedShare * scale;
+                float rate = (steering ? settings.acceleration : settings.deceleration) * scale;
+                if (!Grounded) rate *= settings.airControl;
+                _planar = Drive ?? Vector3.MoveTowards(_planar, wish * topSpeed, rate * dt);
+            }
 
             if (FaceYaw.HasValue)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0f, FaceYaw.Value, 0f), settings.turnSpeed * dt);
+            else if (Glide != null && _planar.sqrMagnitude > 1e-6f * scale * scale)   // on the plane: facing the way it flies
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(_planar, Vector3.up), settings.turnSpeed * dt);
             else if (steering)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(wish, Vector3.up), settings.turnSpeed * dt);
 
@@ -158,24 +187,24 @@ namespace ShiftJam
             }
 
             // Let go of Jump early and the rise is cut short: a tap hops, a hold clears the full height.
-            if (_jumping && !_jumpCut && _vertical > 0f && !input.JumpHeld)
+            if (_jumping && !_jumpCut && _vertical > 0f && !input.JumpHeld && Glide == null)
             {
                 _vertical *= settings.jumpCutMultiplier;
                 _jumpCut = true;
             }
 
-            _vertical = Mathf.Max(_vertical - gravity * dt, -settings.maxFallSpeed * scale);
+            // On the plane the fall is brought to its steady sink (and a rise braked to it), in place of gravity.
+            if (Glide != null) _vertical = Mathf.MoveTowards(_vertical, -Glide.sinkSpeed * scale, Glide.brake * scale * dt);
+            else _vertical = Mathf.Max(_vertical - gravity * dt, -settings.maxFallSpeed * scale);
             // Wind, after gravity, so a column only lifts when it blows harder than gravity pulls.
             if (_windFrame >= Time.frameCount - 1)
             {
                 Vector3 v = Vector3.MoveTowards(_planar + Vector3.up * _vertical, _windTarget, _windAccel * dt);
                 _planar = new Vector3(v.x, 0f, v.z); _vertical = v.y;
-                if (_vertical > 0f) { _jumping = false; _jumpCut = true; _lastGroundedTime = -10f; _peakFall = 0f; }
+                if (_vertical > 0f) { _jumping = false; _jumpCut = true; _lastGroundedTime = -10f; }
             }
-            // A fall counts off the ground only (the grounded push down is not a fall), in the player's own units as it happens.
-            if (!Grounded && _vertical < 0f) _peakFall = Mathf.Max(_peakFall, -_vertical / scale);
 
-            CollisionFlags flags = _controller.Move((_planar + Vector3.up * _vertical) * dt);
+            CollisionFlags flags = _controller.Move((_planar + Vector3.up * _vertical) * dt + Vector3.up * pivot);
             if ((flags & CollisionFlags.Above) != 0 && _vertical > 0f) _vertical = 0f;
 
             bool wasGrounded = Grounded;
@@ -186,15 +215,17 @@ namespace ShiftJam
                 _jumping = false;
                 if (!wasGrounded)
                 {
-                    Landed?.Invoke(_peakFall);
-                    _peakFall = 0f;
+                    // The speed it came down at, in its own units (D-0096). A free fall gathers speed all the way down, so this
+                    // is its fastest, as the fall rule always read; a glide comes down at its sink.
+                    LandingSpeed = Mathf.Max(0f, -_vertical / scale);
+                    Landed?.Invoke(LandingSpeed);
                 }
             }
 
             if (animator != null)
             {
-                // 0 = still, 0.5 = full walk, 1 = full sprint: the blend tree's thresholds.
-                float planarSpeed = new Vector3(_planar.x, 0f, _planar.z).magnitude / scale;
+                // 0 = still, 0.5 = full walk, 1 = full sprint: the blend tree's thresholds. On the plane: standing still on it.
+                float planarSpeed = Glide != null ? 0f : new Vector3(_planar.x, 0f, _planar.z).magnitude / scale;
                 float walk = Mathf.Max(0.01f, settings.walkSpeed);
                 float sprint = Mathf.Max(walk + 0.01f, settings.sprintSpeed);
                 float speed01 = planarSpeed <= walk
@@ -203,13 +234,30 @@ namespace ShiftJam
                 animator.SetFloat(SpeedHash, Mathf.Clamp01(speed01), 0.08f, dt);
                 // The capsule's isGrounded blinks off for a frame on steps and slopes; the Animator gets a steadier answer.
                 // A jump clears _lastGroundedTime, so the grace never delays a jump's take-off.
-                bool steadyGrounded = Grounded || Time.time - _lastGroundedTime <= settings.groundedGrace;
+                // The rider stands on the plane: grounded as far as the Animator knows, so the crouch it rides in holds.
+                bool steadyGrounded = Glide != null || Grounded || Time.time - _lastGroundedTime <= settings.groundedGrace;
                 animator.SetBool(GroundedHash, steadyGrounded);
-                animator.SetFloat(VerticalHash, _vertical / scale);
+                animator.SetFloat(VerticalHash, Glide != null ? 0f : _vertical / scale);
             }
         }
 
-        /// <summary>Moves the player somewhere else with no travel and no leftover momentum. Used by spawns and portals.</summary>
+        /// <summary>The glider's forward flight (D-0095): the heading turns toward where the stick points at the glide's turn
+        /// rate, and the speed eases toward the glide speed (less with the stick at rest: a paper plane never stops in the air).</summary>
+        private Vector3 GlidePlanar(Vector3 wish, bool steering, float scale, float dt)
+        {
+            GlideSettings g = Glide;
+            Vector3 flat = new Vector3(_planar.x, 0f, _planar.z);
+            float speed = flat.magnitude;
+            Vector3 heading = speed > 0.05f * scale ? flat / speed : Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+            if (steering)
+            {
+                float from = Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg, to = Mathf.Atan2(wish.x, wish.z) * Mathf.Rad2Deg;
+                heading = Quaternion.Euler(0f, Mathf.MoveTowardsAngle(from, to, g.turnRate * dt), 0f) * Vector3.forward;
+            }
+            float want = g.glideSpeed * (steering ? Mathf.Lerp(g.idleShare, 1f, Mathf.Clamp01(wish.magnitude)) : g.idleShare) * scale;
+            return heading * Mathf.MoveTowards(speed, want, g.acceleration * scale * dt);
+        }
+
         /// <summary>Throws the player straight up as if from a spring: a pad calls this. Height is in the player's own
         /// units, so a toy and a kid get the same look. Not a jump: no jump cut, no buffer.</summary>
         public void Launch(float height)
@@ -220,7 +268,6 @@ namespace ShiftJam
             _jumpCut = true;
             Grounded = false;
             _lastGroundedTime = -10f;   // no coyote jump on top of a launch
-            _peakFall = 0f;
         }
 
         /// <summary>Wind for this frame: the velocity eases toward <paramref name="velocity"/> (world units, already scaled)
@@ -242,10 +289,10 @@ namespace ShiftJam
                 _jumpCut = true;
                 Grounded = false;
                 _lastGroundedTime = -10f;
-                _peakFall = 0f;
             }
         }
 
+        /// <summary>Moves the player somewhere else with no travel and no leftover momentum. Used by spawns and portals.</summary>
         public void Warp(Vector3 position, Quaternion rotation)
         {
             bool wasEnabled = _controller.enabled;
@@ -254,7 +301,6 @@ namespace ShiftJam
             _controller.enabled = wasEnabled;
             _planar = Vector3.zero;
             _vertical = 0f;
-            _peakFall = 0f;
             _jumpPressedTime = -10f;
             _jumping = false;
             Warped?.Invoke(position, rotation);

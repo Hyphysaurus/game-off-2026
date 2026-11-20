@@ -19,6 +19,8 @@ namespace ShiftJam
         private RectTransform _row;
         private Image[] _cells = new Image[0];
         private TextMeshProUGUI _notice, _hint;
+        private Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP _noticeFx;
+        private CanvasGroup _noticeGroup;   // the notice fades by its group: Text Animator owns the letters' colours
         private float _noticeUntil, _hintUntil;
 
         public static ShiftChargeHud Create(ShiftCharge charge)
@@ -53,14 +55,14 @@ namespace ShiftJam
             for (int i = 0; i < _cells.Length; i++) _cells[i].color = i < _charge.Charges ? Lit : Dark;
         }
 
-        public void ShowNotice(string text) { _notice.text = text; _noticeUntil = Time.unscaledTime + NoticeSeconds; }
+        public void ShowNotice(string text) { TextFx.Set(_noticeFx, _notice, TextFx.Shaken(text)); _noticeUntil = Time.unscaledTime + NoticeSeconds; }   // shakes in (D-0098)
         public void ShowHint(string text) { _hint.text = text; _hintUntil = Time.unscaledTime + HintSeconds; }
 
         private void Update()
         {
             bool show = _charge != null && _charge.isActiveAndEnabled && GameMode.Current == GameMode.Mode.Play && !PauseMenu.IsOpen && !TitleMenu.IsOpen;
             _group.alpha = show ? 1f : 0f;
-            _notice.alpha = Mathf.Clamp01((_noticeUntil - Time.unscaledTime) / 0.4f);
+            _noticeGroup.alpha = Mathf.Clamp01((_noticeUntil - Time.unscaledTime) / 0.4f);
             _hint.alpha = Mathf.Clamp01((_hintUntil - Time.unscaledTime) / 0.8f);
         }
 
@@ -73,7 +75,9 @@ namespace ShiftJam
             _group = canvasGo.AddComponent<CanvasGroup>(); _group.blocksRaycasts = false; _group.interactable = false;
             _row = MenuKit.Rect("Charges", canvasGo.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 46f), new Vector2(300f, 44f));
             _notice = MenuKit.Text("Notice", canvasGo.transform, "", 30, new Vector2(0.5f, 0f), new Vector2(1000f, 44f));
-            _notice.rectTransform.anchoredPosition = new Vector2(0f, 100f); _notice.alpha = 0f;
+            _notice.rectTransform.anchoredPosition = new Vector2(0f, 100f);
+            _noticeGroup = _notice.gameObject.AddComponent<CanvasGroup>(); _noticeGroup.alpha = 0f;
+            _noticeFx = TextFx.On(_notice);
             _hint = MenuKit.Text("Hint", canvasGo.transform, "", 26, new Vector2(0.5f, 0f), new Vector2(1200f, 44f));
             _hint.rectTransform.anchoredPosition = new Vector2(0f, 140f); _hint.alpha = 0f;
         }

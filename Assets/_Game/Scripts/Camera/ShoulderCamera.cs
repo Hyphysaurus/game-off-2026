@@ -34,8 +34,9 @@ namespace ShiftJam
         private Camera _camera;
         private WeaponHolder _holder;        // on the target: a drawn weapon picks the view
         private PlayerStance _stance;        // on the target: a crouch lowers the pivot
+        private Glider _glider;              // on the target: gliding pulls the camera back (D-0095)
         private CharacterController _capsule;
-        private float _side, _rise, _reach, _armedView, _aimView, _heightShare = 1f; private bool _viewReady;   // the view now, eased
+        private float _side, _rise, _reach, _armedView, _aimView, _glideView, _heightShare = 1f; private bool _viewReady;   // the view now, eased
         private float _yaw, _pitch;
         private bool _cursorLocked;
         private readonly RaycastHit[] _hits = new RaycastHit[16];
@@ -159,6 +160,7 @@ namespace ShiftJam
 
         private void Start()
         {
+            if (target != null) _glider = target.GetComponent<Glider>();   // added by the Shifter in its Awake: here, after every Awake
             _yaw = target != null ? target.eulerAngles.y : 0f;
             _pitch = settings.startPitch;
             SetCursorLocked(true);
@@ -240,6 +242,7 @@ namespace ShiftJam
             _reach = Mathf.Lerp(_reach, wantReach, ease);
             _armedView = Mathf.Lerp(_armedView, armed ? 1f : 0f, ease);
             _aimView = Mathf.Lerp(_aimView, aiming ? 1f : 0f, ease);
+            _glideView = Mathf.Lerp(_glideView, _glider != null && _glider.Gliding ? 1f : 0f, ease);
             _heightShare = Mathf.Lerp(_heightShare, wantShare, ease);
             // The wide view keeps its own field of view (toy or kid); a weapon out and aim each have theirs, at either size.
             fov = Mathf.Lerp(Mathf.Lerp(fov, settings.armedFieldOfView, _armedView), settings.aimFieldOfView, _aimView);
@@ -264,7 +267,7 @@ namespace ShiftJam
             Vector3 pivot = middle + Vector3.up * Sweep(middle, Vector3.up, lift, ball);
             Vector3 right = heading * Vector3.right * Mathf.Sign(_side);
             pivot += right * Sweep(pivot, right, Mathf.Abs(_side) * scale, ball);
-            float wanted = _reach * scale * distanceMul;
+            float wanted = _reach * scale * distanceMul * (1f + (_glider != null ? _glider.PullBack : 0f) * _glideView);   // a little further back on the glider
             float distance = Sweep(pivot, back, wanted, ball);
 
             Vector3 position = pivot + back * distance;

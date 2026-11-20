@@ -9,7 +9,7 @@ namespace ShiftJam
     /// <summary>
     /// The title screen: the name, three save slots, Continue / New Game / Quit. It builds its own canvas at run time
     /// (nothing to place; it spawns in any scene with a Player) and holds the player still until a choice is made.
-    /// Continue loads the active slot through Respawn; New Game empties it and starts in the toy box. Mouse, keyboard
+    /// Continue loads the active slot through Respawn (standing); New Game empties it and plays the opening in the toy box (D-0097). Mouse, keyboard
     /// and gamepad all work through the scene's EventSystem. The title is his lettering from Resources/Titles: the wide one
     /// on landscape screens, the stacked one beside the buttons when the window is near square or taller.
     /// </summary>
@@ -95,7 +95,7 @@ namespace ShiftJam
         }
 
         private void Continue() { if (_respawn.LoadSlot(SaveGame.Slot)) Close(); }
-        private void NewGame() { SaveGame.Clear(SaveGame.Slot); _respawn.ToStart(); Close(); }
+        private void NewGame() { SaveGame.Clear(SaveGame.Slot); _respawn.ToStart(); Close(); Opening.Play(_respawn.gameObject); }   // the toy wakes in the box (D-0097)
         private void PickSlot(int i) { SaveGame.Slot = i; Refresh(); }
         private void Quit()
         {

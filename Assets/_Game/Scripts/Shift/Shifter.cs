@@ -27,6 +27,9 @@ namespace ShiftJam
         public bool Shifting => _progress < 1f;
         /// <summary>How far the current shift has run, 0 to 1 (1 when not shifting). ShiftWarp follows this, not the clock.</summary>
         public float Progress => _progress;
+        /// <summary>The last shift keeps the body's middle where it was, not the feet (a shift in the air, D-0094): the motor
+        /// moves the feet as the size changes. Stays set until the next shift or SetSizeNow, so the motor sees the last step.</summary>
+        public bool AroundMiddle { get; private set; }
         /// <summary>Raised on this player when a shift begins.</summary>
         public event Action<ShiftSize> ShiftStarted;
         /// <summary>Raised on this player when a shift ends.</summary>
@@ -41,15 +44,23 @@ namespace ShiftJam
             charge.Init(settings);
             // His yellow bolts mark the end of a shift that no core started (D-0062): they ride along the same way.
             if (!TryGetComponent(out ShiftEndBolts _)) gameObject.AddComponent<ShiftEndBolts>();
+            // So does the paper-plane glider (D-0095), on a player that has a motor to fly.
+            if (GetComponent<PlayerMotor>() != null && GetComponent<Glider>() == null) gameObject.AddComponent<Glider>();   // plain form for Fast Script Reload
             Size = startSize;
             Scale = ScaleOf(Size);
             Apply(Scale);
         }
 
-        /// <summary>Begins growing or shrinking to the given size. Nothing happens if already that size or mid-shift.</summary>
-        public void ShiftTo(ShiftSize size)
+        /// <summary>Begins growing or shrinking to the given size, the feet staying where they are. Nothing happens if already
+        /// that size or mid-shift.</summary>
+        public void ShiftTo(ShiftSize size) => ShiftTo(size, false);
+
+        /// <summary>Begins growing or shrinking to the given size; <paramref name="aroundMiddle"/>: the body's middle stays
+        /// where it is instead of the feet (the carried shift in the air, D-0094). Nothing happens if already that size or mid-shift.</summary>
+        public void ShiftTo(ShiftSize size, bool aroundMiddle)
         {
             if (Shifting || size == Size) return;
+            AroundMiddle = aroundMiddle;
             Size = size;
             _from = Scale;
             _to = ScaleOf(size);
@@ -61,7 +72,7 @@ namespace ShiftJam
         /// <summary>Becomes the size at once: no shift, no events, no warp. Loading a save uses it.</summary>
         public void SetSizeNow(ShiftSize size)
         {
-            Size = size; Scale = ScaleOf(size); _progress = 1f; Apply(Scale);
+            AroundMiddle = false; Size = size; Scale = ScaleOf(size); _progress = 1f; Apply(Scale);
         }
 
         public void Toggle() => ShiftTo(Size == ShiftSize.Toy ? ShiftSize.Kid : ShiftSize.Toy);

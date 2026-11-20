@@ -6,7 +6,8 @@ namespace ShiftJam
 {
     /// <summary>
     /// What the player takes through a door between the house's rooms (D-0091): their size, the weapons in their hands
-    /// (the very same guns, so the rounds in each and the reserve go with them) and the stored shift charge. A HubDoor
+    /// (the very same guns, so the rounds in each and the reserve go with them), the stored shift charge and the paper-plane
+    /// glider (D-0095). A HubDoor
     /// calls Go; the matching HubDoor in the next scene calls Arrive. Nothing is written to disk: a closed game starts
     /// from the save slot as before. Statics, so it lives across one scene load and no longer.
     /// </summary>
@@ -16,6 +17,7 @@ namespace ShiftJam
         private static string _arriveAt;
         private static ShiftSize _size;
         private static int _charges;
+        private static bool _glider;
         private static readonly List<Weapon> Weapons = new List<Weapon>();
         private static int _inHand;
 
@@ -27,18 +29,19 @@ namespace ShiftJam
         public static string ArriveAt => _pending ? _arriveAt : null;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() { _pending = false; _arriveAt = null; Weapons.Clear(); }
+        private static void ResetStatics() { _pending = false; _arriveAt = null; _glider = false; Weapons.Clear(); }
 
         /// <summary>Takes what the player carries and loads <paramref name="scene"/>; there the door named
         /// <paramref name="arriveAt"/> puts the player down.</summary>
         public static void Go(GameObject player, string scene, string arriveAt)
         {
             _arriveAt = arriveAt;
-            _size = ShiftSize.Toy; _charges = 0; Weapons.Clear(); _inHand = -1;
+            _size = ShiftSize.Toy; _charges = 0; _glider = false; Weapons.Clear(); _inHand = -1;
             if (player != null)
             {
                 if (player.TryGetComponent(out Shifter shifter)) _size = shifter.Size;
                 if (player.TryGetComponent(out ShiftCharge charge)) _charges = charge.Charges;
+                if (player.TryGetComponent(out Glider glider)) _glider = glider.Owned;
                 if (player.TryGetComponent(out WeaponHolder holder))
                 {
                     Weapons.AddRange(holder.Stow(out _inHand));
@@ -67,6 +70,7 @@ namespace ShiftJam
                 if (cam != null) cam.Warp(at.eulerAngles.y);
             }
             if (player.TryGetComponent(out ShiftCharge charge)) charge.SetCharges(_charges);
+            if (player.TryGetComponent(out Glider glider)) glider.SetOwned(_glider);
             if (player.TryGetComponent(out WeaponHolder holder))
             {
                 // Carrying guns in, the room's own starting guns (the Colour Corner's Loadout) step aside: the hands hold what
@@ -85,7 +89,7 @@ namespace ShiftJam
             }
             else foreach (Weapon w in Weapons) if (w != null) Object.Destroy(w.gameObject);
             Weapons.Clear();
-            Debug.Log($"[House] arrived at {doorId} as {_size}, charge {_charges}");
+            Debug.Log($"[House] arrived at {doorId} as {_size}, charge {_charges}, glider {_glider}");
             return true;
         }
     }

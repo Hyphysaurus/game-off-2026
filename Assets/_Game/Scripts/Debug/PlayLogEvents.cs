@@ -39,6 +39,7 @@ namespace ShiftJam
             GameEvents.DryFired += OnDryFired; GameEvents.AmmoTaken += OnAmmoTaken; GameEvents.ShotLanded += OnShotLanded;
             GameEvents.DartStuck += OnDartStuck;
             GameEvents.GrenadeThrown += OnGrenadeThrown; GameEvents.GrenadeWentOff += OnGrenadeWentOff;
+            GameEvents.GliderTaken += OnGliderTaken; GameEvents.GlideChanged += OnGlideChanged;
             GameMode.Changed += OnModeChanged;
             RaceState.Started += OnRaceStarted; RaceState.LapDone += OnLapDone; RaceState.Finished += OnRaceFinished; RaceState.Stopped += OnRaceStopped;
         }
@@ -52,6 +53,7 @@ namespace ShiftJam
             GameEvents.DryFired -= OnDryFired; GameEvents.AmmoTaken -= OnAmmoTaken; GameEvents.ShotLanded -= OnShotLanded;
             GameEvents.DartStuck -= OnDartStuck;
             GameEvents.GrenadeThrown -= OnGrenadeThrown; GameEvents.GrenadeWentOff -= OnGrenadeWentOff;
+            GameEvents.GliderTaken -= OnGliderTaken; GameEvents.GlideChanged -= OnGlideChanged;
             GameMode.Changed -= OnModeChanged;
             if (_belt != null) _belt.Changed -= OnBeltChanged;
             _belt = null;
@@ -108,6 +110,16 @@ namespace ShiftJam
         private void OnCheckpointClaimed(Checkpoint checkpoint) => PlayLog.Tell("checkpoint: " + Named(checkpoint));
         private void OnPlayerReset(Respawn respawn) { PlayLog.Tell("reset to the checkpoint"); PlayLog.Count("resets"); }
         private void OnGoalReached(Goal goal) => PlayLog.Tell("GOAL: " + Named(goal));
+        private void OnGliderTaken(Glider glider) => PlayLog.Tell("took the paper plane (glider)");
+        private void OnGlideChanged(Glider glider, bool open)
+        {
+            if (glider == null) return;
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            if (open) { PlayLog.Tell("glide opened " + glider.transform.position.y.ToString("0.0", inv) + " up"); PlayLog.Count("glides"); return; }
+            Vector3 from = glider.OpenedAt, to = glider.transform.position;
+            float far = new Vector2(to.x - from.x, to.z - from.z).magnitude;
+            PlayLog.Tell("glide folded (" + glider.LastFold + ") after " + (Time.time - glider.OpenedTime).ToString("0.0", inv) + " s, " + far.ToString("0", inv) + " far, " + (from.y - to.y).ToString("0.0", inv) + " down");
+        }
 
         private void OnAmmoChanged(WeaponHolder holder) { if (Mine(holder)) _gunChanged = true; }
         private void OnReloadStarted(WeaponHolder holder, BlasterWeapon gun) { if (!Mine(holder)) return; PlayLog.Tell("reload: " + Name(gun)); PlayLog.Count("reloads"); }

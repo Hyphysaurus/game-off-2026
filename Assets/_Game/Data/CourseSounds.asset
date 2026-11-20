@@ -72,6 +72,22 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 55438aec24ea66b4397d019b4227ba28, type: 3}
     volume: 0.6
     pitchSpread: 0
+  lidOpen:
+    clip: {fileID: 8300000, guid: b7289aa3f5674c84f8edfd3cde00e1c0, type: 3}
+    volume: 0.55
+    pitchSpread: 0
+  sparkFall:
+    clip: {fileID: 8300000, guid: 751d0f0ab5a38864dba0b07ea86cb1f8, type: 3}
+    volume: 0.45
+    pitchSpread: 0
+  sparkHit:
+    clip: {fileID: 8300000, guid: a2b134b6ba514c545b2e98e76e28fff6, type: 3}
+    volume: 0.8
+    pitchSpread: 0
+  getUp:
+    clip: {fileID: 8300000, guid: ae7e06befd29c4e4c97b7061d12646c8, type: 3}
+    volume: 0.5
+    pitchSpread: 0.05
   jump:
     clip: {fileID: 8300000, guid: 4f5e19874b5caf944ad15f7b00799398, type: 3}
     volume: 0.2

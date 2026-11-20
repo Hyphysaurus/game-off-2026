@@ -59,6 +59,12 @@ namespace ShiftJam
             // A soldier back on its feet: a chess piece set upright, quiet (four of them, often).
             Fill(ref sounds.soldierUp, "Toys/Chess_Move_v1.wav", 0.3f, 0.1f, ref filled);
             Fill(ref sounds.endChoice, "UI/UI_Confirm_v1.wav", 0.6f, 0f, ref filled);
+            // D-0097 the opening: cardboard flaps lifting, the spark's shimmer on the way down, the core's own wake chime
+            // as it strikes (the spark is a tiny shift orb), a soft-toy rustle as the toy gets up.
+            Fill(ref sounds.lidOpen, "Props/Paper_Rustle_v2.wav", 0.55f, 0f, ref filled);
+            Fill(ref sounds.sparkFall, "Toys/Star_Light_On.wav", 0.45f, 0f, ref filled);
+            Fill(ref sounds.sparkHit, "Toys/Star_Light_Activate.wav", 0.8f, 0f, ref filled);
+            Fill(ref sounds.getUp, "Toys/SoftToy_Rustle_v1.wav", 0.5f, 0.05f, ref filled);
             if (sounds.ambience == null)
             {
                 // A 30 s room tone (the 10 s one repeats sooner). It is quiet in the file (about -46 dB), so it plays at 0.6.

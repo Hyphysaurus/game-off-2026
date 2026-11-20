@@ -6,20 +6,23 @@ namespace ShiftJam
     /// <summary>
     /// The shift you carry (D-0045): the Shift action (F, pad RB) grows or shrinks you anywhere and spends a charge.
     /// Cores still shift you as before and also refill the charge (cores are batteries, D-0013); a fall reset or a loaded
-    /// save refills it too, so nobody is ever stuck at the wrong size with none. The rules: feet on the ground, on foot in
-    /// Play, a short wait after each shift, never inside a NoShiftZone, and growing needs room for a kid-size body where
-    /// you stand ("No room to grow": the charge is kept). Shrinking always fits. How many charges, the wait and the
-    /// refills are tuned on ShiftSettings. A refused press says why on the HUD and plays the "refused" sound.
+    /// save refills it too, so nobody is ever stuck at the wrong size with none. The rules: on foot in Play, a short wait
+    /// after each shift, never inside a NoShiftZone, and growing needs room for a kid-size body ("No room to grow": the
+    /// charge is kept). Shrinking always fits. On the ground the feet stay put, as always. In the air (D-0094) the body
+    /// changes size round its middle: the toy appears where the kid's chest was, the kid grows round the toy (and stands on
+    /// the floor below if the floor is nearer than a kid's half height), and the speed carries over in proportion. The first
+    /// shrink in the air without a glider says once that falling toys break. How many charges, the wait and the refills are
+    /// tuned on ShiftSettings. A refused press says why on the HUD and plays the "refused" sound.
     /// Added to the player by the Shifter at start; draws its own HUD (ShiftChargeHud).
     /// </summary>
     [RequireComponent(typeof(Shifter))]
     public sealed class ShiftCharge : MonoBehaviour
     {
-        private const string HintId = "hint.shiftcharge";
+        private const string HintId = "hint.shiftcharge", GliderHintId = "hint.findglider";
         private const float GroundGrace = 0.15f;
 
         // Placeholder wording (his to change).
-        public const string NoRoom = "No room to grow", NotGrounded = "Feet on the ground first", Empty = "No charge: a core refills it";
+        public const string NoRoom = "No room to grow", Empty = "No charge: a core refills it";
         public const string Hint = "<b>F</b> / RB  Shift anywhere. Uses the charge; cores refill it.";
 
         [SerializeField] private ShiftSettings settings;
@@ -29,6 +32,7 @@ namespace ShiftJam
         private float _readyAt, _lastGrounded = -10f;
         private bool _free;   // this scene's shift costs no charge (TitleMenu.IsFreeShift)
         private static readonly Collider[] Hits = new Collider[32];
+        private static readonly RaycastHit[] Below = new RaycastHit[16];
 
         public int Charges { get; private set; }
         public int Max => settings != null ? Mathf.Max(0, settings.maxCharges) : 1;
@@ -84,6 +88,9 @@ namespace ShiftJam
             }
         }
 
+        /// <summary>A line on the HUD's hint row for a few seconds (the glider's "how to", D-0095).</summary>
+        public void ShowHint(string text) { if (_hud != null) _hud.ShowHint(text); }
+
         /// <summary>Exactly this many (clamped to 0..Max): what a door between the house's rooms carried over (D-0091).</summary>
         public void SetCharges(int charges) { Charges = Mathf.Clamp(charges, 0, Max); if (_hud != null) _hud.Refresh(); }
 
@@ -103,11 +110,13 @@ namespace ShiftJam
             if (moves != null && !moves.Free) return;
 
             ShiftSize to = _shifter.Size == ShiftSize.Toy ? ShiftSize.Kid : ShiftSize.Toy;
+            // On the ground (with the same short grace that once refused the air): the feet stay put, as always. In the air
+            // the body changes round its middle (D-0094).
+            bool inAir = Time.time - _lastGrounded > GroundGrace;
             string refused =
                 Charges <= 0 && !_free ? Empty
-                : Time.time - _lastGrounded > GroundGrace ? NotGrounded
                 : NoShiftZone.Covering(transform.position) is { } zone ? zone.Message
-                : to == ShiftSize.Kid && !RoomToGrow() ? NoRoom
+                : to == ShiftSize.Kid && !(inAir ? RoomToGrowInAir() : RoomToGrow()) ? NoRoom
                 : null;
             if (refused != null)
             {
@@ -116,8 +125,15 @@ namespace ShiftJam
                 return;
             }
             if (!_free) Charges--;
-            _shifter.ShiftTo(to);
+            _shifter.ShiftTo(to, inAir);
             if (_hud != null) _hud.Refresh();
+            // The first toy made in the air with no glider to open: it is about to fall, and falls break toys (said once a save).
+            var glider = GetComponent<Glider>();   // plain form: Fast Script Reload breaks `TryGetComponent(out ...) &&`
+            if (inAir && to == ShiftSize.Toy && (glider == null || !glider.Owned) && !SaveGame.Seen(SaveGame.Slot, GliderHintId))
+            {
+                SaveGame.MarkSeen(SaveGame.Slot, GliderHintId);
+                ShowHint(Glider.FindHint);
+            }
         }
 
         /// <summary>
@@ -129,6 +145,29 @@ namespace ShiftJam
         {
             Vector3 feet = transform.position + Vector3.up * ((_controller.center.y - _controller.height * 0.5f) * _shifter.Scale);
             return KidFits(feet, _controller, _shifter.ScaleOf(ShiftSize.Kid), transform);
+        }
+
+        /// <summary>
+        /// In the air the kid grows round the toy: the two middles together (D-0094). If that kid would reach into what is
+        /// under the toy (a floor nearer than a kid's half height), it stands on it instead, the toy's middle still inside
+        /// its body. Either has to fit, or "No room to grow".
+        /// </summary>
+        private bool RoomToGrowInAir()
+        {
+            float kid = _shifter.ScaleOf(ShiftSize.Kid), centre = _controller.center.y;
+            Vector3 middle = transform.position + Vector3.up * (centre * _shifter.Scale);
+            Vector3 feet = middle - Vector3.up * (centre * kid);
+            if (KidFits(feet, _controller, kid, transform)) return true;
+            float reach = middle.y - feet.y;
+            int n = Physics.RaycastNonAlloc(middle, Vector3.down, Below, reach, ~0, QueryTriggerInteraction.Ignore);
+            float ground = float.NegativeInfinity;
+            for (int i = 0; i < n; i++)
+            {
+                Collider c = Below[i].collider;
+                if (c.transform.IsChildOf(transform) || (c.attachedRigidbody != null && !c.attachedRigidbody.isKinematic)) continue;
+                ground = Mathf.Max(ground, Below[i].point.y);
+            }
+            return !float.IsNegativeInfinity(ground) && KidFits(new Vector3(feet.x, ground, feet.z), _controller, kid, transform);
         }
 
         /// <summary>The room-to-grow test on its own: does this controller's capsule at the given scale fit standing at

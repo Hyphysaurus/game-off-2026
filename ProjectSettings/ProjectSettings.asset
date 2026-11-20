@@ -143,7 +143,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 5
+  bundleVersion: 6
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -829,7 +829,11 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Standalone: SENTIS_ANALYTICS_ENABLED;APP_UI_EDITOR_ONLY;MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
+    Android: CROSS_PLATFORM_INPUT;MOBILE_INPUT
+    Standalone: MUDBUN_URP;MUDBUN_BURST;MUDBUN;SENTIS_ANALYTICS_ENABLED;APP_UI_EDITOR_ONLY;MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED;COZY_WEATHER;COZY_3_AND_UP;COZY_URP;TMP_PRESENT;CROSS_PLATFORM_INPUT;__MICROSPLAT__;MODULAR_3D_TEXT
+    WebGL: TMP_PRESENT
+    Windows Store Apps: MOBILE_INPUT
+    iPhone: CROSS_PLATFORM_INPUT;MOBILE_INPUT
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

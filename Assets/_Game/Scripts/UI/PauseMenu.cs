@@ -73,7 +73,7 @@ namespace ShiftJam
 
         private static bool CanPause()
         {
-            if (GameMode.Current != GameMode.Mode.Play || TitleMenu.IsOpen || KeyHelp.IsOpen || DebugConsole.IsOpen) return false;
+            if (GameMode.Current != GameMode.Mode.Play || TitleMenu.IsOpen || Opening.Playing || KeyHelp.IsOpen || DebugConsole.IsOpen) return false;
             if (Time.timeScale <= 0f || GameObject.Find("Player") == null) return false;
             var cam = FindFirstObjectByType<ShoulderCamera>();
             return cam == null || !cam.MenuHeld;   // the garage menu keeps Start for driving out

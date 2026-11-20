@@ -484,6 +484,7 @@ namespace ShiftJam
                 var tree = Spawn("Toy_Tree_01", "GardenTree", r6, new Vector3(tx, 0, tz), new Vector3(0, (float)(rnd.NextDouble() * 360), 0), 35f); Rest(tree, 0f, null);
             }
             PointLight("GardenSun", r6, new Vector3(c.x, 200f, nz + 250f), 900f, 2.5f, new Color(1f, 0.95f, 0.85f));
+            DeskGlider(r4, coreB, B(table), GlideAsset());   // the paper plane beside core B, once the desk is dressed (D-0095)
             Log.AppendLine("R4 playroom + R6 window built at " + c);
         }
 
@@ -867,6 +868,7 @@ namespace ShiftJam
             so.FindProperty("popSound").objectReferenceValue = Clip("Paper_Rustle_v1");
             so.FindProperty("landSound").objectReferenceValue = Clip("Books_Falling_v1");
             so.ApplyModifiedPropertiesWithoutUndo();
+            BoxStamps();   // THIS WAY UP / FRAGILE inside (D-0098)
             EditorSceneManager.MarkSceneDirty(box.scene);
             Debug.Log("TOY BOX REBUILT: 4 walls, 2 flaps, tape, label; BoxBurst wired");
         }

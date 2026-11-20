@@ -77,7 +77,7 @@ namespace ShiftJam
             Checkpoint("CP_start", r3, new Vector3(x0 + 10f, 2f, z), new Vector3(6f, 4f, w));
 
             // ==== lesson 1: moving. The hop, the book stairs, the sprint gap (as walk-checked 19 Nov, D-0081)
-            Sign("Sign1_Move", r3, new Vector3(x0 + 16f, 3.2f, zn - 0.15f), Vector3.back, "<b>MOVE</b>  W A S D\n<b>JUMP</b>  Space", 7f, 3f);
+            TapeSign("Sign1_Move", r3, new Vector3(x0 + 16f, 3.2f, zn - 0.15f), Vector3.back, "MOVE  W A S D\nJUMP  SPACE", 7f, 3f);   // marker on tape (D-0098)
             Checkpoint("CP_afterHop", r3, new Vector3((HallHop1 + HallStairs) / 2f, 2f, z), new Vector3(HallStairs - HallHop1, 4f, w));
             var box = Rest(Spawn("Cardboard_Box_06", "StepBox", r3, new Vector3(HallStairs + 32f, 0f, z), Vector3.zero, 1f), 0f, null);
             float boxTop = B(box).max.y;
@@ -152,7 +152,7 @@ namespace ShiftJam
             // ==== the tall end: grow (F), up onto the shelf, the shelf's core makes you small, out through the hole
             Checkpoint("CP_tall", r3, new Vector3(HallTall0 + 6f, 2f, z), new Vector3(6f, 4f, w), ShiftSize.Toy);
             Sign("Sign3_Grow", r3, new Vector3(HallTall0 + 10f, 3.6f, zn - 0.15f), Vector3.back, "Room to grow here.\nStep into the middle and press <b>F</b>.\nUp on the shelf a core makes you small again.", 9f, 3.8f);
-            Sign("Sign3_GrowKid", r3, new Vector3(HallTall0 + 20f, 62f, zn - 0.15f), Vector3.back, "Up on the shelf: the core makes you small.\nThe way out is the hole up there.", 34f, 12f);
+            Sign("Sign3_GrowKid", r3, new Vector3(HallTall0 + 20f, 62f, zn - 0.15f), Vector3.back, "Up on the shelf: the core makes you small.\nThe way out: the glowing hole in the end wall, on the shelf.", 34f, 12f);
             var shelfCore = Core("CoreE_Shelf", r3, new Vector3((HallShelfX + x1) / 2f - 1f, HallShelfTop + 2.5f, HallShelfCoreZ), ShiftSource.Mode.ShrinkOnly, coreMat, false);
             Set(shelfCore.GetComponent<ShiftSource>(), "standWithin", CoreStandWithin);   // from the shelf only (D-0083): a kid on the floor reaches 60 up
             Quad("ExitGlow", r3, new Vector3(x1 - 0.1f, HallShelfTop + 3f, HallHoleZ), new Vector3(0, -90, 0), new Vector3(6f, 6f, 1f), glow);

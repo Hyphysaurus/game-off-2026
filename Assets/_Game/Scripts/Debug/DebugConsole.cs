@@ -130,6 +130,7 @@ namespace ShiftJam
                         Say("set <object> <Component> <field> <value>   get <object> <Component> <field>   (live, any serialized field)");
                         Say("reveal (replays the playroom reveal from wherever you stand)");
                         Say("core (F2): calls the Pocket Core, a shift core you can use anywhere, a step in front of you");
+                        Say("glider: gives (or takes back) the paper-plane glider; as a toy, Jump in the air opens it");
                         Say("workshop (load the Workshop sandbox) | course (back to the course scene)");
                         Say("save (here, active slot) | save clear (empties the active slot)");
                         Say("note <text> -> docs/PLAYTEST_NOTES.md with room, size, position   mark (F12) = numbered note + still in the play log (Playtests/)   shot   clear");
@@ -165,6 +166,14 @@ namespace ShiftJam
                         if (Playtest.PlayLog.On) Say("still " + System.IO.Path.GetFileName(Playtest.PlayLog.Still())); else Shot();
                         break;
                     case "core": Say(PocketCore.Summon()); break;
+                    case "glider":
+                    {
+                        var g = _player.GetComponent<Glider>();
+                        if (g == null) { Say("no glider on the player"); break; }
+                        g.SetOwned(!g.Owned);
+                        Say(g.Owned ? "glider ON (as a toy, Jump in the air)" : "glider off");
+                        break;
+                    }
                     case "shot": Shot(); break;
                     case "workshop": Time.timeScale = 1f; SceneManager.LoadScene(TitleMenu.WorkshopScene); break;
                     case "raceway": Time.timeScale = 1f; SceneManager.LoadScene(TitleMenu.RacewayScene); break;

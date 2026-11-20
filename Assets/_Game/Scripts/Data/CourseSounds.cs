@@ -38,7 +38,7 @@ namespace ShiftJam
         public Cue checkpoint;
         [Tooltip("Put back at the checkpoint: a fatal fall, the floor's edge, a hazard.")] public Cue reset;
         public Cue goal;
-        [Tooltip("The Shift key refused (no room, no charge, in the air): a short no.")] public Cue refused;
+        [Tooltip("The Shift key refused (no room, no charge, a no-shift room): a short no.")] public Cue refused;
         [Tooltip("E on something that says no (\"Climb up to reach it\", \"Too small to reach\", \"Too big to hold\", a dark core): softer than Refused.")] public Cue cantUse;
 
         [Header("Hands")]
@@ -53,6 +53,12 @@ namespace ShiftJam
         [Tooltip("A choice taken on the end card (play again, the playroom). Plays on past the scene change.")] public Cue endChoice;
 
         [Header("The player")]
+        [Header("The opening (New Game)")]
+        [Tooltip("The toy box's flaps creaking open over the lying toy.")] public Cue lidOpen;
+        [Tooltip("The spark setting off down into the box.")] public Cue sparkFall;
+        [Tooltip("The spark reaching the toy: the strike.")] public Cue sparkHit;
+        [Tooltip("The toy getting up.")] public Cue getUp;
+
         public Cue jump;
         public Cue land;
         [Tooltip("Landings softer than this (fall speed, the player's own units a second) make no sound. A jump on flat ground lands " +

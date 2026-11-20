@@ -1873,3 +1873,43 @@
   - **Not changed:** the rule itself (nearest to the chest, D-0081). His call if other small things beside tall ones show
     the same (a "core first" rule would be the general fix).
   - **Checked:** STATUS 20 Nov 02:xx. Not played.
+
+- **D-0097 (20 Nov, 09:1x) New Game's opening in the toy box: the lid opens, a spark of life strikes the lying toy, it gets up.**
+  His words: the get-up "feels a bit janky... we might need vfx or some type of cutscene"; of the ideas he picked the
+  spark of life and the lid opening, "and yes this plays on new game only". (D-0094 to D-0096 are the uncommitted roadmap
+  item 2 work found in the tree: shift in the air, the glider, the fall rule.)
+  - **What plays** (`Room/Opening.cs`, numbers in `Data/OpeningSettings.cs`, Resources/OpeningSettings or its defaults):
+    black, then a low camera beside the lying toy looking up; the box's top flaps open one after another
+    (`BoxBurst.OpenFlaps`; the burst later drops the walls without popping them again) and a warm spot light comes in with
+    dust in it; a spark (the game's own shift orb, Resources/FX/ShiftOrbVisual, made tiny) swirls down onto the toy's
+    chest bone and strikes (its white flare and bolts, a white screen flash, slow motion 0.3 for 0.35 s, a small shake);
+    the toy gets up (WakeUp) while the camera rises from beside it to behind it; then it hands over to the ShoulderCamera
+    over 0.8 s. About 6 s. Hold any key or button 0.6 s to skip (a hint shows), Esc skips at once.
+  - **Only New Game** (TitleMenu.NewGame). WakeUp no longer plays by itself when a title is up: Continue starts standing;
+    the sandboxes and a door back were already standing. The pause menu waits while it plays. The HUD hides meanwhile.
+  - **Sounds:** four new CourseSounds cues through GameEvents (OpeningLid, OpeningSpark, OpeningGetUp): Paper_Rustle_v2,
+    Star_Light_On, Star_Light_Activate, SoftToy_Rustle_v1 (CourseSoundsBuilder fills them).
+  - **Also:** the hallway's top sign said "the hole up there" (he looked for it in the ceiling): now "The way out: the
+    glowing hole in the end wall, on the shelf."
+  - **Why the orb as the spark:** the opening then shows the shift's own light before the player ever uses a core.
+
+- **D-0098 (20 Nov, 10:1x) 3D lettering sample: marker letters on packing tape, ink stamped in the toy box, Text Animator on
+  the HUD's lines.** His words: "i like the tape but i want to explore using the modular text animation stuff too", then
+  "proceed" on the sample (one sign, the HUD lines, the box stamps) before the rest of roadmap item 4.
+  - **`Room/Lettering.cs`:** words in solid letters from Modular 3D Text (Tiny Giant Studio, in Assets/Plugins), made when
+    the scene starts, fitted to a width, read from the object's -Z side like the card signs. Reveal Always, or WhenNear
+    (the letters pop on one by one, springy, when the player is within 14). `Tumble(from)` gives each letter a body and a
+    push away (they ignore the player's colliders). Made at run time, so the layout's bounds list is set up first (null
+    otherwise: a NullReferenceException in GridLayoutGroup); built at the library's own size 8 and scaled to fit (at size 1
+    its letter gaps were wide).
+  - **The hallway's first sign** (Sign1_Move) is a strip of packing tape (PackingTape.mat, tilted 1.5 degrees) with
+    Permanent Marker letters, "MOVE  W A S D / JUMP  SPACE", popping on as the toy comes near (`CourseBuilder.TapeSign`,
+    used by LandHouse). The other signs are still cards: his call after he sees this one.
+  - **The toy box:** "THIS WAY UP" and "FRAGILE" in red Bungee stamped inside the two long walls (read from inside, where
+    the opening looks); BoxBurst tumbles them off when it bursts (`CourseBuilder.BoxStamps`, also in RebuildToyBox).
+  - **HUD (Text Animator, `UI/TextFx.cs`):** the charge notice ("No room to grow") pops in shaking; the E prompt pops in
+    when it changes, "Charge full" bounces, and an E refused shakes it for 0.6 s. Real time, so under menus and slow
+    motion too. The notice fades by a CanvasGroup now (Text Animator owns the letters' colours).
+  - **Landed by** `Shift Jam / Text / Land Lettering Sample` (`CourseBuilder.LandLettering`, idempotent), which also put the
+    reworded tall-end sign (D-0097) into the scene.
+

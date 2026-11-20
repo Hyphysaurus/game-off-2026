@@ -5,7 +5,7 @@ namespace ShiftJam
     /// <summary>
     /// The course's sound: plays CourseSounds' cues for what the course announces (GameEvents: the shift, a core waking,
     /// a switch, a door, a checkpoint, a reset, the goal, E refused, a pick-up and a set-down, a weapon taken, a soldier
-    /// standing up, an end card choice) and the player's jump and landing, and keeps the room's music and ambience
+    /// standing up, an end card choice, the opening's lid, spark and get-up) and the player's jump and landing, and keeps the room's music and ambience
     /// looping. One per scene, anywhere; the cues are flat (2D), heard the same at any size.
     /// </summary>
     public sealed class CourseAudio : MonoBehaviour
@@ -57,6 +57,9 @@ namespace ShiftJam
             GameEvents.WeaponTaken += OnWeaponTaken;
             GameEvents.SoldierUp += OnSoldierUp;
             GameEvents.EndChoice += OnEndChoice;
+            GameEvents.OpeningLid += OnOpeningLid;
+            GameEvents.OpeningSpark += OnOpeningSpark;
+            GameEvents.OpeningGetUp += OnOpeningGetUp;
         }
 
         private void OnDisable()
@@ -80,6 +83,9 @@ namespace ShiftJam
             GameEvents.WeaponTaken -= OnWeaponTaken;
             GameEvents.SoldierUp -= OnSoldierUp;
             GameEvents.EndChoice -= OnEndChoice;
+            GameEvents.OpeningLid -= OnOpeningLid;
+            GameEvents.OpeningSpark -= OnOpeningSpark;
+            GameEvents.OpeningGetUp -= OnOpeningGetUp;
         }
 
         private void OnShiftStarted(Shifter who, ShiftSize size) { if (size == ShiftSize.Kid) Play("grow", sounds?.grow); else Play("shrink", sounds?.shrink); }
@@ -96,6 +102,9 @@ namespace ShiftJam
         private void OnWeaponTaken(WeaponHolder holder, Weapon weapon) => Play("weaponTaken", sounds?.weaponTaken);
         private void OnSoldierUp(ToySoldier soldier) => Play("soldierUp", sounds?.soldierUp);
         private void OnJumped() => Play("jump", sounds?.jump);
+        private void OnOpeningLid() => Play("lidOpen", sounds?.lidOpen);
+        private void OnOpeningSpark(bool arrived) { if (arrived) Play("sparkHit", sounds?.sparkHit); else Play("sparkFall", sounds?.sparkFall); }
+        private void OnOpeningGetUp() => Play("getUp", sounds?.getUp);
 
         private void OnLanded(float fallSpeed)
         {

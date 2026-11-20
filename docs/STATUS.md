@@ -2,6 +2,32 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 20 Nov 2026 10:1x — THE OPENING (D-0097) AND THE 3D LETTERING SAMPLE (D-0098): BUILT, CHECKED HIDDEN, NOT PLAYED; NOT COMMITTED
+- **The opening (D-0097):** New Game only. Dark, the flaps open, warm light and dust, a tiny shift orb swirls down onto the
+  toy and strikes (flash, slow motion, shake), the toy gets up as the camera rises behind it, then the player's camera.
+  Hold a key to skip, Esc skips at once. Continue starts standing. Sounds filled (CourseSounds: lidOpen, sparkFall,
+  sparkHit, getUp). Numbers in `Data/OpeningSettings.cs` (no asset yet: the defaults play; make one with Create > Shift
+  Jam > Opening Settings in a Resources folder to tune).
+- **The lettering sample (D-0098):** Sign1_Move on packing tape with marker letters that pop on; THIS WAY UP / FRAGILE
+  stamped inside the toy box, tumbling off on the burst; Text Animator on the charge notice and the E prompt. The tall
+  end's sign reworded in the scene ("the glowing hole in the end wall, on the shelf").
+- **Play starts from the title in the editor** (`Debug/PlayFromTitle.cs`, `4843efd` + `0008dda`; menu Shift Jam / Play From
+  Title to turn off).
+- **Checked hidden:** the opening probe 29 of 29 (title up and the toy standing behind it; New Game: lying, no control, HUD
+  hidden, black; flaps open, the spark out, the strike starts the get-up with slow motion; over by itself in about 6 s,
+  on its feet, control back, time 1, at the spawn, HUD back; the stamps and the tape sign made; the sign pops on near; the
+  notice parses to its words; the burst sets every stamp letter loose; a second New Game skipped: over at once, all
+  back). Stills (local): `%TEMP%\shiftjam-stage\opening\stills\` (sheet.jpg, sheet2.jpg, sheet3.jpg). The walk: 103 of 106,
+  the two old fails (the kid's E on the R2 torch and the R4 ruler) and its sign check, which looked for card text only
+  (fixed in the probe: Sign1_Move is lettering now; not re-run). It skips the opening on New Game.
+- **Your calls:** (1) the opening's feel: timings, the spark's size (small in the stills), the light; (2) the tape sign's
+  look: convert the other signs too?; (3) the HUD effects (shake, bounce) after you see them; (4) the first frame after a
+  click is capped so a hitch never skips the dark.
+- **Not committed:** the same files carry roadmap item 2 from a session at about 03:20 that left no write-up and no commit:
+  shift in the air (D-0094), the paper-plane glider (D-0095), the fall rule by landing speed (D-0096), plus project
+  settings and package changes. The walk (with its glide section) passes with it in. Commit it all together, or sort it
+  first: his call.
+
 ## 20 Nov 2026 02:5x — ONE HOUSE: THE TUNNEL IS THE TUTORIAL HALLWAY, A GARAGE DOOR TO THE RACEWAY AND A DOOR TO THE COLOUR CORNER (AND BACK), THE ARMORY CORNER (D-0090 TO D-0093) — NOT PLAYED
 Roadmap item 1 (his "yes to the rest", "teach the gun in the hallway"; his calls during the build: "garage door to raceway
 works", and the Workshop "fold it in, a corner or hub works"). Code written and compiled outside while the editor was

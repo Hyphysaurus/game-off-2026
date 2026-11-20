@@ -64,6 +64,18 @@ namespace ShiftJam
         /// <summary>A thrower's grenade went off: the int is how many things with health its blast hit, the bool whether
         /// it finished any of them off. The hit marker listens.</summary>
         public static event Action<GrenadeThrower, int, bool> GrenadeWentOff;
+        /// <summary>The opening (New Game, D-0097): the toy box's flaps begin to open over the lying toy.</summary>
+        public static event Action OpeningLid;
+        /// <summary>The opening: the spark sets off down into the box (false) or reaches the toy (true).</summary>
+        public static event Action<bool> OpeningSpark;
+        /// <summary>The opening: the toy starts to get up.</summary>
+        public static event Action OpeningGetUp;
+        /// <summary>The opening is over and the player has control (true: it was skipped).</summary>
+        public static event Action<bool> OpeningEnded;
+        /// <summary>The player took the paper plane: the glider is theirs (D-0095).</summary>
+        public static event Action<Glider> GliderTaken;
+        /// <summary>The glider opened (true) or folded (false); Glider.LastFold says why it folded.</summary>
+        public static event Action<Glider, bool> GlideChanged;
 
         internal static void RaiseShiftStarted(Shifter who, ShiftSize size) => ShiftStarted?.Invoke(who, size);
         internal static void RaiseShifted(Shifter who, ShiftSize size) => Shifted?.Invoke(who, size);
@@ -90,5 +102,11 @@ namespace ShiftJam
         internal static void RaiseGrenadesChanged(GrenadeThrower thrower) => GrenadesChanged?.Invoke(thrower);
         internal static void RaiseGrenadeThrown(GrenadeThrower thrower) => GrenadeThrown?.Invoke(thrower);
         internal static void RaiseGrenadeWentOff(GrenadeThrower thrower, int hits, bool finished) => GrenadeWentOff?.Invoke(thrower, hits, finished);
+        internal static void RaiseOpeningLid() => OpeningLid?.Invoke();
+        internal static void RaiseOpeningSpark(bool arrived) => OpeningSpark?.Invoke(arrived);
+        internal static void RaiseOpeningGetUp() => OpeningGetUp?.Invoke();
+        internal static void RaiseOpeningEnded(bool skipped) => OpeningEnded?.Invoke(skipped);
+        internal static void RaiseGliderTaken(Glider glider) => GliderTaken?.Invoke(glider);
+        internal static void RaiseGlideChanged(Glider glider, bool open) => GlideChanged?.Invoke(glider, open);
     }
 }

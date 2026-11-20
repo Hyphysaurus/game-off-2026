@@ -37,6 +37,8 @@ namespace ShiftJam
         private float _elapsed;
 
         public bool Burst { get; private set; }
+        /// <summary>The top flaps were opened on their own, before the burst (the opening, D-0097): the burst leaves them.</summary>
+        public bool FlapsOpen { get; private set; }
 
         private void OnEnable() { GameEvents.ShiftStarted += OnShiftStarted; }
         private void OnDisable() { GameEvents.ShiftStarted -= OnShiftStarted; }
@@ -44,6 +46,32 @@ namespace ShiftJam
         private void OnShiftStarted(Shifter who, ShiftSize size)
         {
             if (burstOnShift && size == ShiftSize.Kid) BurstNow();
+        }
+
+        /// <summary>Opens only the top flaps, slowly, each a little after the last (the opening's lid, D-0097). The burst later
+        /// drops the walls without popping them again. Safe to call twice; nothing once the box has burst.</summary>
+        public void OpenFlaps(float seconds, float stagger)
+        {
+            if (Burst || FlapsOpen || flaps == null) return;
+            FlapsOpen = true;
+            _elapsed = 0f;
+            Vector3 centre = Centre();
+            int i = 0;
+            foreach (Transform flap in flaps)
+            {
+                if (flap == null) continue;
+                Vector3 outward = Flat(flap.parent != null ? flap.parent.position - centre : flap.position - centre);
+                if (outward == Vector3.zero) continue;
+                Vector3 e = Extents(flap);
+                _falls.Add(new Fall
+                {
+                    t = flap,
+                    point = flap.position + outward * (Along(e, outward) - 2f * e.y) + Vector3.down * e.y,
+                    axis = Vector3.Cross(Vector3.up, outward),
+                    angle = flapAngle, delay = i++ * stagger, seconds = Mathf.Max(0.01f, seconds),
+                });
+                Off(flap);
+            }
         }
 
         /// <summary>Opens the box. Safe to call twice; the second call does nothing.</summary>
@@ -54,7 +82,7 @@ namespace ShiftJam
             _elapsed = 0f;
             Vector3 centre = Centre();   // the middle of the walls, not this object's origin (it sat 20 off: walls fell inward / askew)
             bool anyFlap = false;
-            if (flaps != null)
+            if (flaps != null && !FlapsOpen)
                 foreach (Transform flap in flaps)
                 {
                     if (flap == null) continue;
@@ -94,6 +122,7 @@ namespace ShiftJam
                 _falls.Add(new Fall { t = lid, point = lid.position + back * Extents(lid).z, axis = Vector3.Cross(transform.forward, Vector3.up), angle = lidAngle, seconds = wallSeconds });
                 Off(lid);
             }
+            foreach (var stamp in GetComponentsInChildren<Lettering>()) stamp.Tumble(centre);   // its stamped words fall off (D-0098)
             onBurst?.Invoke();
         }
 
@@ -136,7 +165,7 @@ namespace ShiftJam
 
         private void Update()
         {
-            if (!Burst || _falls.Count == 0) return;
+            if (_falls.Count == 0) return;
             _elapsed += Time.deltaTime;
             bool done = true;
             for (int i = 0; i < _falls.Count; i++)

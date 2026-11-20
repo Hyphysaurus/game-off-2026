@@ -29,6 +29,7 @@ namespace ShiftJam
         private static readonly int Pace = Animator.StringToHash("Pace");
         private static readonly int MoveSpeed = Animator.StringToHash("MoveSpeed");
         private static readonly int CrouchedParam = Animator.StringToHash("Crouched");
+        private static readonly int CrouchState = Animator.StringToHash("Crouch");
         private const float Damp = 0.08f;        // seconds the move direction takes to settle, as the motor's Speed does
         private const float Still = 0.05f;       // own units a second: slower than this is standing still
 
@@ -48,6 +49,20 @@ namespace ShiftJam
         /// <summary>The legs' playback this frame (1 = the clip's own speed).</summary>
         public float LegPlayback { get; private set; } = 1f;
         public Animator Animator => _animator;
+        /// <summary>True while the toy rides the paper plane (D-0095): the crouch, standing still on it, as a surfer does.
+        /// The motor tells the Animator it is on the ground meanwhile, so the crouch is not left for the fall.</summary>
+        public bool Riding { get; private set; }
+
+        /// <summary>The Glider opens (true) or folds (false) the plane under the toy.</summary>
+        public void Ride(bool on)
+        {
+            if (Riding == on) return;
+            Riding = on;
+            if (!on || !_ours || _animator == null) return;
+            _playing = false; _fidgeting = false; _idle = 0f;
+            _animator.SetBool(CrouchedParam, true);
+            _animator.CrossFadeInFixedTime(CrouchState, settings != null ? settings.blend : 0.1f, 0);
+        }
 
         private void Awake()
         {
@@ -94,9 +109,9 @@ namespace ShiftJam
             float dt = Time.deltaTime;
             float scale = Mathf.Max(1e-4f, stand != null ? stand.Scale : _motor.Scale);
             Vector3 velocity = stand != null ? Vector3.ProjectOnPlane(stand.Velocity, Vector3.up) : _motor.PlanarVelocity;
-            Vector3 local = transform.InverseTransformDirection(velocity) / scale;
+            Vector3 local = Riding ? Vector3.zero : transform.InverseTransformDirection(velocity) / scale;   // riding: still on the plane
             float speed = new Vector2(local.x, local.z).magnitude;
-            bool crouched = stand != null ? stand.Crouched : _stance != null && _stance.Crouched;
+            bool crouched = (stand != null ? stand.Crouched : _stance != null && _stance.Crouched) || Riding;
             _animator.SetFloat(MoveX, local.x, Damp, dt);
             _animator.SetFloat(MoveZ, local.z, Damp, dt);
             _animator.SetBool(CrouchedParam, crouched);

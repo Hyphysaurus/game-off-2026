@@ -3,16 +3,18 @@ using UnityEngine;
 namespace ShiftJam
 {
     /// <summary>
-    /// The safety net: if the player falls below a height, or a toy lands from too high (the fall rule, D-0016),
-    /// put them back at the last checkpoint with no momentum. Lives on the Player beside the motor.
+    /// The safety net: if the player falls below a height, or a toy lands too hard (the fall rule, D-0016), put them back
+    /// at the last checkpoint with no momentum. Lives on the Player beside the motor.
+    /// The fall rule reads the landing speed (D-0096): a toy that comes down as fast as a free fall from Fatal Fall Height
+    /// would (under the motor's own gravity) goes back. Every free fall breaks exactly where it always did; a glide, or
+    /// anything else that slowed the fall, lands soft by itself.
     /// </summary>
     [RequireComponent(typeof(PlayerMotor))]
     public sealed class Respawn : MonoBehaviour
     {
         [SerializeField, Tooltip("Below this world height the player is put back. Pack units.")] private float killHeight = -20f;
         [Header("Fall rule")]
-        [SerializeField, Tooltip("A toy that lands from higher than this (in its own units) goes back to the checkpoint. 0 = off.")] private float fatalFallHeight = 12f;
-        [SerializeField, Tooltip("Must match MovementSettings.gravity: the landing speed is turned back into a height.")] private float gravity = 25f;
+        [SerializeField, Tooltip("A toy that lands as fast as a free fall from this high (in its own units) goes back to the checkpoint. 0 = off.")] private float fatalFallHeight = 12f;
         [SerializeField, Tooltip("The kid never takes fall damage.")] private bool kidImmune = true;
         [SerializeField] private UnityEngine.Events.UnityEvent onFell;
         [SerializeField, Tooltip("Found on the HUD if empty. A short black cut covers every reset.")] private ScreenFade fade;
@@ -63,6 +65,7 @@ namespace ShiftJam
             SetPoint(d.position, Quaternion.Euler(0f, d.yaw, 0f));
             _motor.Warp(d.position + Vector3.up * 0.2f, _facing);
             if (TryGetComponent(out ShiftCharge charge)) charge.Refill();   // a loaded save starts charged (D-0045)
+            if (TryGetComponent(out Glider glider)) glider.SetOwned(false);   // the glider is not saved (D-0095)
             Debug.Log("Loaded slot " + (slot + 1) + ": " + d.room + " as " + d.size);
             return true;
         }
@@ -72,6 +75,7 @@ namespace ShiftJam
         {
             if (_shifter != null) _shifter.SetSizeNow(ShiftSize.Toy);
             if (TryGetComponent(out ShiftCharge charge)) charge.Drain();   // New Game: the box core gives the first charge
+            if (TryGetComponent(out Glider glider)) glider.SetOwned(false);   // and the desk gives the glider
             SetPoint(_spawn, _spawnFacing);
             _motor.Warp(_spawn, _spawnFacing);
         }
@@ -79,12 +83,15 @@ namespace ShiftJam
         private void OnEnable() { _motor.Landed += OnLanded; }
         private void OnDisable() { _motor.Landed -= OnLanded; }
 
-        private void OnLanded(float fallSpeed)
+        /// <summary>The landing speed a free fall from Fatal Fall Height reaches under the motor's own gravity, own units a
+        /// second (about 26.5 for 14 at gravity 25). 0 with the rule off.</summary>
+        public float FatalLandingSpeed => fatalFallHeight > 0f && _motor != null ? Mathf.Sqrt(2f * Mathf.Max(0.01f, _motor.OwnGravity) * fatalFallHeight) : 0f;
+
+        private void OnLanded(float landingSpeed)
         {
             if (fatalFallHeight <= 0f) return;
             if (kidImmune && _shifter != null && _shifter.Size == ShiftSize.Kid) return;
-            float height = fallSpeed * fallSpeed / (2f * Mathf.Max(0.01f, gravity));   // the drop that gives this landing speed
-            if (height < fatalFallHeight) return;
+            if (landingSpeed < FatalLandingSpeed) return;   // softer than a fall from Fatal Fall Height (D-0096)
             Put();
             onFell?.Invoke();
         }

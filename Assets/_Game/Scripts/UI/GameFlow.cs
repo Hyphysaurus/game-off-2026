@@ -63,12 +63,14 @@ namespace ShiftJam
         public void Playroom()
         {
             Time.timeScale = 1f;
+            GameEvents.RaiseEndChoice(true);
             SceneManager.LoadScene(TitleMenu.WorkshopScene);
         }
 
         public void Restart()
         {
             Time.timeScale = 1f;
+            GameEvents.RaiseEndChoice(false);
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
     }

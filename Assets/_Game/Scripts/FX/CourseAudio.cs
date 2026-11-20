@@ -4,8 +4,9 @@ namespace ShiftJam
 {
     /// <summary>
     /// The course's sound: plays CourseSounds' cues for what the course announces (GameEvents: the shift, a core waking,
-    /// a switch, a door, a checkpoint, a reset, the goal) and the player's jump and landing, and keeps the room's music
-    /// and ambience looping. One per scene, anywhere; the cues are flat (2D), heard the same at any size.
+    /// a switch, a door, a checkpoint, a reset, the goal, E refused, a pick-up and a set-down, a weapon taken, a soldier
+    /// standing up, an end card choice) and the player's jump and landing, and keeps the room's music and ambience
+    /// looping. One per scene, anywhere; the cues are flat (2D), heard the same at any size.
     /// </summary>
     public sealed class CourseAudio : MonoBehaviour
     {
@@ -16,6 +17,9 @@ namespace ShiftJam
         private readonly AudioSource[] _cues = new AudioSource[4];
         private int _next;
         private AudioSource _music, _ambience;
+
+        /// <summary>Each cue as it plays: its name in CourseSounds and its clip (for checks: a batch run is muted).</summary>
+        public static event System.Action<string, AudioClip> CuePlayed;
 
         private void Awake()
         {
@@ -47,6 +51,12 @@ namespace ShiftJam
             GameEvents.PlayerReset += OnPlayerReset;
             GameEvents.GoalReached += OnGoalReached;
             GameEvents.ShiftRefused += OnShiftRefused;
+            GameEvents.UseRefused += OnUseRefused;
+            GameEvents.PickedUp += OnPickedUp;
+            GameEvents.SetDown += OnSetDown;
+            GameEvents.WeaponTaken += OnWeaponTaken;
+            GameEvents.SoldierUp += OnSoldierUp;
+            GameEvents.EndChoice += OnEndChoice;
         }
 
         private void OnDisable()
@@ -64,30 +74,56 @@ namespace ShiftJam
             GameEvents.PlayerReset -= OnPlayerReset;
             GameEvents.GoalReached -= OnGoalReached;
             GameEvents.ShiftRefused -= OnShiftRefused;
+            GameEvents.UseRefused -= OnUseRefused;
+            GameEvents.PickedUp -= OnPickedUp;
+            GameEvents.SetDown -= OnSetDown;
+            GameEvents.WeaponTaken -= OnWeaponTaken;
+            GameEvents.SoldierUp -= OnSoldierUp;
+            GameEvents.EndChoice -= OnEndChoice;
         }
 
-        private void OnShiftStarted(Shifter who, ShiftSize size) => Play(size == ShiftSize.Kid ? sounds?.grow : sounds?.shrink);
-        private void OnSourceAwakened(ShiftSource source) => Play(sounds?.coreAwake);
-        private void OnSwitchPressed(Switch pressed) => Play(sounds?.switchPress);
-        private void OnDoorOpening(Door door) => Play(sounds?.doorOpen);
-        private void OnCheckpointClaimed(Checkpoint checkpoint) => Play(sounds?.checkpoint);
-        private void OnPlayerReset(Respawn respawn) => Play(sounds?.reset);
-        private void OnGoalReached(Goal goal) => Play(sounds?.goal);
-        private void OnShiftRefused(Shifter who, string why) => Play(sounds?.refused);
-        private void OnJumped() => Play(sounds?.jump);
+        private void OnShiftStarted(Shifter who, ShiftSize size) { if (size == ShiftSize.Kid) Play("grow", sounds?.grow); else Play("shrink", sounds?.shrink); }
+        private void OnSourceAwakened(ShiftSource source) => Play("coreAwake", sounds?.coreAwake);
+        private void OnSwitchPressed(Switch pressed) => Play("switchPress", sounds?.switchPress);
+        private void OnDoorOpening(Door door) => Play("doorOpen", sounds?.doorOpen);
+        private void OnCheckpointClaimed(Checkpoint checkpoint) => Play("checkpoint", sounds?.checkpoint);
+        private void OnPlayerReset(Respawn respawn) => Play("reset", sounds?.reset);
+        private void OnGoalReached(Goal goal) => Play("goal", sounds?.goal);
+        private void OnShiftRefused(Shifter who, string why) => Play("refused", sounds?.refused);
+        private void OnUseRefused(Interactor who, string why) => Play("cantUse", sounds?.cantUse);
+        private void OnPickedUp(Transform thing) => Play("pickUp", sounds?.pickUp);
+        private void OnSetDown(Transform thing) => Play("putDown", sounds?.putDown);
+        private void OnWeaponTaken(WeaponHolder holder, Weapon weapon) => Play("weaponTaken", sounds?.weaponTaken);
+        private void OnSoldierUp(ToySoldier soldier) => Play("soldierUp", sounds?.soldierUp);
+        private void OnJumped() => Play("jump", sounds?.jump);
 
         private void OnLanded(float fallSpeed)
         {
-            if (sounds != null && fallSpeed >= sounds.landAtLeast) Play(sounds.land);
+            if (sounds != null && fallSpeed >= sounds.landAtLeast) Play("land", sounds.land);
         }
 
-        private void Play(CourseSounds.Cue? cue)
+        /// <summary>The scene is about to change: the cue plays from its own object that outlives this scene, then goes.</summary>
+        private void OnEndChoice(bool playroom)
+        {
+            if (sounds == null || sounds.endChoice.clip == null || sounds.endChoice.volume <= 0f) return;
+            var go = new GameObject("End Choice Sound");
+            DontDestroyOnLoad(go);
+            var s = go.AddComponent<AudioSource>();
+            s.spatialBlend = 0f;
+            s.ignoreListenerPause = true;
+            s.PlayOneShot(sounds.endChoice.clip, sounds.endChoice.volume);
+            Destroy(go, sounds.endChoice.clip.length + 0.1f);
+            CuePlayed?.Invoke("endChoice", sounds.endChoice.clip);
+        }
+
+        private void Play(string name, CourseSounds.Cue? cue)
         {
             if (cue is not { } c || c.clip == null || c.volume <= 0f) return;
             AudioSource s = _cues[_next];
             _next = (_next + 1) % _cues.Length;
             s.pitch = 1f + Random.Range(-c.pitchSpread, c.pitchSpread);
             s.PlayOneShot(c.clip, c.volume);
+            CuePlayed?.Invoke(name, c.clip);
         }
 
         private static void Loop(AudioSource source, AudioClip clip, float volume)

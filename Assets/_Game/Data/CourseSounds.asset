@@ -48,6 +48,30 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 48b2e021872b29d48b5eb5252fe43fd9, type: 3}
     volume: 0.45
     pitchSpread: 0.05
+  cantUse:
+    clip: {fileID: 8300000, guid: 8ca48f8284ebc8c4fb67fed0d5f4dd09, type: 3}
+    volume: 0.35
+    pitchSpread: 0.05
+  pickUp:
+    clip: {fileID: 8300000, guid: f7e0d0c75a032ed4ba261cc392526d9e, type: 3}
+    volume: 0.45
+    pitchSpread: 0.08
+  putDown:
+    clip: {fileID: 8300000, guid: 395f45017cdc3de4499222c1e9137d80, type: 3}
+    volume: 0.4
+    pitchSpread: 0.08
+  weaponTaken:
+    clip: {fileID: 8300000, guid: a5f8565c7844aed429ffc81c79937fd7, type: 3}
+    volume: 0.6
+    pitchSpread: 0.05
+  soldierUp:
+    clip: {fileID: 8300000, guid: 15398db5bf899e54c9ecdcd4f3fa87ad, type: 3}
+    volume: 0.3
+    pitchSpread: 0.1
+  endChoice:
+    clip: {fileID: 8300000, guid: 55438aec24ea66b4397d019b4227ba28, type: 3}
+    volume: 0.6
+    pitchSpread: 0
   jump:
     clip: {fileID: 8300000, guid: 4f5e19874b5caf944ad15f7b00799398, type: 3}
     volume: 0.2

@@ -103,6 +103,7 @@ namespace ShiftJam
             _t0 = Time.time;
             _phase = reachTime > 0f ? Phase.Reaching : Phase.Holding;
             _releasedAt = float.NegativeInfinity;
+            GameEvents.RaisePickedUp(thing.transform);
         }
 
         /// <summary>
@@ -216,6 +217,7 @@ namespace ShiftJam
             // Set down around the player (a big thing from a small hand), it ignores the body until they part (D-0041).
             KeepApart.Until(thing.gameObject, colliders, _body);
             thing.SetCarried(false);
+            GameEvents.RaiseSetDown(thing.transform);
         }
 
         /// <summary>

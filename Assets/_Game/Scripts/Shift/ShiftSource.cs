@@ -128,13 +128,14 @@ namespace ShiftJam
         public void Interact(Interactor who)
         {
             Shifter shifter = who.Shifter;
-            if (shifter == null || shifter.Shifting || !Usable) return;
+            if (shifter == null || shifter.Shifting) return;
+            if (!Usable) { GameEvents.RaiseUseRefused(who, Spent ? spentPrompt : dormantPrompt); return; }
             if (standWithin > 0f)
             {
                 // Up where the core is, and standing: a kid jumping beside the bed must not shrink in mid-air.
-                if (!HighEnough(who)) return;
+                if (!HighEnough(who)) { GameEvents.RaiseUseRefused(who, climbPrompt); return; }
                 var motor = who.GetComponent<PlayerMotor>();   // plain form: Fast Script Reload breaks `TryGetComponent(out ...) &&`
-                if (motor != null && motor.isActiveAndEnabled && !motor.Grounded) return;
+                if (motor != null && motor.isActiveAndEnabled && !motor.Grounded) { GameEvents.RaiseUseRefused(who, climbPrompt); return; }
             }
             ShiftSize before = shifter.Size;
             switch (mode)
@@ -143,7 +144,7 @@ namespace ShiftJam
                 case Mode.ShrinkOnly: shifter.ShiftTo(ShiftSize.Toy); break;
                 default: shifter.Toggle(); break;
             }
-            if (shifter.Size == before) return;
+            if (shifter.Size == before) { GameEvents.RaiseUseRefused(who, wrongSizePrompt); return; }
             // A core is a battery: using one also refills the shift the player carries (D-0045).
             if (shifter.TryGetComponent(out ShiftCharge charge)) charge.Refill();
             onUsed?.Invoke();

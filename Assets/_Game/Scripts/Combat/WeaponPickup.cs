@@ -46,6 +46,7 @@ namespace ShiftJam
         {
             if (holder == null || !Available) return false;
             if (holder.Equip(weapon) == null) return false;
+            GameEvents.RaiseWeaponTaken(holder, weapon);
             if (Dropped) return true;                 // it is in the hand now; its WeaponLooks switched this off
             _gone = true;
             if (display != null) display.gameObject.SetActive(false);

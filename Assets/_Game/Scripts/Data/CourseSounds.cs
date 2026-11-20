@@ -39,6 +39,18 @@ namespace ShiftJam
         [Tooltip("Put back at the checkpoint: a fatal fall, the floor's edge, a hazard.")] public Cue reset;
         public Cue goal;
         [Tooltip("The Shift key refused (no room, no charge, in the air): a short no.")] public Cue refused;
+        [Tooltip("E on something that says no (\"Climb up to reach it\", \"Too small to reach\", \"Too big to hold\", a dark core): softer than Refused.")] public Cue cantUse;
+
+        [Header("Hands")]
+        [Tooltip("Something taken into the hands: the torch, the ruler, the safe, a box.")] public Cue pickUp;
+        [Tooltip("Something held set down.")] public Cue putDown;
+        [Tooltip("A weapon taken from a stand (or off the floor).")] public Cue weaponTaken;
+
+        [Header("The soldiers")]
+        [Tooltip("A knocked-down soldier stands up again. Going down plays the target thud (Resources/WeaponAmmo).")] public Cue soldierUp;
+
+        [Header("The end card")]
+        [Tooltip("A choice taken on the end card (play again, the playroom). Plays on past the scene change.")] public Cue endChoice;
 
         [Header("The player")]
         public Cue jump;

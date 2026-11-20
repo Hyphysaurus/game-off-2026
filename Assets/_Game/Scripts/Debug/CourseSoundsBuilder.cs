@@ -17,6 +17,8 @@ namespace ShiftJam
     {
         private const string AssetPath = "Assets/_Game/Data/CourseSounds.asset";
         private const string Sfx = "Assets/_Imports/ithappy/Playroom/Playroom_Sound_FX/";
+        /// <summary>The game's own weapon sounds (CasePortman), already used by the ammo box. A path from Assets/ is taken as is.</summary>
+        private const string Weapons = "Assets/_Imports/CasePortman/Weapons/";
         private static readonly string[] CourseScenes = { "Assets/_Game/Scenes/Greybox.unity", "Assets/_Game/Scenes/Workshop.unity" };
 
         [MenuItem("Shift Jam/Audio/Build Course Sounds")]
@@ -47,6 +49,16 @@ namespace ShiftJam
             // a wooden tock for a landing from higher than its own jump.
             Fill(ref sounds.jump, "Props/Book_Close.wav", 0.2f, 0.12f, ref filled);
             Fill(ref sounds.land, "Toys/Chess_Fall_v2.wav", 0.5f, 0.1f, ref filled);
+            // D-0088: the silent moments. E on something that says no: a softer no than the Shift key's, quieter still.
+            Fill(ref sounds.cantUse, "UI/Error_v1.wav", 0.35f, 0.05f, ref filled);
+            // Hands: a soft lift and a wooden set-down (not the reset's drop, so the two never read as one).
+            Fill(ref sounds.pickUp, "Props/Backpack_Pickup_v1.wav", 0.45f, 0.08f, ref filled);
+            Fill(ref sounds.putDown, "Toys/Block_Fall_v1.wav", 0.4f, 0.08f, ref filled);
+            // A weapon from a stand: the ammo box's own pick-up (the game's weapon sounds, CasePortman, already imported).
+            Fill(ref sounds.weaponTaken, Weapons + "pickup.ogg", 0.6f, 0.05f, ref filled);
+            // A soldier back on its feet: a chess piece set upright, quiet (four of them, often).
+            Fill(ref sounds.soldierUp, "Toys/Chess_Move_v1.wav", 0.3f, 0.1f, ref filled);
+            Fill(ref sounds.endChoice, "UI/UI_Confirm_v1.wav", 0.6f, 0f, ref filled);
             if (sounds.ambience == null)
             {
                 // A 30 s room tone (the 10 s one repeats sooner). It is quiet in the file (about -46 dB), so it plays at 0.6.
@@ -119,8 +131,9 @@ namespace ShiftJam
 
         private static AudioClip Clip(string file)
         {
-            var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(Sfx + file);
-            if (clip == null) Debug.LogWarning("[Audio] Missing sound, left empty: " + Sfx + file);
+            string path = file.StartsWith("Assets/") ? file : Sfx + file;
+            var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+            if (clip == null) Debug.LogWarning("[Audio] Missing sound, left empty: " + path);
             return clip;
         }
     }

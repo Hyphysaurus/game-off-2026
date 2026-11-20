@@ -320,6 +320,7 @@ namespace ShiftJam
             if (_heldCarry != null) _heldCarry.SetCarried(true);
             _target = null;
             _busyFrame = Time.frameCount;
+            GameEvents.RaisePickedUp(rb.transform);
         }
 
         /// <summary>Levelled and lowered straight onto what is under it, then left still as it was before the grab.</summary>
@@ -332,6 +333,7 @@ namespace ShiftJam
             _busyFrame = Time.frameCount;
             if (carry != null) carry.SetCarried(false);
             if (rb == null) { FreezeHands(null); return; }
+            GameEvents.RaiseSetDown(rb.transform);
             Quaternion level = Level(rb.rotation);
             if (!rb.isKinematic) { rb.linearVelocity = Vector3.zero; rb.angularVelocity = Vector3.zero; }
             rb.rotation = level; rb.transform.rotation = level;

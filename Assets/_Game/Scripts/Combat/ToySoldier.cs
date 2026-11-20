@@ -102,7 +102,7 @@ namespace ShiftJam
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
             if (GameMode.Current == GameMode.Mode.Build) return;   // held still while the room is edited, or a drag jitters
-            if (_state == State.Down) { Topple(); if (Time.time - _downAt >= downTime) ResetState(); return; }
+            if (_state == State.Down) { Topple(); if (Time.time - _downAt >= downTime) { ResetState(); GameEvents.RaiseSoldierUp(this); } return; }
 
             Perceive(dt);
             Vector3 move = Vector3.zero, face = Vector3.zero;
@@ -218,7 +218,9 @@ namespace ShiftJam
                 dir = Quaternion.AngleAxis(spread * Mathf.Sqrt(Random.value), axis) * dir;
             }
             Projectile.Fire(projectile, from, dir, damage, knockback, Scale, transform);
-            if (fireClip != null) { _audio.pitch = Random.Range(0.9f, 1.05f); _audio.PlayOneShot(fireClip); }
+            // Its own clip, else its dart's (the player's dart pistol sound): the course's soldiers were built with none and fired silently.
+            AudioClip clip = fireClip != null ? fireClip : projectile.FireClip();
+            if (clip != null) { _audio.pitch = Random.Range(0.9f, 1.05f); _audio.PlayOneShot(clip); }
         }
 
         private Vector3 PatrolVelocity()

@@ -35,6 +35,7 @@ namespace ShiftJam
         public void Interact(Interactor who)
         {
             if (RightSize(who)) Press();
+            else GameEvents.RaiseUseRefused(who, PromptFor(who));
         }
 
         /// <summary>Presses it: the doors open. A hand (Interact, sized) or a shot (its Damageable) calls this.</summary>

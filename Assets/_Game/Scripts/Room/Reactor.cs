@@ -50,7 +50,7 @@ namespace ShiftJam
             return continuous && _on ? promptOff : prompt;
         }
 
-        public void Interact(Interactor who) { if (RightSize(who)) Use(); }
+        public void Interact(Interactor who) { if (RightSize(who)) Use(); else GameEvents.RaiseUseRefused(who, PromptFor(who)); }
 
         /// <summary>Plays the response (or toggles it when continuous). Wire a Switch's event here.</summary>
         public void Use()

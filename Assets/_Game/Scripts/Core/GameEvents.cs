@@ -26,6 +26,19 @@ namespace ShiftJam
         public static event Action<Goal> GoalReached;
         /// <summary>The Shift key was pressed and the shift could not happen; the string says why (shown on the HUD).</summary>
         public static event Action<Shifter, string> ShiftRefused;
+        /// <summary>E on something that said no (a core from below it, at the wrong size, dark or spent; a switch out of
+        /// reach): nothing happened. The string is what its prompt said.</summary>
+        public static event Action<Interactor, string> UseRefused;
+        /// <summary>Something was taken into the hands (a carried torch or ruler, a grabbed safe or box).</summary>
+        public static event Action<UnityEngine.Transform> PickedUp;
+        /// <summary>Something held was set down where the player put it.</summary>
+        public static event Action<UnityEngine.Transform> SetDown;
+        /// <summary>A holder took a weapon from a stand or off the floor.</summary>
+        public static event Action<WeaponHolder, Weapon> WeaponTaken;
+        /// <summary>A knocked-down toy soldier stood up again at its post.</summary>
+        public static event Action<ToySoldier> SoldierUp;
+        /// <summary>A choice on the end card was taken (true: the playroom; false: play again). The scene changes next.</summary>
+        public static event Action<bool> EndChoice;
         /// <summary>A holder's ammo read-out changed: a shot left, a reload started, seated or ended, an ammo box was
         /// taken, or another gun came to hand. Read the numbers from the holder (Current, Reloading) and its gun's Magazine.</summary>
         public static event Action<WeaponHolder> AmmoChanged;
@@ -61,6 +74,12 @@ namespace ShiftJam
         internal static void RaisePlayerReset(Respawn respawn) => PlayerReset?.Invoke(respawn);
         internal static void RaiseGoalReached(Goal goal) => GoalReached?.Invoke(goal);
         internal static void RaiseShiftRefused(Shifter who, string why) => ShiftRefused?.Invoke(who, why);
+        internal static void RaiseUseRefused(Interactor who, string why) => UseRefused?.Invoke(who, why);
+        internal static void RaisePickedUp(UnityEngine.Transform thing) => PickedUp?.Invoke(thing);
+        internal static void RaiseSetDown(UnityEngine.Transform thing) => SetDown?.Invoke(thing);
+        internal static void RaiseWeaponTaken(WeaponHolder holder, Weapon weapon) => WeaponTaken?.Invoke(holder, weapon);
+        internal static void RaiseSoldierUp(ToySoldier soldier) => SoldierUp?.Invoke(soldier);
+        internal static void RaiseEndChoice(bool playroom) => EndChoice?.Invoke(playroom);
         internal static void RaiseAmmoChanged(WeaponHolder holder) => AmmoChanged?.Invoke(holder);
         internal static void RaiseReloadStarted(WeaponHolder holder, BlasterWeapon gun) => ReloadStarted?.Invoke(holder, gun);
         internal static void RaiseReloadEnded(WeaponHolder holder, BlasterWeapon gun, bool loaded) => ReloadEnded?.Invoke(holder, gun, loaded);

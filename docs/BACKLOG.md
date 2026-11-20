@@ -4,6 +4,16 @@ Order = priority. "His" = editor / feel / art / audio; "mine" = scripts, builder
 first, then juice, then the page. Nothing here is a deadline pressure, it is the order to pick from.
 
 
+## NORTH STAR (his words, 20 Nov 2026): "i sort of want this to feel like a GTA type toy world"
+Post-jam direction, not jam scope. The house is the city (rooms are districts, the backyard and street beyond),
+every toy vehicle can be driven, toys live their own routines, characters hand out errands, mischief has a response
+(an escalating "mischief meter": the toy army, then the tank, then the helicopter), a radio in the cars, shops and a
+garage for outfits and car parts. Tone: toy mischief, not crime. Local AI (LLMUnity, imported 20 Nov) is on the table
+for words only (radio DJ, barks, errand flavour, select conversations) over deterministic game logic; Pixel Crushers
+Love/Hate (imported) can be the toys' memory of what you did. Open questions before building toward it: rooms as
+streamed (additive) scenes, the AI's size in a build (1.7 GB of Windows libraries + the model), store disclosure of
+live-generated text, and guardrails for what a small model says.
+
 ## ROADMAP AGREED 20 Nov 2026 (his "yes" to all; supersedes the order below where they differ)
 His words: shift in mid-air "sounds cool. Even moreso if we can get Fortnite or TOTK style glide and parachute down";
 the dart hookshot with zip lines to bespoke targets "sounds AMAZING. Yes. Full yes"; the paper-plane glider "Yes";

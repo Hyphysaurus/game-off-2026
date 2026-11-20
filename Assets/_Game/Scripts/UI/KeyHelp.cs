@@ -142,7 +142,7 @@ namespace ShiftJam
             Line(sb, "R", "Reload the gun in hand (an empty gun reloads by itself)", "Y, with nothing to use");
             Line(sb, "G", "Throw a grenade (free hand; a supply crate refills them)", "Hold R3, press L3");
             Line(sb, "Esc", "Pause: resume, options, back to the title, quit", "Start");
-            Line(sb, "R", "Restart, on the end card");
+            Line(sb, "R / P", "End card: play again / the playroom", "A / Y");
             Line(sb, "H", "This list", "View");
             Set(0, sb);
 

@@ -511,6 +511,7 @@ namespace ShiftJam
             float sillY = Mathf.Max(nb.min.y, 40f); Log.AppendLine("window " + nb.min + ".." + nb.max + " sill " + sillY);
             Cube("Sill", r6, new Vector3(c.x, sillY - 2f, nz - 2.5f - 6f), new Vector3(44f, 4f, 12f), Mat("Assets/_Game/Data/Wardrobe_Wood.mat", new Color(0.36f, 0.23f, 0.13f)));
             var coreD = Core("CoreD_Window", r6, new Vector3(c.x - 12f, sillY + 2.5f, nz - 2.5f - 6f), ShiftSource.Mode.Toggle, coreMat, false);
+            Set(coreD.GetComponent<ShiftSource>(), "standWithin", CoreStandWithin);   // used from the sill only, so the toy is shrunk at the goal (D-0084)
             var goal = Trigger("Goal", r6, new Vector3(c.x + 8f, sillY + 2f, nz - 2.5f - 6f), new Vector3(16f, 6f, 10f));
             var gc = goal.AddComponent<Goal>(); Set(gc, "requiredSize", (int)ShiftSize.Toy);
             Set(gc, "message", "");
@@ -744,7 +745,7 @@ namespace ShiftJam
                 return card;
             }
             var start = Card("StartCard", "SHIFT", "press any key");
-            var end = Card("EndCard", "You made it to the window.", "R to play again");
+            var end = Card("EndCard", "You made it to the window.", EndCardChoices);
             end.SetActive(false);
             var flow = hud.GetComponent<GameFlow>() ?? hud.AddComponent<GameFlow>();
             Set(flow, "startCard", start); Set(flow, "endCard", end); Set(flow, "fade", fade);

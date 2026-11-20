@@ -531,6 +531,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7875401063759391803, guid: c8c3d3ffe7570a5468a0575be6cb0e47, type: 3}
   m_PrefabInstance: {fileID: 7728329}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &9455892
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1579133429}
+    m_Modifications:
+    - target: {fileID: 7538598737771012371, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 27.596718
+      objectReference: {fileID: 0}
+    - target: {fileID: 7538598737771012371, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.019999208
+      objectReference: {fileID: 0}
+    - target: {fileID: 7538598737771012371, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -5.368065
+      objectReference: {fileID: 0}
+    - target: {fileID: 7538598737771012371, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 7538598737771012371, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7538598737771012371, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 7538598737771012371, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7538598737771012371, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7538598737771012371, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7538598737771012371, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790721122769657786, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+      propertyPath: m_Name
+      value: PistolStand
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+--- !u!4 &9455893 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7538598737771012371, guid: 1d6dd2188eeea37479641b034d364df1, type: 3}
+  m_PrefabInstance: {fileID: 9455892}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &9874269
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2284,6 +2346,8 @@ MonoBehaviour:
   dormantPrompt: Dark. It needs light.
   uses: 0
   spentPrompt: 
+  standWithin: 0
+  climbPrompt: Climb up to reach it
   awakeOnly:
   - {fileID: 1140008454}
   - {fileID: 902021048}
@@ -3950,7 +4014,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8694461235950009271, guid: 4ccc7f07614c9db4aad391117497bc02, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 38.550865
+      value: 40.750748
       objectReference: {fileID: 0}
     - target: {fileID: 8694461235950009271, guid: 4ccc7f07614c9db4aad391117497bc02, type: 3}
       propertyPath: m_LocalPosition.y
@@ -12525,15 +12589,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3970850783961960302, guid: a86603a78c205be4eb26761b5a2ee08a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 79.61218
+      value: 83.61206
       objectReference: {fileID: 0}
     - target: {fileID: 3970850783961960302, guid: a86603a78c205be4eb26761b5a2ee08a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 22.260141
+      value: 24.14478
       objectReference: {fileID: 0}
     - target: {fileID: 3970850783961960302, guid: a86603a78c205be4eb26761b5a2ee08a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -38.669487
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 3970850783961960302, guid: a86603a78c205be4eb26761b5a2ee08a, type: 3}
       propertyPath: m_LocalRotation.w
@@ -12615,6 +12679,8 @@ MonoBehaviour:
   dormantPrompt: Dark
   uses: 0
   spentPrompt: 
+  standWithin: 6
+  climbPrompt: Climb up to reach it
   awakeOnly:
   - {fileID: 2136151924}
   - {fileID: 1912158370}
@@ -13995,7 +14061,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6758446303596948505, guid: 2c59f53549b2d584984ee7c1bf943d90, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 38.550865
+      value: 40.750748
       objectReference: {fileID: 0}
     - target: {fileID: 6758446303596948505, guid: 2c59f53549b2d584984ee7c1bf943d90, type: 3}
       propertyPath: m_LocalPosition.y
@@ -19575,6 +19641,8 @@ MonoBehaviour:
   dormantPrompt: Dark
   uses: 0
   spentPrompt: 
+  standWithin: 0
+  climbPrompt: Climb up to reach it
   awakeOnly:
   - {fileID: 845753881}
   - {fileID: 198612690}
@@ -19753,6 +19821,8 @@ MonoBehaviour:
   dormantPrompt: Dark
   uses: 0
   spentPrompt: 
+  standWithin: 6
+  climbPrompt: Climb up to reach it
   awakeOnly:
   - {fileID: 759045328}
   - {fileID: 1248253384}
@@ -44926,7 +44996,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6549354179014127125, guid: 49171cdbdf9307a43be3556f0fb2b8fc, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 57.176025
+      value: 59.375908
       objectReference: {fileID: 0}
     - target: {fileID: 6549354179014127125, guid: 49171cdbdf9307a43be3556f0fb2b8fc, type: 3}
       propertyPath: m_LocalPosition.y
@@ -53280,7 +53350,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: R to play again
+  m_text: R / A   play again          P / Y   the playroom is open
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -63363,6 +63433,8 @@ MonoBehaviour:
   dormantPrompt: Dark
   uses: 0
   spentPrompt: 
+  standWithin: 0
+  climbPrompt: Climb up to reach it
   awakeOnly:
   - {fileID: 1329751720}
   - {fileID: 1469626424}
@@ -64264,6 +64336,8 @@ MonoBehaviour:
   dormantPrompt: Dark
   uses: 0
   spentPrompt: 
+  standWithin: 0
+  climbPrompt: Climb up to reach it
   awakeOnly:
   - {fileID: 201907198}
   - {fileID: 385654423}
@@ -70745,7 +70819,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2185399443814392952, guid: d157d54d616e7524fa232d66f4f5911c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -40
+      value: 4.294321
       objectReference: {fileID: 0}
     - target: {fileID: 2185399443814392952, guid: d157d54d616e7524fa232d66f4f5911c, type: 3}
       propertyPath: m_LocalRotation.w
@@ -70785,6 +70859,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1522156869824872130, guid: d157d54d616e7524fa232d66f4f5911c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1248352275}
+    - targetCorrespondingSourceObject: {fileID: 1522156869824872130, guid: d157d54d616e7524fa232d66f4f5911c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1248352276}
   m_SourcePrefab: {fileID: 100100000, guid: d157d54d616e7524fa232d66f4f5911c, type: 3}
 --- !u!4 &1248352272 stripped
 Transform:
@@ -70833,6 +70910,34 @@ MonoBehaviour:
   minSize: 5
   maxSize: 14
   bob: 0.15
+--- !u!114 &1248352276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1248352273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce99b4fd05c70a042b7d50783cec1c28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.Damageable
+  maxHealth: 100000
+  invulnerability: 0.1
+  flashColor: {r: 1, g: 0.45, b: 0.2, a: 1}
+  flashSeconds: 0.1
+  squash: 0
+  squashSeconds: 0.3
+  squashPart: {fileID: 0}
+  takeKnockback: 0
+  showNumbers: 0
+  refillAfterDeath: 0
+  onDamaged:
+    m_PersistentCalls:
+      m_Calls: []
+  onDied:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &1250454679
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -89370,6 +89475,7 @@ Transform:
   - {fileID: 1322770790}
   - {fileID: 799085922}
   - {fileID: 1166317558}
+  - {fileID: 9455893}
   m_Father: {fileID: 945024615}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1579887660
@@ -90810,7 +90916,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1104305405448385801, guid: a9c0d7b51094cdb46add753ec260b600, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 38.550865
+      value: 40.750748
       objectReference: {fileID: 0}
     - target: {fileID: 1104305405448385801, guid: a9c0d7b51094cdb46add753ec260b600, type: 3}
       propertyPath: m_LocalPosition.y

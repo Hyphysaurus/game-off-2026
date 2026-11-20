@@ -6,7 +6,8 @@ namespace ShiftJam
 {
     /// <summary>
     /// The frame around the game: a start card that goes away on the first press, an end card the last Goal
-    /// raises, and R to restart. Lives on the HUD; the cards are plain objects it shows and hides.
+    /// raises, and its two choices: R (pad A) to play again, P (pad Y) to go to the playroom, the Workshop sandbox
+    /// (D-0086). Lives on the HUD; the cards are plain objects it shows and hides.
     /// </summary>
     public sealed class GameFlow : MonoBehaviour
     {
@@ -34,7 +35,13 @@ namespace ShiftJam
                 _started = true;
                 if (startCard != null) startCard.SetActive(false);
             }
-            if (_ended && Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame) Restart();
+            // The choices count only once the card is up: A is also jump, and R also reloads, on the way into the goal.
+            if (_ended && endCard != null && endCard.activeInHierarchy)
+            {
+                var k = Keyboard.current; var g = Gamepad.current;
+                if ((k != null && k.rKey.wasPressedThisFrame) || (g != null && g.buttonSouth.wasPressedThisFrame)) Restart();
+                else if ((k != null && k.pKey.wasPressedThisFrame) || (g != null && g.buttonNorth.wasPressedThisFrame)) Playroom();
+            }
         }
 
         private static bool AnyPress()
@@ -50,6 +57,13 @@ namespace ShiftJam
             _ended = true;
             if (fade != null) fade.Cover(endFade, () => { if (endCard != null) endCard.SetActive(true); });
             else if (endCard != null) endCard.SetActive(true);
+        }
+
+        /// <summary>The end card's second choice: the Workshop, where everything can be tried freely.</summary>
+        public void Playroom()
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(TitleMenu.WorkshopScene);
         }
 
         public void Restart()

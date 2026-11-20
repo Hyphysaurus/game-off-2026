@@ -21,6 +21,10 @@ namespace ShiftJam
         [SerializeField, Tooltip("Shown while dormant. Empty hides the prompt.")] private string dormantPrompt = "Dark";
         [SerializeField, Tooltip("Shifts this core gives before it is spent. 0 = unlimited.")] private int uses = 0;
         [SerializeField, Tooltip("Shown once spent. Empty hides the prompt.")] private string spentPrompt = "";
+        [Header("Where it is used from")]
+        [SerializeField, Min(0f), Tooltip("Above 0: the player must stand up where the core is (on the bed, on the sill) to use it: feet no more than this far below the core's middle (world units), and on the ground. From the floor below it reads Climb Prompt and does nothing. 0 = usable from anywhere in reach.")]
+        private float standWithin;
+        [SerializeField, Tooltip("Shown to a player below the core when Stand Within is set.")] private string climbPrompt = "Climb up to reach it";
         [Header("Looks")]
         [SerializeField, Tooltip("Active only while awake and not spent: the glow, the sparks.")] private GameObject[] awakeOnly;
         [SerializeField, Tooltip("Active only while dormant: a dim ember so the player can find it in the dark.")] private GameObject[] dormantOnly;
@@ -98,6 +102,11 @@ namespace ShiftJam
             }
         }
 
+        /// <summary>Whether the player's feet are up where the core is (Stand Within). The reach of a kid's hand is
+        /// 56 ahead and 60 up, so a core on the bed or the window sill was used from the floor and the climb was skipped
+        /// (walk check 19 Nov, D-0083).</summary>
+        private bool HighEnough(Interactor who) => standWithin <= 0f || transform.position.y - who.transform.position.y <= standWithin;
+
         public string PromptFor(Interactor who)
         {
             Shifter shifter = who.Shifter;
@@ -105,18 +114,28 @@ namespace ShiftJam
             if (Spent) return spentPrompt;
             if (Dormant) return dormantPrompt;
             bool toy = shifter.Size == ShiftSize.Toy;
+            string shift;
             switch (mode)
             {
-                case Mode.GrowOnly: return toy ? "Shift: grow" : wrongSizePrompt;
-                case Mode.ShrinkOnly: return toy ? wrongSizePrompt : "Shift: shrink";
-                default: return toy ? "Shift: grow" : "Shift: shrink";
+                case Mode.GrowOnly: shift = toy ? "Shift: grow" : null; break;
+                case Mode.ShrinkOnly: shift = toy ? null : "Shift: shrink"; break;
+                default: shift = toy ? "Shift: grow" : "Shift: shrink"; break;
             }
+            if (shift == null) return wrongSizePrompt;
+            return HighEnough(who) ? shift : climbPrompt;
         }
 
         public void Interact(Interactor who)
         {
             Shifter shifter = who.Shifter;
             if (shifter == null || shifter.Shifting || !Usable) return;
+            if (standWithin > 0f)
+            {
+                // Up where the core is, and standing: a kid jumping beside the bed must not shrink in mid-air.
+                if (!HighEnough(who)) return;
+                var motor = who.GetComponent<PlayerMotor>();   // plain form: Fast Script Reload breaks `TryGetComponent(out ...) &&`
+                if (motor != null && motor.isActiveAndEnabled && !motor.Grounded) return;
+            }
             ShiftSize before = shifter.Size;
             switch (mode)
             {

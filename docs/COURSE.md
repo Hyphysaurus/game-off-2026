@@ -4,19 +4,26 @@ One idea per room, the problem before its solver, both sizes used in every room 
 interactable visible before you need it. Numbers are pack units (1 u ≈ 2 cm). Toy = 1, kid = 35.
 
 ## The numbers every room is designed against
+Measured 19 Nov 2026 by the course walk check (a hidden probe on the real keys, flat floor), against the settings
+assets as they are now (MovementSettings: walk 5.5, sprint 8, jump 2, gravity 25; ShiftSettings: kid scale 35).
+The first table (jump 1.6, sprint 10) was made before D-0039 and is gone.
+
 | | toy (scale 1) | kid (scale 35) |
 |---|---|---|
-| height | 1.85 | 65 |
-| jump (apex) | 1.6 | 56 |
-| step-up without a jump | 0.3 | 10.5 |
-| walk / sprint | 5.5 / 10 u/s | 190 / 350 u/s |
-| reach for E (ahead / up) | 1.6 / 1.8 | 56 / 60 |
+| height | 1.8 | 63 |
+| jump, feet at the top | 1.99 | 67 |
+| jump, how far | 4.40 at a walk, 6.40 at a sprint | 121 |
+| step up without a jump | 0.3 | 10.5 |
+| walk / sprint | 5.5 / 8 u/s | 192.5 / 280 u/s |
+| reach for E (ahead / up) | 1.6 / 1.7 | 56 / 60 |
 | carries | nothing | Carryable things (flashlight, and from Room 4: rulers, boxes) |
 
-Proposed rule (not built, D-0016 when he says yes): **a toy that falls more than 12 u (six body heights)
-respawns at its last checkpoint.** The kid never takes fall damage. Without this rule the toy just drops off
-every cliff and the "kid builds the way down" verb has no bite. Checkpoint = a trigger that calls
-`Respawn.SetPoint`; one small script.
+So: a toy gap over 4.4 needs a sprint, one over 6.4 cannot be jumped; a toy step over 2.0 cannot be climbed. A kid
+reaches a core 56 ahead and 60 up from the floor, so a core that must be climbed to (the bed's, core D on the sill)
+is set to work only for a player standing up where it is (ShiftSource Stand Within, D-0083).
+
+The fall rule is built: **a toy that lands from more than 14 u goes back to its last checkpoint.** The kid never
+takes fall damage. Checkpoint = a trigger that calls `Respawn.SetPoint`.
 
 ## Overview (≈ 12–15 minutes)
 ```

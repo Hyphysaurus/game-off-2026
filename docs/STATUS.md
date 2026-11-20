@@ -2,6 +2,70 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 20 Nov 2026 02:5x — ONE HOUSE: THE TUNNEL IS THE TUTORIAL HALLWAY, A GARAGE DOOR TO THE RACEWAY AND A DOOR TO THE COLOUR CORNER (AND BACK), THE ARMORY CORNER (D-0090 TO D-0093) — NOT PLAYED
+Roadmap item 1 (his "yes to the rest", "teach the gun in the hallway"; his calls during the build: "garage door to raceway
+works", and the Workshop "fold it in, a corner or hub works"). Code written and compiled outside while the editor was
+open; laid and checked once it was closed. Commits `0a592da` (carry + charge core), `520ebc5` (builder), `7b25396`
+(scenes laid), `0fc871c` + `410baaa` (core B on the desk), and this docs commit.
+- **First, the check he asked for:** the player in the Workshop, the Raceway and the Colour Corner is the course's own:
+  the same body and capsule (1.8 high, 0.3 round), movement, shift (toy 1, kid 35), camera and first-person settings. The
+  rooms are at the same scale and have no ceiling, so a kid fits in each: **a door keeps your size as it is.** Differences
+  (kept): in those rooms the player can be hurt, has no title card or wake-up, starts with a full charge (the Raceway and
+  the Colour Corner shift for free), and the Colour Corner hands out a pistol, an SMG and paint.
+- **The hallway** (the old skirting run; toy only, 14 high; now x -60 to 281). Lesson by lesson, each with a short sign
+  (plain card text for now; wording is a placeholder):
+  1. **moving:** the hop, the book stairs onto the box, the sprint gap ("Too far to jump? Hold Shift to run, then jump");
+  2. **darts:** the pistol on its stand, an ammo box, three skittles that tip over, a low box as cover, one toy soldier that
+     shoots back ("Its darts only push you");
+  3. **the shift charge:** a core that only fills the charge (E: "Take the shift charge"; when full: "Charge full"), and the
+     sign: F shifts you anywhere there is room, too low in here, try it. F in the tunnel: "No room to grow";
+  4. **the test:** the pencil bridge over the drop, the three pins;
+  5. **the tall end:** a shaft where a kid fits. F grows you; jump up onto the shelf (40 high); its core makes you the toy
+     up there; the hole at the shelf's level takes you into the playroom by the same mouse hole as before.
+  **The bedroom's pistol stand is gone**; the switch still opens to the kid's E, or a dart if you come back with a gun.
+- **The doors** (E at any size, a short fade): a toy's **garage door to the Raceway**, low in the playroom's west wall between
+  the mouse hole and the hoop (a little door, a sign, two cones); a kid's **door to the Colour Corner** in the east wall
+  between the sofa and the wardrobe (paint pots at its foot). In each room a **door home** stands behind where you start
+  and brings you back in front of the same playroom door. **What goes through:** your size, the guns in your hands (the
+  very same guns: the rounds in each and the reserve), and the shift charge. Not carried: the darts/paint choice, grenades.
+  The playroom loads fresh when you come back (safe, soldiers, doors as at the start). No Workshop door (folded in).
+- **The armory corner** (the Workshop folded in, D-0092): in the playroom's south-west corner, inside the expressway's
+  curve, a stand for each weapon (pistol, SMG, shotgun, toy knife, foam finger), the supply crate (darts and grenades), and
+  three targets down a short range along the south wall. The Workshop scene and its title button are unchanged.
+- **Core B on the desk (D-0093), found on the way:** the walk's old "no prompt on core B" flake. On the desk a kid's search
+  holds 72 colliders and the game read only 64 (core B came 67th in one run); read in full, the computer beside it won
+  the E from every spot a kid can stand on. Now the search reads 128 and core B has a reach column (an invisible trigger
+  up to a kid's chest): core B is the target from 4 of 4 spots, and from the floor it still says "Climb up to reach it".
+- **Proof (the hidden walk, all rooms, the hallway lessons, the armory and both doors in and back):** 106 of 108 pass. The
+  two fails are the old ones (the kid's E on the R2 torch and on the R4 ruler; the baseline was 79 of 81 with the same two).
+  The walk was rewritten for the hallway (its old R3 checks are gone, as are the bedroom stand's). Numbers: hop 4.39; the
+  12 book steps onto the 12.2 box; the 5.5 gap falls at a walk and is made at a sprint (6.39); 3 of 3 skittles down; the
+  ammo box tops the reserve up (24 -> 36); the soldier's darts push the toy (0.28 in 5 s) and it goes down in 4 shots; the
+  charge core fills 1 of 1 and does not shift; F in the tunnel: "No room to grow", charge kept; a drop is put back; the
+  bridge and the pins pass, a pin touch is put back; in the shaft F grows the toy; from the floor the shelf core says "Climb
+  up to reach it"; the kid gets onto the shelf (feet 40.0); E there makes the toy (charge refilled to 1); the hole brings
+  it to the playroom entry. Armory: 5 stands, crate, 3 targets; the toy takes the SMG and tips a target 23 away. Doors: as a
+  toy with the pistol (5 in) and SMG (8 in) and no charge, into the Raceway and back: the same size, guns, rounds, reserve
+  and charge, standing at the Raceway's start, then in front of the garage door, no title card. As a kid with a charge into
+  the Colour Corner and back: the same (its own supply crate by the start fills the reserve, 96 -> 216; that is the room's
+  crate). Moves measured again: toy 4.40 / 6.40, 1.99 up; kid 121, 66.9 up.
+- **Smoke:** Workshop, Raceway, Colour Corner 0 errors; Greybox 1, and it is not ours: the newly imported Animation
+  Workbench (MotionLabs) shows a "Missing Dependencies" dialog when the editor loads (the first scene opened gets it). The
+  walk counts it apart. Your pack to sort (it wants packages it does not have).
+- **Stills** (local): `%TEMP%\shiftjam-stage\course\stills-house\` (sheet.jpg and 18 pictures: the hallway's lessons, the shaft as toy
+  and kid, the shelf, the armory, both doors, both rooms' doors home, R4 arrival, the desk).
+- **What to try:** New Game, through the toy door: read the hallway's signs in order, take the pistol, knock the skittles
+  down, meet the soldier, take the charge and press F in the tunnel, the bridge and the pins, F in the shaft, jump onto the
+  shelf, E on its core, into the hole. In the playroom: the little garage door low in the west wall (just south of where you
+  come in), the Colour Corner door in the east wall, each and back; the armory in the south-west corner.
+- **Your calls:** (1) the signs' wording and look (cards for now; the 3D text later); (2) the garage door is the pack's room
+  door made small: a real toy garage when you pick one; the Colour Corner door has paint pots, no paint splashes yet;
+  (3) the soldier in the hallway: one is plenty? (4) the shaft: is jumping onto a shelf and a second core clear enough,
+  or should growing open the way out by itself (then you would reach the playroom as the kid and skip the maze's beat);
+  (5) the melee holds (foam finger, knife) still clip, and their stands are in the armory; (6) the desk's computer vs core B
+  (now the core wins; a general "cores first" rule is the wider fix).
+- Not played. No Windows build. Workshop.unity untouched (his sandbox).
+
 ## 19 Nov 2026 22:4x — THE SLICE, NEXT PART: CORE B FROM THE DESK ONLY, THE SILENT MOMENTS GET SOUNDS, THE ROOMS GET THEIR OWN LIGHT (D-0087 TO D-0089) — NOT PLAYED, NOT HEARD
 His "yes proceed" (the slice plan's next three items). Built with the editor closed. Commits `0d025c2` (core B),
 `b5a6a4b` (sounds), `182c752` (light), and this docs commit. Greybox laid again by `CourseBuilder.LandSlice`.

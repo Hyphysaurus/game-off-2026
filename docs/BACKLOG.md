@@ -30,6 +30,8 @@ The jam entry (submit 30 Nov) is a snapshot of this, not the end of it. One buil
    targets, then the shift charge formally: a core fills it, F at the tunnel's tall end); the bedroom pistol stand
    comes out; the playroom is the hub with doors to the Workshop, the Raceway and Colour Corner (and back); size,
    gun, ammo and charge carry between rooms. First check each lab's player scale against the course's.
+   BUILT 20 Nov, not played (D-0090 to D-0092): the hallway, the Raceway garage door and the Colour Corner door (and
+   back) with the carry; the Workshop folded in as the armory corner (his call; no Workshop door).
 2. **Shift in mid-air + glide:** shrink while falling to drift, grow at a jump's top for reach; a glide / parachute
    (the paper plane as the toy's glider) to come down from height, TotK / Fortnite style.
 3. **Dart hookshot + zip lines:** a device that fires a foam dart with a line; on a bespoke target (anchor) the line

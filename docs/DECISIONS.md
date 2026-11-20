@@ -1780,3 +1780,96 @@
   - **Not done:** no new lighting system, no volumes, no baking, no material changes. The scene's ambient is one for
     all rooms; a room-by-room ambient would need the rooms as separate scenes (COURSE.md's build-order note).
   - **Checked:** STATUS 19 Nov 22:4x. Stills before and after. Not played.
+- **D-0090 (20 Nov, 02:0x) Roadmap item 1, part 1: the tunnel (old R3, the skirting run) is the tutorial hallway, its lessons in order, each with a short sign; the bedroom pistol stand is gone.**
+  His "yes to the rest" and "teach the gun in the hallway" (BACKLOG, ROADMAP AGREED 20 Nov, item 1). Laid by
+  `CourseBuilder.LandHouse` (`CourseBuilder.House.cs`); `BuildLane` now builds the hallway, so a full course build makes
+  the same one.
+  - **The hallway** runs x -60 to 281 at z -150 (it was -20 to 281: 40 longer at its west end, where nothing stands), 20
+    wide, 14 high, toy only, the same dark cubes and cold lamps. Lessons in order:
+    1. **Moving:** the 3.5 hop (x -32), the book stairs onto the 12 box (from x -22, risers 1.1 as D-0081), the 5.5 sprint
+       gap (x 68). Signs: "MOVE W A S D / JUMP Space" and "Too far to jump? Hold Shift to run, then jump".
+    2. **Darts:** the D-0082 pistol stand (x 89), an ammo box beside it, three practice skittles (x 106 to 114) that tip
+       over, a low cover box (x 128), then one toy soldier (x 142) that shoots back. As in R4 its darts only shove the toy
+       (the course player has no Damageable). Signs: the keys (E take, click shoot, right click aim, R reload) and "This one
+       shoots back. Its darts only push you."
+    3. **The shift charge:** a core that only fills the charge (new `ShiftSource` mode ChargeOnly: E fills it and the size
+       stays; full already, E says "Charge full" with the soft no), and the sign "A core fills your shift charge. F shift
+       anywhere there is room. Too low in here: try it." F in the tunnel says "No room to grow" (ShiftCharge's own rule,
+       D-0045) and keeps the charge.
+    4. **The test:** the pencil bridge over a drop (x 172 to 206; a fall is a reset) and the three pins (x 214 to 224; a
+       touch is a reset), kept as the second half, after the lessons.
+    5. **The tall end** (x 232 to 281): a shaft 56 across and 130 high (the playroom's height), where a kid fits. Sign:
+       "Room to grow here. Step into the middle and press F. Up on the shelf a core makes you small again." F grows the
+       toy; the kid steps up onto a shelf 40 high (a kid jumps 67, a toy 2); the shelf's core (shrink, Stand Within 6 as
+       the bed core, D-0083) makes the toy up there; the lit hole in the east wall at the shelf's level takes the toy into
+       the playroom (the same mouse hole, entry and reveal as before). A second sign at a kid's eye says the same.
+       Why a shelf and a second core, not "grow and walk out": the playroom's beats start with the toy (the maze, its
+       soldiers and core A, D-0082); a kid arriving there would skip them.
+  - **The whole tunnel is walkable as a toy** up to the shaft; only getting out needs the shift.
+  - **The bedroom pistol stand (D-0085) is out.** The switch keeps its Damageable: a dart still presses it if the player
+    has a gun (coming back later), E by the kid as before. `LandSlice` no longer puts the stand back.
+  - **Signs** are plain world text (TextMeshPro on a card, `Data/SignCard.mat`, the Fredoka font) until the 3D text
+    service (roadmap item 4). Placeholder wording, his to change.
+  - **Checked:** STATUS 20 Nov 02:xx. Not played.
+- **D-0091 (20 Nov, 02:0x) Doors between the house's rooms, and what goes through them: size, the guns in hand with their ammo, the shift charge.**
+  Roadmap item 1, parts 2 and 3, with his two calls of 20 Nov: the Raceway gets "a garage door" ("garage door to raceway
+  works"); the Workshop gets no door (it folds into the playroom, D-0092). The Colour Corner stays a room of its own.
+  - **First, the check he asked for (read from the scene files, no Unity):** the player in the Workshop, the Raceway and
+    the Colour Corner is the course player's body: the same CharacterController (1.8 high, radius 0.3, step 0.3, slope 45),
+    the same MovementSettings, ShiftSettings (toy 1, kid 35), CameraSettings and FirstPersonSettings assets, the same
+    ShoulderCamera (near 0.3, far 1000, 60 degrees), toy at the start. The rooms are at the same pack scale as the course
+    (1 unit about 2 cm) and have no ceiling, so a kid fits in each. Differences: in the three rooms the player has a
+    Damageable (100) and SafeGround (it can be hurt; the course player cannot), no title card and no wake-up, and the
+    charge is full at the start (the Raceway and the Colour Corner shift for free); the Colour Corner also has an AmmoBelt
+    and a Loadout (dart pistol and SMG, paint loaded). **So nothing needs resizing at a door: the player keeps the size
+    they went through at.**
+  - **`HubDoor`** (Room): E, any size, loads its scene; the door there named in Arrive At puts the player at its Arrive
+    point. A short black fade first. It needs only a trigger over the door's front.
+  - **`HouseCarry`** (Core), the smallest hand-off: statics that live across one scene load (nothing on disk; a closed game
+    starts from the save slot as before). It takes the size, the charge, and the weapon objects themselves (switched off
+    and kept across the load, so each gun's rounds and reserve go with it), and gives them back one frame after the next
+    scene starts (after every Start: a room's full charge or Loadout guns are already there; carried guns replace the
+    Loadout's, so a full holder never drops one on the floor). New on the way: `WeaponHolder.Stow`, `ShiftCharge.SetCharges`.
+    While arriving, the title card, the wake-up and the save slot's load stand aside (`TitleMenu`, `WakeUp`, `Respawn`),
+    and GameFlow's start card does not come up.
+  - **The playroom's doors** (placed by `LandHouse` from a floor map of the room: the expressway loop, D-0048, rings the
+    floor 8 up and the walls are lined with furniture, so each door has a fixed spot): the Raceway's is a toy's garage door
+    (the pack's Door_01 at 8 high, two cones, a sign at a toy's eye and one at a kid's) low in the west wall at z -186,
+    between the mouse hole and the hoop; the Colour Corner's is a kid's door (Door_01, 100 high, paint pots at its foot)
+    in the east wall at z -201, in the stretch between the sofa and the wardrobe. Neither is on the toy's way from the
+    hole to the maze, or from the desk to the wardrobe hole.
+  - **Each room's door home** is the same Door_01 (40 high), standing on its own 24 behind the player's start, facing it;
+    coming back from the playroom you stand at the start. Through it you come out in front of the playroom door you
+    went in by (the toy's garage: 40 out from the wall, clear of the hoop for a kid).
+  - **Not carried:** the ammo kind (darts / paint: the Colour Corner's Loadout still loads paint), grenades, anything held
+    in the arms. The course's own state (the safe moved, soldiers down, doors opened) is the scene's: going back to the
+    playroom loads it fresh. Going through a door is silent (as the portals are).
+  - **Checked:** STATUS 20 Nov 02:xx. Not played.
+- **D-0092 (20 Nov, 02:0x) The Workshop folds into the playroom as an armory corner; the Workshop scene stays as the sandbox.**
+  His "fold it in, a corner or hub works". `CourseBuilder.ArmoryCorner` (run by `LandHouse`) places, under
+  `R4_Playroom/Hub_Armory`, the Workshop's play pieces for the course player: a stand for each weapon (dart pistol, SMG,
+  shotgun, toy knife, foam finger), the supply crate (darts and grenades), and a short range of three targets (two
+  practice skittles, the practice bear) at the far end. Left out: the cores (they would hand out shifts and undo the
+  course's puzzles), the cars and their pick-ups, portals, cannon, ramps and fan (the Raceway's and the expressway's
+  business), the toy soldier (the maze has four).
+  - **Where:** the playroom's south-west pocket, inside the expressway's south-west curve (x 285 to 330, z -300 to -245,
+    clear at a toy's height on the floor map). The stands line the west wall, the range runs east along the south wall.
+    The mouse hole and its pistol stand are 95 north; the maze and the desk are in the north half; the wardrobe hole is in
+    the far south-east. Pieces are at the playroom's own scale (they are the same pack pieces as the Workshop's).
+  - **The Workshop scene** is unchanged (his test bed), and the title menu's Workshop button stays.
+  - **Checked:** STATUS 20 Nov 02:xx. Not played. Open: the melee holds (the foam finger and the knife clip into the
+    fist, STATUS 19 Nov 13:5x) come with their stands.
+- **D-0093 (20 Nov, 02:4x) Core B on the desk: the Interactor reads every collider in its search (128, was 64), and core B gets a reach column.**
+  The walk's old flake "no prompt on core B from the desk" (STATUS 19 Nov 22:4x), found. On the desk top a kid's search
+  (the capsule from the chest to the floor, 28 round at kid size) holds 72 colliders (the keyboard's keys, the computer,
+  the globe, the shelf, the ramps' boxes) and the Interactor read the first 64, in no set order: some runs core B was
+  past the 64, some runs the computer was. With all of them read, the computer wins from every spot a kid can stand on
+  round core B (4 of 4): the nearest to the chest wins, and the computer stands taller than a core. A player on the desk
+  would have met both.
+  - **The fix, two parts:** the search reads up to 128 (`Interactor`); and core B has a trigger column standing on it up to
+    a kid's chest (28 high, 5 across: `CourseBuilder.ReachColumn`, in `BuildPlayroom` and `LandHouse`), so it is as near
+    to the chest as the computer. Darts, the soldiers' sight and the player's capsule ignore triggers. After: core B is the
+    E target from 4 of 4 spots; from the floor it still says "Climb up to reach it" and E does nothing.
+  - **Not changed:** the rule itself (nearest to the chest, D-0081). His call if other small things beside tall ones show
+    the same (a "core first" rule would be the general fix).
+  - **Checked:** STATUS 20 Nov 02:xx. Not played.

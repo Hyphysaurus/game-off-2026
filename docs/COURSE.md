@@ -38,6 +38,10 @@ Room 3 and 5 are toy-only lanes (fast to build, pure platforming); 4 is the big 
 
 ---
 ## R3 — The skirting run (toy only, 2 min)
+**Since 20 Nov (D-0090) this is the tutorial hallway**, x -60 to 281: moving (hop, book stairs, sprint gap), darts
+(pistol stand, ammo box, skittles, one soldier that shoots back), the shift charge (a charge-only core, F, "No room to
+grow"), the test (pencil bridge, pins), and the tall end (grow with F, onto a 40 shelf, its core makes the toy, the hole
+out at the shelf's level). The design below is the 3 Nov one, kept for its reasons.
 **The idea:** behind the toy door is the gap inside the wall: a long, low lane of lost things. Teaches the
 precise jump and the sprint-jump, and introduces checkpoints, before the big room asks for them.
 

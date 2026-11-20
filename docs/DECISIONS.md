@@ -1632,3 +1632,63 @@
     best for clipping, but the hold probe's "support hand on the barrel" reads 0.15 against its 0.14); support curl
     alone (no change: the fingers that clip are wrapped round by the roll, not the bend).
   - **Checked:** STATUS 19 Nov 12:3x. Not played.
+- **D-0081 (19 Nov, 18:4x) The course walk check: what broke under the course since 6 Nov, fixed at the root in the builders; the check is a hidden probe on the real keys.**
+  His "proceed with the level plan", part 1 and 2. Nobody had walked R1 to R6 since about 6 Nov; the moves (jump 2.0,
+  sprint 8 since D-0039), the body, cameras and weapons changed under it.
+  - **How it was walked.** A temporary play probe (`%TEMP%\shiftjam-stage\course\probe\CourseWalkProbe.cs`, kept
+    outside the project) drives the player through the real keys (W, Shift, Space, E, X) in Greybox, beat by beat: it
+    warps the player to each beat's start at the right size, steers by pointing a stand-in camera transform the motor
+    reads, hops when it walks into something, and reads the outcome (size, resets, where the player is, portals,
+    doors, held things). Each beat is set up on its own so one break does not hide the next. The save slots are put
+    back as they were at the end. Stills per room with a graphics device.
+  - **The moves, measured on the floor:** toy jump 4.40 far at a walk, 6.40 at a sprint, feet 1.99 up; kid 121 far,
+    67 up (3.46 / 1.91 body heights). The course's design table (COURSE.md) still says jump 1.6, sprint 10.
+  - **What broke and the fix (all in `CourseBuilder`, laid again by `LandWalkFixes`, no hand edits):**
+    1. **Book stairs (R3 and R5).** `BookStairs` set each book by its bottom and its middle, and the pack's books are
+       of different thickness and length: R3's risers came out 2.0, 1.8, 2.3, 1.1 ... 2.4 (2.3 and 2.4 are over the
+       2.0 jump), and a longer book reached back over the one before it, so the first step was two or three risers.
+       Now each book's top is one even riser (at most 1.2) above the last and its back end starts its own 2.4 tread.
+       R3: 1.1, 2.2 ... 12.2.
+    2. **R3's stairs started at the hop gap's far edge**, so the hop landed on a book 2 high and fell back in (reset).
+       The stairs and their box slide east so the first book starts at 110: a clear landing (103.5..110) with its
+       checkpoint. The lantern moved from 160 to 170 to stay clear of the box.
+    3. **R3's 4.5 "sprint gap" was made at a walk** (4.55 from the edge). Now 5.5: a walk falls, a sprint makes it
+       with about 1 to spare.
+    4. **R4's sandbag maze was no maze:** a sandbag is 1.57 high and the toy jumps 2.0; the probe hopped the outer
+       wall. Both rings are now two sandbags high (3.1).
+    5. **R5's flight ran under shelf 1** (the shelf covers the back half; the books ran along the back wall), so its
+       top books met the shelf's underside. The flight now stands in front of the shelf's edge; its top book meets
+       the shelf's top.
+    6. **R5's trampoline pillow could not reach shelf 2:** it sat 18 in front of shelf 2's lip and, launched straight
+       up, the toy drifts about 14 at a sprint (8) in the time it is above the shelf (it was made for sprint 10).
+       Moved to 8 from the lip: lands on shelf 2 (top 91, landed 80).
+    7. **R5's torch beam never reached core C:** 94.8 away, range 90. Range 120.
+    8. **The kid was shut in the wardrobe:** grown at core C, the kid's body grows into the top portal while still
+       shifting, and `Portal` only listened to Enter, which it turned away mid-shift and never heard again. `Portal`
+       now also tries on Stay (same rules, same cooldown). The kid comes out in front of the wardrobe, doors open.
+    9. **The kid could not reach things on the floor:** the Interactor's search sphere starts 3.5 above a kid's
+       feet, so a ruler lying flat (0.1 high) was never a target. The search is now a capsule from the chest sphere
+       down to just under the floor; the nearest to the chest still wins. Also it read only 24 colliders, and beside
+       the desk the keyboard's 20 keys filled it: core B went unseen. 64.
+  - **Why `Portal` and `Interactor` (code) and not the course:** both are game rules that broke the course; moving
+    the course round them (a lower core, no ruler) would leave the same trap for every later room.
+  - **Not changed, for his call:** see STATUS 19 Nov 18:5x (the R2 bed descent, the ruler next to core B, the kid
+    reaching core B and the bed core from the floor, COURSE.md's numbers).
+  - **Checked:** STATUS 19 Nov 18:5x. Not played.
+- **D-0082 (19 Nov, 18:4x) The playroom's weapons beat: a dart pistol on a stand by the toy's arrival, four toy soldiers guarding the sandbag maze; in the course their darts shove the toy and never hurt it.**
+  His plan, part 3 (LEVEL_BRAINSTORM's R4 pick). Only what exists: the Workshop's ToySoldier piece, the
+  DartPistolPickup stand and the AmmoBox piece, placed by the course builder (`CourseBuilder.ArmyBeat`, in the full
+  build last, or alone with `-executeMethod ShiftJam.CourseBuilder.LandArmyBeat`) under `R4_Playroom/ArmyBeat`.
+  - **Where.** The stand 12 into the room from the mouse hole, toward the Hoop (304, 0.7, -153.5). Four soldiers in
+    the maze, one at each turn of the walk round the rings and one by the core: NE corner looking down the east side
+    at the gate, NW looking along the north side, W looking up the west side at the inner gap, one inside the inner
+    ring beside core A looking at its gap. An ammo box by the maze's east gap.
+  - **The course player gets a WeaponHolder** (the Workshop's, its defaults), so the toy can take the pistol. It does
+    not get a Damageable: the course player was never hurt (PlayerHurt's own words), and the soldiers' darts only
+    shove it (Projectile's knockback). So core A can always be reached: the probe walked the maze with all four
+    soldiers up and grew at core A. Answers LEVEL_BRAINSTORM question 4 as "a knock only"; a hurt and a respawn
+    would need a Damageable and a checkpoint at the maze (his call).
+  - **The sandbags are cover.** A soldier's eye is its chest (1.0); the rings are now 3.1 high (D-0081), so it cannot
+    see or shoot across them: the toy meets them one turn at a time.
+  - **Not used:** the MischiefSoldier (it rubs paint off and never shoots: not a guard). No new code in the game.
+  - **Checked:** STATUS 19 Nov 18:5x. Not played.

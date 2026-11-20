@@ -2,6 +2,72 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 19 Nov 2026 18:5x — THE LEVEL PLAN: COURSE WALK CHECK, ITS FIXES (D-0081), AND THE PLAYROOM'S SOLDIERS BEAT (D-0082) — NOT PLAYED
+His "proceed with the level plan" (the three parts of the jam's level plan). Built with the editor closed the whole
+time. Commits `98d6aed` (the fixes) and `358c6f7` (the soldiers beat). Nothing else from LEVEL_BRAINSTORM was built.
+- **The walk check.** A hidden probe walked R1 to R6 in Greybox on today's code, on the real keys (W, Shift, Space, E,
+  X), beat by beat, and read what happened (size, resets, portals, doors, what is held). It is kept outside the project:
+  `%TEMP%\shiftjam-stage\course\probe\CourseWalkProbe.cs` (run with `run_probe.sh` there; `-walkOnly 1J23` / `456` /
+  `S` for parts, `-walkStills` for pictures). Your save slots are put back as they were after each run.
+- **The moves, measured:** toy jump 4.40 far at a walk, 6.40 at a sprint, 1.99 high; kid 121 far, 67 high. (COURSE.md's
+  table still says jump 1.6 and sprint 10: it was designed before D-0039.)
+- **FOUND, per room, and what was done** (the numbers are before -> after):
+  - **R1 toy box:** works. Walk to the core, E: the toy grows and the box bursts.
+  - **R2 bedroom:** the switch opens the toy door; the kid gets onto the bed; the bed core shrinks; the toy door takes the
+    toy into the skirting run. Not fixed, for your eye: (a) the kid reaches the bed core from the floor (the kid's reach
+    is 60 up), so the toy usually starts on the floor and the bed descent is skipped; (b) from the mattress, the step
+    box stands about 4 off the bed's edge: the toy drops 11 onto the top book instead (under the 14 fall rule, no
+    reset); (c) E on the torch shows "Pick up", but in the probe the torch never came into the hand. Not found why; it
+    may be the probe (the grab takes E first). Please try it.
+  - **R3 skirting run:** BROKEN, FIXED. The book stairs' risers were 2.0, 1.8, 2.3, 1.1 ... 2.4 (2.3 and 2.4 are over the
+    jump) and they began at the hop gap's far edge, so the hop landed on a book 2 high and fell back in. Now: even
+    risers 1.1 (1.1, 2.2 ... 12.2), the stairs start at 110 after a clear landing with its checkpoint. The 4.5 "sprint
+    gap" was made at a walk (4.55): now 5.5 (a walk falls in, a sprint makes it, 6.2). Pencil bridge, pins, the pit
+    rule and the exit to R4 all work.
+  - **R4 playroom:** BROKEN, FIXED. The toy hopped the sandbag maze (a sandbag is 1.57 high, the toy jumps 2.0): both
+    rings are now two sandbags high (3.1); the probe can no longer hop in, and walks the maze to core A in 27 s. Core A
+    grows, the kid carries the safe off the hole, the kid hops onto the desk and core B shrinks him there, the toy walks
+    down the three ruler ramps, the hole takes the toy to R5. Also fixed: beside the desk, core B was never the E
+    target (the search read only 24 things and the keyboard's 20 keys filled it: now 64). Not fixed, for your call: the
+    ruler beside the stool is hard to pick up as the kid, because core B on the desk is nearer to the chest and wins
+    the E (the ruler is not needed: the ramps are there). The kid could not reach anything lying flat on the floor:
+    the search now reaches the floor.
+  - **R5 wardrobe:** BROKEN, FIXED, three ways. (1) The book flight ran along the back wall UNDER shelf 1, so its top
+    books met the shelf's underside: it now stands in front of the shelf's edge, the toy walks up its 35 books to 40.
+    (2) The trampoline pillow sat 18 in front of shelf 2's lip; launched straight up, the toy drifts about 14 at a
+    sprint while above the shelf, so it always fell back (top 91, landed 41): moved to 8 from the lip, lands at 80.
+    (3) The torch's beam (range 90) never reached core C (94.8 away): range 120, the core wakes. And (4) the kid was
+    shut inside: grown at core C, the kid grows into the top portal while still shifting, and the portal only listened
+    for the moment of entering, which it turned away; it now also lets through someone already inside once they are
+    the right size. The kid comes out in front of the wardrobe and its doors open.
+  - **R6 window:** works: the kid jumps onto the sill (feet 42.8 on a 41.1 sill), core D shrinks, the toy walks into
+    the goal, the end card. Note: core D can also be pressed from the floor; a toy shrunk on the floor cannot reach the
+    sill (41 high). Not fixed: your call (a lower sill, or the core further back on the sill).
+  - Also: the toy's straight sprint from the mouse hole to the maze stops at the clutter after about 280 of 330 (it
+    has to be walked round, as a player does); not a fault.
+- **The soldiers beat (D-0082), as built:** a dart pistol on its stand 12 in from the mouse hole toward the Hoop
+  (304, 0.7, -153.5), in the toy's first view; four toy soldiers (the Workshop's ToySoldier) in the maze, one at each
+  turn of the walk round the rings and one beside core A; an ammo box at the maze's east gap. The course player now
+  has a WeaponHolder (E on the stand: "Take Dart Pistol"). No Damageable: the soldiers' darts only shove the toy (0.2
+  to 0.3 each), never hurt it, so core A can always be won. **Measured:** with all four soldiers up, the probe walked
+  the maze to core A in 27 s and grew there; shooting from 10 away, 3 of 4 soldiers went down (the probe's aim, not
+  the gun). A soldier is 1.60 tall, the kid 63: ankle-high, as planned. The sandbags (now 3.1) are cover: a soldier's
+  eye is at its chest (1.0).
+- **Checks:** four-scene smoke 0 errors in each scene; hold 81 of 81; first person 156 of 160 (the same four lines as
+  before: the sight distances on purpose since D-0078, and the SMG support hand 7.3 cm); shot 64 of 64. Not re-run
+  (no weapon code changed): ammo, dart, grenade, body-hit. The probes' runs played
+  the game in a hidden editor; a shift in play writes `ShiftWarp.mat`, so it was put back to its committed state.
+- **Stills** (local only): `%TEMP%\shiftjam-stage\course\stills-before\` (the first runs) and `stills-after\`
+  (r1_start, r1_grown, r2_on_bed, r3_start, r3_exit, r4_arrival, r4_maze, r4_desk_kid, r4_desk_toy, r4_hole,
+  r4_soldiers, r5_start, r5_shelf2, r6_window).
+- **What to try:** New Game and play the course end to end: R3's stairs and the 5.5 gap (does Shift feel needed and
+  fair?), R4's maze now two bags high, the pistol at the hole and the soldiers (do the shoves feel like anything?),
+  R5's flight, the pillow to shelf 2, the torch beam, growing out of the wardrobe; R2's torch in the hand.
+- **His calls:** (1) soldiers: a knock only (as built) or a hurt and a respawn (needs a Damageable on the course player
+  and a checkpoint at the maze); (2) R2: the kid reaches the bed core from the floor (keep, or move the core); (3) R6:
+  core D works from the floor and strands a toy below the sill; (4) the ruler beside core B; (5) COURSE.md's numbers.
+- Not played. Not done: no Windows build (v7 later, on your word).
+
 ## 19 Nov 2026 13:5x — CHECKPOINT: THE FOAM FINGER AND TOY KNIFE HOLDS (no change kept, nothing built)
 Asked to fit the two melee weapons' hold numbers (Hand, GripCurl) the way D-0078 fitted the guns, so the fist stops
 sinking into the foam hand's cuff and the knife's handle. **Tried, measured, thrown out. The game is as it was at

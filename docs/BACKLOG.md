@@ -3,6 +3,30 @@
 Order = priority. "His" = editor / feel / art / audio; "mine" = scripts, builder runs, docs. One playable loop
 first, then juice, then the page. Nothing here is a deadline pressure, it is the order to pick from.
 
+
+## ROADMAP AGREED 20 Nov 2026 (his "yes" to all; supersedes the order below where they differ)
+His words: shift in mid-air "sounds cool. Even moreso if we can get Fortnite or TOTK style glide and parachute down";
+the dart hookshot with zip lines to bespoke targets "sounds AMAZING. Yes. Full yes"; the paper-plane glider "Yes";
+"Yes to the rest as well. If needed, we can expand this to a whole HOUSE and even a backyard" (the PS1 Toy Story and
+Rugrats games as the touchstone). More packs and tools are still coming in (Modular 3D Text among them).
+
+The jam entry (submit 30 Nov) is a snapshot of this, not the end of it. One builder at a time, in this order:
+1. **One house:** the tunnel (old R3) becomes the tutorial hallway (movement, then the gun taught there with ammo and
+   targets, then the shift charge formally: a core fills it, F at the tunnel's tall end); the bedroom pistol stand
+   comes out; the playroom is the hub with doors to the Workshop, the Raceway and Colour Corner (and back); size,
+   gun, ammo and charge carry between rooms. First check each lab's player scale against the course's.
+2. **Shift in mid-air + glide:** shrink while falling to drift, grow at a jump's top for reach; a glide / parachute
+   (the paper plane as the toy's glider) to come down from height, TotK / Fortnite style.
+3. **Dart hookshot + zip lines:** a device that fires a foam dart with a line; on a bespoke target (anchor) the line
+   becomes a zip line or a pull-up. Targets placed for verticality (wardrobe, shelves, desk, bed).
+4. **Modular 3D Text** once imported: one information service (prompts, refusals, hints, toasts, end card) and
+   in-world signs for the hallway lessons and the hub doors.
+5. Then, in his order of interest: the toy train as the hub's ride (stops at the lab doors), ladders and ropes
+   (Goblin's climbing reused), the toy tank (drive + foam balls), the claw machine (kid plays it / toy rides the claw),
+   bouncy / sticky paint, the kid's gun as a toy's turret, D-0072 rifle / sniper / bubbles, a boss (truck or
+   helicopter at kid scale).
+6. After the jam: the whole house and a backyard.
+
 ## Week 1 (to 10 Nov): the loop works end to end
 1. His first walk of the course with docs/PLAYTEST.md; my fixes to the builder from his notes (re-run, re-walk).
 2. Mine: Hazard on the pins (done 3 Nov evening, lands on the next builder run), a visible checkpoint marker (a small

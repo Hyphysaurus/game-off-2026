@@ -194,3 +194,6 @@ Logs/
 /Packages/com.staggart.*/
 /Packages/xyz.staggart-creations.*/
 /Packages/com.distantlands.*/
+# LLMUnity downloads its runtime libraries here (3.9 GB on 20 Nov)
+/Assets/StreamingAssets/LlamaLib*
+/Assets/StreamingAssets/LlamaLib*.meta

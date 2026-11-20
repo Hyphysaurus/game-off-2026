@@ -640,7 +640,8 @@ namespace ShiftJam
             Rest(torch, shelfY[1], null);
             var mf = torch.GetComponentInChildren<MeshFilter>(); Bounds mb = mf.sharedMesh.bounds;
             var beamGo = new GameObject("Beam"); beamGo.transform.SetParent(torch.transform, false); beamGo.transform.localPosition = new Vector3(mb.center.x, mb.center.y, mb.max.z + 0.4f);
-            var beam = beamGo.AddComponent<Light>(); beam.type = LightType.Spot; beam.spotAngle = 50f; beam.innerSpotAngle = 30f; beam.range = 120f;   // core C is 95 from the beam's start: at 90 the beam never reached it (walk check 19 Nov, D-0081) beam.intensity = 4f; beam.shadows = LightShadows.Soft; beam.enabled = false;
+            var beam = beamGo.AddComponent<Light>(); beam.type = LightType.Spot; beam.spotAngle = 50f; beam.innerSpotAngle = 30f; beam.range = 120f;   // core C is 95 from the beam's start: at 90 the beam never reached it (walk check 19 Nov, D-0081)
+            beam.intensity = 4f; beam.shadows = LightShadows.Soft; beam.enabled = false;   // these sat inside the comment above since D-0081 (a rebuild made a white 1.0 beam, on, no shadows): D-0089
             var carry = torch.AddComponent<Carryable>();
             var fl = torch.AddComponent<Flashlight>(); Set(fl, "beam", beam); Set(fl, "startOn", false); Set(fl, "toyUsesE", false);
             // the push switch: a trigger over the bump with a Safe_Button cap that slides

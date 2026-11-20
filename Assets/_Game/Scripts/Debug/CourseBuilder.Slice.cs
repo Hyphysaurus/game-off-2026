@@ -58,6 +58,8 @@ namespace ShiftJam
             if (subText != null) { subText.text = EndCardChoices; EditorUtility.SetDirty(subText); Log.AppendLine("end card: \"" + EndCardChoices + "\""); }
             else Log.AppendLine("end card: NO HUD/EndCard/Sub");
 
+            LightRooms();   // D-0089: each room's light, a starting point for his eye
+
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
             AssetDatabase.SaveAssets();

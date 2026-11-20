@@ -142,7 +142,6 @@ namespace ShiftJam
             Line(sb, "R", "Reload the gun in hand (an empty gun reloads by itself)", "Y, with nothing to use");
             Line(sb, "G", "Throw a grenade (free hand; a supply crate refills them)", "Hold R3, press L3");
             Line(sb, "Esc", "Pause: resume, options, back to the title, quit", "Start");
-            Line(sb, "R / P", "End card: play again / the playroom", "A / Y");
             Line(sb, "H", "This list", "View");
             Set(0, sb);
 
@@ -204,6 +203,11 @@ namespace ShiftJam
             Line(sb, "1-8, C", "Shape size and steps, shape colour");
             Set(3, sb);
 
+            // The end card's choices sit here: the ON FOOT column is full (one more line cut off its last, H).
+            Header(sb, "END CARD");
+            Line(sb, "R", "Play again", "A");
+            Line(sb, "P", "The playroom (the Workshop)", "Y");
+            sb.Append('\n');
             if (Application.isEditor || Debug.isDebugBuild)
             {
                 Header(sb, "DEV (editor and dev builds)");

@@ -26,6 +26,8 @@ namespace ShiftJam
         /// <summary>How far below a core's middle the player's feet may be and still use it, for the cores that must be
         /// climbed to (the bed's, core D on the sill). A core's middle is 2.5 over what it sits on.</summary>
         const float CoreStandWithin = 6f;
+        /// <summary>The bedroom switch's middle above the floor (D-0085).</summary>
+        const float SwitchHeight = 22f;
         const string EndCardChoices = "R / A   play again          P / Y   the playroom is open";
 
         public static void LandSlice()
@@ -119,11 +121,13 @@ namespace ShiftJam
         {
             var sw = room.GetComponentsInChildren<Switch>(true).FirstOrDefault(); var shelf = room.Find("Shelf");
             if (sw == null || shelf == null) { Log.AppendLine("R2: NO switch / Shelf"); return; }
-            // Off the shelf onto the bare wall just past its north end, at the same height: over the shelf a shot from
-            // the floor had to come from 105 away to clear the shelf's top, and the dart falls short before that.
+            // Off the shelf onto the bare wall just past its north end, and lower (its middle 22 up, not 56): over the
+            // shelf a shot from the floor had to come from 105 away to clear the shelf's top, and the third-person
+            // camera looks up 25 degrees at most, so a toy's dart tops out about 36 up however far back it stands.
+            // At 22 a toy hits it from 60 to 90 away; it is still far over a toy's reach (1.7), and a kid reaches it.
             var sb = B(shelf.gameObject); var wb = B(sw.gameObject);
             float z = sb.max.z + 4f + wb.extents.z + 6f;
-            sw.transform.position += new Vector3(0f, 0f, z - wb.center.z);
+            sw.transform.position += new Vector3(0f, SwitchHeight - wb.center.y, z - wb.center.z);
             EditorUtility.SetDirty(sw.transform);
             var health = sw.GetComponent<Damageable>(); if (health == null) health = sw.gameObject.AddComponent<Damageable>();
             Set(health, "takeKnockback", false);

@@ -11,8 +11,13 @@ every toy vehicle can be driven, toys live their own routines, characters hand o
 garage for outfits and car parts. Tone: toy mischief, not crime. Local AI (LLMUnity, imported 20 Nov) is on the table
 for words only (radio DJ, barks, errand flavour, select conversations) over deterministic game logic; Pixel Crushers
 Love/Hate (imported) can be the toys' memory of what you did. Open questions before building toward it: rooms as
-streamed (additive) scenes, the AI's size in a build (1.7 GB of Windows libraries + the model), store disclosure of
-live-generated text, and guardrails for what a small model says.
+streamed (additive) scenes, store disclosure of live-generated text, and guardrails for what a small model says.
+His call 20 Nov: the AI is the PLAYER'S OPT-IN ("could we perhaps set it so that players can opt to enable it or
+not?"): off by default, an Options toggle, hand-written lines when off; the model (0.5-5 GB) downloads only when a
+player turns it on; ideally the libraries too as an optional add-on (a free DLC depot on Steam, a separate download on
+itch). Sizes measured 20 Nov: LLMUnity's Windows libraries are 491 MB in a default build (CPU, Vulkan, tinyblas; its
+build step drops other platforms) or 1.7 GB with its NVIDIA-only CUDA option. "The rest is a go" (his word on the
+north star).
 
 ## ROADMAP AGREED 20 Nov 2026 (his "yes" to all; supersedes the order below where they differ)
 His words: shift in mid-air "sounds cool. Even moreso if we can get Fortnite or TOTK style glide and parachute down";

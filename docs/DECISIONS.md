@@ -14,7 +14,7 @@
 - **D-0005 (2 Nov) Who does what.** Claude writes and explains every script (landed as files, compiled
   outside the editor first); Maram does the editor side (character, animator, room, feel values) and the
   design calls.
-- **D-0006 (2 Nov, 21:1x) Jump clips are retimed to the motor, not the other way round.** His play read
+- **D-0006 (2 Nov, 21:0x) Jump clips are retimed to the motor, not the other way round.** His play read
   as stutter and jitter. Found in the files: the blend tree played Idle/Walk/Run at a tenth speed; the
   Jump idle start clip (1.42 s) played whole at speed 1 while the capsule had already left the ground at
   frame 0 (the whole hop lasts 0.62 s); no fall path, so walking off an edge played the crouch; the
@@ -660,7 +660,7 @@
   the car. Not in this pass: arrow boards, a coin counter, the crowd, the countdown, moving things (items 4 to 7).
   Landed with Play stopped through the bridge; raceway rebuilt, stills looked at, saved. Unplayed.
 
-- **D-0056 (10 Nov, 21:1x) A wider road, an engine that hums, pickups on the road.** His notes: "the star props are
+- **D-0056 (10 Nov, 21:0x) A wider road, an engine that hums, pickups on the road.** His notes: "the star props are
   slightly too high", "the driving sound still needs work", "is there a way to WIDEN the tracks?". **Width:**
   `TrackBender.Sweep` takes a `widen` factor: the road between the rails is stretched, the rails move out unchanged
   (`TrackBender.Widened` gives the resulting shape). The raceway uses `RwWiden` 1.5: road 12.5 wide (was 8.4), whole
@@ -679,7 +679,7 @@
   landed and rebuilt headless (`RefitCars`, `LandRaceway`), stills looked at. 46 pieces, closes to 0.000, 0 in the
   lane, 0 clips. Unplayed.
 
-- **D-0057 (10 Nov, 21:1x) The rest of the fast dressing pass: road arrows, real tyre stacks, F9 puts smashed things back.**
+- **D-0057 (10 Nov, 21:0x) The rest of the fast dressing pass: road arrows, real tyre stacks, F9 puts smashed things back.**
   His "feel free to continue editing" (Unity closed, he in Godot). Looked at the Cyber pack's track props in a row
   first (a temporary probe, deleted): the "arrows" are flat chevrons for the road (no height, no collider; they point
   along their own -Z), a "wheel barrier" is ONE tyre lying flat (1.0 across, 0.43 thick), barriers 1 to 3 are barrels,
@@ -1692,3 +1692,45 @@
     see or shoot across them: the toy meets them one turn at a time.
   - **Not used:** the MischiefSoldier (it rubs paint off and never shoots: not a guard). No new code in the game.
   - **Checked:** STATUS 19 Nov 18:5x. Not played.
+- **D-0083 (19 Nov, 21:0x) The bed core is used only from the bed: a core can ask the player to stand up where it is; the step box meets the mattress.**
+  His "proceed with your recommended picks" (the vertical slice), pick 1. The walk check found the kid used the bed
+  core from the floor (a kid's E reaches 56 ahead and 60 up, the mattress is 21.6), so the toy started on the floor
+  and the bed's way down was skipped. Moving the core could not fix it: anywhere on a 62 wide bed is in reach from its
+  side.
+  - **The rule, in `ShiftSource`:** Stand Within (0 = off, as every core was). Set, the player's feet must be no more
+    than that far below the core's middle, and on the ground, for E to shift; from below the prompt reads "Climb up to
+    reach it" and E does nothing. A kid jumping beside the bed and pressing E at the top of the jump does not shift
+    either (a toy made in mid-air would fall 20). The bed core and core D use 6 (a core's middle is 2.5 over what it
+    sits on).
+  - **The core moved** onto the mattress 14 in from its west edge, level with the step box (83.6, 24.1, 12), so the
+    toy it makes walks off the bed onto the box.
+  - **The step box:** there was a slot about 2 wide between the box and the mattress's rounded side, down to the
+    floor; the toy fell in or dropped 11 onto the top book. The box and its three books slid 2.2 east: the box's top
+    (18.8) now runs into the mattress's edge. The way down reads as steps: mattress 21.6, box 18.8, books 8.6, 4.7,
+    2.0, floor (the box to the top book is still a drop of about 10, under the 14 fall rule).
+  - **How it is laid:** the bedroom was laid by code run once on 3 Nov and no builder rebuilds it, so
+    `CourseBuilder.LandSlice` moves its pieces in place from what it measures (running it again moves nothing).
+  - **Checked:** STATUS 19 Nov 21:0x. Not played.
+- **D-0084 (19 Nov, 21:0x) Core D is used only from the window sill.**
+  Pick 2. Core D worked from the floor, and a toy shrunk there is 41 below the sill and the goal. With Stand Within 6
+  (D-0083) it works only for a kid standing on the sill, so the toy is made on the sill and walks into the goal, as
+  COURSE.md designed it ("shift to toy ON the sill"). Set in `BuildPlayroom` too, so a course rebuild keeps it.
+  - **Checked:** STATUS 19 Nov 21:0x. Not played.
+- **D-0085 (19 Nov, 21:0x) Two ways to the bedroom switch: the kid's hand, or a toy's dart. The switch moved off the shelf and down to 22.**
+  Pick 3. `Switch` presses itself when its Damageable takes a hit (any size); E by the kid works as before. The
+  shelf switch has a Damageable that never runs out and passes on no shove. A dart pistol on its stand (the
+  playroom's piece, D-0082) stands at the foot of the step books, where the toy comes down.
+  - **Why it moved:** over the shelf (top 47.5, 22 deep) a shot from the floor had to come from 105 away to clear the
+    shelf. Off the shelf at 56 it was still out of reach: the third-person camera looks up 25 degrees at most
+    (CameraSettings min pitch -25), so a toy's dart tops out about 36 up however far back it stands. Now it is on the
+    bare wall just past the shelf's north end, its middle 22 up: a toy hits it from 60 to 90 away at nearly the
+    highest look, and a kid reaches it standing in front of it. It is still far over a toy's reach, and the prompt
+    still says "Too small to reach" to a toy.
+  - **Not done:** first person (V) looks up to 89 degrees and would hit it anywhere; the slice does not rely on it.
+  - **Checked:** STATUS 19 Nov 21:0x. Not played.
+- **D-0086 (19 Nov, 21:0x) The end card's second choice: the playroom.**
+  Pick 4. The end card reads "R / A play again    P / Y the playroom is open"; P (pad Y) loads the Workshop
+  (`TitleMenu.WorkshopScene`), R (pad A, new) plays again. Both count only once the card is up: A is also jump and R
+  also reloads, on the way into the goal. The key sheet has a short END CARD section (column five): one more line in
+  the ON FOOT column cut off its last line (H).
+  - **Checked:** STATUS 19 Nov 21:0x. Not played.

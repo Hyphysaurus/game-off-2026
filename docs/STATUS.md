@@ -2,6 +2,48 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 19 Nov 2026 21:0x — THE VERTICAL SLICE PICKS: CLIMB TO THE BED AND SILL CORES, THE STEP BOX, TWO WAYS TO THE SWITCH, THE PLAYROOM CHOICE (D-0083 TO D-0086) — NOT PLAYED
+His "proceed with your recommended picks, lets begin optimizing towards a vertical slice". Built with the editor
+closed. Commits `ddc8446` and `22621d7` (and this docs commit). Laid into Greybox by `CourseBuilder.LandSlice`.
+- **R2, the bed core (D-0083):** the kid could use it from the floor, so the bed's way down was skipped. Now a core can
+  ask the player to stand up where it is (`ShiftSource` Stand Within): from the floor it says "Climb up to reach it"
+  and E does nothing, also at the top of a jump. The core moved onto the mattress beside the step box (83.6, 24.1, 12).
+- **R2, the step box:** there was a slot about 2 wide between the box and the mattress, down to the floor. The box and
+  its three books slid 2.2 east; the box's top now meets the mattress. The way down: mattress 21.6, box 18.8, books
+  8.6, 4.7, 2.0, floor.
+- **R6, core D (D-0084):** works only from the sill now, so the toy is made on the sill and walks into the goal.
+- **R2, two ways to the switch (D-0085):** E by the kid as before, or a dart: the switch has a Damageable and any hit
+  presses it. A dart pistol stand is at the foot of the step books (27.6, 0, -5.4). **The switch moved:** off the
+  shelf to the bare wall just past it (z 4.3), and down from 56 to 22. Over the shelf no dart from the floor could
+  reach it, and the third-person camera looks up 25 degrees at most, so a toy's dart cannot climb past about 36
+  anywhere. At 22 a toy hits it from 60 to 90 away. Your call if 22 reads wrong for a wall switch.
+- **End card (D-0086):** "R / A play again    P / Y the playroom is open". P or pad Y loads the Workshop; R or pad A
+  plays again (pad A is new). Both count only once the card is up. The key sheet has a small END CARD section (the
+  ON FOOT column was full: one more line cut off its last line).
+- **COURSE.md:** the numbers table is the measured one now (toy jump 4.40 / 6.40, 1.99 high; kid 121, 67; walk / sprint
+  5.5 / 8 toy, 192.5 / 280 kid; the fall rule 14), dated 19 Nov.
+- **Proof (the hidden walk, all six rooms, R1 to R6 and the end card):** 60 of 62 checks pass, 0 errors. From the
+  floor, E on the bed core and on core D does nothing (two spots each, standing and at the top of a jump); on the bed
+  it shrinks the kid on the mattress (feet 21.5); the toy walks onto the box (feet 19.0) and down the books to the
+  floor, 0 resets; takes the pistol 17.6 from the last book; from the floor 75 out it shoots the switch and the toy
+  door opens (2 shots); through the toy door into the skirting run. R6: the kid jumps onto the sill, E shrinks it there
+  (toy feet 41.2 on a 41.1 sill), the toy walks into the goal (no warp), the end card comes up, P opens the Workshop.
+  The kid's E on the switch still opens the door. The two fails are the old ones: the kid's E on the R2 torch and on
+  the R4 ruler (both reported 19 Nov 18:5x, not touched). Moves measured again: toy 4.40 / 6.42 far, 1.99 up; kid 121,
+  66.9 up.
+- **Smoke:** Greybox, Workshop, Raceway, Colour Corner: 0 errors each. Shot and dart checks not run (no projectile or
+  hit code changed; the switch only listens to its Damageable).
+- **Stills** (local): `%TEMP%\shiftjam-stage\course\stills-slice\` (r2_on_bed, r2_step_box, r2_switch_shot, r6_window,
+  r6_end, sheet.jpg).
+- **What to try:** New Game. In the bedroom, try E on the bed core from the floor (it should say "Climb up to reach
+  it"), climb on, shrink, walk down the box and books. Take the pistol at their foot and shoot the switch from the
+  floor (or press it as the kid first). At the window, the sill core only from the sill. On the end card press P.
+- **Still open, your calls:** (1) core B in the playroom is used from the floor beside the desk the same way (the walk
+  shows it: toy made on the floor, the desk's way down skipped); Stand Within on it is a one-line change in the
+  builder, not done (not in the picks); (2) the switch's new height (22) and place; (3) the toy's prompt at the switch
+  still says "Too small to reach" (a hint to shoot it could go there); (4) the R2 torch pickup in the probe.
+- Not played. No Windows build.
+
 ## 19 Nov 2026 18:5x — THE LEVEL PLAN: COURSE WALK CHECK, ITS FIXES (D-0081), AND THE PLAYROOM'S SOLDIERS BEAT (D-0082) — NOT PLAYED
 His "proceed with the level plan" (the three parts of the jam's level plan). Built with the editor closed the whole
 time. Commits `98d6aed` (the fixes) and `358c6f7` (the soldiers beat). Nothing else from LEVEL_BRAINSTORM was built.
@@ -1409,7 +1451,7 @@ HIS CALLS: AI rival cars for a 4-car race (none exist; online 8-player is not re
 before bends (left out); items 4-7. Other changes in his tree left uncommitted (fonts, PadGlow/PocketCoreGlow mats,
 an ERP folder, UnityConnectSettings): not mine.
 
-## 10 Nov 2026 21:1x — CHECKPOINT, he is in Godot, Unity closed: D-0057 (arrows, tyre stacks, F9 resets loose props, KeyHelp) — UNPLAYED
+## 10 Nov 2026 21:0x — CHECKPOINT, he is in Godot, Unity closed: D-0057 (arrows, tyre stacks, F9 resets loose props, KeyHelp) — UNPLAYED
 Everything from D-0050 to D-0057 is committed locally; nothing since D-0054 has been driven (he drove D-0052 to
 D-0054). Raceway as it stands: road 12.5 wide, loop, two banked hairpins, spiral, dive; flags, cone slalom, block
 wall, tyre stacks, road arrows, nitro stars, a heart; generated engine hum; a camera that rides the road on held track.
@@ -1418,7 +1460,7 @@ which of items 4-7 next (countdown and finish ceremony, moving scenery, a crowd,
 NOT DONE: the playroom expressway is still 8.4 wide with invisible guards and was tuned at top speed 24; a coin
 counter; a push of the ~100 local commits (his).
 
-## 10 Nov 2026 21:1x — D-0056 landed headless (he had closed the editor): wider road (x1.5), generated engine hum, pickups on the road — UNPLAYED
+## 10 Nov 2026 21:0x — D-0056 landed headless (he had closed the editor): wider road (x1.5), generated engine hum, pickups on the road — UNPLAYED
 His notes on D-0055: stars too high; driving sound still needs work; can the tracks be widened. Road 12.5 wide (one
 number, `RwWiden`), loop shift 20, gates no taller than 1.6 x; engine = a hum made by code (the pack's motor loops have
 nothing under 1 kHz); pickups stand on the road. Refit Cars + LandRaceway ran in batch; checks pass; stills looked at.
@@ -1747,7 +1789,7 @@ checked: garage gate + above, a car on pack wheels (Temp/shiftjam-stage/stills1,
   (his direction, D-0029, not built); run cadence A/B; the 4 Nov design-pass picks; idle-jump ending; run legs inward;
   Feel on the shift; Toy Land removal; `Assets/ERP` + `.erp` (his Editor Rich Presence) untracked.
 
-## 5 Nov 2026 21:1x — RAMP LIP + GARAGE (D-0029), staged/written, waiting for him to stop Play — CHECKPOINT
+## 5 Nov 2026 21:0x — RAMP LIP + GARAGE (D-0029), staged/written, waiting for him to stop Play — CHECKPOINT
 - His playtest notes (Workshop, live): stray "SHIFT / press any key" card on screen (the HUD's StartCard came over with the
   HUD; hidden live, to switch off in Workshop.unity); can't get onto ramps (0.6 lip at the toe, fix in CourseBuilder.Wedge,
   landed); wrecked his car → GARAGE (staged in %TEMP%/shiftjam-stage/garage: Garage.cs, CarLook.cs, ArcadeCar.cs,
@@ -1882,7 +1924,7 @@ so the launch clears its lip; height = the gap + 10; a glow disc marks the pad).
 (out of Play) and saved: 1 pad, 32 stair books. Committed. Still to see: the pad feel (height, squash), the lane's
 pins, the ruler ramp.
 
-## 3 Nov 2026 21:1x — backlog week 1, mine: fade, start/end cards, checkpoint markers, pin hazards (headless, UNSEEN)
+## 3 Nov 2026 21:0x — backlog week 1, mine: fade, start/end cards, checkpoint markers, pin hazards (headless, UNSEEN)
 Editor was closed again after his short launch (log ends 20:58, no crash marker). Landed + compiled: `UI/ScreenFade.cs`
 (black cut, unscaled time), `UI/GameFlow.cs` (start card gone on first press, End() from the last Goal → fade + end
 card, R restarts the scene), Respawn.Put() (every reset goes through the cut), Checkpoint.litWhenClaimed, Hazard (pins).

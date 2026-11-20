@@ -2,6 +2,78 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 19 Nov 2026 22:4x — THE SLICE, NEXT PART: CORE B FROM THE DESK ONLY, THE SILENT MOMENTS GET SOUNDS, THE ROOMS GET THEIR OWN LIGHT (D-0087 TO D-0089) — NOT PLAYED, NOT HEARD
+His "yes proceed" (the slice plan's next three items). Built with the editor closed. Commits `0d025c2` (core B),
+`b5a6a4b` (sounds), `182c752` (light), and this docs commit. Greybox laid again by `CourseBuilder.LandSlice`.
+- **R4, core B (D-0087):** Stand Within 6, as the bed core and core D. From the floor beside the desk it says "Climb up to
+  reach it" and E does nothing, standing or at the top of a jump (feet up to 67). On the desk it shrinks the kid (toy
+  feet 36.0 on the 36.0 desk top), and the toy walks down the three ruler ramps to the floor (0 resets) and into the hole
+  to R5. Set in `BuildPlayroom` too, so a rebuild keeps it.
+- **Sounds (D-0088).** Every course moment, what plays now (new ones marked NEW; all picked by name from packs already
+  in the project, nothing imported or moved; volumes kept low; your ear decides in `Data/CourseSounds`):
+
+  | Moment | Sound |
+  |---|---|
+  | Core used: grow / shrink | `Star_Light_On` / `Star_Light_Off` (as before) |
+  | A dark core wakes (torch beam) | `Star_Light_Activate` (as before) |
+  | E refused: "Climb up to reach it", "Too small to reach", "Too big", a dark core | NEW `UI/Error_v1` 0.35 (was silent) |
+  | Shift key refused | `UI/Error_v3` (as before) |
+  | Checkpoint claimed | `UI_Notification_v1` (as before) |
+  | Fall, put back | `Wooden_Toy_Drop_v2` (as before) |
+  | Switch pressed, by E or by a dart | `Mouse_Click_v2` (as before; both go through the same press) + the dart's own hit |
+  | Toy door / wardrobe doors open | `Castle_Gate_v1` (as before) |
+  | Toy box bursts | `Paper_Rustle_v1` + `Books_Falling_v1` (as before) |
+  | Pick up (torch, ruler, safe, box) | NEW `Props/Backpack_Pickup_v1` 0.45 |
+  | Put down | NEW `Toys/Block_Fall_v1` 0.4 |
+  | Pistol taken from a stand | NEW the ammo box's `pickup` (CasePortman weapons) 0.6 |
+  | Soldier knocked down | `figure_down` (as before, Resources/WeaponAmmo) |
+  | Soldier gets up | NEW `Toys/Chess_Move_v1` 0.3 |
+  | Soldier fires | NEW: its dart's own fire sound (they fired silently: built with no clip) |
+  | Goal reached / end card | `UI/Win_v1` (as before; the card comes up 1.2 s later, under it) |
+  | End card choice (R / P) | NEW `UI/UI_Confirm_v1` 0.6, plays on past the scene change |
+  | Jump / landing from high | `Book_Close` / `Chess_Fall_v2` (as before) |
+
+  Still silent (not in the list, noted): going through a portal (the toy door, the mouse hole), switching a lamp on, the
+  torch's own click (a woken core still sounds), a throw.
+- **Music and ambience, per room, today:** no music anywhere in the course (`CourseSounds.music` is empty: yours). The
+  playroom's arrival plays the opening of `A_Secret_Garden_Of_Light_v1` as a swell and fades it (RoomReveal). One room
+  tone, `Room_Ambience_Loop_v2`, everywhere at 0.6 (flat, the same in every room); the lane's end hole hums
+  `Room_Ambience_Loop_v1` (the playroom heard through it). **Candidates already in the project (Playroom pack):** music
+  `Quiet_Walk`, `Calm_Adventure`, `Toy_Box`, `Happy_Day`, `Short_Journey`, `Treasure_Hunt_Time`,
+  `Toy_Room_Menu_Music_v1/v2`, `A_Secret_Garden_Of_Light_v2`; room loops `Clock_Tick_Loop` (bedroom),
+  `Light_Buzz_Loop_v1` (the lane), `Computer_Hum_Loop` (the desk), `Fan_Loop` (the updraft fan),
+  `Toy_Millitary_Base_Ambience_Loop` (the soldiers' maze), `Toy_Castle_Ambience`. Note: CourseAudio plays one music and one
+  room tone for the whole scene; a tone per room needs a small switch by room (not built, your call).
+- **Light (D-0089), a starting point for your eye.** The lane and the wardrobe read flat because (1) one ambient lit every
+  room, the default sky at full strength, (2) the plain course materials mirrored that bright sky on every wall, and (3)
+  URP's lamps fall off with the square of the distance: at this size (a kid is 63 tall) the lamps as built (2 to 5) gave
+  almost nothing. Now (set by `CourseBuilder.LightRooms`, which LandSlice runs):
+  - whole scene: a fixed three-colour ambient (sky 0.30 0.30 0.34, middle 0.24 0.22 0.20, ground 0.12 0.10 0.09), the
+    sky's reflection 0.2 (was 1), the sun 0.15 (was 0.2);
+  - bedroom: the ceiling lamp warm (1, 0.85, 0.66) at 6000 (about 1.0 on the floor under it);
+  - lane: three lamps cold (0.6, 0.72, 1) at 45 (x 0, 90, 250: pools with dark between), the warm lantern half-way (the
+    Lantern prop at x 170) at 80 with shadows, the end glow warm at 30;
+  - playroom: the lamp near white at 10800, its two fills 5000;
+  - wardrobe: the night lamp over shelf 2 warm at 200 (range 120, shadows); the player carries a small warm ember (0.8,
+    range 6; only shows in the dark rooms); the torch beam warm at 3000 with shadows (its settings had sat inside a
+    comment since D-0081: white at 1, no shadows);
+  - window: the garden sun 60000.
+  Stills before / after and the sheet (local): `%TEMP%\shiftjam-stage\course\stills-light\` (before\, after\,
+  sheet_after.jpg; iter1\ and iter1_sheet.jpg are quick room shots, r4_room / r5_wide among them).
+- **Proof.** The hidden walk, all six rooms and the end card (P opens the Workshop): 79 of 81 pass, 0 errors. The two fails are the old ones, the kid's E on the R2 torch and on the R4 ruler (not touched). The 81 is the old 62 plus the core B checks and 14 sound checks. One earlier full run missed core B on the desk (the Interactor found nothing there after the floor jump); a short R2 + R4 run and the final full run both passed it; if you ever see no prompt on core B from the desk, that is the one to tell me. Sounds: every cue fired in the walk by name (batch runs are muted, so the walk counts what plays):
+  grow, shrink, coreAwake, cantUse, switchPress, doorOpen, weaponTaken, checkpoint, reset, pickUp, putDown, goal,
+  endChoice, jump; and in a short soldiers run soldierUp played 3 times (3 of 4 soldiers knocked down, all three got up). The beam still wakes core C (94.8 away, range 120). Smoke: Greybox, Workshop, Raceway, Colour Corner, 0 errors each.
+- **What to listen for:** E on the bed core from the floor (the soft no); picking up and setting down the safe; the pistol
+  stand; the soldiers' shots and getting up; R or P on the end card. Is `Error_v1` too close to the Shift key's
+  `Error_v3`? Is the put-down too loud for the safe?
+- **What to look at:** the lane (cold, the lantern half-way: dark enough? the gaps still read?), the wardrobe's first view
+  (dark, the book flight lit by your ember), the bedroom (warmer and a little darker than before), the playroom, the
+  garden through the window. Every lamp is one number in `CourseBuilder.Light.cs`; or change them in the scene.
+- **Still open, your calls:** (1) the R2 torch pickup and the R4 ruler E (the probe's two old fails, not touched); (2) the
+  ember on the player in every room (it shows as a small warm glow round the toy in the bright rooms too); (3) music and
+  a room tone per room; (4) the toy's prompt at the switch still says "Too small to reach".
+- Not played. Not heard. No Windows build.
+
 ## 19 Nov 2026 21:0x — THE VERTICAL SLICE PICKS: CLIMB TO THE BED AND SILL CORES, THE STEP BOX, TWO WAYS TO THE SWITCH, THE PLAYROOM CHOICE (D-0083 TO D-0086) — NOT PLAYED
 His "proceed with your recommended picks, lets begin optimizing towards a vertical slice". Built with the editor
 closed. Commits `ddc8446` and `22621d7` (and this docs commit). Laid into Greybox by `CourseBuilder.LandSlice`.

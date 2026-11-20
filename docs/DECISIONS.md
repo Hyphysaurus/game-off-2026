@@ -1734,3 +1734,49 @@
   also reloads, on the way into the goal. The key sheet has a short END CARD section (column five): one more line in
   the ON FOOT column cut off its last line (H).
   - **Checked:** STATUS 19 Nov 21:0x. Not played.
+- **D-0087 (19 Nov, 22:4x) Core B in the playroom is used only from the desk top.**
+  His "yes proceed" (the slice plan, part 1). The walk showed the kid using core B from the floor beside the desk, so the
+  toy started on the floor and the desk's way down (the three ruler ramps) was skipped. Core B gets the same Stand
+  Within 6 as the bed core and core D (D-0083, D-0084): from the floor it reads "Climb up to reach it" and E does
+  nothing, also at the top of a jump. Set in `BuildPlayroom` (a rebuild keeps it) and in `LandSlice` (Greybox as it is).
+  - **Checked:** STATUS 19 Nov 22:4x. Not played.
+- **D-0088 (19 Nov, 22:4x) The course's silent moments get sounds, through the same CourseSounds / CourseAudio / GameEvents path.**
+  Part 2. The sound audit (table in STATUS) found these silent: E on something that says no, picking up and setting
+  down, taking a weapon from a stand, a soldier standing up, the end card's choice, and the soldiers' own shots.
+  - **New facts in `GameEvents`:** UseRefused (raised by `ShiftSource`, `Switch` and `Reactor` when E does nothing:
+    from below, wrong size, dark, spent), PickedUp / SetDown (`Carrier` and `ThirdPersonGrab`), WeaponTaken
+    (`WeaponPickup`), SoldierUp (`ToySoldier`, only when it gets up after a knock-down), EndChoice (`GameFlow`).
+  - **New cues in `CourseSounds`** (data, his ear decides in the Inspector): cantUse `UI/Error_v1` 0.35 (softer than the
+    Shift key's refused, `Error_v3` 0.45), pickUp `Props/Backpack_Pickup_v1` 0.45, putDown `Toys/Block_Fall_v1` 0.4 (not the
+    reset's wooden drop, so the two never read as one), weaponTaken the game's own weapon pick-up (`CasePortman/Weapons/
+    pickup.ogg`, the ammo box's) 0.6, soldierUp `Toys/Chess_Move_v1` 0.3, endChoice `UI/UI_Confirm_v1` 0.6. Picked by name
+    by Build Course Sounds, which fills only empty cues.
+  - **The end card's cue outlives the scene:** the choice loads the next scene at once, so CourseAudio plays it from its
+    own object kept across the load, which removes itself when the clip ends.
+  - **The soldiers' shots:** `ToySoldier` plays its dart's own fire sound when it has no clip of its own (the course's
+    four were built with none and fired silently). One line; the dart's clips are the player's dart pistol's.
+  - **For checks:** `CourseAudio.CuePlayed` says each cue as it plays (a batch run is muted, so the walk counts cues by
+    name instead of listening).
+  - **No pack moved or newly imported;** every clip is under the git-ignored `_Imports` (checked with `git check-ignore`).
+  - **Music stays his.** Nothing added to music or ambience.
+  - **Checked:** STATUS 19 Nov 22:4x. Not heard.
+- **D-0089 (19 Nov, 22:4x) Room light, a starting point for his eye: a lower ambient, the sky's reflection at a fifth, and each lamp set by the light it should give where it lands.**
+  Part 3 (his lighting pass, BACKLOG 10; he leads, this sets the start). `CourseBuilder.LightRooms`, run by `LandSlice`.
+  - **Why the lane and the wardrobe read as flat grey boxes:** three things together. (1) The ambient was the default sky
+    at full strength, the same for every room (they share one scene). (2) The plain course materials (smoothness 0.5)
+    mirrored that bright sky on every wall. (3) URP's point lights fall off with the square of the distance, and this
+    world is big (a kid is 63 tall): the room lamps as built (intensity 2 to 5, from 12 to 95 above the floor) gave
+    almost nothing where they landed. So every face was lit the same from all sides.
+  - **Now:** a fixed three-colour ambient, lower than the default sky gave (sky 0.30, 0.30, 0.34; middle 0.24, 0.22, 0.20; ground
+    0.12, 0.10, 0.09); the sky's reflection 0.2 (was 1); the sun 0.15 (was 0.2). Each lamp is set as the light wanted
+    where it lands times the distance squared: bedroom lamp 6000 warm (1, 0.85, 0.66); lane lamps 45 cold (0.6, 0.72, 1)
+    at x 0, 90, 250, the half-way lantern 80 warm (1, 0.7, 0.4) with shadows sat on the Lantern prop at x 170, the exit
+    glow 30; playroom lamp 10800 near white (1, 0.96, 0.9), its two fills 5000; wardrobe night lamp (the DimLamp over
+    shelf 2) 200 warm, range 120, shadows; the window's garden sun 60000. The player carries an ember (point light 0.8,
+    range 6, warm, at the chest of the toy): it shows only in the dark rooms (at kid size it is too small to see).
+  - **The wardrobe torch's beam:** its intensity, shadows and off-at-start sat inside a comment since D-0081, so it was
+    white at 1 with no shadows. Fixed in `BuildWardrobe` and set in place: warm, 3000, shadows. The light sensor reads
+    only its range and cone, so core C still wakes.
+  - **Not done:** no new lighting system, no volumes, no baking, no material changes. The scene's ambient is one for
+    all rooms; a room-by-room ambient would need the rooms as separate scenes (COURSE.md's build-order note).
+  - **Checked:** STATUS 19 Nov 22:4x. Stills before and after. Not played.

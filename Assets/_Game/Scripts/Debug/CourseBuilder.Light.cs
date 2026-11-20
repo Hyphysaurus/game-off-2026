@@ -30,6 +30,7 @@ namespace ShiftJam
         static readonly Color LaneCold = new Color(0.6f, 0.72f, 1f); const float LaneIntensity = 45f;
         static readonly Color LanternWarm = new Color(1f, 0.7f, 0.4f); const float LanternIntensity = 80f, LanternRange = 40f;
         static readonly Color ExitWarm = new Color(1f, 0.85f, 0.55f); const float ExitIntensity = 30f;
+        const float TallIntensity = 6000f;
         // R4 the playroom: bright, near white. The lamp 95 up (about 1.2 under it), the two fills about 0.3 where they land.
         static readonly Color PlayroomBright = new Color(1f, 0.96f, 0.9f); const float PlayroomIntensity = 10800f, PlayroomFill = 5000f;
         // R5 the wardrobe: dark; the night lamp 10 over shelf 2 (a warm pool there, a glimmer on the floor 90 below) and
@@ -64,12 +65,12 @@ namespace ShiftJam
             {
                 var lane = r3.GetComponentsInChildren<Light>(true).Where(l => l.name == "LaneLight" || l.name == "LanternLight").OrderBy(l => l.transform.position.x).ToList();
                 var lantern = r3.transform.Find("Lantern");
-                // the lane light nearest the lantern (BuildLane's at x 170) becomes the lantern's own light, sat on its top;
-                // the others stay on their spots along the ceiling (x 0, 90, 250), cold
+                // the lane light nearest the lantern (by the charge core, D-0090) becomes the lantern's own light, sat on its top;
+                // the others go to their spots along the hallway's ceiling, one per lesson (move, darts, the test), cold
                 Light half = lane.FirstOrDefault(l => l.name == "LanternLight");
                 if (half == null && lantern != null) half = lane.OrderBy(l => Mathf.Abs(l.transform.position.x - lantern.position.x)).FirstOrDefault();
                 var others = lane.Where(l => l != half).ToList();
-                float[] spots = { 0f, 90f, 250f };
+                float[] spots = { -40f, 40f, 115f, 200f };
                 for (int i = 0; i < others.Count; i++)
                 {
                     if (i < spots.Length) others[i].transform.position = new Vector3(spots[i], 12f, LaneZ);
@@ -86,6 +87,8 @@ namespace ShiftJam
                     EditorUtility.SetDirty(half.transform);
                 }
                 var exit = r3.transform.Find("ExitLight"); if (exit != null) Tune(exit.GetComponent<Light>(), ExitWarm, ExitIntensity);
+                // the tall end (D-0090): one warm lamp high in the shaft, about 0.5 on its floor 110 below
+                var tall = r3.transform.Find("TallLight"); if (tall != null) Tune(tall.GetComponent<Light>(), LanternWarm, TallIntensity, 200f, LightShadows.Soft);
                 Log.AppendLine($"light R3: {others.Count} lane lights cold {LaneIntensity} at x {string.Join(", ", others.Select(l => l.transform.position.x.ToString("F0")))}; lantern light {(half != null ? "at " + half.transform.position : "NOT FOUND")}");
             }
             else Log.AppendLine("light R3: NO R3_SkirtingRun");

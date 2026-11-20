@@ -25,7 +25,7 @@ namespace ShiftJam
         static readonly Vector3 C4 = new Vector3(480f, 0f, -140f);     // playroom centre; walls x 285..675, z -302.5..22.5
         const float R4HalfX = 195f, R4HalfZ = 162.5f;
         static readonly Vector3 C5 = new Vector3(480f, 0f, -700f);     // wardrobe interior centre
-        const float LaneZ = -150f, LaneX0 = -20f, LaneX1 = 281f;       // skirting run, inside the bedroom's south wall
+        const float LaneZ = -150f, LaneX0 = -60f, LaneX1 = 281f;       // the hallway (old skirting run), just south of the bedroom's south wall
 
         [MenuItem("Shift Jam/Build Course (Rooms 3-6)")]
         public static void BuildFromMenu() { Build(); }
@@ -114,69 +114,8 @@ namespace ShiftJam
         }
 
         // =====================================================================================
-        // R3: the skirting run
-        static Transform BuildLane(Transform r3, Material dark, Material glow)
-        {
-            float z = LaneZ, w = 20f, h = 14f;
-            float x0 = LaneX0, x1 = LaneX1;
-            // floor in pieces, leaving three pits: 38..72 (pencil bridge), 100..103.5 (hop) and 229..234.5 (sprint). The sprint gap is
-            // 5.5: the toy jumps 4.4 at a walk and 6.4 at a sprint (jump 2.0, walk 5.5, sprint 8), so it needs Shift; at 4.5 a
-            // walking jump made it (walk check 19 Nov, D-0081)
-            float[][] floors = { new[] { x0, 38f }, new[] { 72f, 100f }, new[] { 103.5f, 229f }, new[] { 234.5f, x1 } };
-            foreach (var f in floors) Cube("Floor", r3, new Vector3((f[0] + f[1]) / 2f, -0.5f, z), new Vector3(f[1] - f[0], 1f, w), dark);
-            Cube("PitFloor", r3, new Vector3((x0 + x1) / 2f, -25f, z), new Vector3(x1 - x0, 1f, w), dark);   // 24 down: a fall past 14 = respawn
-            Cube("WallN", r3, new Vector3((x0 + x1) / 2f, h / 2f, z + w / 2f + 0.5f), new Vector3(x1 - x0, h + 26f, 1f), dark);
-            Cube("WallS", r3, new Vector3((x0 + x1) / 2f, h / 2f, z - w / 2f - 0.5f), new Vector3(x1 - x0, h + 26f, 1f), dark);
-            Cube("WallW", r3, new Vector3(x0 - 0.5f, h / 2f, z), new Vector3(1f, h + 26f, w + 2f), dark);
-            Cube("WallE", r3, new Vector3(x1 + 0.5f, h / 2f, z), new Vector3(1f, h + 26f, w + 2f), dark);
-            Cube("Ceiling", r3, new Vector3((x0 + x1) / 2f, h + 0.5f, z), new Vector3(x1 - x0, 1f, w), dark);
-            // lights along the lane
-            foreach (float lx in new[] { 0f, 90f, 170f, 250f }) PointLight("LaneLight", r3, new Vector3(lx, h - 2f, z), 45f, 1.6f, new Color(1f, 0.85f, 0.6f));
-
-            // 1. pencil bridge over the first pit: five pencils end to end (7 long each) at the lane's centre line
-            for (int i = 0; i < 5; i++) Rest(Spawn("Pencil_01", "Pencil_" + i, r3, new Vector3(37f + 3.5f + i * 7f, 0f, z), new Vector3(0, 90, 0), 1f), 0f, null);
-            // 2. hop gap at 100..103.5, then a checkpoint on the landing strip (the book stairs start after it, at 112: they
-            //    started at the gap's far edge, so the hop landed on a book 2 high and fell back in: walk check 19 Nov, D-0081)
-            Checkpoint("CP_afterHop", r3, new Vector3(107f, 2f, z), new Vector3(6f, 4f, w));
-            // 3. book stairs up onto a 12-high box (ten risers of 1.2 on 2.4-deep treads: easy hops, 5 Nov his "can't climb"),
-            //    then a 12 drop off the far side (under the 14 fall rule)
-            var box = Rest(Spawn("Cardboard_Box_06", "StepBox", r3, new Vector3(142f, 0f, z), Vector3.zero, 1f), 0f, null);
-            float boxTop = B(box).max.y;
-            int stairBooks = Mathf.CeilToInt(boxTop / 1.2f);   // BookStairs' own count: books 0..n, the last one against the box
-            box.transform.position += Vector3.right * ((112f + (stairBooks + 0.5f) * 2.4f) - B(box).min.x);
-            BookStairs(r3, new Vector3(B(box).min.x - (stairBooks + 0.5f) * 2.4f + 1.2f, 0f, z), Vector3.right, 0f, boxTop, "UpStairs");
-            {   // the books are long (they lie along the lane): slide the box and the stairs on together so the first book starts at
-                // 110, leaving the hop's landing (103.5..110) clear floor with its checkpoint
-                var stairs = r3.Find("UpStairs"); float lead = 110f - B(stairs.gameObject).min.x;
-                stairs.position += Vector3.right * lead; box.transform.position += Vector3.right * lead;
-            }
-            // 4. three pins standing in the lane, walk between them (no hazard yet: dressing + a squeeze)
-            foreach (float px in new[] { 180f, 190f, 200f })
-            {
-                var pin = Rest(Spawn("Pin_01", "Pin", r3, new Vector3(px, 0f, z + ((px / 10f) % 2 == 0 ? 3f : -3f)), new Vector3(-90, 0, 0), 1f), 0f, null);
-                var hz = Trigger("Hazard", pin.transform, B(pin).center, new Vector3(1.6f, B(pin).size.y, 1.6f)); hz.AddComponent<Hazard>();
-            }
-            // 5. sprint gap 229..234.5 with a checkpoint before and after
-            Checkpoint("CP_beforeSprint", r3, new Vector3(222f, 2f, z), new Vector3(6f, 4f, w));
-            Checkpoint("CP_afterSprint", r3, new Vector3(244f, 2f, z), new Vector3(6f, 4f, w));
-            // dressing: a lantern, chalk, a leaning CD, clips
-            Rest(Spawn("Night_Lamp_02", "Lantern", r3, new Vector3(170f, 0f, z + 6f), Vector3.zero, 1f), 0f, null);   // past the step box (moved east, D-0081)
-            Rest(Spawn("Chalk_01", "Chalk", r3, new Vector3(20f, 0f, z - 6f), new Vector3(0, 30, 0), 1f), 0f, null);
-            Rest(Spawn("Clip_01", "Clip", r3, new Vector3(115f, 0f, z + 7f), new Vector3(0, 70, 0), 1f), 0f, null);
-            Rest(Spawn("Clip_02", "Clip2", r3, new Vector3(260f, 0f, z - 7f), new Vector3(0, 20, 0), 1f), 0f, null);
-            // exit: a glow on the east wall, a point light, the portal
-            var q = Quad("ExitGlow", r3, new Vector3(x1 - 0.1f, 3f, z), new Vector3(0, -90, 0), new Vector3(6f, 6f, 1f), glow);
-            PointLight("ExitLight", r3, new Vector3(x1 - 6f, 4f, z), 20f, 2.5f, new Color(1f, 0.85f, 0.55f));
-            var exit = Trigger("ExitPortal", r3, new Vector3(x1 - 2f, 3f, z), new Vector3(2f, 6f, 8f));
-            var portal = exit.AddComponent<Portal>(); Set(portal, "requiredSize", (int)ShiftSize.Toy);
-            // the room beyond, heard before it is seen: its hum grows as you near the hole
-            var hum = exit.AddComponent<AudioSource>(); hum.clip = Clip("Room_Ambience_Loop_v1"); hum.loop = true; hum.playOnAwake = true; hum.spatialBlend = 1f; hum.rolloffMode = AudioRolloffMode.Linear; hum.minDistance = 4f; hum.maxDistance = 90f; hum.volume = 0.7f;
-            // start point (where the toy door drops you), facing east
-            var start = Point("Start", r3, new Vector3(x0 + 6f, 0f, z), 90f);
-            Checkpoint("CP_start", r3, new Vector3(x0 + 10f, 2f, z), new Vector3(6f, 4f, w));
-            Log.AppendLine("R3 lane built x " + x0 + ".." + x1 + " at z " + z);
-            return start;
-        }
+        // R3: the skirting run, since D-0090 the tutorial hallway (CourseBuilder.House)
+        static Transform BuildLane(Transform r3, Material dark, Material glow) => BuildHallway(r3, dark, glow);
 
         // =====================================================================================
         // R4: the playroom (+ R6 window and garden on its north wall)

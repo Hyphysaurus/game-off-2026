@@ -16,7 +16,8 @@ namespace ShiftJam
     ///   its three books slide east until the box's top meets the mattress's edge: there was a 2 wide slot to the floor
     ///   between them.
     /// - R2: the shelf switch takes a shot (a Damageable) and moves off the shelf to the bare wall just past it, where a
-    ///   toy on the floor can see it; a dart pistol on its stand at the foot of the step books.
+    ///   toy on the floor can see it. (Its pistol stand at the foot of the step books is gone since D-0090: the gun is
+    ///   taught in the hallway.)
     /// - R4: core B is used only from the desk top (D-0087), so the toy goes down the desk by the three ruler ramps.
     /// - R6: core D is used only from the sill, so the toy is shrunk at the goal and not on the floor 41 below it.
     /// - The end card's second choice: the playroom (the Workshop).
@@ -116,14 +117,8 @@ namespace ShiftJam
             EditorUtility.SetDirty(core.transform);
             EditorUtility.SetDirty(box); foreach (var b in books) EditorUtility.SetDirty(b);
 
-            // A dart pistol on its stand (the playroom's piece) at the foot of the step books, where the toy comes down.
-            var old = room.Find("PistolStand"); if (old != null) Object.DestroyImmediate(old.gameObject);
-            var pistol = AssetDatabase.LoadAssetAtPath<GameObject>(PistolPiece);
-            if (pistol == null) { Log.AppendLine("R2: NO " + PistolPiece); return; }
-            var lowBooks = books.Length > 0 ? books.Select(b => B(b.gameObject)).Aggregate((a, c) => { a.Encapsulate(c); return a; }) : bb;
-            var stand = (GameObject)PrefabUtility.InstantiatePrefab(pistol, room); stand.name = "PistolStand";
-            PlaceFree(stand, new Vector3(lowBooks.min.x - 6f, 0f, lowBooks.min.z - 8f), Quaternion.LookRotation(Vector3.right));
-            Log.AppendLine($"R2: pistol stand at {stand.transform.position}");
+            // No pistol stand in the bedroom any more (D-0090): the gun is taught in the hallway. The switch still takes a dart.
+            var old = room.Find("PistolStand"); if (old != null) { Object.DestroyImmediate(old.gameObject); Log.AppendLine("R2: the bedroom pistol stand taken out"); }
         }
 
         static void SliceSwitch(Transform room)

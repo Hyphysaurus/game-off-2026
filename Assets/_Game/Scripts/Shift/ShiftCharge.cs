@@ -84,6 +84,9 @@ namespace ShiftJam
             }
         }
 
+        /// <summary>Exactly this many (clamped to 0..Max): what a door between the house's rooms carried over (D-0091).</summary>
+        public void SetCharges(int charges) { Charges = Mathf.Clamp(charges, 0, Max); if (_hud != null) _hud.Refresh(); }
+
         /// <summary>Down to none: New Game starts here.</summary>
         public void Drain() { Charges = 0; if (_hud != null) _hud.Refresh(); }
 

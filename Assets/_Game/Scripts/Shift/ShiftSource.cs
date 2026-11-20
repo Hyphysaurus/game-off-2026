@@ -11,7 +11,8 @@ namespace ShiftJam
     /// </summary>
     public sealed class ShiftSource : MonoBehaviour, IInteractable
     {
-        public enum Mode { Toggle, GrowOnly, ShrinkOnly }
+        /// <summary>ChargeOnly (D-0090): no shift at all, E fills the charge the player carries (the hallway's lesson core).</summary>
+        public enum Mode { Toggle, GrowOnly, ShrinkOnly, ChargeOnly }
 
         [SerializeField] private Mode mode = Mode.Toggle;
         [SerializeField, Tooltip("Shown when the player is the wrong size for this source (\"Too big to hold\"). Empty hides the prompt.")]
@@ -38,6 +39,9 @@ namespace ShiftJam
         [SerializeField] private UnityEvent onSpent;
 
         private int _used;
+
+        /// <summary>A ChargeOnly core's prompts (placeholder wording, his to change).</summary>
+        public const string ChargePrompt = "Take the shift charge", ChargeFullPrompt = "Charge full";
 
         /// <summary>Raised each time this core shifts the player (after the size has changed). The orb's strike listens here.</summary>
         public event System.Action Used;
@@ -113,6 +117,12 @@ namespace ShiftJam
             if (shifter == null || shifter.Shifting) return "";
             if (Spent) return spentPrompt;
             if (Dormant) return dormantPrompt;
+            if (mode == Mode.ChargeOnly)
+            {
+                var charge = shifter.GetComponent<ShiftCharge>();
+                if (charge == null) return "";
+                return charge.Charges >= charge.Max ? ChargeFullPrompt : ChargePrompt;
+            }
             bool toy = shifter.Size == ShiftSize.Toy;
             string shift;
             switch (mode)
@@ -136,6 +146,18 @@ namespace ShiftJam
                 if (!HighEnough(who)) { GameEvents.RaiseUseRefused(who, climbPrompt); return; }
                 var motor = who.GetComponent<PlayerMotor>();   // plain form: Fast Script Reload breaks `TryGetComponent(out ...) &&`
                 if (motor != null && motor.isActiveAndEnabled && !motor.Grounded) { GameEvents.RaiseUseRefused(who, climbPrompt); return; }
+            }
+            if (mode == Mode.ChargeOnly)
+            {
+                // A battery and nothing else: the charge fills, the size stays. Full already: nothing to take.
+                var battery = shifter.GetComponent<ShiftCharge>();
+                if (battery == null || battery.Charges >= battery.Max) { GameEvents.RaiseUseRefused(who, ChargeFullPrompt); return; }
+                battery.Refill();
+                onUsed?.Invoke();
+                Used?.Invoke();
+                _used++;
+                if (Spent) { ApplyLooks(); onSpent?.Invoke(); }
+                return;
             }
             ShiftSize before = shifter.Size;
             switch (mode)

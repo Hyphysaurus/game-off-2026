@@ -24,6 +24,8 @@ namespace ShiftJam
             // Unity runs Awake even on a switched-off component. A switched-off flow (the Workshop's) must not raise a
             // start card that only its own Update can take down.
             if (!enabled) return;
+            // Back through a door from another room (D-0091): the game is under way, no "press any key".
+            if (HouseCarry.Arriving) { _started = true; if (startCard != null) startCard.SetActive(false); if (endCard != null) endCard.SetActive(false); return; }
             if (startCard != null) startCard.SetActive(true);
             if (endCard != null) endCard.SetActive(false);
         }

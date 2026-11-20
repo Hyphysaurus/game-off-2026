@@ -51,7 +51,8 @@ namespace ShiftJam
         {
             _spawn = _point; _spawnFacing = _facing;
             // With a title menu in the scene, it decides (Continue / New Game); without one, continue the active slot.
-            if (loadSave && FindFirstObjectByType<TitleMenu>() == null) LoadSlot(SaveGame.Slot);
+            // Through a door from another room (D-0091), the door puts the player down instead.
+            if (loadSave && !HouseCarry.Arriving && FindFirstObjectByType<TitleMenu>() == null) LoadSlot(SaveGame.Slot);
         }
 
         /// <summary>Puts the player at the slot's save point with its size. False if the slot is empty.</summary>

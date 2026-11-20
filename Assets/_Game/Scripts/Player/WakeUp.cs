@@ -37,7 +37,7 @@ namespace ShiftJam
 
         private void Start()
         {
-            if (playOnStart) Begin();
+            if (playOnStart && !HouseCarry.Arriving) Begin();   // through a door from another room the toy is up already (D-0091)
         }
 
         /// <summary>Lies the figure down and starts the get-up.</summary>

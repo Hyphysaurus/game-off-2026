@@ -246,6 +246,30 @@ namespace ShiftJam
             return weapon;
         }
 
+        /// <summary>Takes every weapon out of the hands without dropping it: switched off, unparented, nobody's, its rounds
+        /// kept. A door between the house's rooms carries them (HouseCarry, D-0091) and hands them back with Equip.
+        /// <paramref name="inHand"/> is the place of the one that was out.</summary>
+        public List<Weapon> Stow(out int inHand)
+        {
+            inHand = _current;
+            var taken = new List<Weapon>(_weapons);
+            StandDown();
+            EndReload();
+            foreach (Weapon w in taken)
+            {
+                if (w == null) continue;
+                w.Cancel();
+                w.SetHolder(null);
+                SetViewModel(w, false);
+                w.transform.SetParent(null, false);
+                w.gameObject.SetActive(false);
+            }
+            _weapons.Clear();
+            _current = -1;
+            GameEvents.RaiseAmmoChanged(this);
+            return taken;
+        }
+
         /// <summary>Lets go of a weapon: it falls out of the hand as a loose prop that E takes again.</summary>
         public void Drop(Weapon weapon)
         {

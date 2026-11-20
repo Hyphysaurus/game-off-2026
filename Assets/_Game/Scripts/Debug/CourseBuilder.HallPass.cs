@@ -43,6 +43,8 @@ namespace ShiftJam
             Log.AppendLine($"{guards} Expressway guards on the {Layers.CarGuardName} layer ({Layers.CarGuard})");
 
             MarkerSigns(r3.transform);
+            HallLessonFixes(r3.transform);
+            HallDressing(r3.transform);
             var exit = r3.transform.Find("ExitPortal");
             if (exit != null) HallExitDoor(r3.transform, exit.gameObject); else Log.AppendLine("NO ExitPortal in R3: run LandHouse");
             var doors = r4.transform.Find("Hub_Doors");
@@ -166,6 +168,138 @@ namespace ShiftJam
             var list = so.FindProperty("doors"); list.arraySize = 1; list.GetArrayElementAtIndex(0).objectReferenceValue = door;
             so.ApplyModifiedPropertiesWithoutUndo();
             Log.AppendLine($"exit: toy doorway at {toPos} facing the shaft, door {(door != null ? "shut" : "MISSING")}, portal box {eb?.size}, switch at {newSwitch.transform.position} (kid, or a dart)");
+        }
+
+        /// <summary>D-0100, his second walk: the book stairs' top books no longer share the box's top face (they flickered),
+        /// the pistol on its stand and the ammo box glint (and the stand has its own light), and the soldier that "shoots
+        /// back" stands guard facing the way the toy comes, sees and fires further, and takes about eight darts.</summary>
+        static void HallLessonFixes(Transform r3)
+        {
+            var stairs = r3.Find("UpStairs"); var box = r3.Find("StepBox");
+            if (stairs != null && box != null) SinkTopBooks(stairs, box);
+
+            var glint = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/PuzzleGlint.mat");
+            var stand = r3.Find("PistolStand");
+            if (stand != null)
+            {
+                Glint(stand.gameObject, glint, new Color(1f, 0.82f, 0.35f, 1f), 1.2f, 2.2f);
+                var old = stand.Find("StandLight"); if (old != null) Object.DestroyImmediate(old.gameObject);
+                var b = B(stand.gameObject);
+                PointLight("StandLight", stand, new Vector3(b.center.x, b.max.y + 2.5f, b.center.z), 10f, 12f, new Color(1f, 0.86f, 0.62f));
+                Log.AppendLine($"pistol stand: glint and light over {b.center}");
+            }
+            var ammoBox = r3.Find("HallAmmo");
+            if (ammoBox != null) Glint(ammoBox.gameObject, glint, new Color(1f, 0.82f, 0.35f, 0.55f), 0.9f, 1.6f);
+
+            var soldier = r3.Find("HallSoldier");
+            if (soldier != null)
+            {
+                var ts = soldier.GetComponent<ToySoldier>();
+                Set(ts, "wanderRadius", 0f); Set(ts, "sightRange", 32f); Set(ts, "fireRange", 28f);
+                soldier.rotation = Quaternion.LookRotation(Vector3.left);   // facing the way the toy comes
+                var hp = soldier.GetComponent<Damageable>(); if (hp != null) Set(hp, "maxHealth", 120f);
+                Log.AppendLine("hall soldier: on guard facing west, sight 32, fire 28, health 120");
+            }
+        }
+
+        // ---- the hallway's dressing (D-0100): things lost behind the skirting, from the Playroom pack at its own scale (giant
+        // to the toy), clustered against the walls in the stretches between the lessons. x, the wall (-1 south, +1 north),
+        // and what lies there. Never on the walking line, a drop, a sign or a lesson's piece.
+        static readonly (float x, int wall, string[] props)[] HallClutter =
+        {
+            (-52f, -1, new[] { "Pencil_01", "Eraser_02", "Bottle_Cap_01", "Constructor_07" }),
+            (-38f, -1, new[] { "Chalk_02", "Puzzle_07", "Office_Button_01" }),
+            (28f, -1, new[] { "Car_02", "Bottle_Cap_02", "Keyboard_Key_12", "Match_01" }),
+            (36f, 1, new[] { "Marker_Red_01", "Marker_Red_01_Cap", "Chess_White_Pawn_01" }),
+            (46f, -1, new[] { "Paper_Plane_01", "Note_Paper_02", "Constructor_12" }),
+            (80f, 1, new[] { "Battery_03", "Clip_02", "Sharpener_01" }),
+            (98f, 1, new[] { "Color_Cube_01", "Chess_Black_Hoss_01", "Puzzle_03" }),
+            (120f, -1, new[] { "Wooden_Sphere_01", "Pencil_02", "PlayCard_01", "Constructor_03" }),
+            (150f, -1, new[] { "Matchbox_01", "Match_02", "Eraser_01", "Toy_Tree_01" }),
+            (214f, -1, new[] { "TapeRoll_03", "Chalk_04", "Bottle_Cap_01", "Battery_01" }),
+            (222f, 1, new[] { "Toy_Sign_01", "Keyboard_Key_74", "Car_01" }),
+            (238f, -1, new[] { "Wooden_Rocket_01", "Wooden_Cube_02", "Wooden_Cylinder_01", "Ruler_Big_02" }),   // the shaft's floor: a kid's size
+        };
+
+        static void HallDressing(Transform r3)
+        {
+            var old = r3.Find("Dressing"); if (old != null) Object.DestroyImmediate(old.gameObject);
+            var root = new GameObject("Dressing").transform; root.SetParent(r3, false);
+            Physics.SyncTransforms();
+            var rng = new System.Random(20);
+            float zs = LaneZ - HallW / 2f, zn = LaneZ + HallW / 2f;
+            int placed = 0, skipped = 0;
+            foreach (var (x, wall, props) in HallClutter)
+            {
+                bool shaft = x >= HallTall0;
+                float wallZ = shaft ? HallTallZ0 : (wall < 0 ? zs : zn);
+                float along = 0f;
+                foreach (var name in props)
+                {
+                    var go = Spawn(name, "Lost_" + name, root, new Vector3(x + along, 30f, wallZ), new Vector3(0f, (float)rng.NextDouble() * 360f, 0f), 1f);
+                    if (go.name.EndsWith("_MISSING")) { Object.DestroyImmediate(go); skipped++; continue; }
+                    foreach (var rb in go.GetComponentsInChildren<Rigidbody>()) rb.isKinematic = false;   // loose: darts knock them about
+                    bool ok = false; string why = "";
+                    for (int attempt = 0; attempt < 4 && !ok; attempt++)
+                    {
+                        var b = B(go);
+                        // against its wall: the near side 0.4 off the wall's face, the far side never past 4 into the hallway
+                        float inward = wall < 0 || shaft ? 1f : -1f;
+                        float near = inward > 0 ? b.min.z : b.max.z;
+                        go.transform.position += Vector3.forward * ((wallZ + inward * (0.4f + (float)rng.NextDouble() * 0.8f)) - near);
+                        b = B(go);
+                        if (!shaft && b.size.z > 3.5f)
+                        {
+                            // long things lie along the wall, a little askew
+                            go.transform.rotation = Quaternion.Euler(0f, 90f + ((float)rng.NextDouble() * 30f - 15f), 0f) * Quaternion.Euler(0f, go.transform.eulerAngles.y > 180f ? 180f : 0f, 0f);
+                            b = B(go); near = inward > 0 ? b.min.z : b.max.z;
+                            go.transform.position += Vector3.forward * ((wallZ + inward * 0.5f) - near);
+                            b = B(go);
+                        }
+                        if (!shaft && b.size.z > 4.5f) { why = $"too deep {b.size.z:F1}"; break; }   // too deep to keep off the walking line
+                        // the floor under it (the drops have none at 0)
+                        var hitDown = Physics.RaycastAll(new Vector3(b.center.x, shaft ? 100f : HallH - 1.5f, b.center.z), Vector3.down, shaft ? 140f : 40f, ~0, QueryTriggerInteraction.Ignore)
+                            .Where(h => !h.collider.transform.IsChildOf(go.transform)).OrderBy(h => h.distance).ToArray();
+                        if (hitDown.Length == 0 || hitDown[0].point.y < -0.5f || hitDown[0].point.y > 0.5f) { why = hitDown.Length == 0 ? "no floor" : $"floor {hitDown[0].collider.name} at {hitDown[0].point.y:F2}"; go.transform.position += Vector3.right * 2.5f; continue; }
+                        Rest(go, hitDown[0].point.y + 0.01f, null);
+                        b = B(go); Physics.SyncTransforms();
+                        var inWay = Physics.OverlapBox(b.center, b.extents * 0.95f, Quaternion.identity, ~0, QueryTriggerInteraction.Ignore)
+                            .Where(c => !c.transform.IsChildOf(go.transform) && Mathf.Max(c.bounds.size.x, c.bounds.size.z) < 30f).ToArray();
+                        if (inWay.Length == 0) ok = true;
+                        else { why = "in the way: " + string.Join(",", inWay.Select(c => c.name).Distinct().Take(3)); go.transform.position += Vector3.right * 2.5f; }
+                    }
+                    if (!ok) { if (skipped < 12) Log.AppendLine($"  skipped {name} at x {x}: {why}"); Object.DestroyImmediate(go); skipped++; continue; }
+                    placed++;
+                    along += Mathf.Max(1.5f, B(go).size.x) + 0.6f + (float)rng.NextDouble();
+                    Physics.SyncTransforms();
+                }
+            }
+            Log.AppendLine($"hallway dressing: {placed} lost things placed, {skipped} skipped (no floor, in the way, or too deep)");
+        }
+
+        /// <summary>Every book of <paramref name="stairs"/> whose top lies on <paramref name="box"/>'s top (inside it) goes
+        /// 3 cm down: two faces at one height flicker.</summary>
+        static void SinkTopBooks(Transform stairs, Transform box)
+        {
+            float top = B(box.gameObject).max.y; int n = 0;
+            foreach (Transform book in stairs)
+            {
+                var r = book.GetComponentInChildren<Renderer>(); if (r == null) continue;
+                if (Mathf.Abs(r.bounds.max.y - top) > 0.01f) continue;
+                book.position += Vector3.down * 0.03f; n++;
+            }
+            Log.AppendLine($"{stairs.name}: {n} books sunk under the box's top ({top:F3})");
+        }
+
+        static void Glint(GameObject on, Material material, Color color, float min, float max)
+        {
+            var h = on.GetComponent<Highlight>(); if (h == null) h = on.AddComponent<Highlight>();
+            var so = new SerializedObject(h);
+            so.FindProperty("material").objectReferenceValue = material;
+            so.FindProperty("color").colorValue = color;
+            so.FindProperty("minSize").floatValue = min;
+            so.FindProperty("maxSize").floatValue = max;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         static Vector3 Flat(Vector3 v) { v.y = 0f; return v.sqrMagnitude > 0.0001f ? v.normalized : Vector3.forward; }

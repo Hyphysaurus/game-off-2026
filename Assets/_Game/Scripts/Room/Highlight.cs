@@ -16,7 +16,7 @@ namespace ShiftJam
         [SerializeField, Tooltip("Glint size from the piece's size, clamped (world units).")] private float minSize = 5f, maxSize = 14f;
         [SerializeField, Tooltip("Bob height, as a share of the glint's size.")] private float bob = 0.15f;
 
-        private Switch _switch; private PushSwitch _push; private Carryable _carry; private Flashlight _light;
+        private Switch _switch; private PushSwitch _push; private Carryable _carry; private Flashlight _light; private WeaponPickup _weapon;
         private Transform _root; private Vector3 _rootLocal;
         private float _size, _fade = 1f;
         private bool _done;
@@ -27,12 +27,14 @@ namespace ShiftJam
             _push = GetComponentInChildren<PushSwitch>(true);
             _carry = GetComponentInChildren<Carryable>(true);
             _light = GetComponentInChildren<Flashlight>(true);
+            _weapon = GetComponentInChildren<WeaponPickup>(true);
             MakeGlint();
         }
 
         private bool Solved =>
             (_switch != null && _switch.Used) || (_push != null && _push.Pressed) ||
-            (_carry != null && _carry.IsCarried) || (_light != null && _light.IsOn);
+            (_carry != null && _carry.IsCarried) || (_light != null && _light.IsOn) ||
+            (_weapon != null && !_weapon.Available);   // a weapon on its stand: taken (D-0100)
 
         private void Update()
         {

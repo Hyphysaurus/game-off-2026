@@ -36,6 +36,28 @@ namespace ShiftJam
         private const string WreckSparks = PA + "Sparks/Explosion/SparkExplosionNormal.prefab";
         private const string WreckSmoke = PA + "Smoke/Explosion/SmokeExplosionDark.prefab";
 
+        public const string BlastA = "Assets/Polygon Arsenal/Prefabs/Misc/HeavyArtsyExplosion.prefab";
+        public const string BlastB = "Assets/Polygon Arsenal/Prefabs/Combat/Explosions/Standard/RocketExplosionStandard.prefab";
+
+        /// <summary>D-0100: only the wreck's explosion (the two blasts on trial, the boom), without re-baking the paints.</summary>
+        [MenuItem("Shift Jam/Workshop/Set Car Explosion")]
+        public static void SetExplosion()
+        {
+            var fx = AssetDatabase.LoadAssetAtPath<CarDamageFxSettings>(Asset);
+            if (fx == null) { Debug.LogError("No " + Asset + ": run Build Car Damage FX first"); return; }
+            Explosion(fx);
+            EditorUtility.SetDirty(fx);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"D-0100 CAR EXPLOSION: blasts {string.Join(", ", System.Array.ConvertAll(fx.wreckBlasts, b => b != null ? b.name : "none"))} (trial {fx.blastTrial}), boom {fx.boom.Length} clips");
+        }
+
+        private static void Explosion(CarDamageFxSettings fx)
+        {
+            if (fx.wreckBlasts == null || fx.wreckBlasts.Length == 0) fx.wreckBlasts = new[] { Load(BlastA), Load(BlastB) };
+            if (fx.boom == null || fx.boom.Length == 0)
+                fx.boom = new[] { AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/_Imports/CasePortman/Weapons/boom_1.ogg"), AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/_Imports/CasePortman/Weapons/boom_2.ogg") };
+        }
+
         [MenuItem("Shift Jam/Workshop/Build Car Damage FX")]
         public static void Build()
         {
@@ -57,6 +79,7 @@ namespace ShiftJam
             fx.crash = Clips("Impact_Clash_Light_");
             fx.bigCrash = Clips("Impact_Clash_Strong_");
             fx.wreck = Clips("Impact_Powerful_");
+            Explosion(fx);
             fx.fleckMaterial = MakeFleckMaterial();
             // The bake reads each car's texture through the graphics card: a run with -nographics reads blanks, and
             // every car would get its render's washed-out colour. Such a run keeps the paints it found.

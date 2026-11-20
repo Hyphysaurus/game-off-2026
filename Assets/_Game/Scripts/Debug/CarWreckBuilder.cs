@@ -24,7 +24,7 @@ namespace ShiftJam
         private const string Folder = Generated + "/CarWrecks";
         private const string InsideMat = "Assets/_Game/Data/WreckInside.mat";
         private const int Tries = 6;                 // seeds tried per body; the cut with the most pieces is kept
-        private const float SliverShare = 0.04f;     // a piece smaller than this share of the body's length is dropped
+        internal const float SliverShare = 0.04f;     // a piece smaller than this share of the body's length is dropped
         private const float AreaSlack = 0.05f;       // the pieces' outer faces must add up to the body's, this near
 
         [MenuItem("Shift Jam/Workshop/Build Car Wrecks")]
@@ -88,7 +88,7 @@ namespace ShiftJam
 
         /// <summary>Cuts <paramref name="body"/> into about <paramref name="cells"/> pieces: the seed giving the most
         /// pieces out of a few. <paramref name="areaShare"/>: the pieces' outer faces over the body's own (1 = nothing lost).</summary>
-        private static CarDamageFxSettings.Cut CutBody(Fraggo fraggo, Mesh body, int cells, out float areaShare)
+        internal static CarDamageFxSettings.Cut CutBody(Fraggo fraggo, Mesh body, int cells, out float areaShare)
         {
             areaShare = 0f;
             int subMeshes = body.subMeshCount;
@@ -208,7 +208,7 @@ namespace ShiftJam
 
         /// <summary>Fraggo Fracture Engine's mesh cutter (UnluckSoftware.FraggoMeshFracturerUtils, an editor class of a
         /// licensed tool kept out of git), found at run time so this project compiles without it.</summary>
-        private sealed class Fraggo
+        internal sealed class Fraggo
         {
             private const string Cutter = "UnluckSoftware.FraggoMeshFracturerUtils";
             private MethodInfo _cells, _shard, _valid;

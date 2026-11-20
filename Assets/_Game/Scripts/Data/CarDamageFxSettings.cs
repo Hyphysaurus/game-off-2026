@@ -49,6 +49,19 @@ namespace ShiftJam
         public GameObject wreckSparks;
         public GameObject wreckSmoke;
 
+        [Header("Wreck: the explosion (D-0100)")]
+        [Tooltip("The fireball. More than one with Blast Trial on: each wreck plays the next (A, B, A, B) and says which in the console; otherwise the first.")]
+        public GameObject[] wreckBlasts = new GameObject[0];
+        [Tooltip("Each wreck plays the next blast in turn, to compare them.")] public bool blastTrial = true;
+        [Tooltip("The fireball's size on a car 4 long, times the pack's.")] public float blastScale = 1f;
+        [Tooltip("The flash: its colour.")] public Color flashColor = new Color(1f, 0.62f, 0.25f);
+        [Tooltip("The flash: its brightness at the start.")] public float flashIntensity = 40f;
+        [Tooltip("The flash: its reach, car lengths.")] public float flashRange = 6f;
+        [Tooltip("The flash: seconds it takes to die away.")] public float flashSeconds = 0.6f;
+        [Tooltip("The shove on loose things (and a player on foot) nearby: speed added at the middle, units per second on a car 4 long.")] public float shove = 14f;
+        [Tooltip("The shove's reach, car lengths. It falls off to nothing at the edge.")] public float shoveRange = 2.5f;
+        [Tooltip("The boom, over the wreck's crash.")] public AudioClip[] boom = new AudioClip[0];
+
         [Header("Wreck in pieces (D-0060; the cuts are made by Shift Jam > Workshop > Build Car Wrecks)")]
         [Tooltip("Cells the builder asks Fraggo to cut each car body into (a cell that misses the body makes no piece). Change it, then run Build Car Wrecks again.")]
         [Range(3, 24)] public int cutCells = 9;

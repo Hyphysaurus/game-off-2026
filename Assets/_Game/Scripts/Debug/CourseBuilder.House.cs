@@ -88,6 +88,7 @@ namespace ShiftJam
                 var stairs = r3.Find("UpStairs"); float lead = HallStairs - B(stairs.gameObject).min.x;
                 stairs.position += Vector3.right * lead; box.transform.position += Vector3.right * lead;
             }
+            SinkTopBooks(r3.Find("UpStairs"), box.transform);   // no book top on the box's top (D-0100)
             float boxEnd = B(box).max.x;
             Log.AppendLine($"hallway: book stairs from {HallStairs} onto the {boxTop:F1} box, box ends at x {boxEnd:F1}{(boxEnd > 42f ? "  (OVER 42: the flat run before the sprint gap is short)" : "")}");
             TapeSign("Sign1_Sprint", r3, new Vector3(HallSprint0 - 12f, 3.2f, zn - 0.15f), Vector3.back, "Too far to jump?\nHold <b>Shift</b> to run, then jump", 7f, 3f);
@@ -130,6 +131,7 @@ namespace ShiftJam
                 Set(s.GetComponent<ToySoldier>(), "wanderRadius", 2.5f);   // it keeps to its end of the hallway
             }
             else Log.AppendLine("hallway: NO " + SoldierPiece);
+            HallLessonFixes(r3);   // D-0100: the pistol's glint and light, the soldier on guard (the stairs were done above)
             Checkpoint("CP_afterSoldier", r3, new Vector3(HallSoldier + 10f, 2f, z), new Vector3(4f, 4f, w));
 
             // ==== lesson 3: the shift charge. A core that only fills it, and F (which the tunnel is too low for)
@@ -160,6 +162,7 @@ namespace ShiftJam
             var portal = exit.AddComponent<Portal>(); Set(portal, "requiredSize", (int)ShiftSize.Toy);
             HallExitDoor(r3, exit);   // the bedroom's toy door and switch, again (D-0099)
             var hum = exit.AddComponent<AudioSource>(); hum.clip = Clip("Room_Ambience_Loop_v1"); hum.loop = true; hum.playOnAwake = true; hum.spatialBlend = 1f; hum.rolloffMode = AudioRolloffMode.Linear; hum.minDistance = 4f; hum.maxDistance = 90f; hum.volume = 0.7f;
+            HallDressing(r3);   // D-0100: lost things along the walls
             Log.AppendLine($"hallway built x {x0}..{x1} at z {z}; tall end x {HallTall0}..{x1}, z {tz0}..{zn}, {th} high; shelf top {HallShelfTop} from x {HallShelfX}; charge core at {charger.transform.position}, shelf core at {shelfCore.transform.position}; exit at the shelf's level");
             return start;
         }

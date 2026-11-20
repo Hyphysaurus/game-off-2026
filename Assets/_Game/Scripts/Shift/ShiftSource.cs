@@ -153,6 +153,7 @@ namespace ShiftJam
                 var battery = shifter.GetComponent<ShiftCharge>();
                 if (battery == null || battery.Charges >= battery.Max) { GameEvents.RaiseUseRefused(who, ChargeFullPrompt); return; }
                 battery.Refill();
+                UiAudio.Play(UiAudio.Kind.Toast);   // the charge filled: a charge-only core makes no shift sound of its own (D-0100)
                 onUsed?.Invoke();
                 Used?.Invoke();
                 _used++;

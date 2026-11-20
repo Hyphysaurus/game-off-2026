@@ -71,6 +71,7 @@ namespace ShiftJam
             Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
             Time.timeScale = 0f;
             Refresh();
+            UiAudio.Hush();
             EventSystem.current?.SetSelectedGameObject((_continue.interactable ? _continue : _slots[SaveGame.Slot]).gameObject);
         }
 
@@ -90,7 +91,7 @@ namespace ShiftJam
         {
             if (_options == null) _options = OptionsPanel.Create(transform, 51);
             _root.SetActive(false);
-            _options.Open(() => { _root.SetActive(true); EventSystem.current?.SetSelectedGameObject(_optionsButton.gameObject); });
+            _options.Open(() => { _root.SetActive(true); UiAudio.Hush(); EventSystem.current?.SetSelectedGameObject(_optionsButton.gameObject); });
         }
 
         private void Continue() { if (_respawn.LoadSlot(SaveGame.Slot)) Close(); }
@@ -175,6 +176,7 @@ namespace ShiftJam
             var rt = Rect(label, _root.transform, new Vector2(_menuX, y), new Vector2(_menuX, y), new Vector2(dx, 0f), new Vector2(width, size + 22f));
             var img = rt.gameObject.AddComponent<Image>(); img.color = new Color(1f, 1f, 1f, 0.08f);
             var b = rt.gameObject.AddComponent<Button>(); b.targetGraphic = img; b.onClick.AddListener(onClick);
+            UiSound.On(b, label == "Continue" || label == "New Game" ? UiAudio.Kind.Confirm : label == "Slot" ? UiAudio.Kind.Select : UiAudio.Kind.Click);   // D-0100
             var cb = b.colors; cb.highlightedColor = new Color(1f, 1f, 1f, 2.5f); cb.selectedColor = new Color(1f, 1f, 1f, 2.5f); cb.pressedColor = new Color(0.6f, 0.9f, 1f, 3f); b.colors = cb;
             var t = Text("Label", rt, label, size, new Vector2(0.5f, 0.5f), new Vector2(width - 20f, size + 16f)); t.raycastTarget = false;
             return b;

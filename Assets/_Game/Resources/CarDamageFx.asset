@@ -38,6 +38,20 @@ MonoBehaviour:
   - Turbine
   wreckSparks: {fileID: 12146140294241523, guid: 83944fc6f233ce44cbd4b5996505404b, type: 3}
   wreckSmoke: {fileID: 6414445561076637631, guid: 0e6ac7cf58b220f4ab5a63bb2248853d, type: 3}
+  wreckBlasts:
+  - {fileID: 4815448192099607044, guid: 402f358838e179041b967637929ffd82, type: 3}
+  - {fileID: 6143467867895953418, guid: be01741081bb2c944aad51a527b3e120, type: 3}
+  blastTrial: 1
+  blastScale: 1
+  flashColor: {r: 1, g: 0.62, b: 0.25, a: 1}
+  flashIntensity: 40
+  flashRange: 6
+  flashSeconds: 0.6
+  shove: 14
+  shoveRange: 2.5
+  boom:
+  - {fileID: 8300000, guid: f7cd4cc41c36440482476b8fee2a61a2, type: 3}
+  - {fileID: 8300000, guid: 8166a5ad48ec43c29c4e0a8b9158a790, type: 3}
   cutCells: 9
   hulkPieces: 2
   hulkTint: {r: 0.22, g: 0.2, b: 0.19, a: 1}

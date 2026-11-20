@@ -2,6 +2,22 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 20 Nov 2026 12:4x — BREAKABLE PROPS (D-0101): LANDED IN HIS EDITOR, NOT PLAYED; NOT COMMITTED
+- 64 props break into Fraggo pieces that dissolve away; each comes back (dissolving in) after 20 s.
+- HIS PLAYTEST: shoot blocks, cups and cubes in the playroom, the cover box in the hallway; judge how many darts, the
+  pieces' fling, the dissolve's edge, the 20 s.
+- Note: the pieces are made from the licensed pack and stay out of git; a fresh clone needs the menu run once.
+
+## 20 Nov 2026 12:3x — UI AUDIO, SOLDIER ANSWERS A SHOT, HALLWAY DRESSED, BOOK FLICKER FIXED, PISTOL GLINT, CAR EXPLOSION ON TRIAL (D-0100): LANDED IN HIS EDITOR, NOT PLAYED; NOT COMMITTED
+- Every menu clicks, moves and backs out with the Playroom pack's UI sounds; toasts and laps chime.
+- The hallway soldier faces the toy, sees 32, shoots 28, takes 8 darts; any soldier shot turns and answers.
+- 34 lost things along the hallway walls; the book stairs no longer flicker; the pistol glints and has a light.
+- Cars explode: fireball (A/B trial: wreck two cars, the console says which), flash, shove, boom.
+- HIS PLAYTEST: menus by mouse and by pad; the hallway soldier; the dressing (density, anything in the way); blow up two
+  cars and pick A or B.
+- NEXT (agreed): Fraggo breakables + Dissolve (broken things come back after a while, like the soldiers); Curved World
+  beats (the window's little planet, the shift's twist: his pick); then toy verbs or the hookshot.
+
 ## 20 Nov 2026 11:4x — TITLE ART BIGGER + ON THE END CARD, HALLWAY SIGNS ON TAPE, THE TOY DOOR OUT, NO INVISIBLE WALLS ON SHOTS (D-0099): LANDED IN HIS EDITOR, NOT PLAYED; NOT COMMITTED
 - Compiled outside Unity first, then landed between his plays; the hallway pass ran in his editor and saved Greybox.
 - **Title:** his drawing about 23 % larger on the menu, pops in and breathes; every window shape uses it; on the end card

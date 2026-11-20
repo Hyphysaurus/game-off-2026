@@ -95,6 +95,8 @@ namespace ShiftJam
             AudioListener.pause = true;
             MenuKit.EnsureEventSystem();
             _root.SetActive(true);
+            UiAudio.Play(UiAudio.Kind.Open);
+            UiAudio.Hush();
             EventSystem.current?.SetSelectedGameObject(_resume.gameObject);
         }
 
@@ -102,6 +104,7 @@ namespace ShiftJam
         {
             _root.SetActive(false);
             IsOpen = false;
+            UiAudio.Play(UiAudio.Kind.Back);
             Time.timeScale = _timeScale;
             AudioListener.pause = false;
             if (_input != null && _inputWasOn) _input.enabled = true;
@@ -152,8 +155,9 @@ namespace ShiftJam
 
             float y = 0.55f;
             _resume = MenuKit.Button(_root.transform, "Resume", new Vector2(0.5f, y), 0f, 380f, 40f, Resume); y -= 0.075f;
+            UiSound.On(_resume).Press = UiAudio.Kind.None;   // Resume plays Back itself (Esc too)
             _optionsButton = MenuKit.Button(_root.transform, "Options", new Vector2(0.5f, y), 0f, 380f, 40f, OpenOptions); y -= 0.075f;
-            MenuKit.Button(_root.transform, "Back to Title", new Vector2(0.5f, y), 0f, 380f, 40f, BackToTitle); y -= 0.075f;
+            UiSound.On(MenuKit.Button(_root.transform, "Back to Title", new Vector2(0.5f, y), 0f, 380f, 40f, BackToTitle)).Press = UiAudio.Kind.Confirm; y -= 0.075f;
             MenuKit.Button(_root.transform, "Quit", new Vector2(0.5f, y), 0f, 380f, 40f, Quit);
             MenuKit.Text("Hint", _root.transform, "Esc / Start to resume · progress keeps from the last save point", 22, new Vector2(0.5f, 0.05f), new Vector2(1000, 40)).alpha = 0.6f;
             _root.SetActive(false);

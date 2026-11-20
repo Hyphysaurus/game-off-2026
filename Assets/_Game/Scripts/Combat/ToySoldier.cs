@@ -44,6 +44,8 @@ namespace ShiftJam
         [SerializeField, Tooltip("Chest height, units at scale 1.")] private float chestHeight = 1.0f;
 
         private const float PerceiveEvery = 0.15f;
+        private const float AlertSeconds = 6f;   // a hit keeps it looking this long past its usual sight
+        private float _alertUntil = -100f, _alertReach;
         private readonly RaycastHit[] _hits = new RaycastHit[16];
         private CharacterController _cc;
         private Damageable _health;
@@ -68,8 +70,26 @@ namespace ShiftJam
             _audio = gameObject.AddComponent<AudioSource>(); _audio.playOnAwake = false; _audio.spatialBlend = 1f;
         }
 
-        private void OnEnable() => _health.Died += OnDied;
-        private void OnDisable() => _health.Died -= OnDied;
+        private void OnEnable() { _health.Died += OnDied; _health.Damaged += OnHit; }
+        private void OnDisable() { _health.Died -= OnDied; _health.Damaged -= OnHit; }
+
+        /// <summary>Shot (D-0100): it engages at once, turns on whoever did it and sees all round, and for a while it sees and
+        /// fires as far as the shot came from. Before, a toy shooting from past its sight knocked it down unnoticed.</summary>
+        private void OnHit(DamageInfo hit)
+        {
+            if (_state == State.Down || hit.Source == null || hit.Source.IsChildOf(transform)) return;
+            if (hit.Source.GetComponentInParent<ToySoldier>() != null) return;   // a friend's stray dart is not a call to arms
+            float reach = Vector3.Distance(hit.Source.position, transform.position) + 2f * Scale;
+            _alertReach = Alerted ? Mathf.Max(_alertReach, reach) : reach;
+            _alertUntil = Time.time + AlertSeconds;
+            _state = State.Engage;
+            _sees = true; _lastSeen = Time.time; _seenFor = reactionTime;
+            _nextLook = Time.time + PerceiveEvery;
+        }
+
+        private bool Alerted => Time.time < _alertUntil;
+        private float SightReach => Alerted ? Mathf.Max(sightRange * Scale, _alertReach) : sightRange * Scale;
+        private float FireReach => Alerted ? Mathf.Max(fireRange * Scale, _alertReach) : fireRange * Scale;
 
         public void ResetState()
         {
@@ -80,6 +100,7 @@ namespace ShiftJam
             if (visual != null) visual.localRotation = _visualRest;
             _state = State.Patrol; _routeIndex = 0; _routeStep = 1; _wanderTo = _post;
             _vertical = 0f; _seenFor = 0f; _lastSeen = -100f; _sees = false; _waitUntil = 0f;
+            _alertUntil = -100f; _alertReach = 0f;
         }
 
         /// <summary>Build Mode placed, moved, copied or re-posed us: stand guard here from now on (F9 and getting up after a
@@ -186,7 +207,7 @@ namespace ShiftJam
             Vector3 from = transform.position + Vector3.up * (chestHeight * Scale);
             Vector3 to = aim - from;
             float distance = to.magnitude;
-            if (distance > sightRange * Scale) return false;
+            if (distance > SightReach) return false;
             if (_state != State.Engage && Vector3.Angle(transform.forward, Vector3.ProjectOnPlane(to, Vector3.up)) > viewAngle) return false;
             if (distance < 1e-3f) return true;
             int n = Physics.RaycastNonAlloc(from, to / distance, _hits, distance, Layers.Seen(sightMask), QueryTriggerInteraction.Ignore);
@@ -204,7 +225,7 @@ namespace ShiftJam
             if (!_sees || projectile == null || Time.time < _nextFire) return;
             Vector3 from = Eye;
             Vector3 to = aim - from;
-            if (to.magnitude > fireRange * Scale) return;
+            if (to.magnitude > FireReach) return;
             // Facing is judged from the body, not the muzzle: a rifle tip out to the side and in front would read a close
             // target as off to one side and never fire.
             Vector3 flat = Vector3.ProjectOnPlane(aim - transform.position, Vector3.up);

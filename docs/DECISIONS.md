@@ -1941,3 +1941,43 @@
     ToyCarBall) sit under things that show, so they were left.
   - **Landed by** `Shift Jam / House / Land Hallway Pass (D-0099)` (`CourseBuilder.LandHallwayPass`, idempotent); the
     full builders (LandHouse, the Expressway) do the same on a rebuild.
+- **D-0100 (20 Nov, 12:3x) His third walk: the UI heard, the soldier answers a shot, the hallway dressed, the stairs stop
+  flickering, the pistol seen, the cars explode.**
+  - **UI audio:** `UiSounds` (Resources/UiSounds, filled from the Playroom pack's UI set by Shift Jam / Audio / Build UI
+    Sounds), `UiAudio` (one 2D source that plays through the pause and time 0) and `UiSound` on every menu control: a
+    move (mouse onto it or arrows/stick, at most one per 0.05 s, hushed for the selection a menu sets on opening), its
+    press (Click; Confirm for New Game / Continue / Back to Title; Select for a save slot), a soft Error when pressed
+    greyed out. The pause opens with Select and closes with Back; Options closes with Back. Toasts: a HUD hint line, a
+    charge-only core filling the charge, a lap (Notification); a best lap and a race finish (Win). The E prompt stays
+    silent (it shows all the time). One event heard twice in 0.08 s plays once.
+  - **Toy soldiers answer a shot:** a hit engages it at once (turns, sees all round) and for 6 s it sees and fires as
+    far as the shot came from. Before, a toy shooting from past its 18 sight (the pistol reaches 120) downed it unseen.
+    The hallway soldier now stands guard facing the way the toy comes (wander 0), sight 32, fire 28, health 120 (8
+    darts).
+  - **The book stairs' flicker:** the last two books' tops lay exactly on the step box's top, inside it (two faces at
+    one height). Books whose top meets the box's go 3 cm down (`SinkTopBooks`), in the builder too.
+  - **The pistol on its stand:** a glint (Highlight, now also solved by its WeaponPickup being taken) and a warm light
+    over it; a softer glint on the ammo box.
+  - **Dressing:** 34 things lost behind the skirting (pencils, caps, Lego, chess pieces, a matchbox, a paper plane, a toy
+    car; a rocket and blocks on the shaft's floor) from the Playroom pack at its own scale, against the walls between the
+    lessons, each checked for floor under it and nothing in its space, long ones laid along the wall; loose (darts knock
+    them about). `HallDressing`, data in `HallClutter`.
+  - **Car explosion:** the wreck adds a fireball (on trial: each wreck alternates A = Polygon Arsenal HeavyArtsyExplosion,
+    B = RocketExplosionStandard, and logs "CAR BLAST A/B"), a flash that dies away (`LightFade`), a shove on loose things
+    and a player on foot within 2.5 car lengths, and Case Portman's boom. All in CarDamageFxSettings (Shift Jam /
+    Workshop / Set Car Explosion fills it without re-baking the paints). His pick ends the trial.
+  - Not taken: the Toon Effects Maker bomb (a throwable VFX Graph bomb, not a burst) and nuke (16 s, one material on a
+    shader URP cannot draw).
+- **D-0101 (20 Nov, 12:4x) Breakable props: Fraggo pieces that dissolve, and the prop comes back.**
+  - 64 props in the course (wooden blocks, cylinders, pyramids, cones, half spheres, colour and alphabet cubes, cups,
+    paper glasses, cans, matchboxes, the hallway's cardboard cover box, the dressing's blocks) get a `Breakable` and a
+    Damageable sized to them: under 3 across 15 health (one dart), under 6 30, else 60. Nothing walked on is on the list.
+  - Each distinct mesh (16) is cut once by Fraggo (CarWreckBuilder's cutter, now `internal`) into 4 to 9 pieces, kept in
+    `_Imports/Generated/Breakables` (out of git, like the car wrecks) and listed in `Resources/Breakables`
+    (BreakSettings: burst, spin, piece life 4 s, dissolve 0.8 s, at most 120 pieces, back after 20 s, the break sounds,
+    the cut faces' raw-wood material `Data/BreakInside`).
+  - Broken: the prop hides; its pieces fly from the hit (with the prop's own speed), lie about, then dissolve (the
+    ShaderGraph_Dissolve URP material, copied per piece with the piece's own texture and colour, a warm glowing edge).
+    After 20 s it dissolves back in at its starting place, once the player is not standing there, full of health.
+  - Menu: Shift Jam / Breakables / Build Breakables (idempotent; it saves Greybox).
+

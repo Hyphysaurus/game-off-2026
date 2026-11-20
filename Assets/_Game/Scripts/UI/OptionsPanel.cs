@@ -41,12 +41,15 @@ namespace ShiftJam
             _openedFrame = Time.frameCount;   // the press that opened it must not also close it
             Refresh();
             _root.SetActive(true);
+            UiAudio.Hush();
             EventSystem.current?.SetSelectedGameObject(_first.gameObject);
         }
 
         public void Close()
         {
             if (!IsOpen) return;
+            UiAudio.Play(UiAudio.Kind.Back);
+            UiAudio.Hush();   // the menu under it selects its Options button again
             _root.SetActive(false);
             var back = _onClose; _onClose = null;
             back?.Invoke();
@@ -101,7 +104,7 @@ namespace ShiftJam
                 Toggle("Body", y, out _body, () => { PlayerOptions.Body = (PlayerOptions.Body + 1) % PlayerBody.Count; Refresh(); }); y -= 0.09f;
             }
             y -= 0.03f;
-            MenuKit.Button(_root.transform, "Back", new Vector2(0.5f, y), 0f, 380f, 40f, Close);
+            UiSound.On(MenuKit.Button(_root.transform, "Back", new Vector2(0.5f, y), 0f, 380f, 40f, Close)).Press = UiAudio.Kind.None;   // Close plays Back itself (Esc too)
             MenuKit.Text("Hint", _root.transform, "Esc / B to go back · changes save as you make them", 22, new Vector2(0.5f, 0.05f), new Vector2(900, 40)).alpha = 0.6f;
             _root.SetActive(false);
         }
@@ -140,6 +143,7 @@ namespace ShiftJam
             var rt = Rect(label.Length > 0 ? label : "Toggle", parent, anchor, anchor, new Vector2(dx, 0f), new Vector2(width, size + 22f));
             var img = rt.gameObject.AddComponent<Image>(); img.color = new Color(1f, 1f, 1f, 0.08f);
             var b = rt.gameObject.AddComponent<Button>(); b.targetGraphic = img; b.onClick.AddListener(onClick);
+            UiSound.On(b);   // a move onto it, its press, a no when greyed out (D-0100)
             var cb = b.colors; cb.highlightedColor = new Color(1f, 1f, 1f, 2.5f); cb.selectedColor = new Color(1f, 1f, 1f, 2.5f); cb.pressedColor = new Color(0.6f, 0.9f, 1f, 3f); b.colors = cb;
             var t = Text("Label", rt, label, size, new Vector2(0.5f, 0.5f), new Vector2(width - 20f, size + 16f)); t.raycastTarget = false;
             return b;

@@ -449,6 +449,7 @@ namespace ShiftJam
             int shown = -1;
             SetTime(_toastValue, RaceState.LastLap, ref shown);
             _toastUntil = Time.unscaledTime + lapToastSeconds;
+            UiAudio.Play(best ? UiAudio.Kind.Win : UiAudio.Kind.Toast);   // D-0100
         }
 
         private void OnRaceFinished()
@@ -456,6 +457,7 @@ namespace ShiftJam
             float now = Time.unscaledTime;
             _raceFinished = true;
             _toastUntil = 0f;
+            UiAudio.Play(UiAudio.Kind.Win);
             _panelUntil = now + finishPanelSeconds;
             // a race with a field shows its results card instead (RaceHud)
             if (RaceField.Now == RaceField.Stage.None || RaceField.Racers.Count < 2) { _bannerAt = now; _bannerUntil = now + finishBannerSeconds; }

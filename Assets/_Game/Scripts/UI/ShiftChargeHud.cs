@@ -56,7 +56,7 @@ namespace ShiftJam
         }
 
         public void ShowNotice(string text) { TextFx.Set(_noticeFx, _notice, TextFx.Shaken(text)); _noticeUntil = Time.unscaledTime + NoticeSeconds; }   // shakes in (D-0098)
-        public void ShowHint(string text) { _hint.text = text; _hintUntil = Time.unscaledTime + HintSeconds; }
+        public void ShowHint(string text) { _hint.text = text; _hintUntil = Time.unscaledTime + HintSeconds; UiAudio.Play(UiAudio.Kind.Toast); }
 
         private void Update()
         {

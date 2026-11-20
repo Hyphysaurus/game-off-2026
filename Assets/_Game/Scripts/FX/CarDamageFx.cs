@@ -175,9 +175,53 @@ namespace ShiftJam
             Flecks(centre, Vector3.up, s.flecks.z * 2, 1.6f);
             Sound(s.bigCrash, 1f, 0.85f);
             Sound(s.wreck, 1f, 0.9f);
+            Explode(s, centre, k);
             for (int i = 0; i < s.wreckParts; i++) KnockPart(centre, Vector3.up, true);
             _wreck.Break(_car, s, _paint, k, centre);   // after the parts: what is left on the body goes with it
         }
+
+        private static int _blastTurn;
+
+        /// <summary>The wreck goes up (D-0100): a fireball, a flash that dies away, a shove on loose things and a player on
+        /// foot nearby, the boom. Sized by <paramref name="k"/> (this car against one 4 long).</summary>
+        private void Explode(CarDamageFxSettings s, Vector3 centre, float k)
+        {
+            if (s.wreckBlasts != null && s.wreckBlasts.Length > 0)
+            {
+                int pick = s.blastTrial ? (_blastTurn++ % s.wreckBlasts.Length) : 0;
+                var blast = s.wreckBlasts[pick];
+                if (blast != null)
+                {
+                    Burst(blast, centre, Vector3.up, k * s.blastScale);
+                    if (s.blastTrial && s.wreckBlasts.Length > 1) Debug.Log($"CAR BLAST {(char)('A' + pick)}: {blast.name}");
+                }
+            }
+            if (s.flashIntensity > 0f && s.flashRange > 0f) LightFade.Flash(centre + Vector3.up * (0.3f * _length * k), s.flashColor, s.flashIntensity, s.flashRange * PackCarLength * k, s.flashSeconds);
+            if (s.boom != null && s.boom.Length > 0) Sound(s.boom, 1f, 1f);
+            if (s.shove <= 0f || s.shoveRange <= 0f) return;
+            float reach = s.shoveRange * PackCarLength * k;
+            var pushed = new HashSet<Rigidbody>();
+            foreach (var c in Physics.OverlapSphere(centre, reach, ~0, QueryTriggerInteraction.Ignore))
+            {
+                var rb = c.attachedRigidbody;
+                if (rb != null && !rb.isKinematic && rb.transform != transform && !rb.transform.IsChildOf(transform) && pushed.Add(rb))
+                {
+                    Vector3 away = rb.worldCenterOfMass - centre; float d = away.magnitude;
+                    float share = 1f - Mathf.Clamp01(d / reach);
+                    rb.AddForce(((d > 1e-3f ? away / d : Vector3.up) + Vector3.up * 0.6f).normalized * (s.shove * k * share), ForceMode.VelocityChange);
+                }
+                var motor = c.GetComponentInParent<PlayerMotor>();
+                if (motor != null && motor.isActiveAndEnabled && !_shoved.Contains(motor))   // on foot only: a seated driver's motor is off
+                {
+                    _shoved.Add(motor);
+                    Vector3 away = motor.transform.position - centre; away.y = 0f; float d = away.magnitude;
+                    float share = 1f - Mathf.Clamp01(d / reach);
+                    motor.Knock(((d > 1e-3f ? away / d : Vector3.forward) + Vector3.up * 0.5f).normalized * (s.shove * k * share * 0.6f));
+                }
+            }
+            _shoved.Clear();
+        }
+        private static readonly List<PlayerMotor> _shoved = new List<PlayerMotor>();
 
         private void OnRestored()
         {

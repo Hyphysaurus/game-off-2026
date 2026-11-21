@@ -206,6 +206,20 @@ namespace ShiftJam
         /// <summary>The player this camera follows.</summary>
         public Transform Target => target;
 
+        /// <summary>Follow another player (D-0111: the online player is spawned after the scene's camera woke): takes its
+        /// input and finds its holder, stance, capsule, glider and shifter again, as Awake and Start did.</summary>
+        public void Bind(Transform newTarget, PlayerInput newInput)
+        {
+            target = newTarget; input = newInput;
+            shifter = target != null ? target.GetComponent<Shifter>() : null;
+            _holder = target != null ? target.GetComponent<WeaponHolder>() : null;
+            _stance = target != null ? target.GetComponent<PlayerStance>() : null;
+            _capsule = target != null ? target.GetComponent<CharacterController>() : null;
+            _glider = target != null ? target.GetComponent<Glider>() : null;
+            if (target != null) _yaw = target.eulerAngles.y;
+            _viewReady = false; _aimReady = false;
+        }
+
         private void SetCursorLocked(bool locked)
         {
             _cursorLocked = locked;

@@ -82,6 +82,9 @@ namespace ShiftJam
         public float SprintSpeed => settings.sprintSpeed;
         /// <summary>The camera the stick is read against.</summary>
         public Transform View => cameraTransform;
+
+        /// <summary>Steer by this camera from now on (D-0111: the online player meets its camera after Awake).</summary>
+        public void UseCamera(Transform view) => cameraTransform = view;
         /// <summary>A line pulls the body (D-0109, the Dart Line: reeled up to a target, or riding a zip line): its whole
         /// velocity is this, world units a second, in place of the stick, gravity and jumping. Null = not pulled. Its
         /// landings are not falls. End it with EndPull, which sets the velocity it lets go with.</summary>

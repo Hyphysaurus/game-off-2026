@@ -91,8 +91,7 @@ namespace ShiftJam
             if (_camera != null) _camera.enabled = false;   // its OnDisable frees the mouse
             Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
             _timeScale = Time.timeScale;
-            Time.timeScale = 0f;
-            AudioListener.pause = true;
+            if (!NetSession.Online) { Time.timeScale = 0f; AudioListener.pause = true; }   // online the game goes on for the others (D-0111)
             MenuKit.EnsureEventSystem();
             _root.SetActive(true);
             UiAudio.Play(UiAudio.Kind.Open);
@@ -125,6 +124,7 @@ namespace ShiftJam
         /// <summary>The course reloads to its title; the Workshop has none, so it goes to the course's.</summary>
         private void BackToTitle()
         {
+            if (NetSession.Online) { IsOpen = false; _root.SetActive(false); NetSession.Leave(); return; }   // leave the party, then the title (D-0111)
             Time.timeScale = 1f;
             AudioListener.pause = false;
             GameMode.ResetQuietly();

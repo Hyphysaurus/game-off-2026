@@ -2,6 +2,18 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 13:1x — ONLINE PARTY PLAY FIRST PASS (D-0111): HOST / JOIN BY CODE + THE STADIUM HUB, BUILT IN HIS EDITOR, NOT PLAYED
+- Friends on their own PCs with keyboard and mouse: online, via Unity Relay. Netcode 2.13.3 + Multiplayer Services
+  2.4.1 installed (`e6545d0`). Title: Host (code copied) / Join (reads a copied code). Everyone lands at one spawn
+  in the Stadium hub (a first cut: Battle Stadium's ring on a round field).
+- HIS PLAYTEST (two players on this PC): Window > Multiplayer > Multiplayer Play Mode, tick Player 2, Play. In the
+  main editor: Host (the code is copied; a party line shows at the bottom). In Player 2's window: Join. Both should
+  stand in the Stadium; walk, jump, shift: does the other see it? Esc > back to title leaves.
+  If Host fails with a Relay / sign-in error: the Unity dashboard may need Relay switched on for this project.
+- Order agreed: shooting online -> the Stadium built properly (his "optimize to the assets") -> TDM -> FIRST FRIEND
+  BUILD -> vehicles (+ gunner seat) -> CTF -> the hub / Raceway / Colour Corner online.
+- `Assets/_Recovery/0.unity` (Unity made it on open) is byte-for-byte Greybox: safe to delete (his call).
+
 ## 21 Nov 2026 11:5x — PARTY PLAY FIRST PASS (D-0110) + D-0109 SCRIPTS LANDED + GLIDER ERROR FIXED: COMPILED OUTSIDE, NOT RUN (he was in WoW; Unity closed)
 - Committed the 52 waiting files (`7b2ae27`, D-0102..D-0108). D-0109's scripts copied in from the stage (`129dbde`):
   🔴 still owed in the editor: Shift Jam / House / Land Downstairs, then Land Dart Line (they place the anchors and

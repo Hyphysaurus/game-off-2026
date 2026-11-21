@@ -2141,3 +2141,29 @@
   - Not yet (next passes): HUDs (WeaponHud, Hotbar, prompts) are seat 1's, full screen; damage numbers and
     billboards face seat 1's camera; DrivingFeel is one driver; no leave / pad lost; the Foam Fight arena, score and
     round card; a player copied mid-game copies what seat 1 holds.
+- **D-0111 (21 Nov) Online party play, first pass: Host / Join by code, the Stadium hub. Built in his editor, NOT
+  PLAYED.**
+  - His: friends each on their own Windows PC, all on Discord, keyboard and mouse: so ONLINE, not couch (D-0110's
+    split screen stays for a couch mode later). His picks: a bespoke arena from Battle Stadium pieces as the online
+    hub, everyone at ONE spawn ("the multiplayer zone becomes the hub"), TDM first then CTF, vehicles with a second
+    (gunner) seat after the first friend build, toy scale with grow cores. "Optimize based on the assets and the
+    restrictions": the layout is mine to shape.
+  - Packages: Netcode for GameObjects 2.13.3 + Multiplayer Services 2.4.1 (Relay; the project's cloud id was already
+    set). Burst went 1.8.28 -> 1.8.29: its "Burst Package Update Detected" dialog was pressed OK by window message.
+  - `NetSession` (made in code, kept across scenes): Host signs in anonymously, makes a Relay session (4 players),
+    copies the code to the clipboard, and takes everyone to `Stadium` through NGO's scene manager; Join reads the
+    code from the clipboard (paste from Discord, press Join). Leave = the pause menu's back-to-title. The code and
+    player count sit top left in the Stadium. The NetworkManager is made in code too (player prefab from
+    Resources/Net/NetPlayer). In the editor each process signs in under its own profile (Multiplayer Play Mode).
+  - `NetPlayer` on Resources/Net/NetPlayer (built from Greybox's Player by Shift Jam / Party / Build Net Player +
+    Stadium; WakeUp and ShiftWarp left off): owner-driven NetworkTransform (scale too: the shift) and
+    NetworkAnimator. The owner's copy is named "Player" (HUDs and the pause menu find it), binds the scene camera
+    (`ShoulderCamera.Bind`, `PlayerMotor.UseCamera`) and goes to the spawn. Everyone else's copy is a puppet: every
+    script but the network ones, the Animator, PlayerBody and PlayerAnimation is switched off before Start.
+  - `NetSpawnPoint`: one spawn, players a quarter-turn round it each (his "same spawn instance").
+  - Stadium, first cut: Battle Stadium's `battle_stadium_001` is a ring of stands with an OPEN middle (probed): it is
+    scaled to 60 toy heights across on a round field of our own. Still: docs/stills/stadium_hub_first_cut.png.
+  - Title: Host and Join share the sandboxes' row; the hint line shows the party's news. Pause online: time and sound
+    do not stop.
+  - Not yet: shooting, held weapons and the glider are not seen by others; no HUD per player; no modes; the hub
+    is bare (the Stadium dressing pass); no build.

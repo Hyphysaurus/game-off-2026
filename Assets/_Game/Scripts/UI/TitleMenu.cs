@@ -84,7 +84,19 @@ namespace ShiftJam
             if (_camera != null) _camera.enabled = true;   // its OnEnable locks the cursor again
         }
 
-        private void OnDestroy() { IsOpen = false; }   // there is only ever one title
+        private void OnDestroy() { IsOpen = false; NetSession.StatusChanged -= OnPartyStatus; }   // there is only ever one title
+
+        private TMP_Text _hint;
+        private const string HintLine = "mouse, arrows or stick · Enter / A to choose · Join reads a party code you copied";
+
+        /// <summary>The hint line shows what the party is doing (starting, the code, what went wrong) while there is news.</summary>
+        private void OnPartyStatus()
+        {
+            if (_hint == null) return;
+            bool news = !string.IsNullOrEmpty(NetSession.Status);
+            _hint.text = news ? NetSession.Status : HintLine;
+            _hint.alpha = news ? 1f : 0.6f;
+        }
 
         /// <summary>Options over the title (D-0044): the title hides while it is up and comes back with Options selected.</summary>
         private void OpenOptions()
@@ -158,14 +170,18 @@ namespace ShiftJam
             MenuButton("New Game", y, NewGame); y -= 0.08f;
             for (int i = 0; i < SaveGame.Slots; i++) { int k = i; _slots[i] = MenuButton("Slot", y, () => PickSlot(k), 560f, 30); y -= 0.055f; }
             y -= 0.02f;
-            // The three sandboxes share a row (a row more would run into the hint line), in smaller letters to fit.
-            MenuButton("Workshop", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); }, 120f, 26f, -130f);
-            MenuButton("Raceway", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(RacewayScene); }, 120f, 26f, 0f);
-            MenuButton("Colours", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(ColourCornerScene); }, 120f, 26f, 130f); y -= 0.062f;
+            // The three sandboxes and online play share a row (a row more would run into the hint line), in smaller
+            // letters to fit. Host makes a party and copies its code; Join reads a code from the clipboard (D-0111).
+            MenuButton("Workshop", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); }, 118f, 26f, -252f);
+            MenuButton("Raceway", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(RacewayScene); }, 118f, 26f, -126f);
+            MenuButton("Colours", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(ColourCornerScene); }, 118f, 26f, 0f);
+            MenuButton("Host", y, () => NetSession.Host(), 118f, 26f, 126f);
+            MenuButton("Join", y, () => NetSession.Join(), 118f, 26f, 252f); y -= 0.062f;
             // Options and Quit share the last row (a full row more would run into the hint line).
             _optionsButton = MenuButton("Options", y, OpenOptions, 185f, 40f, -97.5f);
             MenuButton("Quit", y, Quit, 185f, 40f, 97.5f);
-            Text("Hint", _root.transform, "mouse, arrows or stick · Enter / A to choose", 20, new Vector2(0.5f, 0.017f), new Vector2(900, 30)).alpha = 0.6f;
+            _hint = Text("Hint", _root.transform, HintLine, 20, new Vector2(0.5f, 0.017f), new Vector2(1400, 30)); _hint.alpha = 0.6f;
+            NetSession.StatusChanged += OnPartyStatus;
             // Which build this is (D-0040): BuildTools stamps the whole version number into the player settings; "dev" = a development build (D-0043).
             var version = Text("Version", _root.transform, "v" + Application.version + (Debug.isDebugBuild && !Application.isEditor ? " dev" : ""), 20, new Vector2(0.95f, 0.035f), new Vector2(160, 32));
             version.alignment = TextAlignmentOptions.Right; version.alpha = 0.45f;

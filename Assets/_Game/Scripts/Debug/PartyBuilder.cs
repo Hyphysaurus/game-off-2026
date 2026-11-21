@@ -58,6 +58,7 @@ namespace ShiftJam
             Build();
             int next = int.TryParse(PlayerSettings.bundleVersion, out int now) ? now + 1 : 1;
             bool ok = BuildTools.Windows(next);
+            LLMUnity.LLMBuilder.Reset();   // put LLMUnity's moved libraries back now: quitting skips its own restore (3.4 GB left in LLMUnityBuild, 21 Nov)
             EditorApplication.Exit(ok ? 0 : 1);
         }
 

@@ -36,6 +36,7 @@ namespace ShiftJam
             int i = Array.IndexOf(args, "-buildVersion");
             if (i >= 0 && i + 1 < args.Length && int.TryParse(args[i + 1], out int asked)) version = asked;
             bool ok = Windows(version, Array.IndexOf(args, "-development") >= 0);
+            LLMUnity.LLMBuilder.Reset();   // as PartyBuilder.RebuildAndBuildBatch: quitting skips LLMUnity's own restore
             EditorApplication.Exit(ok ? 0 : 1);
         }
 

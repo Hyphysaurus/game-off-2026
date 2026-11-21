@@ -56,7 +56,8 @@ namespace ShiftJam
             copy.transform.position = Vector3.zero;
             foreach (var c in copy.GetComponents<WakeUp>()) Object.DestroyImmediate(c);     // the course's wake-in-the-box
             foreach (var c in copy.GetComponents<ShiftWarp>()) Object.DestroyImmediate(c);  // the course's room warps
-            copy.AddComponent<NetworkObject>();
+            var no = copy.AddComponent<NetworkObject>();
+            no.AutoObjectParentSync = false;   // a car seat parents the driver to the car here; the position still syncs in world space (D-0116)
             var nt = copy.AddComponent<NetworkTransform>();
             nt.AuthorityMode = NetworkTransform.AuthorityModes.Owner;   // the owner moves; nobody waits on the host to walk
             nt.SyncScaleX = nt.SyncScaleY = nt.SyncScaleZ = true;      // the shift scales the root
@@ -95,13 +96,15 @@ namespace ShiftJam
             sun.type = LightType.Directional; sun.color = new Color(1f, 0.86f, 0.68f); sun.intensity = 1.4f; sun.shadows = LightShadows.Soft;
             sun.transform.rotation = Quaternion.Euler(32f, -62f, 0f);
             RenderSettings.sun = sun;
-            RenderSettings.skybox = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Skybox.mat");
+            var packSky = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Imports/ithappy/Battle_Stadium/Skyboxes/Skybox_4.mat");   // the pack's own sky (D-0115)
+            RenderSettings.skybox = packSky != null ? packSky : AssetDatabase.GetBuiltinExtraResource<Material>("Default-Skybox.mat");
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
             RenderSettings.ambientSkyColor = new Color(0.68f, 0.78f, 0.95f);
             RenderSettings.ambientEquatorColor = new Color(0.78f, 0.7f, 0.6f);
             RenderSettings.ambientGroundColor = new Color(0.36f, 0.31f, 0.27f);
 
             StadiumLayout.Build(scene, body);   // the stadium, the field, the play pieces and the spawns (D-0113)
+            AddRaceway(scene, body);            // the race track beside it, its cars online (D-0116)
             Vector3 centre = Vector3.zero;
 
             var camAsset = AssetDatabase.LoadAssetAtPath<GameObject>(CameraPath);
@@ -112,6 +115,97 @@ namespace ShiftJam
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddToBuild(ScenePath);
+        }
+
+        private const string RacewayPath = "Assets/_Game/Scenes/Raceway.unity";
+        private const float RacewayGap = 250f;   // far enough that the raceway room's 130-high walls stay under the stadium rim seen from the field
+
+        /// <summary>
+        /// The Raceway beside the stadium (D-0116, his "a race track in the multiplayer scene"): its whole built room
+        /// (track, gates, finish line, garage, cars) copied in east of the stadium, the rival field switched off (each PC
+        /// would run its own rivals), every car made a networked car (CarNet: the driver owns it). A gate on the arena's
+        /// east side goes to the track, a gate at the track's start comes back.
+        /// </summary>
+        private static void AddRaceway(Scene scene, float body)
+        {
+            Scene source = EditorSceneManager.OpenScene(RacewayPath, OpenSceneMode.Additive);
+            GameObject from = null; Vector3 arrive = Vector3.zero; Quaternion arriveFacing = Quaternion.identity;
+            foreach (var r in source.GetRootGameObjects())
+            {
+                if (r.name == "Raceway") from = r;
+                if (r.name == "Player") { arrive = r.transform.position; arriveFacing = r.transform.rotation; }
+            }
+            if (from == null) { EditorSceneManager.CloseScene(source, true); Debug.LogWarning("PartyBuilder: Raceway has no Raceway root."); return; }
+            GameObject track = Object.Instantiate(from);
+            track.name = "Raceway";
+            SceneManager.MoveGameObjectToScene(track, scene);
+            EditorSceneManager.CloseScene(source, true);
+
+            // East of the stadium, clear of it.
+            Bounds stadium = default; bool any = false;
+            foreach (var r in scene.GetRootGameObjects()) if (r != track && r.name == "Stadium") { stadium = BoundsOf(r); any = true; }
+            Bounds rw = BoundsOf(track);
+            float shiftX = (any ? stadium.max.x : 80f) + RacewayGap - rw.min.x;
+            Vector3 shift = new Vector3(shiftX, -rw.min.y + 0f, -rw.center.z);
+            shift.y = 0f;   // the raceway keeps its own floor height (its floor is at 0 like ours)
+            track.transform.position += shift;
+            arrive += shift;
+
+            foreach (var g in track.GetComponentsInChildren<RaceGrid>(true)) g.enabled = false;   // no rivals online
+            // The room's walls and corner pillars stand 130 high and showed over the stadium's rim: unseen here, still solid
+            // (they keep the cars on the floor). The floor, the furniture and the track stay as built.
+            Transform roomShell = track.transform.Find("Shell");
+            if (roomShell != null)
+                foreach (Transform part in roomShell)
+                    if (part.name.StartsWith("Wall_") || part.name.StartsWith("Pillar"))
+                        foreach (var r in part.GetComponentsInChildren<Renderer>(true)) r.enabled = false;
+
+            int cars = 0;
+            foreach (var car in track.GetComponentsInChildren<ArcadeCar>(true))
+            {
+                var go = car.gameObject;
+                go.transform.SetParent(null, true);   // a networked object at the scene's top
+                SceneManager.MoveGameObjectToScene(go, scene);
+                if (!go.TryGetComponent(out NetworkObject _)) go.AddComponent<NetworkObject>();
+                var nt = go.GetComponent<NetworkTransform>(); if (nt == null) nt = go.AddComponent<NetworkTransform>();
+                nt.AuthorityMode = NetworkTransform.AuthorityModes.Owner;
+                nt.SyncScaleX = nt.SyncScaleY = nt.SyncScaleZ = false;
+                nt.Interpolate = true;
+                if (!go.TryGetComponent(out NetworkRigidbody _)) go.AddComponent<NetworkRigidbody>();
+                if (!go.TryGetComponent(out CarNet _)) go.AddComponent<CarNet>();
+                cars++;
+            }
+
+            // The gates: an inflatable checkpoint arch on the arena's east edge, and one at the raceway's start.
+            var toTrack = Gate(scene, "ToRaceway", new Vector3(23.2f, 0f, 5f), Quaternion.Euler(0f, -90f, 0f), body);
+            var outPoint = new GameObject("RacewayArrive").transform;
+            SceneManager.MoveGameObjectToScene(outPoint.gameObject, scene);
+            outPoint.SetPositionAndRotation(arrive + Vector3.up * 0.3f, arriveFacing);
+            toTrack.SetTarget(outPoint);
+
+            var backGate = Gate(scene, "ToStadium", arrive + arriveFacing * (Vector3.back * 4f * body), arriveFacing, body);
+            var backPoint = new GameObject("StadiumArrive").transform;
+            SceneManager.MoveGameObjectToScene(backPoint.gameObject, scene);
+            backPoint.SetPositionAndRotation(new Vector3(19f, 0.3f, 5f), Quaternion.Euler(0f, -90f, 0f));
+            backGate.SetTarget(backPoint);
+            Debug.Log($"PartyBuilder: Raceway copied {shiftX:0} east of the stadium, {cars} cars online.");
+        }
+
+        private static HubTeleport Gate(Scene scene, string name, Vector3 at, Quaternion facing, float body)
+        {
+            var go = new GameObject(name, typeof(BoxCollider));
+            SceneManager.MoveGameObjectToScene(go, scene);
+            go.transform.SetPositionAndRotation(at, facing);
+            var box = go.GetComponent<BoxCollider>();
+            box.isTrigger = true; box.size = new Vector3(body * 1.6f, body * 1.4f, body * 0.6f); box.center = new Vector3(0f, body * 0.7f, 0f);
+            var arch = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Imports/ithappy/Battle_Stadium/Prefabs/Inflatable/checkpoint_001.prefab");
+            if (arch != null)
+            {
+                var a = (GameObject)PrefabUtility.InstantiatePrefab(arch, go.transform);
+                a.transform.localPosition = Vector3.zero; a.transform.localRotation = Quaternion.identity;
+                a.transform.localScale = arch.transform.localScale * 0.3f;
+            }
+            return go.AddComponent<HubTeleport>();
         }
 
         private static Bounds BoundsOf(GameObject go)

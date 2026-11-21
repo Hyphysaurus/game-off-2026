@@ -2,6 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 14:0x — PICKUPS + FLOOR + TITLE FIX (D-0115), RACE TRACK + ONLINE CARS (D-0116): BUILT, NOT PLAYED ONLINE
+- He played the Stadium solo (Relay works after the Unity restart: code D69KDL): "it's working".
+- Now: sand field, pickups spread, a gate east to the Raceway copy, 4 online cars. Stills: docs/stills/d0116_*.png.
+- HIS PLAYTEST: solo: pickups (heart only when hurt, ring only when the shield is down), the east gate, drive a car,
+  the gate back. Two windows (MPPM Player 2): one drives, the other watches; try to get into the other's car.
+- Then the v7 build.
+
 ## 21 Nov 2026 13:2x — THE STADIUM HUB DRESSED (D-0113, visual pass step 3): BUILT, NOT PLAYED
 - Battle Stadium's ring and crowd round a field of inflatable cover, mirrored team sides, flank platforms with
   trampolines, a stage in the middle (the first spawn). Comebacks at the spawn furthest from everyone else.

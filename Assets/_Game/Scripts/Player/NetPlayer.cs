@@ -20,6 +20,24 @@ namespace ShiftJam
         private static bool KeepOnPuppet(Behaviour b) =>
             b is NetworkBehaviour || b is Animator || b is PlayerBody || b is PlayerAnimation;
 
+        /// <summary>True while this player sits in a car (D-0116): every other PC hides the body, as the seat does here.</summary>
+        private readonly NetworkVariable<bool> _seated = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        private Renderer[] _bodies;
+
+        private void Update()
+        {
+            if (!IsSpawned) return;
+            if (IsOwner)
+            {
+                bool seated = Driving.Vehicle != null;
+                if (_seated.Value != seated) _seated.Value = seated;
+                return;
+            }
+            if (_bodies == null) _bodies = GetComponentsInChildren<Renderer>(true);
+            bool hide = _seated.Value;
+            foreach (var r in _bodies) if (r != null && r.forceRenderingOff != hide) r.forceRenderingOff = hide;
+        }
+
         public override void OnNetworkSpawn()
         {
             if (IsOwner) SetUpOwn();

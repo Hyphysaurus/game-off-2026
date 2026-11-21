@@ -26,6 +26,7 @@ namespace ShiftJam
         private static void Spawn()
         {
             if (GameObject.Find("Player") == null || FindFirstObjectByType<TitleMenu>() != null) return;
+            if (SceneManager.GetActiveScene().name == NetSession.PartyScene) return;   // online: the party is under way (D-0114: the title froze the Stadium)
             if (IsSandbox(SceneManager.GetActiveScene().name)) return;   // the Workshop, the Raceway and the Colour Corner are sandboxes: straight in
             if (HouseCarry.Arriving) return;   // back through a door from another room (D-0091): the game is already under way
             new GameObject("TitleMenu").AddComponent<TitleMenu>();

@@ -2211,3 +2211,22 @@
   on, offline): the code is LOCAL (copied), a second window joins with it; the corner says "(this PC only)". Four
   ToySoldiers in the Stadium (`Practice`) to fight alone: each PC runs its own; a soldier now aims at this PC's own
   "Player" first (online, the first PlayerMotor could be another player's copy). Out of the team modes later.
+- **D-0115 (21 Nov) Pickups spread round the Stadium, a real floor, the title fix.** His: "make sure we have a floor,
+  make sure each weapon and powerups and heals are spread throughout". Found: the pack's track disc is a ring (open
+  middle): where he stood he was on the invisible FieldCollider. Now a sand-coloured field of our own under it
+  (`Data/Stadium/Stadium_Field.mat`); the builder sweeps the field at 1-unit steps and logs any spot without ground
+  (1941 spots, 0). Pickups, mirrored: pistol at each base, SMG on the flank platforms, shotguns in the cross
+  tunnels, knife and foam finger mid, ammo boxes in the lanes, a supply crate per base; new `PlayerPickup` (walk
+  in): heart +50 health (20 s), ring = full shield (25 s), bomb = +2 grenades (20 s), star = full shift charge
+  (30 s); only this PC's own player takes them. The pack's own sky (Skybox_4). `TitleMenu` never opens in the
+  Stadium (it froze his first online run: the online player is named Player).
+- **D-0116 (21 Nov) The race track in the Stadium scene, cars online.** His "race track in the multiplayer scene",
+  then "car and track now" (car sync before the first friend build). The Raceway's built room is copied 582 east of
+  the stadium (its 130-high walls and pillars unseen but solid; rivals off: each PC would run its own); a
+  checkpoint arch on the arena's east edge goes there and one at the track's start comes back (`HubTeleport`, own
+  player only, black cut, sets the respawn point). Every car: NetworkObject, owner NetworkTransform, NetworkRigidbody,
+  `CarNet`: getting in asks the host for the car (ownership), so the driver's PC runs its physics; others see it
+  kinematic (the car reads that as parked); a car another player drives says "Taken"; hits on another's car go to
+  its owner. The online player's NetworkObject has AutoObjectParentSync off (the seat parents the driver to the car
+  locally; position syncs in world space); `NetPlayer` hides a seated player's body on other PCs. Each player
+  counts their own laps (shared standings later).

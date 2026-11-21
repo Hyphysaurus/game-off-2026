@@ -105,6 +105,17 @@ namespace ShiftJam
                 b = BoundsOf(track);
                 track.transform.position -= new Vector3(b.center.x, b.max.y, b.center.z);   // its top at 0
             }
+            // The track disc is a ring (open in the middle, found 21 Nov in his play): a field of our own under it, warm
+            // sand under the bright inflatables, seen and stood on everywhere (D-0115).
+            var ground = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            ground.name = "FieldFloor";
+            ground.transform.SetParent(field);
+            Object.DestroyImmediate(ground.GetComponent<Collider>());   // a cylinder's own collider is a capsule
+            ground.AddComponent<MeshCollider>().sharedMesh = ground.GetComponent<MeshFilter>().sharedMesh;
+            ground.transform.localScale = new Vector3(FieldRadius * 2f + 1f, 0.25f, FieldRadius * 2f + 1f);   // the mesh is 2 tall
+            ground.transform.position = new Vector3(0f, -0.26f, 0f);   // its top just under the track's
+            ground.GetComponent<MeshRenderer>().sharedMaterial = FieldMaterial();
+            GameObjectUtility.SetStaticEditorFlags(ground, StaticEditorFlags.BatchingStatic);
             var under = new GameObject("FieldCollider", typeof(BoxCollider));   // a floor whatever the disc does
             under.transform.SetParent(field);
             var box = under.GetComponent<BoxCollider>();
@@ -123,6 +134,20 @@ namespace ShiftJam
                 Trampoline(play, new Vector3(t.x, 0f, t.y), body);
                 Trampoline(play, new Vector3(-t.x, 0f, -t.y), body);
             }
+
+            // ---------------------------------------------------------------- pickups, spread and mirrored (D-0115)
+            var pickups = new GameObject("Pickups").transform; pickups.SetParent(root);
+            foreach (var w in Stands)
+            {
+                Stand(pickups, w.Prefab, new Vector3(w.At.x, 0f, w.At.y), w.Turn);
+                if (w.Mirror) Stand(pickups, w.Prefab, new Vector3(-w.At.x, 0f, -w.At.y), w.Turn + 180f);
+            }
+            foreach (var g in Gifts)
+            {
+                Gift(pickups, g, new Vector3(g.At.x, 0f, g.At.y), body);
+                if (g.Mirror) Gift(pickups, g, new Vector3(-g.At.x, 0f, -g.At.y), body);
+            }
+            CheckFloor(body);
 
             // ---------------------------------------------------------------- practice: toy soldiers to fight alone (D-0114)
             // Each PC runs its own (they aim at that PC's player). Out of the team modes when those come.
@@ -150,6 +175,115 @@ namespace ShiftJam
                 var s = Spawn(spawns, pos, a + 180f);   // facing the middle
                 Raise(s.transform);
             }
+        }
+
+        // ---------------------------------------------------------------- pickups (D-0115)
+
+        private readonly struct StandSpot
+        {
+            public readonly string Prefab; public readonly Vector2 At; public readonly float Turn; public readonly bool Mirror;
+            public StandSpot(string prefab, float x, float z, float turn = 0f, bool mirror = true) { Prefab = prefab; At = new Vector2(x, z); Turn = turn; Mirror = mirror; }
+        }
+
+        private readonly struct GiftSpot
+        {
+            public readonly PlayerPickup.Kind Kind; public readonly string Model; public readonly float Amount, Respawn; public readonly Vector2 At; public readonly bool Mirror;
+            public GiftSpot(PlayerPickup.Kind kind, string model, float amount, float respawn, float x, float z, bool mirror = true)
+            { Kind = kind; Model = model; Amount = amount; Respawn = respawn; At = new Vector2(x, z); Mirror = mirror; }
+        }
+
+        private const string Weapons = "Assets/_Game/Prefabs/Pieces/Weapons/";
+
+        /// <summary>Weapon stands and ammo, south half (turned half round for the north). Pistols at the bases, the SMG
+        /// up on the flank platforms (trampoline up), shotguns in the cross tunnels, melee near the middle, ammo boxes in
+        /// the lanes, a supply crate at each base.</summary>
+        private static readonly StandSpot[] Stands =
+        {
+            new StandSpot("DartPistolPickup", 0f, -20f),
+            new StandSpot("DartSMGPickup", -17f, -9f),
+            new StandSpot("DartShotgunPickup", -9f, 0f, 90f, false),
+            new StandSpot("DartShotgunPickup", 9f, 0f, 90f, false),
+            new StandSpot("ToyKnifePickup", 0f, -9f),
+            new StandSpot("FoamFingerPickup", 3.5f, 0f),
+            new StandSpot("AmmoBox", -12f, -13f),
+            new StandSpot("AmmoBox", 12f, -13f),
+            new StandSpot("AmmoBox", 0f, -15.5f),
+            new StandSpot("SupplyCrate", -3f, -21f),
+        };
+
+        /// <summary>Heals, shields, grenades and charge, south half (turned half round for the north).</summary>
+        private static readonly GiftSpot[] Gifts =
+        {
+            new GiftSpot(PlayerPickup.Kind.Heal, "Props/heart_001", 50f, 20f, -14f, -1.5f),
+            new GiftSpot(PlayerPickup.Kind.Heal, "Props/heart_001", 50f, 20f, 7f, -14f),
+            new GiftSpot(PlayerPickup.Kind.Shield, "Props/ring_001", 0f, 25f, -3f, 3f),
+            new GiftSpot(PlayerPickup.Kind.Grenades, "Props/bomb_001", 2f, 20f, 17f, -9f),
+            new GiftSpot(PlayerPickup.Kind.Charge, "Props/star_001", 0f, 30f, -21.5f, 0f),
+        };
+
+        private static void Stand(Transform parent, string prefab, Vector3 at, float turn)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(Weapons + prefab + ".prefab");
+            if (asset == null) { Debug.LogWarning("StadiumLayout: no " + prefab); return; }
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent);
+            go.transform.SetPositionAndRotation(Surface(at), Quaternion.Euler(0f, turn, 0f));
+        }
+
+        private static void Gift(Transform parent, GiftSpot g, Vector3 at, float body)
+        {
+            var go = new GameObject(g.Kind + "Pickup", typeof(SphereCollider));
+            go.transform.SetParent(parent);
+            go.transform.position = Surface(at) + Vector3.up * (body * 0.55f);
+            var col = go.GetComponent<SphereCollider>(); col.isTrigger = true; col.radius = body * 0.5f;
+            var model = Place(g.Model, go.transform, go.transform.position, 0f, 0.45f, false);
+            var pickup = go.AddComponent<PlayerPickup>();
+            var so = new SerializedObject(pickup);
+            so.FindProperty("kind").enumValueIndex = (int)g.Kind;
+            so.FindProperty("amount").floatValue = g.Amount;
+            so.FindProperty("respawnSeconds").floatValue = g.Respawn;
+            if (model != null) so.FindProperty("model").objectReferenceValue = model;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private const string FieldMaterialPath = "Assets/_Game/Data/Stadium/Stadium_Field.mat";
+
+        /// <summary>The field's floor: URP Lit in warm sand, made once and kept (tune it in the Inspector).</summary>
+        private static Material FieldMaterial()
+        {
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(FieldMaterialPath);
+            if (mat != null) return mat;
+            if (!AssetDatabase.IsValidFolder("Assets/_Game/Data/Stadium")) AssetDatabase.CreateFolder("Assets/_Game/Data", "Stadium");
+            mat = new Material(Shader.Find("Universal Render Pipeline/Lit")) { name = "Stadium_Field" };
+            mat.SetColor("_BaseColor", new Color(0.88f, 0.78f, 0.6f));
+            mat.SetFloat("_Smoothness", 0.15f);
+            AssetDatabase.CreateAsset(mat, FieldMaterialPath);
+            return mat;
+        }
+
+        /// <summary>The top of whatever stands at (x, z): the floor, a platform, the stage.</summary>
+        private static Vector3 Surface(Vector3 at)
+        {
+            Physics.SyncTransforms();
+            return Physics.Raycast(new Vector3(at.x, 30f, at.z), Vector3.down, out RaycastHit hit, 60f, ~0, QueryTriggerInteraction.Ignore) ? hit.point : at;
+        }
+
+        /// <summary>Every spot of the field has ground under it, a little below 0 at most (a hole or a gap is logged).</summary>
+        private static void CheckFloor(float body)
+        {
+            Physics.SyncTransforms();
+            int holes = 0, tested = 0;
+            for (float x = -FieldRadius + 0.5f; x <= FieldRadius - 0.5f; x += 1f)
+                for (float z = -FieldRadius + 0.5f; z <= FieldRadius - 0.5f; z += 1f)
+                {
+                    if (x * x + z * z > (FieldRadius - 0.5f) * (FieldRadius - 0.5f)) continue;
+                    tested++;
+                    if (!Physics.Raycast(new Vector3(x, 30f, z), Vector3.down, out RaycastHit hit, 60f, ~0, QueryTriggerInteraction.Ignore) || hit.point.y < -0.05f)
+                    {
+                        holes++;
+                        if (holes <= 5) Debug.LogWarning($"StadiumLayout: no floor at ({x:0.#}, {z:0.#})");
+                    }
+                }
+            Debug.Log($"StadiumLayout: floor checked at {tested} spots, {holes} without ground.");
         }
 
         // ---------------------------------------------------------------- helpers

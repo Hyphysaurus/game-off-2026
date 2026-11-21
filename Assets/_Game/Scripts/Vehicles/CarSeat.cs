@@ -64,6 +64,9 @@ namespace ShiftJam
             return b;
         }
 
+        /// <summary>Online: another player is at this car's wheel (CarNet, D-0116).</summary>
+        private bool TakenOnline { get { var net = GetComponentInParent<CarNet>(); return net != null && net.TakenByOther; } }
+
         private bool TooBig(Interactor who)
         {
             float driver = who.Shifter != null ? who.Shifter.Scale : who.transform.lossyScale.y;
@@ -74,6 +77,7 @@ namespace ShiftJam
         public string PromptFor(Interactor who)
         {
             if (Occupied || _car.Occupied || who == null || GameMode.Current != GameMode.Mode.Play) return null;   // the car's own Occupied: a rival has it
+            if (TakenOnline) return "Taken";   // another player is driving it (D-0116)
             if (_car.Wrecked) return "Wrecked";
             if (TooBig(who)) return "Too big to drive";
             var carrier = who.GetComponent<Carrier>();
@@ -83,7 +87,7 @@ namespace ShiftJam
 
         public void Interact(Interactor who)
         {
-            if (Occupied || _car.Occupied || who == null || _car.Wrecked || TooBig(who) || GameMode.Current != GameMode.Mode.Play) return;
+            if (Occupied || _car.Occupied || who == null || _car.Wrecked || TooBig(who) || GameMode.Current != GameMode.Mode.Play || TakenOnline) return;
             var carrier = who.GetComponent<Carrier>();
             if (carrier != null && carrier.Held != null) return;
             _driver = who.transform;

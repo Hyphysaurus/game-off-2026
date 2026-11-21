@@ -124,6 +124,19 @@ namespace ShiftJam
                 Trampoline(play, new Vector3(-t.x, 0f, -t.y), body);
             }
 
+            // ---------------------------------------------------------------- practice: toy soldiers to fight alone (D-0114)
+            // Each PC runs its own (they aim at that PC's player). Out of the team modes when those come.
+            var soldierAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Prefabs/Pieces/Interactables/ToySoldier.prefab");
+            if (soldierAsset != null)
+            {
+                var practice = new GameObject("Practice").transform; practice.SetParent(root);
+                foreach (var at in new[] { new Vector3(-11f, 0f, -5f), new Vector3(11f, 0f, 5f), new Vector3(5f, 0f, -14f), new Vector3(-5f, 0f, 14f) })
+                {
+                    var soldier = (GameObject)PrefabUtility.InstantiatePrefab(soldierAsset, practice);
+                    soldier.transform.SetPositionAndRotation(at, Quaternion.LookRotation(-at.normalized, Vector3.up));
+                }
+            }
+
             // ---------------------------------------------------------------- spawns
             var spawns = new GameObject("Spawns").transform; spawns.SetParent(root);
             var first = Spawn(spawns, new Vector3(0f, 0f, 0f), 0f);

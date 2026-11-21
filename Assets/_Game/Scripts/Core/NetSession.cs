@@ -26,10 +26,14 @@ namespace ShiftJam
         private const string PlayerPrefabPath = "Net/NetPlayer";
 
         /// <summary>True while connected (host or joined).</summary>
-        public static bool Online => _instance != null && _instance._session != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        public static bool Online => _instance != null && (_instance._session != null || _instance._local) && NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+
+        /// <summary>The code that joins a party on this PC with no Relay (a second editor or a test window).</summary>
+        public const string LocalCode = "LOCAL";
+        private const ushort LocalPort = 7777;
 
         /// <summary>The join code, or null when not hosting or joined.</summary>
-        public static string Code => _instance != null && _instance._session != null ? _instance._session.Code : null;
+        public static string Code => _instance == null ? null : _instance._session != null ? _instance._session.Code : _instance._local ? LocalCode : null;
 
         /// <summary>A line for the title or the HUD: what the session is doing or what went wrong.</summary>
         public static string Status { get; private set; } = "";
@@ -39,8 +43,10 @@ namespace ShiftJam
 
         private static NetSession _instance;
         private ISession _session;
+        private bool _local;   // a party on this PC only: Relay could not be reached (D-0114)
         private bool _busy;
         private TMP_Text _hud;
+        private float _nextHud;
 
         private static NetSession Get()
         {
@@ -55,7 +61,7 @@ namespace ShiftJam
         public static async void Host()
         {
             var s = Get();
-            if (s._busy || s._session != null) return;
+            if (s._busy || s._session != null || s._local) return;
             s._busy = true;
             try
             {
@@ -70,17 +76,42 @@ namespace ShiftJam
                 Time.timeScale = 1f;
                 NetworkManager.Singleton.SceneManager.LoadScene(PartyScene, LoadSceneMode.Single);
             }
-            catch (Exception e) { Fail("Could not start a party", e); }
+            catch (Exception e)
+            {
+                // No Relay (not switched on for the project, no internet, signed out): play on this PC instead, so a
+                // test still runs; a second window joins with LOCAL. Friends cannot join this one.
+                Debug.LogWarning("NetSession: Relay failed, hosting on this PC: " + e);
+                s._session = null;
+                if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening) NetworkManager.Singleton.Shutdown();
+                s.HostLocal();
+            }
             finally { s._busy = false; }
+        }
+
+        private void HostLocal()
+        {
+            try
+            {
+                EnsureNetworkManager();
+                NetworkManager.Singleton.GetComponent<UnityTransport>().SetConnectionData("127.0.0.1", LocalPort, "0.0.0.0");
+                if (!NetworkManager.Singleton.StartHost()) throw new InvalidOperationException("the host did not start");
+                _local = true;
+                GUIUtility.systemCopyBuffer = LocalCode;
+                Say("Relay unavailable: playing on this PC only (a second window joins with " + LocalCode + ")");
+                Time.timeScale = 1f;
+                NetworkManager.Singleton.SceneManager.LoadScene(PartyScene, LoadSceneMode.Single);
+            }
+            catch (Exception e) { Fail("Could not start a party", e); }
         }
 
         /// <summary>Join a party with the code on the clipboard (or the code given).</summary>
         public static async void Join(string code = null)
         {
             var s = Get();
-            if (s._busy || s._session != null) return;
+            if (s._busy || s._session != null || s._local) return;
             code = Clean(code ?? GUIUtility.systemCopyBuffer);
             if (string.IsNullOrEmpty(code)) { Say("Copy a party code first (from Discord), then press Join."); return; }
+            if (code == LocalCode) { s.JoinLocal(); return; }
             s._busy = true;
             try
             {
@@ -96,12 +127,26 @@ namespace ShiftJam
             finally { s._busy = false; }
         }
 
+        private void JoinLocal()
+        {
+            try
+            {
+                Say("Joining the party on this PC...");
+                EnsureNetworkManager();
+                NetworkManager.Singleton.GetComponent<UnityTransport>().SetConnectionData("127.0.0.1", LocalPort);
+                if (!NetworkManager.Singleton.StartClient()) throw new InvalidOperationException("the client did not start");
+                _local = true;
+                Time.timeScale = 1f;
+            }
+            catch (Exception e) { Fail("Could not join " + LocalCode, e); }
+        }
+
         /// <summary>Leave the party (the host's leaving ends it for everyone) and go back to the course's title.</summary>
         public static async void Leave()
         {
             var s = _instance;
             if (s == null) { SceneManager.LoadScene(0); return; }
-            ISession session = s._session; s._session = null;
+            ISession session = s._session; s._session = null; s._local = false;
             try { if (session != null) await session.LeaveAsync(); }
             catch (Exception e) { Debug.LogWarning("NetSession: leaving: " + e.Message); }
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening) NetworkManager.Singleton.Shutdown();
@@ -191,15 +236,18 @@ namespace ShiftJam
 
         private void Update()
         {
-            bool show = _session != null && SceneManager.GetActiveScene().name == PartyScene;
+            bool show = (_session != null || _local) && SceneManager.GetActiveScene().name == PartyScene;
             if (show && _hud == null) BuildHud();
             if (_hud != null && _hud.transform.parent.gameObject.activeSelf != show) _hud.transform.parent.gameObject.SetActive(show);
+            if (show && _hud != null && Time.unscaledTime >= _nextHud) { _nextHud = Time.unscaledTime + 0.5f; RefreshHud(); }   // joins and leaves
         }
 
         private void RefreshHud()
         {
             if (_hud == null) return;
-            _hud.text = _session != null ? "<b>Party " + _session.Code + "</b>   " + _session.PlayerCount + "/" + MaxPlayers + "   <alpha=#88>Esc: menu" : "";
+            int count = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening ? NetworkManager.Singleton.ConnectedClientsIds.Count : 0;
+            if (_session != null) count = _session.PlayerCount;
+            _hud.text = _session != null || _local ? "<b>Party " + Code + "</b>   " + count + "/" + MaxPlayers + (_local ? "   <alpha=#88>(this PC only)" : "") + "   <alpha=#88>Esc: menu" : "";
         }
 
         private void BuildHud()

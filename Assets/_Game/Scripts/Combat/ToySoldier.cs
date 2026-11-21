@@ -181,7 +181,12 @@ namespace ShiftJam
             }
             else
             {
-                if (_player == null) _player = FindFirstObjectByType<PlayerMotor>();
+                if (_player == null)
+                {
+                    var own = GameObject.Find("Player");   // online, this PC's own player (others' copies are "Player 2"...): D-0114
+                    _player = own != null ? own.GetComponent<PlayerMotor>() : null;
+                    if (_player == null) _player = FindFirstObjectByType<PlayerMotor>();
+                }
                 if (_player == null || !_player.gameObject.activeInHierarchy) return false;
                 if (!_player.enabled && _player.transform.parent != null)
                 {

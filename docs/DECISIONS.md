@@ -2206,3 +2206,8 @@
   - Sun: late afternoon, warm, from the west; Unity's default sky until COZY (step 2).
   - Open: the field floor reads dull grey (grade / a brighter pack material next); the Dart Line anchors between
     towers; grow cores (with the modes).
+- **D-0114 (21 Nov) Solo playtest support: local-host fallback, practice soldiers in the Stadium.** His "let's
+  simulate a playtest, I can play it myself". Host falls back to a party on this PC when Relay fails (not switched
+  on, offline): the code is LOCAL (copied), a second window joins with it; the corner says "(this PC only)". Four
+  ToySoldiers in the Stadium (`Practice`) to fight alone: each PC runs its own; a soldier now aims at this PC's own
+  "Player" first (online, the first PlayerMotor could be another player's copy). Out of the team modes later.

@@ -55,6 +55,18 @@ namespace ShiftJam
         public float padSensitivity = 200f;
         public bool invertY;
 
+        [Header("Follow behind (on foot, D-0124)")]
+        [Tooltip("While the player moves with no mouse or stick look, the camera eases round behind the way they are moving (his \"it doesn't turn behind me\"). Never while armed: the body already faces the camera's way.")]
+        public bool followBehind = true;
+        [Min(0f), Tooltip("Seconds after the last mouse or stick look before the camera starts following.")]
+        public float followDelay = 0.5f;
+        [Min(0f), Tooltip("Degrees a second the camera turns at a full run (less when slower).")]
+        public float followRate = 150f;
+        [Range(0f, 180f), Tooltip("Running back toward the camera by more than this many degrees: it does not turn (no whip round when backing up).")]
+        public float followMaxAngle = 135f;
+        [Range(0f, 1f), Tooltip("Below this share of the run speed it does not follow (shuffling about leaves the view alone).")]
+        public float followMinSpeed = 0.15f;
+
         [Header("Collision")]
         [Tooltip("Smallest radius of the ball the camera is swept with to keep it out of walls.")]
         public float collisionRadius = 0.2f;

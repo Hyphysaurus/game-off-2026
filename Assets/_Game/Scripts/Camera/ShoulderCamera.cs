@@ -35,6 +35,7 @@ namespace ShiftJam
         private WeaponHolder _holder;        // on the target: a drawn weapon picks the view
         private PlayerStance _stance;        // on the target: a crouch lowers the pivot
         private Glider _glider;              // on the target: gliding pulls the camera back (D-0095)
+        private PlayerMotor _motor;          // on the target: the way it moves, for following behind (D-0124)
         private CharacterController _capsule;
         private float _side, _rise, _reach, _armedView, _aimView, _glideView, _heightShare = 1f; private bool _viewReady;   // the view now, eased
         private float _yaw, _pitch;
@@ -155,6 +156,7 @@ namespace ShiftJam
                 _holder = target.GetComponent<WeaponHolder>();
                 _stance = target.GetComponent<PlayerStance>();
                 _capsule = target.GetComponent<CharacterController>();
+                _motor = target.GetComponent<PlayerMotor>();
             }
         }
 
@@ -216,6 +218,7 @@ namespace ShiftJam
             _stance = target != null ? target.GetComponent<PlayerStance>() : null;
             _capsule = target != null ? target.GetComponent<CharacterController>() : null;
             _glider = target != null ? target.GetComponent<Glider>() : null;
+            _motor = target != null ? target.GetComponent<PlayerMotor>() : null;
             if (target != null) _yaw = target.eulerAngles.y;
             _viewReady = false; _aimReady = false;
         }
@@ -256,6 +259,7 @@ namespace ShiftJam
             // Which view: wide with empty hands, over the shoulder with a weapon drawn, closer and narrower while aiming.
             bool armed = _holder != null && _holder.Armed;
             bool aiming = armed && _holder.AimHeld;
+            if (!armed) FollowBehind(dt);
             float wantSide = armed ? settings.armedShoulderOffset : settings.shoulderOffset;
             float wantRise = armed ? settings.armedRise : 0f;
             float wantReach = aiming ? settings.aimDistance : armed ? settings.armedDistance : settings.distance;
@@ -317,6 +321,23 @@ namespace ShiftJam
             if (_punchLeft > 0f) _punchLeft = Mathf.Max(0f, _punchLeft - dt);
             _camera.fieldOfView = fov + FovOffset + PunchNow;
             _camera.nearClipPlane = near;
+        }
+
+        /// <summary>On foot with no look input for a moment (D-0124, his "it doesn't turn behind me"): ease the yaw round
+        /// toward the way the player is moving, faster the faster they go; not when backing toward the camera, not while
+        /// the mouse is free or the game is paused. CameraSettings: followBehind, followDelay, followRate,
+        /// followMaxAngle, followMinSpeed.</summary>
+        private void FollowBehind(float dt)
+        {
+            if (!settings.followBehind || _motor == null || !_motor.isActiveAndEnabled || !_cursorLocked || Time.timeScale <= 0f) return;
+            if (Time.unscaledTime - _lastLookTime < settings.followDelay) return;
+            Vector3 planar = _motor.PlanarVelocity;
+            float scale = Mathf.Max(1e-4f, _motor.Scale);
+            float share = Mathf.Clamp01(planar.magnitude / scale / Mathf.Max(0.01f, _motor.SprintSpeed));
+            if (share < settings.followMinSpeed) return;
+            float moveYaw = Mathf.Atan2(planar.x, planar.z) * Mathf.Rad2Deg;
+            if (Mathf.Abs(Mathf.DeltaAngle(_yaw, moveYaw)) > settings.followMaxAngle) return;   // backing up toward the camera
+            _yaw = Mathf.MoveTowardsAngle(_yaw, moveYaw, settings.followRate * share * dt);
         }
 
         /// <summary>The share of the ball's radius a leg of the sweep stops short of what it meets. Without it the ball

@@ -53,6 +53,26 @@ namespace ShiftJam
         }
 
         /// <summary>Unity remembers the window mode itself between runs; this only switches it.</summary>
+        private const string GraphicsKey = "ShiftJam.GraphicsHigh";
+
+        /// <summary>Graphics (D-0119): High = the PC quality level (ambient occlusion, full shadows, the look), Low = the
+        /// lighter level for weaker PCs. Applied in a built game only (in the editor it would change his editor's own
+        /// quality level).</summary>
+        public static bool HighGraphics
+        {
+            get => PlayerPrefs.GetInt(GraphicsKey, 1) == 1;
+            set { PlayerPrefs.SetInt(GraphicsKey, value ? 1 : 0); PlayerPrefs.Save(); ApplyGraphics(); }
+        }
+
+        private static void ApplyGraphics()
+        {
+            if (Application.isEditor) return;
+            int want = -1;
+            string[] names = QualitySettings.names;
+            for (int i = 0; i < names.Length; i++) if (names[i] == (HighGraphics ? "PC" : "Mobile")) want = i;
+            if (want >= 0 && QualitySettings.GetQualityLevel() != want) QualitySettings.SetQualityLevel(want, true);
+        }
+
         public static bool Fullscreen
         {
             get => Screen.fullScreen;
@@ -69,6 +89,7 @@ namespace ShiftJam
         {
             _loaded = false;   // a fresh play session (the editor may keep statics between plays)
             AudioListener.volume = Silent ? 0f : Volume;
+            ApplyGraphics();
         }
 
         private static void Load()

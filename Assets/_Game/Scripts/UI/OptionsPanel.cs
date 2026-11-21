@@ -16,7 +16,7 @@ namespace ShiftJam
     public sealed class OptionsPanel : MonoBehaviour
     {
         private GameObject _root;
-        private TMP_Text _look, _invert, _volume, _fullscreen, _body;
+        private TMP_Text _look, _invert, _volume, _fullscreen, _body, _graphics;
         private Button _first;
         private Action _onClose;
         private bool _fullscreenWanted;
@@ -68,6 +68,7 @@ namespace ShiftJam
             _invert.text = PlayerOptions.InvertY ? "On" : "Off";
             _volume.text = $"{Mathf.RoundToInt(PlayerOptions.Volume * 100f)}%";
             _fullscreen.text = (_fullscreenWanted ? "On" : "Off") + (Application.isEditor ? " <size=60%><alpha=#88>(built game only)" : "");
+            _graphics.text = (PlayerOptions.HighGraphics ? "High" : "Low") + (Application.isEditor ? " <size=60%><alpha=#88>(built game only)" : "");
             if (_body != null)
             {
                 // The body is swapped when a scene loads: say so while the picked one is not the one on screen.
@@ -98,6 +99,7 @@ namespace ShiftJam
                 () => { PlayerOptions.Volume += PlayerOptions.VolumeStep; Refresh(); }); y -= 0.09f;
             // Screen.fullScreen changes at the end of the frame, so the label shows the asked-for state.
             Toggle("Fullscreen", y, out _fullscreen, () => { _fullscreenWanted = !_fullscreenWanted; PlayerOptions.Fullscreen = _fullscreenWanted; Refresh(); }); y -= 0.09f;
+            Toggle("Graphics", y, out _graphics, () => { PlayerOptions.HighGraphics = !PlayerOptions.HighGraphics; Refresh(); }); y -= 0.09f;   // D-0119
             // Only where there is more than one body to pick (after the player port's builder has run).
             if (PlayerBody.Count > 1)
             {

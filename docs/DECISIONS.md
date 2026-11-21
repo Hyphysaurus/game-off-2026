@@ -2258,3 +2258,9 @@
   direct 0.3. Colour Corner's own volume sits on top. Render Stills (before | after) renders fixed spots per scene,
   but a camera rendered by hand in the editor does not run post-processing (before and after came out pixel-equal):
   the look must be judged in Play. Before stills kept: docs/stills/look_before_*.png.
+  - A2: Options > Graphics High / Low (`PlayerOptions.HighGraphics`): the PC or Mobile quality level, applied at
+    start and on change in a built game only (in the editor it would change his editor's own quality level).
+  - B, found: the Abstraction Music Loop Bundle is CC0; Pascal Belisle's music needs a credit; the 2000 Game SFX
+    Collection (GameBurp EULA: use in our own games, never shipped loose) has 64 cheers / applause and pickup, pop,
+    whoosh and impact sets: its files go under _Imports (git-ignored: the repo is public). No crowd loop exists in
+    the library: cheers on events instead. Music must be picked by his ear (no metadata to choose by).

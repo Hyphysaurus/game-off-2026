@@ -2248,3 +2248,13 @@
   more sent. `BugNote` (builds only): F12 saves a screenshot and a line (time, version, scene, place, party, ping)
   in persistentDataPath/Bug notes and says where. `NetSession`: ping in the corner, OnClientStopped without our
   leaving = back to the title with "Lost the connection to the party" and the reason. Key sheet lists Tab and F12.
+- **D-0119 (21 Nov) The visual / sound / feel pass begins: the shared look. Applied, NOT SEEN.** His "visual sound
+  and feel pass", "proceed" (order: A1 the look, A2 a Graphics option, B sound: crowd, music, missing sounds, C feel:
+  hit flash and shake, respawn dissolve, pickup sparkle and knock-out confetti, hit marker; A3 outlines, A4 Kenney
+  cursor). Found: post-processing was on in every camera but URP's global default profile held only neutral values,
+  so no scene had grading, bloom or vignette. `LookTools` / Apply Shift Jam Look writes into that global profile:
+  Neutral tonemapping, bloom (threshold 1.05, intensity 0.35, scatter 0.6), colour adjustments (exposure +0.12,
+  contrast 10, saturation 12, a warm filter), vignette 0.18; PC_Renderer's ambient occlusion 0.9 / radius 0.22 /
+  direct 0.3. Colour Corner's own volume sits on top. Render Stills (before | after) renders fixed spots per scene,
+  but a camera rendered by hand in the editor does not run post-processing (before and after came out pixel-equal):
+  the look must be judged in Play. Before stills kept: docs/stills/look_before_*.png.

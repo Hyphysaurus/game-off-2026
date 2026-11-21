@@ -42,10 +42,8 @@ namespace ShiftJam
             return best;
         }
 
-#if UNITY_EDITOR
-        /// <summary>Editor tools: mark this the First point.</summary>
+        /// <summary>Mark this the First point (the Stadium's builder; the house's online spawns, made at run time: D-0125).</summary>
         public void MarkFirst(bool value) => first = value;
-#endif
 
         private void OnDrawGizmos()
         {

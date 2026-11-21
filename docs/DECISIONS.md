@@ -2293,3 +2293,20 @@
   `butler push <Builds\Windows\ShiftJam_vN> hyphysaurus/shift-jam-playtest:windows --userversion N` (the share copy
   without LLMUnity's libraries); friends with the app get only the changed files. `docs/tools/itch_push.ps1` does the
   same for him (newest ShiftJam_vN, logs in on first use).
+- **D-0124 (21 Nov) The camera follows behind on foot.** His "the camera in the battle stadium doesn't naturally follow
+  the TPS" / "doesn't turn behind me". Found: on foot the camera only ever turned with the mouse (the car camera has
+  its recenter, the foot camera never had one). `ShoulderCamera.FollowBehind`: moving, no look input for followDelay
+  (0.5 s), not armed: the yaw eases toward the way the player MOVES at followRate (150°/s at a full run, scaled by
+  the run share; not below followMinSpeed 0.15), never when backing toward the camera (> followMaxAngle 135°).
+  Numbers on CameraSettings ("Follow behind"), every scene.
+- **D-0125 (21 Nov) Co-op as a sandbox, step 1: the house online.** His "co-op as sandbox is fine", "proceed with
+  all and build v11". `NetSession.InParty` (the network runs: true on a joining PC before its session is set; the
+  host's world arrives there first). Parties > Host House Party (`NetSession.HostHouse`: the session carries its world,
+  the list shows "House · 2/4"). `OnlineWorld` (any scene but the Stadium, while InParty): the scene's own player is
+  switched off and removed before its Start, every Door opens, every dormant core wakes, spawns at the course's own
+  arrival spots (R4_Playroom/Entry first; WardrobeFront, R3 FromPlayroom, R3 Start). The shift costs nothing online
+  (`ShiftCharge.Free`); `HubDoor` says "Online: this door opens later" (group travel is step 3); the title never opens
+  online; NetPlayer sets up again in each world it arrives in (camera, spawn, a full charge). `InteractPrompt` finds
+  this PC's own player when its scene player is gone; the Stadium gets a copy of the course HUD (the "E" prompt, the
+  fade; not the goal text, the cards, GameFlow). Steps 2 (host-run soldiers and breakables) and 3 (doors take the
+  group) are next; until then each PC runs its own soldiers.

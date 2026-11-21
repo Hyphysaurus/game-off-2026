@@ -1,6 +1,8 @@
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ShiftJam
 {
@@ -40,8 +42,26 @@ namespace ShiftJam
 
         public override void OnNetworkSpawn()
         {
-            if (IsOwner) SetUpOwn();
-            else SetUpPuppet();
+            if (!IsOwner) { SetUpPuppet(); return; }
+            SetUpOwn();
+            if (TryGetComponent(out Damageable health)) health.Died += OnKnockedOut;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        /// <summary>A new world loaded under us (D-0125: the host's own player was made on the title, before the party's
+        /// scene; later, the group travels): set up again there a frame later, once the world's own rules (OnlineWorld)
+        /// and spawns are in place: its camera, its spawn, a full shift charge.</summary>
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (mode == LoadSceneMode.Single && isActiveAndEnabled) StartCoroutine(ArriveNextFrame());
+        }
+
+        private IEnumerator ArriveNextFrame()
+        {
+            yield return null;
+            if (!IsSpawned || !IsOwner) yield break;
+            SetUpOwn();
+            if (TryGetComponent(out ShiftCharge charge)) charge.Refill();
         }
 
         private void SetUpOwn()
@@ -72,12 +92,12 @@ namespace ShiftJam
             Vector3 offset = Quaternion.Euler(0f, turn, 0f) * point.transform.right * (point.Spread * height);
             Put(point.transform.position + offset + Vector3.up * (spawnLift * height), point.transform.rotation);
             if (TryGetComponent(out Respawn respawn)) respawn.SetPoint(transform.position, transform.rotation);
-            if (TryGetComponent(out Damageable health)) health.Died += OnKnockedOut;
         }
 
         public override void OnNetworkDespawn()
         {
             if (IsOwner && TryGetComponent(out Damageable health)) health.Died -= OnKnockedOut;
+            if (IsOwner) SceneManager.sceneLoaded -= OnSceneLoaded;
         }
 
         /// <summary>Knocked out: the way back (PlayerHurt's respawn) goes to the point furthest from everyone else.</summary>

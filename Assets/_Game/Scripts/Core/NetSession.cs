@@ -29,6 +29,13 @@ namespace ShiftJam
         /// <summary>True while connected (host or joined).</summary>
         public static bool Online => _instance != null && (_instance._session != null || _instance._local) && NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
 
+        /// <summary>True whenever the network runs (host or client), from the first moment of joining: the scene the host
+        /// is in arrives on a joining PC before Online is true, so a scene's online rules key off this (D-0125).</summary>
+        public static bool InParty => NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+
+        /// <summary>The house as an online world (D-0125, co-op as a sandbox): the course scene with OnlineWorld's rules.</summary>
+        public const string HouseScene = "Greybox";
+
         /// <summary>The code that joins a party on this PC with no Relay (a second editor or a test window).</summary>
         public const string LocalCode = "LOCAL";
         private const ushort LocalPort = 7777;
@@ -75,8 +82,12 @@ namespace ShiftJam
             }
         }
 
-        /// <summary>Host a party: sign in, make the session on Relay, copy the code, take everyone to the party scene.</summary>
-        public static async void Host()
+        /// <summary>Host a party in the house (D-0125): the course scene as a co-op sandbox.</summary>
+        public static void HostHouse() => Host(HouseScene);
+
+        /// <summary>Host a party: sign in, make the session on Relay, copy the code, take everyone to the world's scene
+        /// (the Stadium unless another is given).</summary>
+        public static async void Host(string world = PartyScene)
         {
             var s = Get();
             if (s._busy || s._session != null || s._local) return;
@@ -91,13 +102,14 @@ namespace ShiftJam
                 // Named and public, so "Play Online" and the party list find it (D-0122); a code still joins it too.
                 var options = new SessionOptions { MaxPlayers = MaxPlayers, Name = PlayerName.Get() + "'s party", IsPrivate = false }.WithRelayNetwork();
                 options.SessionProperties[VersionKey] = new SessionProperty(Application.version, VisibilityPropertyOptions.Public);   // only the same version can join
+                options.SessionProperties[WorldKey] = new SessionProperty(world, VisibilityPropertyOptions.Public);   // shown in the party list
                 s._session = await MultiplayerService.Instance.CreateSessionAsync(options);
                 s._lastId = s._session.Id;
                 s.Watch();
                 GUIUtility.systemCopyBuffer = s._session.Code;
                 Say("Party code " + s._session.Code + " (copied: paste it to your friends)");
                 Time.timeScale = 1f;
-                NetworkManager.Singleton.SceneManager.LoadScene(PartyScene, LoadSceneMode.Single);
+                NetworkManager.Singleton.SceneManager.LoadScene(world, LoadSceneMode.Single);
             }
             catch (Exception e)
             {
@@ -106,12 +118,12 @@ namespace ShiftJam
                 Debug.LogWarning("NetSession: Relay failed, hosting on this PC: " + e);
                 s._session = null;
                 if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening) NetworkManager.Singleton.Shutdown();
-                s.HostLocal();
+                s.HostLocal(world);
             }
             finally { s._busy = false; }
         }
 
-        private void HostLocal()
+        private void HostLocal(string world)
         {
             try
             {
@@ -122,7 +134,7 @@ namespace ShiftJam
                 GUIUtility.systemCopyBuffer = LocalCode;
                 Say("Relay unavailable: playing on this PC only (a second window joins with " + LocalCode + ")");
                 Time.timeScale = 1f;
-                NetworkManager.Singleton.SceneManager.LoadScene(PartyScene, LoadSceneMode.Single);
+                NetworkManager.Singleton.SceneManager.LoadScene(world, LoadSceneMode.Single);
             }
             catch (Exception e) { Fail("Could not start a party", e); }
         }
@@ -174,12 +186,13 @@ namespace ShiftJam
         /// <summary>One open party as the list shows it.</summary>
         public readonly struct PartyInfo
         {
-            public readonly string Id, Name; public readonly int Players, Max;
-            public PartyInfo(string id, string name, int players, int max) { Id = id; Name = name; Players = players; Max = max; }
+            public readonly string Id, Name, World; public readonly int Players, Max;
+            public PartyInfo(string id, string name, string world, int players, int max) { Id = id; Name = name; World = world; Players = players; Max = max; }
         }
 
         private string _lastId;   // the party we were in: a dropped connection tries it first
         private const string VersionKey = "v";
+        private const string WorldKey = "w";
 
         /// <summary>The game version a party was made with ("" when it carries none).</summary>
         private static string VersionOf(IReadOnlyDictionary<string, SessionProperty> props) =>
@@ -215,7 +228,8 @@ namespace ShiftJam
                 {
                     if (info.IsLocked || info.HasPassword || info.AvailableSlots <= 0) continue;
                     if (VersionOf(info.Properties) != Application.version) continue;   // another version's world: it would half-work
-                    found.Add(new PartyInfo(info.Id, info.Name, info.MaxPlayers - info.AvailableSlots, info.MaxPlayers));
+                    string world = info.Properties != null && info.Properties.TryGetValue(WorldKey, out SessionProperty w) && w != null ? w.Value : PartyScene;
+                    found.Add(new PartyInfo(info.Id, info.Name, world == HouseScene ? "House" : "Stadium", info.MaxPlayers - info.AvailableSlots, info.MaxPlayers));
                 }
                 found.Sort((a, b) => b.Players.CompareTo(a.Players));
             }
@@ -415,7 +429,7 @@ namespace ShiftJam
 
         private void Update()
         {
-            bool show = (_session != null || _local) && SceneManager.GetActiveScene().name == PartyScene;
+            bool show = (_session != null || _local) && InParty;   // any online world: the Stadium or the house (D-0125)
             if (show && _hud == null) BuildHud();
             if (_hud != null && _hud.transform.parent.gameObject.activeSelf != show) _hud.transform.parent.gameObject.SetActive(show);
             if (show && _hud != null && Time.unscaledTime >= _nextHud) { _nextHud = Time.unscaledTime + 0.5f; RefreshHud(); }   // joins and leaves

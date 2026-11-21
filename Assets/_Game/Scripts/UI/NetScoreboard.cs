@@ -52,7 +52,7 @@ namespace ShiftJam
 
         private void Update()
         {
-            bool show = NetSession.Online && SceneManager.GetActiveScene().name == NetSession.PartyScene;
+            bool show = NetSession.Online && NetSession.InParty;   // any online world (D-0125)
             if (show && _root == null) Build();
             if (_root == null) return;
             if (_root.activeSelf != show) _root.SetActive(show);

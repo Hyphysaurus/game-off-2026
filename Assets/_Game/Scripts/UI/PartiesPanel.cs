@@ -71,7 +71,7 @@ namespace ShiftJam
             {
                 var p = parties[i];
                 _ids[i] = p.Id;
-                _rows[i].label.text = $"<b>{Clip(p.Name)}</b>   <alpha=#AA>{p.Players}/{p.Max}";
+                _rows[i].label.text = $"<b>{Clip(p.Name)}</b>   <alpha=#AA>{p.World} · {p.Players}/{p.Max}";
                 _rows[i].join.gameObject.SetActive(true);
             }
             _status.text = parties.Count == 0 ? "No open parties right now. Host one, or press Play Online on the title." : "";
@@ -114,10 +114,12 @@ namespace ShiftJam
 
             y = 0.3f;
             _first = MenuKit.Button(_root.transform, "Refresh", new Vector2(0.5f, y), -200f, 360f, 34f, Refresh);
-            MenuKit.Button(_root.transform, "Host New Party", new Vector2(0.5f, y), 200f, 360f, 34f, () => { _status.text = "Starting a party..."; NetSession.Host(); });
+            MenuKit.Button(_root.transform, "Host New Party", new Vector2(0.5f, y), 200f, 360f, 34f, () => { _status.text = "Starting a party in the Stadium..."; NetSession.Host(); });
             y -= 0.075f;
+            MenuKit.Button(_root.transform, "Host House Party", new Vector2(0.5f, y), 200f, 360f, 34f, () => { _status.text = "Starting a party in the house (co-op sandbox)..."; NetSession.HostHouse(); });   // D-0125
             MenuKit.Button(_root.transform, "Join With Code", new Vector2(0.5f, y), -200f, 360f, 34f, () => { _status.text = "Joining with the copied code..."; NetSession.Join(); });
-            MenuKit.Button(_root.transform, "Back", new Vector2(0.5f, y), 200f, 360f, 34f, Close);
+            y -= 0.075f;
+            MenuKit.Button(_root.transform, "Back", new Vector2(0.5f, y), 0f, 360f, 34f, Close);
             MenuKit.Text("Hint", _root.transform, "Join With Code reads a code you copied (a private party) · Esc / B to go back", 22, new Vector2(0.5f, 0.05f), new Vector2(1400, 40)).alpha = 0.6f;
             _root.SetActive(false);
         }

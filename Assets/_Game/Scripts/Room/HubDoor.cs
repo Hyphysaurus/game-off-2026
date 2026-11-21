@@ -36,6 +36,7 @@ namespace ShiftJam
 
         public string PromptFor(Interactor who)
         {
+            if (NetSession.InParty) return "Online: this door opens later";   // the group travels together (D-0125 step 3)
             if (_going || who == null || who.Shifter == null || who.Shifter.Shifting) return "";
             return prompt;
         }
@@ -43,6 +44,7 @@ namespace ShiftJam
         public void Interact(Interactor who)
         {
             if (_going || who == null || who.Shifter == null || who.Shifter.Shifting || string.IsNullOrEmpty(scene)) return;
+            if (NetSession.InParty) return;   // one player alone may not take the scene away from the party
             _going = true;
             GameObject player = who.gameObject;
             ScreenFade screen = fade > 0f ? ScreenFade.Find() : null;

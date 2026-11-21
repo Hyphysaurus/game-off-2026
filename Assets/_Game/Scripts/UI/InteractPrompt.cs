@@ -42,8 +42,18 @@ namespace ShiftJam
             TextFx.Set(_fx, label, tagged);
         }
 
+        private float _nextFind;
+
         private void Update()
         {
+            // The scene's player was removed (online: OnlineWorld, D-0125) or never was (the Stadium's copied HUD): follow
+            // this PC's own player, found by name (the online owner's copy is "Player"), twice a second until found.
+            if (interactor == null && Time.unscaledTime >= _nextFind)
+            {
+                _nextFind = Time.unscaledTime + 0.5f;
+                var own = GameObject.Find("Player");
+                if (own != null) { own.TryGetComponent(out interactor); if (carrier == null) own.TryGetComponent(out carrier); }
+            }
             if (interactor == null || label == null) return;
             // The grab first: what it holds, or the prop under the aim. Then whatever is in reach. Then why the aimed-at
             // prop can't be grabbed ("Too big"), then the hand-carry hint.

@@ -26,6 +26,7 @@ namespace ShiftJam
         private const string PlayerPath = NetDir + "/NetPlayer.prefab";
         private const string CameraDir = "Assets/_Game/Prefabs/Net";
         private const string CameraPath = CameraDir + "/HubCamera.prefab";
+        private const string HudPath = CameraDir + "/HubHud.prefab";
         private const string ScenePath = "Assets/_Game/Scenes/" + NetSession.PartyScene + ".unity";
         private const string CoursePath = "Assets/_Game/Scenes/Greybox.unity";
 
@@ -44,6 +45,8 @@ namespace ShiftJam
             float body = cc != null ? cc.height * player.transform.lossyScale.y : 1f;
             SavePlayer(player);
             SaveCamera(rig.gameObject);
+            var hud = GameObject.Find("HUD");
+            if (hud != null) SaveHud(hud);
             MakeStadium(body);
             EditorSceneManager.OpenScene(CoursePath, OpenSceneMode.Single);
             Debug.Log($"PartyBuilder: NetPlayer, HubCamera and {NetSession.PartyScene} built (toy body {body:0.##} units). Greybox reopened.");
@@ -103,6 +106,22 @@ namespace ShiftJam
             Object.DestroyImmediate(copy);
         }
 
+        /// <summary>The course's HUD for the Stadium (D-0125): the "E" prompt (it finds this PC's own player by itself) and
+        /// the screen fade (teleports, respawns). The course's goal text, start and end cards and its GameFlow stay out.</summary>
+        private static void SaveHud(GameObject hud)
+        {
+            GameObject copy = Object.Instantiate(hud);
+            copy.name = "HubHud";
+            foreach (var flow in copy.GetComponentsInChildren<GameFlow>(true)) Object.DestroyImmediate(flow);
+            foreach (string part in new[] { "StartCard", "EndCard", "GoalText" })
+            {
+                var t = copy.transform.Find(part);
+                if (t != null) Object.DestroyImmediate(t.gameObject);
+            }
+            PrefabUtility.SaveAsPrefabAsset(copy, HudPath);
+            Object.DestroyImmediate(copy);
+        }
+
         private static void SaveCamera(GameObject cam)
         {
             GameObject copy = Object.Instantiate(cam);
@@ -132,6 +151,14 @@ namespace ShiftJam
             StadiumLayout.Build(scene, body);   // the stadium, the field, the play pieces and the spawns (D-0113)
             AddRaceway(scene, body);            // the race track beside it, its cars online (D-0116)
             Vector3 centre = Vector3.zero;
+
+            var hudAsset = AssetDatabase.LoadAssetAtPath<GameObject>(HudPath);
+            if (hudAsset != null)
+            {
+                var hudCopy = (GameObject)PrefabUtility.InstantiatePrefab(hudAsset, scene);
+                PrefabUtility.UnpackPrefabInstance(hudCopy, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+                hudCopy.name = "HUD";
+            }
 
             var camAsset = AssetDatabase.LoadAssetAtPath<GameObject>(CameraPath);
             var cam = (GameObject)PrefabUtility.InstantiatePrefab(camAsset, scene);

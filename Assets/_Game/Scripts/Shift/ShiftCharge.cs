@@ -31,6 +31,9 @@ namespace ShiftJam
         private ShiftChargeHud _hud;
         private float _readyAt, _lastGrounded = -10f;
         private bool _free;   // this scene's shift costs no charge (TitleMenu.IsFreeShift)
+        /// <summary>The shift costs nothing here: a free-shift scene, or online (D-0125: the house as a sandbox; the host's
+        /// charge was set up on the title, before the party, so this is read at each press).</summary>
+        private bool Free => _free || NetSession.InParty;
         private static readonly Collider[] Hits = new Collider[32];
         private static readonly RaycastHit[] Below = new RaycastHit[16];
 
@@ -114,7 +117,7 @@ namespace ShiftJam
             // the body changes round its middle (D-0094).
             bool inAir = Time.time - _lastGrounded > GroundGrace;
             string refused =
-                Charges <= 0 && !_free ? Empty
+                Charges <= 0 && !Free ? Empty
                 : NoShiftZone.Covering(transform.position) is { } zone ? zone.Message
                 : to == ShiftSize.Kid && !(inAir ? RoomToGrowInAir() : RoomToGrow()) ? NoRoom
                 : null;
@@ -124,7 +127,7 @@ namespace ShiftJam
                 GameEvents.RaiseShiftRefused(_shifter, refused);
                 return;
             }
-            if (!_free) Charges--;
+            if (!Free) Charges--;
             _shifter.ShiftTo(to, inAir);
             if (_hud != null) _hud.Refresh();
             // The first toy made in the air with no glider to open: it is about to fall, and falls break toys (said once a save).

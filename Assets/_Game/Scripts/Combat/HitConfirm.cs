@@ -90,7 +90,7 @@ namespace ShiftJam
                 return;
             }
             if (_s.downNudge <= 0f || _s.downNudgeSeconds <= 0f) return;
-            if (_view == null) { Camera cam = Camera.main; if (cam != null) cam.TryGetComponent(out _view); }
+            if (_view == null) { Camera cam = PlayerSlot.ViewFor(this); if (cam != null) cam.TryGetComponent(out _view); }
             if (_view == null) return;
             _view.Shake(_s.downNudge, _s.downNudgeSeconds);
             Nudges++;

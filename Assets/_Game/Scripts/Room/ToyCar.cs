@@ -208,7 +208,7 @@ namespace ShiftJam
             if (_anim != null) { _anim.SetFloat("Speed", 0f); _anim.SetBool("Grounded", true); _anim.SetFloat("VerticalVelocity", 0f); }
             _enteredAt = Time.time;
             _input.Interact += GetOut; _input.Jump += Hop;
-            _camera = FindFirstObjectByType<ShoulderCamera>(); if (_camera != null) _camera.SetChase(transform, _flip, chaseDistance);
+            _camera = PlayerSlot.RigFor(_input); if (_camera != null) _camera.SetChase(transform, _flip, chaseDistance);
             SetDriving(true);
             onEnter?.Invoke();
         }

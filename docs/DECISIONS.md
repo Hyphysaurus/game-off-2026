@@ -2100,7 +2100,7 @@
     Pictures: weapons from Art/Thumbs via Fit Weapon Holds, flashlights via Shift Jam / Inventory / Wire Tool Icons.
   - Not yet: tools are not carried through a door to another scene, nor saved; big things (planks, boxes) stay in
     both hands, out of the bar.
-- **D-0109 (21 Nov) The Dart Line: the dart hookshot with zip lines (roadmap item 3). Staged, not landed.**
+- **D-0109 (21 Nov) The Dart Line: the dart hookshot with zip lines (roadmap item 3). Scripts landed 21 Nov (`129dbde`); Land Downstairs + Land Dart Line still to run in the editor.**
   - His "TOY ONLY", then "PROCEED" (my picks: from the armory rack with a practice target; the downstairs hole gets
     the way back up).
   - `DartLineWeapon` (a Weapon, held as the pistol): click fires a foam dart on a line at the `HookAnchor` nearest the
@@ -2118,3 +2118,26 @@
   - Not yet: no hanging pose (the body stands while on the line); sounds borrowed (dart fire, dull impact).
 - **D-0103 addendum: the toy by the gap stands idle** (the Funny Characters figure had no Animator: it stood in its
   bind pose). `IdleOn` gives it the pack's Idle loop (`Data/GapNpc_Idle.controller`). Staged, lands with Land Downstairs.
+- **D-0110 (21 Nov) Party play: couch split-screen, 1 to 4 players (first pass: the seats). Written and compiled
+  outside, not run.**
+  - His ask: "a fun multiplayer experience, up to 4 players", for friends to playtest. My pick, his "proceed": LOCAL
+    split-screen, not online (online means syncing darts, breakables, soldiers, cars and the shift over a network:
+    not before 1 Dec). Friends far away play it through Steam Remote Play Together or Parsec. First mode: Foam Fight
+    (free-for-all in a slimmed Playroom, shift cores as power-ups); then the Raceway with real rivals.
+  - The course stays single player: only a scene with a `PartyJoin` does any of this.
+  - `PartyJoin`: a pad not yet playing presses Start and joins (Update, not mid-event). Seat 1 and its camera are
+    copied together under a switched-off holder, so the copy's own references (motor camera, aim camera, body fade)
+    point at its own camera; the copy loses the AudioListener (one listener: seat 1's) and the MainCamera tag
+    (Camera.main stays seat 1's), never touches the cursor, is paired with that pad, then wakes. On the first join
+    seat 1 becomes the keyboard and mouse. Split: 2 = one above the other, 3 = seat 1 on top + two quarters, 4 =
+    quarters. Spawn points optional (else beside seat 1). Menu: Shift Jam / Party / Add Party Join To Open Scene.
+  - `PlayerSlot` (seat, rig, input; `PlayerSlot.All`): `RigFor(part)` / `ViewFor(part)` give a player's own camera,
+    or the old answer (first ShoulderCamera / Camera.main) when there is no seat, so single player is unchanged.
+    Used by PlayerMotor, WeaponHolder, Carrier, FirstPersonMode, BodyFade, ThirdPersonGrab, HitConfirm, CarSeat,
+    ToyCar.
+  - `PlayerInput.PairWith(devices)` (+ `Paired`, `UsesMouse`): the code-made actions (reload, grenade, slot keys...)
+    moved into their own map so pairing reaches them. `ShoulderCamera.OwnsCursor`, `View`, `Target`.
+  - Time scale is not a party problem: only the opening (course only) slows time; pause stopping everyone is right.
+  - Not yet (next passes): HUDs (WeaponHud, Hotbar, prompts) are seat 1's, full screen; damage numbers and
+    billboards face seat 1's camera; DrivingFeel is one driver; no leave / pad lost; the Foam Fight arena, score and
+    round card; a player copied mid-game copies what seat 1 holds.

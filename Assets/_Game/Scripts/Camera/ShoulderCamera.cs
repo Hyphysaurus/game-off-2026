@@ -193,12 +193,23 @@ namespace ShiftJam
             // Escape opens the pause menu, which frees the mouse by switching this camera off (D-0044); a click in the
             // game view takes the mouse back if it got free some other way. "Free" is read from the cursor itself, not
             // only from what was last asked for: the editor can drop or never grant the capture without telling us.
-            if ((!_cursorLocked || Cursor.lockState != CursorLockMode.Locked) && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) SetCursorLocked(true);
+            if (OwnsCursor && (!_cursorLocked || Cursor.lockState != CursorLockMode.Locked) && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) SetCursorLocked(true);
         }
+
+        /// <summary>False for a party player on a pad (D-0110): the cursor belongs to the mouse's player, so this camera
+        /// never locks or frees it.</summary>
+        public bool OwnsCursor { get; set; } = true;
+
+        /// <summary>This rig's own camera (a party player's view; Camera.main is only the first player's).</summary>
+        public Camera View => _camera != null ? _camera : GetComponent<Camera>();
+
+        /// <summary>The player this camera follows.</summary>
+        public Transform Target => target;
 
         private void SetCursorLocked(bool locked)
         {
             _cursorLocked = locked;
+            if (!OwnsCursor) return;
             Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
             Cursor.visible = !locked;
         }

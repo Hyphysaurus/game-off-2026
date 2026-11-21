@@ -333,7 +333,7 @@ namespace ShiftJam
         {
             if (!InFist) return;
             float s = Scale;
-            Transform view = Camera.main != null ? Camera.main.transform : null;
+            Camera cam = PlayerSlot.ViewFor(this); Transform view = cam != null ? cam.transform : null;
             Vector3 target = view != null ? view.position + view.forward * (100f * s) : transform.position + transform.forward * (100f * s);
             Quaternion grip = FistFrame;
             Vector3 size = Held.transform.lossyScale;

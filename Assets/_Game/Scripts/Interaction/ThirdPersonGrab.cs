@@ -231,7 +231,7 @@ namespace ShiftJam
 
         private bool FindView()
         {
-            if (_camera == null) _camera = FindFirstObjectByType<ShoulderCamera>();
+            if (_camera == null) _camera = PlayerSlot.RigFor(this);
             _view = _camera != null ? _camera.transform : null;
             return _view != null;
         }

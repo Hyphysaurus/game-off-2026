@@ -137,8 +137,8 @@ namespace ShiftJam
 
         private void BuildRig()
         {
-            if (shoulderCamera == null) shoulderCamera = FindFirstObjectByType<ShoulderCamera>();
-            _view = shoulderCamera != null ? shoulderCamera.GetComponent<Camera>() : Camera.main;
+            if (shoulderCamera == null) shoulderCamera = PlayerSlot.RigFor(this);
+            _view = shoulderCamera != null ? shoulderCamera.GetComponent<Camera>() : PlayerSlot.ViewFor(this);
             _rig = new GameObject("FirstPersonBody");
             _rig.SetActive(false);
             _rig.layer = gameObject.layer;

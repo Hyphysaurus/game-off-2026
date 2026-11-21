@@ -2,6 +2,21 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 11:5x — PARTY PLAY FIRST PASS (D-0110) + D-0109 SCRIPTS LANDED + GLIDER ERROR FIXED: COMPILED OUTSIDE, NOT RUN (he was in WoW; Unity closed)
+- Committed the 52 waiting files (`7b2ae27`, D-0102..D-0108). D-0109's scripts copied in from the stage (`129dbde`):
+  🔴 still owed in the editor: Shift Jam / House / Land Downstairs, then Land Dart Line (they place the anchors and
+  the gap toy's idle). Unity will make .meta files for the new scripts on open: commit them.
+- Glider: the `Paper_Plane_01` vertex error (3 plays) fixed: the code reads only readable meshes, and the plane's
+  import is set Read/Write (`_Imports` is not in git: a fresh pack import needs that box ticked again).
+- D-0110 party seats: Start on a pad joins (up to 4), split screen, each player its own camera, aim and pad; seat 1
+  = keyboard and mouse. Only in a scene with PartyJoin; the course is unchanged.
+- HIS PLAYTEST (when back): 1) solo Greybox as before: does anything feel different? (it should not). 2) In the
+  Playroom or Workshop, menu Shift Jam / Party / Add Party Join To Open Scene (don't save the scene), Play, Start on
+  a pad: a second player appears, the screen splits; move, aim, shoot with each. How many pads does he have?
+- Open: the 1-2 s hitches in every play since D-0102 (no single event before them; several right after the window
+  lost focus: maybe editor only): a profiler capture with him there. Next party passes: per-seat HUD, the Foam
+  Fight arena + score.
+
 ## 21 Nov 2026 02:5x — THE DART LINE (D-0109) + THE GAP TOY IDLE: WRITTEN AND COMPILED OUTSIDE, NOT LANDED (he was gaming)
 - Staged: `%TEMP%\shiftjam-stage\pass15` (Dart Line, pulled motor state, glider fold, toy-only items) and
   `pass14` (the gap toy's idle). To land: copy in, refresh, then Land Downstairs, then Land Dart Line.

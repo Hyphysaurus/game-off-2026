@@ -42,7 +42,7 @@ namespace ShiftJam
 
         private void Start()
         {
-            if (shoulderCamera == null) shoulderCamera = FindFirstObjectByType<ShoulderCamera>();
+            if (shoulderCamera == null) shoulderCamera = PlayerSlot.RigFor(this);
         }
 
         private void OnDisable() { _shown = 1f; Restore(); }

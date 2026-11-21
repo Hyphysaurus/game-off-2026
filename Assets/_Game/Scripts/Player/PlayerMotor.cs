@@ -101,7 +101,7 @@ namespace ShiftJam
             _controller = GetComponent<CharacterController>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (shifter == null) shifter = GetComponent<Shifter>();
-            if (cameraTransform == null && Camera.main != null) cameraTransform = Camera.main.transform;
+            if (cameraTransform == null) { Camera view = PlayerSlot.ViewFor(this); if (view != null) cameraTransform = view.transform; }   // a party player's own camera (D-0110)
             if (animator != null) animator.applyRootMotion = false;
             if (settings != null && settings.propGravity > 0f) Physics.gravity = Vector3.down * settings.propGravity;
             _lastScale = Scale;

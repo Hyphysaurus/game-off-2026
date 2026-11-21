@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Utilities;
 
 namespace ShiftJam
 {
@@ -18,6 +19,7 @@ namespace ShiftJam
 
         private InputActionAsset _instance;
         private InputActionMap _player;
+        private InputActionMap _extras;   // the actions made in code below: their own map, so pairing reaches them too
         private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop, _previous, _next, _shift, _crouch, _aim, _dodge, _block;
         // Workshop extras the asset has no actions for: made here so this stays the only script that knows devices.
         private InputAction _dropWeapon, _scroll, _rotate, _reload, _grenade, _grenadePad, _grenadePadHold;
@@ -90,25 +92,26 @@ namespace ShiftJam
             _previous = _player.FindAction("Previous", true);
             _next = _player.FindAction("Next", true);
             _shift = _player.FindAction("Shift", true);
-            _dropWeapon = new InputAction("DropWeapon", InputActionType.Button, "<Keyboard>/z");
+            _extras = new InputActionMap("Extras");
+            _dropWeapon = _extras.AddAction("DropWeapon", InputActionType.Button, "<Keyboard>/z");
             _dropWeapon.AddBinding("<Gamepad>/dpad/down");
-            _scroll = new InputAction("Scroll", InputActionType.Value, "<Mouse>/scroll/y");
-            _rotate = new InputAction("RotateHeld", InputActionType.Button, "<Keyboard>/r");
+            _scroll = _extras.AddAction("Scroll", InputActionType.Value, "<Mouse>/scroll/y");
+            _rotate = _extras.AddAction("RotateHeld", InputActionType.Button, "<Keyboard>/r");
             _rotate.AddBinding("<Mouse>/rightButton");
             _rotate.AddBinding("<Gamepad>/leftShoulder");
-            _reload = new InputAction("Reload", InputActionType.Button, "<Keyboard>/r");
+            _reload = _extras.AddAction("Reload", InputActionType.Button, "<Keyboard>/r");
             _reload.AddBinding("<Gamepad>/buttonNorth");
-            _grenade = new InputAction("Grenade", InputActionType.Button, "<Keyboard>/g");
+            _grenade = _extras.AddAction("Grenade", InputActionType.Button, "<Keyboard>/g");
             for (int i = 0; i < _slots.Length; i++)
             {
                 int slot = i;
-                _slots[i] = new InputAction("Slot" + (i + 1), InputActionType.Button, "<Keyboard>/" + (i + 1));
+                _slots[i] = _extras.AddAction("Slot" + (i + 1), InputActionType.Button, "<Keyboard>/" + (i + 1));
                 _slots[i].performed += _ => Slot?.Invoke(slot);
             }
             // The pad: both sticks pressed in, the right one first. The only pair on the pad whose own jobs are both
             // "hold" (crouch, run), so the press that throws does nothing else.
-            _grenadePadHold = new InputAction("GrenadePadHold", InputActionType.Button, "<Gamepad>/rightStickPress");
-            _grenadePad = new InputAction("GrenadePad", InputActionType.Button, "<Gamepad>/leftStickPress");
+            _grenadePadHold = _extras.AddAction("GrenadePadHold", InputActionType.Button, "<Gamepad>/rightStickPress");
+            _grenadePad = _extras.AddAction("GrenadePad", InputActionType.Button, "<Gamepad>/leftStickPress");
         }
 
         private void OnEnable()
@@ -129,15 +132,13 @@ namespace ShiftJam
             _grenade.performed += OnGrenade;
             _grenadePad.performed += OnGrenadePad;
             _player.Enable();
-            _dropWeapon.Enable(); _scroll.Enable(); _rotate.Enable(); _reload.Enable(); _grenade.Enable(); _grenadePad.Enable(); _grenadePadHold.Enable();
-            foreach (var s in _slots) s?.Enable();
+            _extras.Enable();
         }
 
         private void OnDisable()
         {
             _player.Disable();
-            _dropWeapon.Disable(); _scroll.Disable(); _rotate.Disable(); _reload.Disable(); _grenade.Disable(); _grenadePad.Disable(); _grenadePadHold.Disable();
-            foreach (var s in _slots) s?.Disable();
+            _extras.Disable();
             _reload.performed -= OnReload;
             _grenade.performed -= OnGrenade;
             _grenadePad.performed -= OnGrenadePad;
@@ -159,8 +160,7 @@ namespace ShiftJam
         private void OnDestroy()
         {
             if (_instance != null) Destroy(_instance);
-            foreach (var s in _slots) s?.Dispose();
-            _dropWeapon?.Dispose(); _scroll?.Dispose(); _rotate?.Dispose(); _reload?.Dispose(); _grenade?.Dispose(); _grenadePad?.Dispose(); _grenadePadHold?.Dispose();
+            _extras?.Dispose();
         }
 
         private void OnJump(InputAction.CallbackContext _) => Jump?.Invoke();
@@ -183,6 +183,33 @@ namespace ShiftJam
             // A mouse or touch gives pixels moved this frame: accumulate. A stick gives a held value: keep the latest.
             if (ctx.control.device is Pointer) _mouseLook += value;
             else _stickLook = value;
+        }
+
+        /// <summary>
+        /// Party play (D-0110): only these devices drive this player, e.g. one pad, or the keyboard and mouse. With no
+        /// devices (the default, and single player) every connected device does, as before. Call after Awake.
+        /// </summary>
+        public void PairWith(params InputDevice[] devices)
+        {
+            ReadOnlyArray<InputDevice>? only = devices != null && devices.Length > 0 ? new ReadOnlyArray<InputDevice>(devices) : (ReadOnlyArray<InputDevice>?)null;
+            Paired = only.HasValue ? devices : null;
+            if (_instance != null) _instance.devices = only;
+            if (_extras != null) _extras.devices = only;
+            _mouseLook = _stickLook = Vector2.zero;
+        }
+
+        /// <summary>The devices this player is paired with; null when every device drives it (single player).</summary>
+        public InputDevice[] Paired { get; private set; }
+
+        /// <summary>True when the mouse drives this player (single player, or the party's keyboard-and-mouse seat).</summary>
+        public bool UsesMouse
+        {
+            get
+            {
+                if (Paired == null) return true;
+                foreach (var d in Paired) if (d is Mouse) return true;
+                return false;
+            }
         }
 
         /// <summary>

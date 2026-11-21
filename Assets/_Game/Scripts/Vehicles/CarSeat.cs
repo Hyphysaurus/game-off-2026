@@ -110,7 +110,7 @@ namespace ShiftJam
             _input.Interact += OnExitPressed;
             _enteredAt = Time.time;
             _wantsOut = false;
-            _camera = FindFirstObjectByType<ShoulderCamera>();
+            _camera = PlayerSlot.RigFor(_input);   // the driver's own camera (D-0110)
             if (_camera != null) _camera.SetChase(transform, 0f, _car.Settings != null ? _car.Settings.chaseDistance : 1.8f);
             Driving.Set(transform);
         }

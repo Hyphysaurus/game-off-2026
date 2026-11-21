@@ -110,7 +110,8 @@ namespace ShiftJam
         public bool FirstPerson => _fpView != null;
         /// <summary>The first-person body standing in for the player, when there is one: never shot by our own shots.</summary>
         public Transform FirstPersonBodyRoot => _fpBody;
-        private Transform View => _fpView != null ? _fpView : (aimCamera != null ? aimCamera.transform : (Camera.main != null ? Camera.main.transform : null));
+        private Transform View => _fpView != null ? _fpView : (aimCamera != null ? aimCamera.transform : OwnView());
+        private Transform OwnView() { Camera view = PlayerSlot.ViewFor(this); return view != null ? view.transform : null; }   // a party player's own (D-0110)
         /// <summary>Where the aim ray starts: the camera.</summary>
         public Vector3 AimOrigin => View != null ? View.position : AttackOrigin;
         public Vector3 AimForward => View != null ? View.forward : transform.forward;

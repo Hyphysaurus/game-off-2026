@@ -139,8 +139,8 @@ namespace ShiftJam
             var pickups = new GameObject("Pickups").transform; pickups.SetParent(root);
             foreach (var w in Stands)
             {
-                Stand(pickups, w.Prefab, new Vector3(w.At.x, 0f, w.At.y), w.Turn);
-                if (w.Mirror) Stand(pickups, w.Prefab, new Vector3(-w.At.x, 0f, -w.At.y), w.Turn + 180f);
+                Stand(pickups, w.Prefab, new Vector3(w.At.x, 0f, w.At.y), w.Turn, w.Up);
+                if (w.Mirror) Stand(pickups, w.Prefab, new Vector3(-w.At.x, 0f, -w.At.y), w.Turn + 180f, w.Up);
             }
             foreach (var g in Gifts)
             {
@@ -155,10 +155,19 @@ namespace ShiftJam
             if (soldierAsset != null)
             {
                 var practice = new GameObject("Practice").transform; practice.SetParent(root);
-                foreach (var at in new[] { new Vector3(-11f, 0f, -5f), new Vector3(11f, 0f, 5f), new Vector3(5f, 0f, -14f), new Vector3(-5f, 0f, 14f) })
+                // Out at the far edges, two by each base, so nobody spawns in their sight (his "a bunch of army soldiers
+                // instantly shooting at me", 21 Nov): you go to them. Shorter sight, slower to fire, softer darts.
+                foreach (var at in new[] { new Vector3(-13.5f, 0f, -18.5f), new Vector3(13.5f, 0f, -18.5f), new Vector3(13.5f, 0f, 18.5f), new Vector3(-13.5f, 0f, 18.5f) })
                 {
                     var soldier = (GameObject)PrefabUtility.InstantiatePrefab(soldierAsset, practice);
                     soldier.transform.SetPositionAndRotation(at, Quaternion.LookRotation(-at.normalized, Vector3.up));
+                    var so = new SerializedObject(soldier.GetComponent<ToySoldier>());
+                    so.FindProperty("sightRange").floatValue = 12f;
+                    so.FindProperty("fireRange").floatValue = 10f;
+                    so.FindProperty("reactionTime").floatValue = 1.2f;
+                    so.FindProperty("damage").floatValue = 6f;
+                    so.FindProperty("wanderRadius").floatValue = 2.5f;   // they stay at their corner
+                    so.ApplyModifiedPropertiesWithoutUndo();
                 }
             }
 
@@ -181,8 +190,9 @@ namespace ShiftJam
 
         private readonly struct StandSpot
         {
-            public readonly string Prefab; public readonly Vector2 At; public readonly float Turn; public readonly bool Mirror;
-            public StandSpot(string prefab, float x, float z, float turn = 0f, bool mirror = true) { Prefab = prefab; At = new Vector2(x, z); Turn = turn; Mirror = mirror; }
+            public readonly string Prefab; public readonly Vector2 At; public readonly float Turn; public readonly bool Mirror, Up;
+            /// <param name="up">On top of whatever stands there (a platform); else on the floor, under any roof (D-0120).</param>
+            public StandSpot(string prefab, float x, float z, float turn = 0f, bool mirror = true, bool up = false) { Prefab = prefab; At = new Vector2(x, z); Turn = turn; Mirror = mirror; Up = up; }
         }
 
         private readonly struct GiftSpot
@@ -199,16 +209,15 @@ namespace ShiftJam
         /// the lanes, a supply crate at each base.</summary>
         private static readonly StandSpot[] Stands =
         {
-            new StandSpot("DartPistolPickup", 0f, -20f),
-            new StandSpot("DartSMGPickup", -17f, -9f),
+            new StandSpot("DartPistolPickup", 0f, -15f),                 // inside the base arch: you run through it
+            new StandSpot("DartSMGPickup", -17f, -9f, 0f, true, true),   // up on the flank platform (trampoline)
             new StandSpot("DartShotgunPickup", -9f, 0f, 90f, false),
             new StandSpot("DartShotgunPickup", 9f, 0f, 90f, false),
             new StandSpot("ToyKnifePickup", 0f, -9f),
             new StandSpot("FoamFingerPickup", 3.5f, 0f),
             new StandSpot("AmmoBox", -12f, -13f),
             new StandSpot("AmmoBox", 12f, -13f),
-            new StandSpot("AmmoBox", 0f, -15.5f),
-            new StandSpot("SupplyCrate", -3f, -21f),
+            new StandSpot("SupplyCrate", 0f, -19.5f),                    // at the back of the base arch
         };
 
         /// <summary>Heals, shields, grenades and charge, south half (turned half round for the north).</summary>
@@ -221,19 +230,29 @@ namespace ShiftJam
             new GiftSpot(PlayerPickup.Kind.Charge, "Props/star_001", 0f, 30f, -21.5f, 0f),
         };
 
-        private static void Stand(Transform parent, string prefab, Vector3 at, float turn)
+        private static void Stand(Transform parent, string prefab, Vector3 at, float turn, bool up)
         {
             var asset = AssetDatabase.LoadAssetAtPath<GameObject>(Weapons + prefab + ".prefab");
             if (asset == null) { Debug.LogWarning("StadiumLayout: no " + prefab); return; }
             var go = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent);
-            go.transform.SetPositionAndRotation(Surface(at), Quaternion.Euler(0f, turn, 0f));
+            // On the floor unless it is meant to be up on something: a stand dropped from the sky landed on the arches'
+            // roofs, out of reach (his "I can't reach any of the guns", 21 Nov).
+            go.transform.SetPositionAndRotation(up ? Surface(at) : Floor(at), Quaternion.Euler(0f, turn, 0f));
+        }
+
+        /// <summary>The lowest thing to stand on at (x, z): cast from just above the floor, so roofs are not found.</summary>
+        private static Vector3 Floor(Vector3 at)
+        {
+            Physics.SyncTransforms();
+            return Physics.Raycast(new Vector3(at.x, 0.6f, at.z), Vector3.down, out RaycastHit hit, 2f, ~0, QueryTriggerInteraction.Ignore) ? hit.point : new Vector3(at.x, 0f, at.z);
         }
 
         private static void Gift(Transform parent, GiftSpot g, Vector3 at, float body)
         {
             var go = new GameObject(g.Kind + "Pickup", typeof(SphereCollider));
             go.transform.SetParent(parent);
-            go.transform.position = Surface(at) + Vector3.up * (body * 0.55f);
+            Vector3 ground = g.Kind == PlayerPickup.Kind.Grenades ? Surface(at) : Floor(at);   // the bomb is up on the flank platform
+            go.transform.position = ground + Vector3.up * (body * 0.55f);
             var col = go.GetComponent<SphereCollider>(); col.isTrigger = true; col.radius = body * 0.5f;
             var model = Place(g.Model, go.transform, go.transform.position, 0f, 0.45f, false);
             var pickup = go.AddComponent<PlayerPickup>();

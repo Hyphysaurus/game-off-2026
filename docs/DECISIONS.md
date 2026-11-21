@@ -2264,3 +2264,11 @@
     Collection (GameBurp EULA: use in our own games, never shipped loose) has 64 cheers / applause and pickup, pop,
     whoosh and impact sets: its files go under _Imports (git-ignored: the repo is public). No crowd loop exists in
     the library: cheers on events instead. Music must be picked by his ear (no metadata to choose by).
+- **D-0120 (21 Nov) From his first v8 run: soldiers off the spawn, guns within reach.** His: "dropping into the game
+  for a host has a bunch of army soldiers instantly shooting at me", "I can't reach any of the guns". Found: the four
+  practice soldiers stood 11-15 from the stage and saw 18; the builder put stands on the first surface seen from the
+  sky, so pistols, shotguns, the middle ammo and the crates sat on the arches' and blocks' roofs (3.3-3.7 up). Now:
+  soldiers at (±13.5, ±18.5) by the bases, sight 12, fire range 10, reaction 1.2 s, damage 6, wander 2.5; stands
+  and gifts placed on the FLOOR (cast from just above it, so roofs are not found) unless meant to be up (the SMG and
+  the grenade bomb on the flank platforms); pistols inside the base arches, a supply crate at each arch's back, the
+  middle ammo boxes dropped (the lane boxes stay). Unity was closed: rebuild the Stadium, then v9.

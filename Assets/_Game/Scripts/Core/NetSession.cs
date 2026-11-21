@@ -42,6 +42,7 @@ namespace ShiftJam
         public static event Action StatusChanged;
 
         private static NetSession _instance;
+        private const string LastCodeKey = "ShiftJam.LastPartyCode";
         private ISession _session;
         private bool _local;   // a party on this PC only: Relay could not be reached (D-0114)
         private bool _busy;
@@ -126,7 +127,8 @@ namespace ShiftJam
         {
             var s = Get();
             if (s._busy || s._session != null || s._local) return;
-            code = Clean(code ?? GUIUtility.systemCopyBuffer);
+            // The clipboard's code, else the last party joined: dropping out and back in is one click (D-0121).
+            code = Clean(code ?? GUIUtility.systemCopyBuffer) ?? Clean(PlayerPrefs.GetString(LastCodeKey, ""));
             if (string.IsNullOrEmpty(code)) { Say("Copy a party code first (from Discord), then press Join."); return; }
             s._scores.Clear();
             if (code == LocalCode) { s.JoinLocal(); return; }
@@ -137,6 +139,7 @@ namespace ShiftJam
                 await s.SignIn();
                 s.EnsureNetworkManager();
                 s._session = await MultiplayerService.Instance.JoinSessionByCodeAsync(code);
+                PlayerPrefs.SetString(LastCodeKey, code); PlayerPrefs.Save();
                 s.Watch();
                 Time.timeScale = 1f;
                 Say("Joined " + code);   // the host's scene comes to us

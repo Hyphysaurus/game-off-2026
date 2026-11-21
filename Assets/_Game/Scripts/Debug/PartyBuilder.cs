@@ -49,6 +49,18 @@ namespace ShiftJam
             Debug.Log($"PartyBuilder: NetPlayer, HubCamera and {NetSession.PartyScene} built (toy body {body:0.##} units). Greybox reopened.");
         }
 
+        /// <summary>Batch (D-0121): the editor need not be open. Opens Greybox, rebuilds the NetPlayer and the Stadium, builds
+        /// the next Windows version (BuildTools) and quits (exit 1 on a failed build).
+        /// -executeMethod ShiftJam.PartyBuilder.RebuildAndBuildBatch</summary>
+        public static void RebuildAndBuildBatch()
+        {
+            EditorSceneManager.OpenScene(CoursePath, OpenSceneMode.Single);
+            Build();
+            int next = int.TryParse(PlayerSettings.bundleVersion, out int now) ? now + 1 : 1;
+            bool ok = BuildTools.Windows(next);
+            EditorApplication.Exit(ok ? 0 : 1);
+        }
+
         private static void SavePlayer(GameObject player)
         {
             GameObject copy = Object.Instantiate(player);

@@ -93,6 +93,7 @@ namespace ShiftJam
             _timeScale = Time.timeScale;
             if (!NetSession.Online) { Time.timeScale = 0f; AudioListener.pause = true; }   // online the game goes on for the others (D-0111)
             MenuKit.EnsureEventSystem();
+            if (_backLabel != null) _backLabel.text = NetSession.Online ? "Leave Party" : "Back to Title";
             _root.SetActive(true);
             UiAudio.Play(UiAudio.Kind.Open);
             UiAudio.Hush();
@@ -122,6 +123,8 @@ namespace ShiftJam
         }
 
         /// <summary>The course reloads to its title; the Workshop has none, so it goes to the course's.</summary>
+        private TMPro.TMP_Text _backLabel;   // "Leave Party" while online (D-0121)
+
         private void BackToTitle()
         {
             if (NetSession.Online) { IsOpen = false; _root.SetActive(false); NetSession.Leave(); return; }   // leave the party, then the title (D-0111)
@@ -157,7 +160,9 @@ namespace ShiftJam
             _resume = MenuKit.Button(_root.transform, "Resume", new Vector2(0.5f, y), 0f, 380f, 40f, Resume); y -= 0.075f;
             UiSound.On(_resume).Press = UiAudio.Kind.None;   // Resume plays Back itself (Esc too)
             _optionsButton = MenuKit.Button(_root.transform, "Options", new Vector2(0.5f, y), 0f, 380f, 40f, OpenOptions); y -= 0.075f;
-            UiSound.On(MenuKit.Button(_root.transform, "Back to Title", new Vector2(0.5f, y), 0f, 380f, 40f, BackToTitle)).Press = UiAudio.Kind.Confirm; y -= 0.075f;
+            var back = MenuKit.Button(_root.transform, "Back to Title", new Vector2(0.5f, y), 0f, 380f, 40f, BackToTitle);
+            UiSound.On(back).Press = UiAudio.Kind.Confirm; y -= 0.075f;
+            _backLabel = back.GetComponentInChildren<TMPro.TMP_Text>();
             MenuKit.Button(_root.transform, "Quit", new Vector2(0.5f, y), 0f, 380f, 40f, Quit);
             MenuKit.Text("Hint", _root.transform, "Esc / Start to resume · progress keeps from the last save point", 22, new Vector2(0.5f, 0.05f), new Vector2(1000, 40)).alpha = 0.6f;
             _root.SetActive(false);

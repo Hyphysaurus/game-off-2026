@@ -2,6 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 13:2x — THE STADIUM HUB DRESSED (D-0113, visual pass step 3): BUILT, NOT PLAYED
+- Battle Stadium's ring and crowd round a field of inflatable cover, mirrored team sides, flank platforms with
+  trampolines, a stage in the middle (the first spawn). Comebacks at the spawn furthest from everyone else.
+  Stills: docs/stills/d0113_stadium_*.png. Next: the base look (post-processing) on every scene, then COZY.
+- HIS PLAYTEST (MPPM, Host/Join): run the field as a toy: cover the right height? trampolines onto the platforms?
+  anything you get stuck on or fall through?
+
 ## 21 Nov 2026 13:3x — HEALTH + SHIELD FOR EVERY PLAYER, FAST RESPAWN, HEALTH ONLINE (D-0112): BUILT, NOT PLAYED
 - Course too: soldiers' darts now hurt (D-0082 changed). Bars bottom right. Knocked out: Jump/Fire after 0.6 s skips
   the 2 s lie; back with full health, shield, guns and grenades. Numbers: make Resources/PlayerHealth (Create >

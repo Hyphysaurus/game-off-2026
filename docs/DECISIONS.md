@@ -2190,3 +2190,19 @@
   - 🔴 Changes D-0082: course soldiers' darts now hurt (10 a dart: 15 darts through health and shield); a knock-out
     goes back to the checkpoint, so the maze stays winnable.
   - Not yet: bars over other players' heads; health pickups; more health as the kid.
+- **D-0113 (21 Nov) The Stadium hub dressed (visual pass step 3) + safest-spawn comebacks. Built, NOT PLAYED.**
+  - His: "proceed" on the visual-pass plan (order: Stadium, base look, sky, cursor/crosshair, HUD, juice); late
+    afternoon; Kenney for the cursor. Measured first: the pack's people are ~17 units tall (the toy 1.8); the six
+    shell sections are modelled in place round the origin.
+  - `StadiumLayout` (run by Shift Jam / Party / Build Net Player + Stadium): backdrop at 0.2 (the shell ring, six
+    stands with crowd, the rim ring, two giant towers, balloons, an airship: the pack's people come out about two
+    toys tall); the field (the shell's inner edge, radius 25.4) floored with the pack's race-track disc, a plain
+    collider under it and an invisible wall round it; play pieces at 0.4 (an inflatable wall about one toy tall):
+    base arches with big blocks, cover lines, low boxes, two cross tunnels, flank platforms with slides and
+    trampolines (the game's LaunchPad, height 7), a low stage in the middle. South half laid, turned half round
+    for the north. My layout, not the pack's demo scene.
+  - Spawns: the First point on the stage (everyone's first landing); eight more round the field; a knock-out comes
+    back at the point furthest from the nearest other player (`NetSpawnPoint.Safest`, NetPlayer on Died).
+  - Sun: late afternoon, warm, from the west; Unity's default sky until COZY (step 2).
+  - Open: the field floor reads dull grey (grade / a brighter pack material next); the Dart Line anchors between
+    towers; grow cores (with the modes).

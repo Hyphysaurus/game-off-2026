@@ -2230,3 +2230,12 @@
   its owner. The online player's NetworkObject has AutoObjectParentSync off (the seat parents the driver to the car
   locally; position syncs in world space); `NetPlayer` hides a seated player's body on other PCs. Each player
   counts their own laps (shared standings later).
+- **D-0117 (21 Nov) Others see your shots, your gun and your name.** His "proceed" on the two must-haves before the
+  friend build. `Projectile.Fired` (every shot); `NetCombat` on the NetPlayer sends this player's shots on
+  (unreliable: a lost dart's look does not matter) and the other PCs fly a harmless copy (no damage, no shove; the
+  damage stays the shooter's, NetHealth) with its sound; the weapon in hand is a number into its list (2 shots,
+  5 weapons, matched by name), shown on other PCs as a copy at the body's right hand while drawn. `NetNameTag`:
+  over every other player their PC's user name (16 letters at most), one of four colours by join order, a health
+  bar (and + while shielded); faces the camera, grows with the player. NetPlayer keeps TMP text running on copies.
+  Not yet: grenades' flight is not sent; the copy of the gun points the way the body faces, not the aim.
+  His next idea, noted: PvE with the Funny Characters pack (host-run enemies: also ends "each PC's own soldiers").

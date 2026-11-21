@@ -67,6 +67,19 @@ namespace ShiftJam
             na.Animator = copy.GetComponentInChildren<Animator>(true);
             copy.AddComponent<NetPlayer>();
             copy.AddComponent<NetHealth>();   // D-0112: health and shield seen by everyone, hits handed to the owner
+            var combat = copy.AddComponent<NetCombat>();   // D-0117: shots and the weapon in hand seen by everyone
+            var cso = new SerializedObject(combat);
+            var shots = new[] { "FoamDart", "PaintBall" }
+                .Select(n => AssetDatabase.LoadAssetAtPath<Projectile>("Assets/_Game/Prefabs/Combat/" + n + ".prefab")).Where(x => x != null).ToArray();
+            var shotList = cso.FindProperty("shots"); shotList.arraySize = shots.Length;
+            for (int i = 0; i < shots.Length; i++) shotList.GetArrayElementAtIndex(i).objectReferenceValue = shots[i];
+            var weapons = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/_Game/Prefabs/Weapons" })
+                .Select(g => AssetDatabase.LoadAssetAtPath<Weapon>(AssetDatabase.GUIDToAssetPath(g))).Where(x => x != null).ToArray();
+            var weaponList = cso.FindProperty("weapons"); weaponList.arraySize = weapons.Length;
+            for (int i = 0; i < weapons.Length; i++) weaponList.GetArrayElementAtIndex(i).objectReferenceValue = weapons[i];
+            cso.ApplyModifiedPropertiesWithoutUndo();
+            copy.AddComponent<NetNameTag>();   // D-0117: name, colour and health over other players' heads
+            Debug.Log($"PartyBuilder: NetCombat knows {shots.Length} shots, {weapons.Length} weapons ({string.Join(", ", weapons.Select(w => w.name))}).");
             if (copy.TryGetComponent(out Respawn respawn))
             {
                 var so = new SerializedObject(respawn);

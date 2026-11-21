@@ -68,6 +68,10 @@ namespace ShiftJam
         private Vector3 _baseScale;
         private bool _flying;   // false once it has landed and stayed (a stuck dart): it no longer moves or hits
 
+        /// <summary>Raised for every shot fired: (prefab, position, direction, scale, owner, speed scale). Online, the
+        /// shooter's NetCombat sends it on so the other PCs fly a harmless copy (D-0117).</summary>
+        public static event System.Action<Projectile, Vector3, Vector3, float, Transform, float> Fired;
+
         /// <summary>Fires one shot from the pool. <paramref name="owner"/> and <paramref name="ownerAlt"/> (both optional)
         /// are never hit: the shooter's body, and the first-person body or car it is in. <paramref name="speedScale"/>
         /// multiplies the shot's own speed (a weapon's Shot Speed).</summary>
@@ -86,6 +90,7 @@ namespace ShiftJam
                 shot._baseScale = shot.transform.localScale;
             }
             shot.Launch(position, direction, damage, knock, scale, owner, ownerAlt, speedScale);
+            Fired?.Invoke(prefab, position, direction, scale, owner, speedScale);
             return shot;
         }
 

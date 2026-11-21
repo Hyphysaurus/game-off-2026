@@ -81,7 +81,7 @@ namespace ShiftJam
                 _icons[i].texture = has ? items[i].Icon : null;
                 _icons[i].enabled = has && items[i].Icon != null;
                 _names[i].text = has ? items[i].Name : "";
-                _notes[i].text = has && !can ? (i >= usable ? "kid's bag" : "too big") : "";
+                _notes[i].text = has && !can ? (i >= usable ? "kid's bag" : items[i].ToyOnly ? "toy only" : "too big") : "";
                 _icons[i].color = can || !has ? Color.white : new Color(1f, 1f, 1f, 0.3f);
                 _slotGroups[i].alpha = i < usable || has ? 1f : 0.45f;   // a toy's slots 3 and 4: there, but out of reach
             }

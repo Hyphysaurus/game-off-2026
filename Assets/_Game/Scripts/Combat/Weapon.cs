@@ -57,6 +57,8 @@ namespace ShiftJam
         public bool Worn => worn;
         /// <summary>Its picture in the inventory bar, if it has one.</summary>
         public Texture2D Icon => icon;
+        /// <summary>Only a toy can use it (the Dart Line: at kid size the heights are a step). The inventory greys it for a kid.</summary>
+        public virtual bool ToyOnly => false;
         /// <summary>A handle (melee): degrees each finger bone bends round it, this weapon's own number for each part
         /// (its Grip Curl), else the shared handle numbers.</summary>
         public Vector3 HandleCurl(WeaponHoldSettings shared) => new Vector3(gripCurl.x > 0f ? gripCurl.x : shared.handleCurl.x, gripCurl.y > 0f ? gripCurl.y : shared.handleCurl.y, gripCurl.z > 0f ? gripCurl.z : shared.handleCurl.z);

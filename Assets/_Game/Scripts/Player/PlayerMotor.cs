@@ -82,6 +82,19 @@ namespace ShiftJam
         public float SprintSpeed => settings.sprintSpeed;
         /// <summary>The camera the stick is read against.</summary>
         public Transform View => cameraTransform;
+        /// <summary>A line pulls the body (D-0109, the Dart Line: reeled up to a target, or riding a zip line): its whole
+        /// velocity is this, world units a second, in place of the stick, gravity and jumping. Null = not pulled. Its
+        /// landings are not falls. End it with EndPull, which sets the velocity it lets go with.</summary>
+        public Vector3? Pull { get; private set; }
+        public void SetPull(Vector3 velocity) { Pull = velocity; }
+        /// <summary>The line lets go: the body moves on at <paramref name="velocity"/> (world units a second).</summary>
+        public void EndPull(Vector3 velocity)
+        {
+            Pull = null;
+            _planar = new Vector3(velocity.x, 0f, velocity.z);
+            _vertical = velocity.y;
+            _jumping = false; _jumpCut = true; _lastGroundedTime = -10f; _jumpPressedTime = -10f;
+        }
 
         private void Awake()
         {
@@ -142,6 +155,19 @@ namespace ShiftJam
                 if (shifter != null && shifter.AroundMiddle) pivot = -_controller.center.y * (scale - _lastScale);
             }
             _lastScale = scale;
+
+            if (Pull.HasValue)
+            {
+                // On the line: it moves the body, nothing else does. Facing the way it travels, across the ground.
+                Vector3 v = Pull.Value;
+                _planar = new Vector3(v.x, 0f, v.z); _vertical = v.y;
+                if (_planar.sqrMagnitude > 1e-4f * scale * scale) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(_planar, Vector3.up), settings.turnSpeed * dt);
+                _controller.Move(v * dt + Vector3.up * pivot);
+                Grounded = false;
+                _jumping = false; _jumpCut = true; _lastGroundedTime = -10f; _jumpPressedTime = -10f;
+                if (animator != null) { animator.SetFloat(SpeedHash, 0f, 0.08f, dt); animator.SetBool(GroundedHash, false); animator.SetFloat(VerticalHash, 0f); }
+                return;
+            }
 
             // Where the stick points, on the ground, relative to the camera.
             Vector3 forward = cameraTransform != null ? Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up) : Vector3.forward;

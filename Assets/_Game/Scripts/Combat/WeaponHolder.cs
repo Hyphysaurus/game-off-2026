@@ -256,8 +256,8 @@ namespace ShiftJam
             SetViewModel(weapon, FirstPerson);
             _weapons.Add(weapon);
             _current = _weapons.Count - 1;
-            if (_inventory != null) _inventory.Added(weapon);
             Drawn = true;   // a weapon just taken is in the hand
+            if (_inventory != null) _inventory.Added(weapon);   // after: it holsters one this size cannot use
             ShowCurrent();
             Pose();
             GameEvents.RaiseAmmoChanged(this);

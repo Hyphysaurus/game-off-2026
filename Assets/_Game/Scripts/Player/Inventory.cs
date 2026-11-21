@@ -30,6 +30,7 @@ namespace ShiftJam
             public string Name => Weapon != null ? Weapon.DisplayName : Tool != null ? Tool.DisplayName : "";
             public Texture2D Icon => Weapon != null ? Weapon.Icon : Tool != null ? Tool.Icon : null;
             public bool KidOnly => Tool != null && Tool.KidOnly;
+            public bool ToyOnly => Weapon != null && Weapon.ToyOnly;
             public bool Gone => Weapon == null && Tool == null;
         }
 
@@ -70,6 +71,7 @@ namespace ShiftJam
         {
             if (slot < 0 || slot >= _items.Count) return false;
             if (slot >= Usable) return false;
+            if (_items[slot].ToyOnly && _shifter != null && _shifter.Size != ShiftSize.Toy) return false;
             return !(_items[slot].KidOnly && _shifter != null && _shifter.Size != ShiftSize.Kid);
         }
 
@@ -98,7 +100,13 @@ namespace ShiftJam
         // ---------- what comes and goes (the WeaponHolder and the Carrier tell us) ----------
 
         /// <summary>A weapon was taken: into the first free slot (or where the one it swapped for was).</summary>
-        public void Added(Weapon w) { if (w != null && _items.FindIndex(i => i.Weapon == w) < 0) _items.Add(new Item { Weapon = w }); Changed?.Invoke(); }
+        public void Added(Weapon w)
+        {
+            if (w != null && _items.FindIndex(i => i.Weapon == w) < 0) _items.Add(new Item { Weapon = w });
+            int slot = _items.FindIndex(i => i.Weapon == w);
+            if (slot >= 0 && !CanUse(slot) && _holder != null) _holder.SetDrawn(false);   // taken at a size that cannot use it (a kid and the Dart Line): carried, not in the hand
+            Changed?.Invoke();
+        }
 
         /// <summary>A tool was picked up into the hand.</summary>
         public void Added(Carryable t) { if (t != null && _items.FindIndex(i => i.Tool == t) < 0) _items.Add(new Item { Tool = t }); if (_holder != null) _holder.SetDrawn(false); Changed?.Invoke(); }
@@ -125,7 +133,7 @@ namespace ShiftJam
         {
             if (!KeysAct() || slot < 0 || slot >= _items.Count) return;
             if (slot == InHand) { EmptyHands(); return; }   // pressed again: put it away
-            if (!CanUse(slot)) { Hint(tooBigText); return; }
+            if (!CanUse(slot)) { Hint(slot >= Usable ? "In the kid's bag: grow to reach it" : _items[slot].ToyOnly ? "A toy's tool: shrink to use it" : tooBigText); return; }
             TakeOut(slot);
         }
 

@@ -123,6 +123,9 @@ namespace ShiftJam
             GameEvents.RaiseGlideChanged(this, true);
         }
 
+        /// <summary>Closes the plane from outside (the Dart Line latching on, D-0109), as a Jump in the air does.</summary>
+        public void FoldNow(string why) => Fold(why, ease: true, silent: false);
+
         /// <summary>Closes the plane. <paramref name="ease"/>: the body tips back upright over a moment (folded in the air by
         /// Jump); otherwise at once (landed, grew, parked: first person must find the body as it was).</summary>
         private void Fold(string why, bool ease, bool silent)

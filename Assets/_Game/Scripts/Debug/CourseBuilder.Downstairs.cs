@@ -324,6 +324,27 @@ namespace ShiftJam
             Log.AppendLine($"way back: the playroom's mouse hole ({back.transform.position}) to the hallway at {arrive.position}, facing the bridge");
         }
 
+        const string FunnyRig = "Assets/_Imports/ithappy/Funny_Characters/Meshes/Basic_Character.fbx";
+        const string FunnyIdle = "Assets/_Imports/ithappy/Funny_Characters/Animations/Animation_Clips/Idle.anim";
+        const string GapNpcController = "Assets/_Game/Data/GapNpc_Idle.controller";
+
+        /// <summary>The Funny Characters pack's figure standing idle: an Animator on its humanoid rig with a one-state
+        /// controller of the pack's own Idle loop (made once, in Data; it points into the git-ignored pack).</summary>
+        static void IdleOn(GameObject figure)
+        {
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(FunnyIdle);
+            var avatar = AssetDatabase.LoadAllAssetsAtPath(FunnyRig).OfType<Avatar>().FirstOrDefault();
+            if (clip == null || avatar == null) { Log.AppendLine($"pointers: the toy stays posed (idle {(clip != null)}, rig {(avatar != null)})"); return; }
+            var controller = AssetDatabase.LoadAssetAtPath<UnityEditor.Animations.AnimatorController>(GapNpcController)
+                             ?? UnityEditor.Animations.AnimatorController.CreateAnimatorControllerAtPathWithClip(GapNpcController, clip);
+            if (!figure.TryGetComponent(out Animator animator)) animator = figure.AddComponent<Animator>();
+            animator.avatar = avatar;
+            animator.runtimeAnimatorController = controller;
+            animator.applyRootMotion = false;
+            animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+            Log.AppendLine("pointers: the toy by the gap stands idle");
+        }
+
         // ---- what says so: a toy by the gap, a note over it, a note by the plane
         static void Pointers(Transform r3, Transform r4)
         {
@@ -338,6 +359,7 @@ namespace ShiftJam
                 Rest(npc, 0f, null);
                 var hint = npc.AddComponent<BoxCollider>(); hint.isTrigger = true; hint.size = new Vector3(14f, 6f, 14f) / npc.transform.localScale.x; hint.center = Vector3.up * 3f / npc.transform.localScale.x;
                 var ph = npc.AddComponent<ProblemHint>(); Set(ph, "message", words); Set(ph, "anySize", true);
+                IdleOn(npc);   // the pack's character has no Animator: it stood in its bind pose (a T), not as a toy waiting
             }
             else Log.AppendLine("pointers: no Basic_Character: the note only");
             TapeSign("GapNote", r3, new Vector3((GapX0 + GapX1) / 2f, 4.2f, LaneZ + HallW / 2f - 0.15f), Vector3.back, "LIVING ROOM BELOW\nDROP THROUGH, THEN\nOPEN THE PLANE", 8f, 3.4f);

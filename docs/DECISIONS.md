@@ -2167,3 +2167,26 @@
     do not stop.
   - Not yet: shooting, held weapons and the glider are not seen by others; no HUD per player; no modes; the hub
     is bare (the Stadium dressing pass); no build.
+- **D-0112 (21 Nov) Health and a shield for every player (course too), a fast respawn, health online. Built, NOT
+  PLAYED.**
+  - His: "our characters don't have a health system, add shields, reload and ammo"; "health on single player too";
+    "a very functional respawn system, seamless for jumping back into play fast". Found first: ammo, magazines,
+    reload, ammo types and pickups were already built (BlasterWeapon / Magazine / AmmoBelt / WeaponHud); health
+    existed (Damageable + PlayerHurt) but the course player and so the NetPlayer had none.
+  - `PlayerHurt` adds a Damageable and a `PlayerShield` to every player at Awake (no scene edits), both from
+    `PlayerHealthSettings` (Resources/PlayerHealth if made, else defaults: health 100, shield 50 back after 4 s at
+    25/s, 0.1 s between hits, 2 s protection after coming back). `Damageable.Absorber` (IHitAbsorber) lets the
+    shield take hits first; `Damageable.Configure`.
+  - Respawn: knocked out, the body lies (PlayerMoves respawnAfter, 2 s); Jump or Fire after 0.6 s skips it; back at
+    the checkpoint (online: the hub spawn, `NetPlayer` sets it) with full health and shield, protection, and with
+    restock on: every blaster's magazine full and at least its starting reserve, grenades back to the start
+    (`Magazine.Restock`, `WeaponHolder.Restock`, `GrenadeThrower.Restock`). A fall still just goes back.
+  - `HealthHud`: shield bar over health bar, bottom right (the ammo is bottom left); hit flash, low-health pulse,
+    the shield brightens while it refills. Our own player only.
+  - Online `NetHealth`: a hit on another player's copy is handed to that player's PC (`Damageable.Relay` ->
+    TakeHitRpc) and flashes here at once; the owner writes health and shield to network variables; a knock-out
+    tells everyone who did it (`NetHealth.KnockedOut(victim, by)`, for TDM). NetPlayer's Respawn no longer loads the
+    course's save slot (it would have warped the player out of the hub).
+  - 🔴 Changes D-0082: course soldiers' darts now hurt (10 a dart: 15 darts through health and shield); a knock-out
+    goes back to the checkpoint, so the maze stays winnable.
+  - Not yet: bars over other players' heads; health pickups; more health as the kid.

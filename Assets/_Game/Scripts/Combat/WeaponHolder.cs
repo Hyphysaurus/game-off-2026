@@ -265,6 +265,16 @@ namespace ShiftJam
             return weapon;
         }
 
+        /// <summary>Back from a knock-out (D-0112): every blaster carried gets a full magazine and at least its starting
+        /// reserve, a reload under way stops, grenades come back up to the start.</summary>
+        public void Restock()
+        {
+            CancelReload();
+            foreach (Weapon w in _weapons) if (w is BlasterWeapon b) b.Magazine.Restock();
+            if (TryGetComponent(out GrenadeThrower grenades)) grenades.Restock();
+            GameEvents.RaiseAmmoChanged(this);
+        }
+
         /// <summary>Takes every weapon out of the hands without dropping it: switched off, unparented, nobody's, its rounds
         /// kept. A door between the house's rooms carries them (HouseCarry, D-0091) and hands them back with Equip.
         /// <paramref name="inHand"/> is the place of the one that was out.</summary>

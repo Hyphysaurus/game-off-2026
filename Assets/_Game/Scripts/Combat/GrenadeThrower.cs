@@ -88,6 +88,15 @@ namespace ShiftJam
             return true;
         }
 
+        /// <summary>Back from a knock-out (D-0112): at least the grenades carried at the start.</summary>
+        public void Restock()
+        {
+            int start = Mathf.Min(_s.carried, _s.mostCarried);
+            if (Carried >= start) return;
+            Carried = start;
+            GameEvents.RaiseGrenadesChanged(this);
+        }
+
         /// <summary>The reset key: the grenades carried at the start again.</summary>
         public void ResetState()
         {

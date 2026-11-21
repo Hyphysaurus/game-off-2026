@@ -67,6 +67,13 @@ namespace ShiftJam
             na.AuthorityMode = NetworkAnimator.AuthorityModes.Owner;
             na.Animator = copy.GetComponentInChildren<Animator>(true);
             copy.AddComponent<NetPlayer>();
+            copy.AddComponent<NetHealth>();   // D-0112: health and shield seen by everyone, hits handed to the owner
+            if (copy.TryGetComponent(out Respawn respawn))
+            {
+                var so = new SerializedObject(respawn);
+                so.FindProperty("loadSave").boolValue = false;   // the course's save slot would warp the player out of the hub
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
             PrefabUtility.SaveAsPrefabAsset(copy, PlayerPath);
             Object.DestroyImmediate(copy);
         }

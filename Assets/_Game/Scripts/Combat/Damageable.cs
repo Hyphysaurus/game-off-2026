@@ -18,6 +18,13 @@ namespace ShiftJam
         { Amount = amount; Knock = knock; Point = point; Source = source; Loose = loose; }
     }
 
+    /// <summary>Something that takes a hit before health does (the player's shield, D-0112): given what would come off
+    /// health, it keeps what it can and returns the rest.</summary>
+    public interface IHitAbsorber
+    {
+        float Absorb(float amount);
+    }
+
     /// <summary>
     /// Health for anything that can be hit: the player, cars, practice targets, toy soldiers. Takes a DamageInfo, ignores
     /// hits during a short invulnerability window, flashes the renderers, squashes for a moment if it is set to, passes
@@ -53,6 +60,11 @@ namespace ShiftJam
         /// <summary>Share of every hit that is taken (1 = all of it). The player's block lowers it; 0 turns hits away
         /// like protection does (the middle of a dodge roll).</summary>
         public float DamageScale { get; set; } = 1f;
+        /// <summary>Takes hits before health (the player's shield). Null: none.</summary>
+        public IHitAbsorber Absorber { get; set; }
+        /// <summary>Online (D-0112): another player's copy on this PC hands every hit to that player's own PC instead
+        /// of taking it here. Returns whether the hit counts (for the hit marker).</summary>
+        public Func<DamageInfo, bool> Relay { get; set; }
         /// <summary>The Inspector's death event, for editor tools that wire it.</summary>
         public UnityEvent OnDiedEvent => onDied;
         /// <summary>Raised after a hit is taken.</summary>
@@ -86,10 +98,17 @@ namespace ShiftJam
         /// <summary>Takes the hit. False when it was ignored (dead, protected or nothing to take).</summary>
         public bool Hit(in DamageInfo dealt)
         {
+            if (Relay != null)
+            {
+                if (dealt.Amount <= 0f || !Relay(dealt)) return false;
+                Flash();   // the shooter sees the hit land at once; the damage is the other PC's to take
+                return true;
+            }
             if (Dead || dealt.Amount <= 0f) return false;
             if (Protected || DamageScale <= 0f) { Blocked?.Invoke(dealt); return false; }
             var hit = new DamageInfo(dealt.Amount * DamageScale, dealt.Knock, dealt.Point, dealt.Source, dealt.Loose);
-            Health = Mathf.Max(0f, Health - hit.Amount);
+            float toHealth = Absorber != null ? Mathf.Max(0f, Absorber.Absorb(hit.Amount)) : hit.Amount;
+            Health = Mathf.Max(0f, Health - toHealth);
             _safeUntil = Time.time + invulnerability;
             Flash();
             if (squash > 0f) Squash.Hit(squashPart != null ? squashPart : transform.childCount > 0 ? transform.GetChild(0) : null, squash, squashSeconds);
@@ -104,6 +123,15 @@ namespace ShiftJam
                 onDied?.Invoke();
             }
             return true;
+        }
+
+        /// <summary>Set the most health and the time between hits from settings made at run time (the player's, D-0112).
+        /// Health starts full at the new most.</summary>
+        public void Configure(float most, float safeSeconds)
+        {
+            maxHealth = Mathf.Max(1f, most);
+            invulnerability = Mathf.Max(0f, safeSeconds);
+            Health = maxHealth;
         }
 
         public void Heal(float amount)

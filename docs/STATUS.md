@@ -2,6 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 13:3x — HEALTH + SHIELD FOR EVERY PLAYER, FAST RESPAWN, HEALTH ONLINE (D-0112): BUILT, NOT PLAYED
+- Course too: soldiers' darts now hurt (D-0082 changed). Bars bottom right. Knocked out: Jump/Fire after 0.6 s skips
+  the 2 s lie; back with full health, shield, guns and grenades. Numbers: make Resources/PlayerHealth (Create >
+  Shift Jam > Player Health Settings) to tune; defaults play without it.
+- HIS PLAYTEST: Greybox, the hallway soldier and the maze: is the damage fair? the bars readable? Get knocked out and
+  skip back with Jump. Workshop: shoot yourself with a grenade. Online (MPPM Player 2): shoot each other.
+
 ## 21 Nov 2026 13:1x — ONLINE PARTY PLAY FIRST PASS (D-0111): HOST / JOIN BY CODE + THE STADIUM HUB, BUILT IN HIS EDITOR, NOT PLAYED
 - Friends on their own PCs with keyboard and mouse: online, via Unity Relay. Netcode 2.13.3 + Multiplayer Services
   2.4.1 installed (`e6545d0`). Title: Host (code copied) / Join (reads a copied code). Everyone lands at one spawn

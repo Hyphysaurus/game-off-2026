@@ -45,6 +45,14 @@ namespace ShiftJam
             Reserve = Mathf.Max(0, reserveStart);
         }
 
+        /// <summary>Back from a knock-out (D-0112): a full magazine and at least the starting reserve.</summary>
+        public void Restock()
+        {
+            _filled = true;
+            Rounds = Mathf.Max(0, size);
+            Reserve = Mathf.Max(Reserve, Mathf.Max(0, reserveStart));
+        }
+
         /// <summary>One shot leaves. False when the gun is empty (nothing is spent).</summary>
         public bool Spend()
         {

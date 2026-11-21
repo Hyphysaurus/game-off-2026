@@ -53,8 +53,10 @@ namespace ShiftJam
             float turn = 90f * (OwnerClientId % 4);
             Vector3 offset = Quaternion.Euler(0f, turn, 0f) * point.transform.right * (point.Spread * height);
             if (cc != null) cc.enabled = false;
-            transform.SetPositionAndRotation(point.transform.position + offset + Vector3.up * (spawnLift * height), point.transform.rotation);
+            Vector3 at = point.transform.position + offset + Vector3.up * (spawnLift * height);
+            transform.SetPositionAndRotation(at, point.transform.rotation);
             if (cc != null) cc.enabled = true;
+            if (TryGetComponent(out Respawn respawn)) respawn.SetPoint(at, point.transform.rotation);   // knock-outs and falls come back here (D-0112)
         }
     }
 }

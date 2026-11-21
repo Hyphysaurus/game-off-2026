@@ -13,8 +13,8 @@ namespace ShiftJam
     /// turn of the walk round the rings and one by the core. They are the Workshop's ToySoldier piece as it is (sight
     /// cone, fire, tip over when knocked out, up again at their post). The sandbags (2 high) are cover: a soldier's eye
     /// is at its chest, so it cannot see over them, and neither can its shots. An ammo box at the maze's way in. In the
-    /// course a soldier's dart shoves the toy and never hurts it (the course player has no Damageable), so the maze can
-    /// always be won. At kid
+    /// course a soldier's dart now hurts the toy too (D-0112: every player has health and a shield); a knock-out goes
+    /// back to the last checkpoint with everything refilled, so the maze can still always be won. At kid
     /// size the soldiers are ankle-high and the kid steps over the sandbags. Everything lives under R4_Playroom/ArmyBeat;
     /// running it again replaces it. Built with the course (Build), or alone: -executeMethod ShiftJam.CourseBuilder.LandArmyBeat.
     /// </summary>

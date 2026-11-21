@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 evening — CHECKPOINT: v11 ON ITCH, FIRST REAL TWO-PC TEST (HIS BROTHER) STARTING
+- Online: Relay, Online/Parties, version-tagged parties, reconnect, Stadium + pickups + Raceway + online cars, shots,
+  grenades, guns, name tags, kill feed, F12 notes, health/shield, the camera follows behind, the house as a co-op
+  sandbox (Host House Party). itch: https://hyphysaurus.itch.io/shift-jam-playtest (Restricted, download keys),
+  butler in C:\butler (logged in; his settings allow /mnt/c/butler/butler.exe). Push: see D-0123.
+- NEXT (his OKs): co-op step 2 (host-run soldiers and breakables), step 3 (doors take the group), then the 12-item
+  list (PvE Funny Characters, King of the Crown, TDM/CTF, synced races, emotes, pick a character, the visual pass
+  rest: AO/look judged in Play, COZY, Kenney cursor, HUD, juice; the tank). His title art: he mentioned updated
+  titles, location not given yet. The 8-agent code review was refused (his rule: workflows only by name).
+
 ## 21 Nov 2026 14:3x — VISUAL / SOUND / FEEL PASS STARTED (D-0119): THE LOOK APPLIED (NOT SEEN), GRAPHICS OPTION
 - Head `342bb8b`. The look is in URP's global default profile (every scene); editor stills cannot show
   post-processing, so HE judges it in Play (too warm? bloom too much? vignette?). Undo = revert
@@ -2474,6 +2484,7 @@ tutorial room in Greybox.unity, Feel hooks on ShiftSource/Switch/Door, a Core sc
 → STEP 3 room greybox + shift beat → feel pass → commit → v1.
 
 ## Versions
+- v11 — 21 Nov 2026: on itch (butler, channel windows, userversion 11): + D-0124 (the camera follows behind on foot) + D-0125 (co-op sandbox step 1: Parties > Host House Party, the house online with doors open, cores awake, free shift, spawns at the playroom Entry; "E" prompts online; the Stadium gets the course HUD). Built headless, 0.8 min, 0 errors; share copy smoke 5/5, 0 errors. His brother is installing through the itch app (v10 first, v11 as an update). NOT YET PLAYED.
 - v10 — 21 Nov 2026: THE FRIEND BUILD (replaces v9): + D-0122 (title: Online = join an open world or host one; Parties = the list, Host New, Join With Code; a drop rejoins the same party, else another open world or a new one; parties tagged with the game version: other versions hidden or refused) + batch builds restore LLMUnity's moved libraries (the 3.4 GB LLMUnityBuild leftover is back in place). Built headless, 0.7 min, 0 errors; share copy `Builds/Windows/ShiftJam_v10` smoke 5/5, 0 errors; `ShiftJam_v10.zip` 224 MB. The 8-agent review workflow was refused by the permission system (his CLAUDE.md: workflows only when he names one). NOT YET PLAYED by two copies. Next: the private itch.io page (his "let's make the private itch page").
 - v9 — 21 Nov 2026: THE FRIEND BUILD (replaces v8): v8 + D-0120 (soldiers by the bases, sight 12 / reaction 1.2 s / damage 6; every gun stand on the floor, SMGs and the grenade bomb on the flank platforms) + D-0121 (Join falls back to the last party code; "Leave Party" in the pause menu online). Built headless (`PartyBuilder.RebuildAndBuildBatch` via ubatch: Unity was closed), 0.8 min, 0 errors; share copy `Builds/Windows/ShiftJam_v9` smoke 5/5, 0 errors; `ShiftJam_v9.zip` 224 MB. NOT YET PLAYED by two copies.
 - v8 — 21 Nov 2026: THE FRIEND BUILD: v7 + Run In Background on (v7 froze whenever its window lost focus: a host alt-tabbing to Discord would have frozen the party, and two copies on one PC could not run). 0.5 min, 0 errors; share copy `Builds/Windows/ShiftJam_v8` (670 MB, no LlamaLib) smoke 5/5 scenes, 0 errors; zipped to `ShiftJam_v8.zip`. NOT YET PLAYED by two copies.

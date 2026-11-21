@@ -252,7 +252,7 @@ namespace ShiftJam
             Vector3 shift = plane.localPosition;   // zero while measuring
             foreach (MeshFilter mf in plane.GetComponentsInChildren<MeshFilter>(true))
             {
-                Mesh m = mf.sharedMesh; if (m == null || (!m.isReadable && !Application.isEditor)) continue;   // a build reads only readable meshes
+                Mesh m = mf.sharedMesh; if (m == null || !m.isReadable) continue;   // only readable meshes give vertices (editor and build alike); Paper_Plane_01 is set readable
                 Matrix4x4 toLocal = toRig * mf.transform.localToWorldMatrix;
                 foreach (Vector3 v in m.vertices)
                 {

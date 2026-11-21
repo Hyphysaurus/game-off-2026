@@ -90,6 +90,7 @@ namespace ShiftJam
                 s.EnsureNetworkManager();
                 // Named and public, so "Play Online" and the party list find it (D-0122); a code still joins it too.
                 var options = new SessionOptions { MaxPlayers = MaxPlayers, Name = PlayerName.Get() + "'s party", IsPrivate = false }.WithRelayNetwork();
+                options.SessionProperties[VersionKey] = new SessionProperty(Application.version, VisibilityPropertyOptions.Public);   // only the same version can join
                 s._session = await MultiplayerService.Instance.CreateSessionAsync(options);
                 s._lastId = s._session.Id;
                 s.Watch();
@@ -143,6 +144,7 @@ namespace ShiftJam
                 await s.SignIn();
                 s.EnsureNetworkManager();
                 s._session = await MultiplayerService.Instance.JoinSessionByCodeAsync(code);
+                if (!await s.SameVersionOrLeave()) return;
                 s._lastId = s._session.Id;
                 PlayerPrefs.SetString(LastCodeKey, code); PlayerPrefs.Save();
                 s.Watch();
@@ -177,6 +179,28 @@ namespace ShiftJam
         }
 
         private string _lastId;   // the party we were in: a dropped connection tries it first
+        private const string VersionKey = "v";
+
+        /// <summary>The game version a party was made with ("" when it carries none).</summary>
+        private static string VersionOf(IReadOnlyDictionary<string, SessionProperty> props) =>
+            props != null && props.TryGetValue(VersionKey, out SessionProperty v) && v != null ? v.Value ?? "" : "";
+
+        /// <summary>After joining by code (the list never shows other versions): a party of another version is left at once,
+        /// with a line saying which to get.</summary>
+        private async Task<bool> SameVersionOrLeave()
+        {
+            if (_session == null) return false;
+            string theirs = VersionOf(_session.Properties);
+            if (theirs == Application.version) return true;
+            ISession wrong = _session; _session = null; _lastId = null;
+            _leaving = true;
+            try { await wrong.LeaveAsync(); } catch (Exception e) { Debug.LogWarning("NetSession: leaving a mismatch: " + e.Message); }
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening) NetworkManager.Singleton.Shutdown();
+            await ShutdownDone();   // the stop it raises must still read as ours, or Recover would start
+            _leaving = false;
+            Say("That party runs v" + (theirs.Length > 0 ? theirs : "?") + ", you have v" + Application.version + ": get the same version to join");
+            return false;
+        }
 
         /// <summary>The open Shift Jam parties with room (not locked, no password), fullest first.</summary>
         public static async Task<List<PartyInfo>> FindParties()
@@ -190,6 +214,7 @@ namespace ShiftJam
                 foreach (ISessionInfo info in results.Sessions)
                 {
                     if (info.IsLocked || info.HasPassword || info.AvailableSlots <= 0) continue;
+                    if (VersionOf(info.Properties) != Application.version) continue;   // another version's world: it would half-work
                     found.Add(new PartyInfo(info.Id, info.Name, info.MaxPlayers - info.AvailableSlots, info.MaxPlayers));
                 }
                 found.Sort((a, b) => b.Players.CompareTo(a.Players));
@@ -294,6 +319,7 @@ namespace ShiftJam
             try { if (session != null) await session.LeaveAsync(); }
             catch (Exception e) { Debug.LogWarning("NetSession: leaving: " + e.Message); }
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening) NetworkManager.Singleton.Shutdown();
+            await ShutdownDone();
             Say("");
             Time.timeScale = 1f;
             s._leaving = false;

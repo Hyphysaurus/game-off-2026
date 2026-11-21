@@ -209,10 +209,9 @@ namespace ShiftJam
             if (UnityServices.State != ServicesInitializationState.Initialized)
             {
                 var options = new InitializationOptions();
-#if UNITY_EDITOR
-                // Multiplayer Play Mode's extra editors are other processes on this PC: each needs its own sign-in.
+                // Every running copy signs in as its own anonymous player: Multiplayer Play Mode's extra editors, and two
+                // copies of the built game on one PC (his test before friends get it) would otherwise be one player.
                 options.SetProfile("p" + System.Diagnostics.Process.GetCurrentProcess().Id);
-#endif
                 await UnityServices.InitializeAsync(options);
             }
             if (!AuthenticationService.Instance.IsSignedIn) await AuthenticationService.Instance.SignInAnonymouslyAsync();

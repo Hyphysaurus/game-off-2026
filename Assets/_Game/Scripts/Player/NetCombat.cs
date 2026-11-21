@@ -27,13 +27,13 @@ namespace ShiftJam
         public override void OnNetworkSpawn()
         {
             _holder = GetComponent<WeaponHolder>();
-            if (IsOwner) Projectile.Fired += OnFired;
+            if (IsOwner) { Projectile.Fired += OnFired; GrenadeThrower.Released += OnThrown; }
             else _held.OnValueChanged += (_, now) => Show(now);
         }
 
         public override void OnNetworkDespawn()
         {
-            if (IsOwner) Projectile.Fired -= OnFired;
+            if (IsOwner) { Projectile.Fired -= OnFired; GrenadeThrower.Released -= OnThrown; }
             if (_shown != null) Destroy(_shown);
         }
 
@@ -54,6 +54,25 @@ namespace ShiftJam
             Projectile.Fire(shots[index], position, direction, 0f, 0f, scale, transform, null, speed);   // a look: no damage, no shove
             AudioClip clip = shots[index].FireClip();
             if (clip != null) AudioSource.PlayClipAtPoint(clip, position, 0.6f);
+        }
+
+        // ---------------------------------------------------------------- grenades
+
+        private void OnThrown(GrenadeThrower thrower, Vector3 from, Vector3 velocity, Vector3 spin, float scale)
+        {
+            if (thrower == null || thrower.gameObject != gameObject || !IsSpawned) return;
+            GrenadeRpc(from, velocity, spin, scale);
+        }
+
+        [Rpc(SendTo.NotMe)]   // reliable: a grenade is rare and its blast is worth seeing
+        private void GrenadeRpc(Vector3 from, Vector3 velocity, Vector3 spin, float scale)
+        {
+            GrenadeSettings s = GrenadeSettings.Load();
+            if (s == null || s.grenade == null) return;
+            Grenade copy = Instantiate(s.grenade, from, Quaternion.identity);
+            copy.LookOnly = true;
+            copy.Throw(transform, null, scale, velocity, spin);
+            if (s.throwClip != null) PaintSplats.InScene().Play(s.throwClip, from);
         }
 
         // ---------------------------------------------------------------- the weapon in hand

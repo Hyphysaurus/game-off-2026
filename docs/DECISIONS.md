@@ -2237,5 +2237,5 @@
   5 weapons, matched by name), shown on other PCs as a copy at the body's right hand while drawn. `NetNameTag`:
   over every other player their PC's user name (16 letters at most), one of four colours by join order, a health
   bar (and + while shielded); faces the camera, grows with the player. NetPlayer keeps TMP text running on copies.
-  Not yet: grenades' flight is not sent; the copy of the gun points the way the body faces, not the aim.
+  Grenades too: `GrenadeThrower.Released`; the other PCs fly a `Grenade.LookOnly` copy (flash, smoke, boom; no damage, no shove). Not yet: the copy of the gun points the way the body faces, not the aim.
   His next idea, noted: PvE with the Funny Characters pack (host-run enemies: also ends "each PC's own soldiers").

@@ -112,6 +112,10 @@ namespace ShiftJam
         public void ResetState() => Destroy(gameObject);
 
         /// <summary>Goes off now, where it is.</summary>
+        /// <summary>Online (D-0117): another player's grenade flown here as a look. It goes off with its flash, smoke and
+        /// boom, but hurts and shoves nothing: that is the thrower's PC's to do.</summary>
+        public bool LookOnly { get; set; }
+
         public void GoOff()
         {
             if (_gone) return;
@@ -121,7 +125,7 @@ namespace ShiftJam
             // The shove's size rule (Knockback): a loose thing takes the square root of the size, not all of it.
             float looseShare = 1f / Mathf.Sqrt(_size);
             Parts.Clear(); Loose.Clear();
-            int count = Physics.OverlapSphereNonAlloc(middle, reach, Found, hitMask, QueryTriggerInteraction.Ignore);
+            int count = LookOnly ? 0 : Physics.OverlapSphereNonAlloc(middle, reach, Found, hitMask, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
             {
                 Collider c = Found[i];

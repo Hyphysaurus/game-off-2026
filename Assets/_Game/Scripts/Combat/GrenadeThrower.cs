@@ -79,6 +79,9 @@ namespace ShiftJam
             return true;
         }
 
+        /// <summary>Raised as a grenade leaves the hand: (thrower, where, velocity, spin, thrower's scale).</summary>
+        public static event System.Action<GrenadeThrower, Vector3, Vector3, Vector3, float> Released;
+
         /// <summary>Adds grenades, up to the most that can be carried. False when already full (a pickup then stays).</summary>
         public bool Add(int count)
         {
@@ -144,6 +147,7 @@ namespace ShiftJam
             Vector3 spin = new Vector3(Random.Range(-_s.spin, _s.spin), Random.Range(-_s.spin, _s.spin), Random.Range(-_s.spin, _s.spin));
             Grenade thrown = Instantiate(_s.grenade, from, Quaternion.identity);
             thrown.Throw(transform, alt, Scale, velocity, spin);
+            Released?.Invoke(this, from, velocity, spin, Scale);   // online: NetCombat flies a copy on the other PCs (D-0117)
             thrown.WentOff += OnWentOff;
             Last = thrown;
             if (_s.throwClip != null) PaintSplats.InScene().Play(_s.throwClip, from);

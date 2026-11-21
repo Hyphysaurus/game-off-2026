@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 14:3x — VISUAL / SOUND / FEEL PASS STARTED (D-0119): THE LOOK APPLIED (NOT SEEN), GRAPHICS OPTION
+- Head `342bb8b`. The look is in URP's global default profile (every scene); editor stills cannot show
+  post-processing, so HE judges it in Play (too warm? bloom too much? vignette?). Undo = revert
+  Assets/Settings/DefaultVolumeProfile.asset + PC_Renderer.asset.
+- NEXT: sound (cheers on knock-outs, pickup/teleport/respawn/shield-break/hit sounds from the 2000 SFX pack under
+  _Imports; a music player with a track per scene: HE picks the tracks by ear), then feel (hit flash + shake,
+  respawn dissolve, pickup sparkle, knock-out confetti), then outlines and the Kenney cursor.
+- Still owed before v7: his two-window test.
+
 ## 21 Nov 2026 14:2x — CHECKPOINT: FRIEND-BUILD PREP DONE (D-0117 shots/gun/names/grenades seen, D-0118 name box, scores, bug notes, ping): BUILT, NOT PLAYED WITH TWO PLAYERS
 - Head `9397db3`. His "proceed with all" on 12 items. DONE: 1 name box, 2 kill feed + Tab scores, 3 F12 bug notes
   (builds), 4 ping + lost connection. NEXT (in order): HIS two-window test -> the v7 build (BuildTools, plain) ->

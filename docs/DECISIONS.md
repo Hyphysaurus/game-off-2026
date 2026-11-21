@@ -2239,3 +2239,12 @@
   bar (and + while shielded); faces the camera, grows with the player. NetPlayer keeps TMP text running on copies.
   Grenades too: `GrenadeThrower.Released`; the other PCs fly a `Grenade.LookOnly` copy (flash, smoke, boom; no damage, no shove). Not yet: the copy of the gun points the way the body faces, not the aim.
   His next idea, noted: PvE with the Funny Characters pack (host-run enemies: also ends "each PC's own soldiers").
+- **D-0118 (21 Nov) Before the friend build: a name box, scores, bug notes, ping and lost connection.** His "proceed
+  with all" on the twelve-item list (order: 1-4, then the v7 build so friends play while 5-12 are built: PvE with
+  Funny Characters, King of the Crown, TDM then CTF, synced races, emotes, pick a character, the visual pass, the
+  tank). `PlayerName` (typed on the title, top right, kept in PlayerPrefs; else the PC's user name); the key sheet
+  ignores H while a text box has focus. `NetScoreboard` (made by NetSession): kill feed top right from
+  NetHealth.KnockedOut, Tab board of knock-outs / knocked out / ping; every PC keeps the same tally with nothing
+  more sent. `BugNote` (builds only): F12 saves a screenshot and a line (time, version, scene, place, party, ping)
+  in persistentDataPath/Bug notes and says where. `NetSession`: ping in the corner, OnClientStopped without our
+  leaving = back to the title with "Lost the connection to the party" and the reason. Key sheet lists Tab and F12.

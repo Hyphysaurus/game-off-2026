@@ -54,7 +54,23 @@ namespace ShiftJam
             var go = new GameObject("NetSession");
             DontDestroyOnLoad(go);
             _instance = go.AddComponent<NetSession>();
+            _instance._scores = go.AddComponent<NetScoreboard>();   // the kill feed and the Tab board (D-0118)
             return _instance;
+        }
+
+        private NetScoreboard _scores;
+        private bool _leaving;
+
+        /// <summary>The round trip to the host in milliseconds (0 for the host itself or when not connected).</summary>
+        public static int PingMs
+        {
+            get
+            {
+                var nm = NetworkManager.Singleton;
+                if (nm == null || !nm.IsListening || nm.IsServer || !nm.IsConnectedClient) return 0;
+                var t = nm.GetComponent<UnityTransport>();
+                return t != null ? (int)t.GetCurrentRtt(NetworkManager.ServerClientId) : 0;
+            }
         }
 
         /// <summary>Host a party: sign in, make the session on Relay, copy the code, take everyone to the party scene.</summary>
@@ -63,6 +79,7 @@ namespace ShiftJam
             var s = Get();
             if (s._busy || s._session != null || s._local) return;
             s._busy = true;
+            s._scores.Clear();
             try
             {
                 Say("Starting a party...");
@@ -111,6 +128,7 @@ namespace ShiftJam
             if (s._busy || s._session != null || s._local) return;
             code = Clean(code ?? GUIUtility.systemCopyBuffer);
             if (string.IsNullOrEmpty(code)) { Say("Copy a party code first (from Discord), then press Join."); return; }
+            s._scores.Clear();
             if (code == LocalCode) { s.JoinLocal(); return; }
             s._busy = true;
             try
@@ -146,11 +164,25 @@ namespace ShiftJam
         {
             var s = _instance;
             if (s == null) { SceneManager.LoadScene(0); return; }
+            s._leaving = true;
             ISession session = s._session; s._session = null; s._local = false;
             try { if (session != null) await session.LeaveAsync(); }
             catch (Exception e) { Debug.LogWarning("NetSession: leaving: " + e.Message); }
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening) NetworkManager.Singleton.Shutdown();
             Say("");
+            Time.timeScale = 1f;
+            s._leaving = false;
+            SceneManager.LoadScene(0);
+        }
+
+        /// <summary>The connection stopped without our leaving: the host left, the internet dropped, we were refused.
+        /// Back to the title with a line saying so (D-0118), instead of a frozen party.</summary>
+        private void OnStopped(bool wasHost)
+        {
+            if (_leaving || (_session == null && !_local)) return;
+            string reason = NetworkManager.Singleton != null ? NetworkManager.Singleton.DisconnectReason : null;
+            _session = null; _local = false;
+            Say("Lost the connection to the party" + (string.IsNullOrEmpty(reason) ? "" : ": " + reason));
             Time.timeScale = 1f;
             SceneManager.LoadScene(0);
         }
@@ -206,6 +238,7 @@ namespace ShiftJam
             };
             nm.NetworkConfig.Prefabs.Add(new NetworkPrefab { Prefab = prefab });
             go.SetActive(true);
+            nm.OnClientStopped += OnStopped;
         }
 
         private static string Clean(string code)
@@ -247,7 +280,8 @@ namespace ShiftJam
             if (_hud == null) return;
             int count = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening ? NetworkManager.Singleton.ConnectedClientsIds.Count : 0;
             if (_session != null) count = _session.PlayerCount;
-            _hud.text = _session != null || _local ? "<b>Party " + Code + "</b>   " + count + "/" + MaxPlayers + (_local ? "   <alpha=#88>(this PC only)" : "") + "   <alpha=#88>Esc: menu" : "";
+            int ping = PingMs;
+            _hud.text = _session != null || _local ? "<b>Party " + Code + "</b>   " + count + "/" + MaxPlayers + (_local ? "   <alpha=#88>(this PC only)" : "") + (ping > 0 ? "   <alpha=#88>" + ping + " ms" : "") + "   <alpha=#88>Tab: scores   Esc: menu" : "";
         }
 
         private void BuildHud()

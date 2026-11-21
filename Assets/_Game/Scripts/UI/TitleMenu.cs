@@ -182,6 +182,15 @@ namespace ShiftJam
             _optionsButton = MenuButton("Options", y, OpenOptions, 185f, 40f, -97.5f);
             MenuButton("Quit", y, Quit, 185f, 40f, 97.5f);
             _hint = Text("Hint", _root.transform, HintLine, 20, new Vector2(0.5f, 0.017f), new Vector2(1400, 30)); _hint.alpha = 0.6f;
+            // The name others see online (D-0118), top right: kept between runs; empty = the PC's user name.
+            var nameLabel = Text("NameLabel", _root.transform, "Your name online", 18, new Vector2(0.9f, 0.965f), new Vector2(300, 26)); nameLabel.alpha = 0.6f;
+            var nameField = BuildUiKit.Input(_root.transform, System.Environment.UserName, 24);
+            var nameRect = (RectTransform)nameField.transform;
+            nameRect.anchorMin = nameRect.anchorMax = new Vector2(0.9f, 0.925f); nameRect.pivot = new Vector2(0.5f, 0.5f);
+            nameRect.anchoredPosition = Vector2.zero; nameRect.sizeDelta = new Vector2(300f, 44f);
+            nameField.characterLimit = PlayerName.MaxLength;
+            nameField.text = PlayerName.Typed;
+            nameField.onEndEdit.AddListener(PlayerName.Set);
             NetSession.StatusChanged += OnPartyStatus;
             // Which build this is (D-0040): BuildTools stamps the whole version number into the player settings; "dev" = a development build (D-0043).
             var version = Text("Version", _root.transform, "v" + Application.version + (Debug.isDebugBuild && !Application.isEditor ? " dev" : ""), 20, new Vector2(0.95f, 0.035f), new Vector2(160, 32));

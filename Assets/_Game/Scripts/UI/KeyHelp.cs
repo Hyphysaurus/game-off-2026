@@ -52,7 +52,9 @@ namespace ShiftJam
         {
             bool build = GameMode.Current == GameMode.Mode.Build;   // Build Mode's H is its own sheet
             var k = Keyboard.current; var pad = Gamepad.current;
-            if (!DebugConsole.IsOpen && !build)
+            var focus = UnityEngine.EventSystems.EventSystem.current != null ? UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject : null;
+            bool typing = focus != null && focus.GetComponent<TMPro.TMP_InputField>() != null && focus.GetComponent<TMPro.TMP_InputField>().isFocused;   // a name box (D-0118)
+            if (!DebugConsole.IsOpen && !build && !typing)
             {
                 bool toggle = (k != null && k.hKey.wasPressedThisFrame) || (pad != null && pad.selectButton.wasPressedThisFrame);
                 if (toggle) SetOpen(!_open);
@@ -128,6 +130,8 @@ namespace ShiftJam
             Line(sb, Kb("Block"), "Block (hold)", Pad("Block"));
             Line(sb, Kb("Holster"), "Put down what you hold; holster or draw the weapon", Pad("Holster"));
             Line(sb, "V", "First person on / off");
+            Line(sb, "Tab", "Online: scores (hold)");   // D-0118
+            if (!Application.isEditor) Line(sb, "F12", "Save a bug note with a screenshot (to send the developer)");
             sb.Append('\n');
             Header(sb, "GRAB (aim at a prop)");
             Line(sb, Kb("Interact"), "Grab; again to set it down where the footprint shows", Pad("Interact"));

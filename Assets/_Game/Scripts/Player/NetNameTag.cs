@@ -26,6 +26,20 @@ namespace ShiftJam
         private NetHealth _health;
         private float _nextText;
 
+        /// <summary>This player's name as their PC sent it.</summary>
+        public string DisplayName => _name.Value.Length > 0 ? _name.Value.ToString() : "Player " + (OwnerClientId + 1);
+
+        /// <summary>The name of the player with this client id, as this PC knows it.</summary>
+        public static string NameOf(ulong clientId)
+        {
+            foreach (var t in FindObjectsByType<NetNameTag>(FindObjectsSortMode.None))
+                if (t.IsSpawned && t.OwnerClientId == clientId) return t.DisplayName;
+            return "Player " + (clientId + 1);
+        }
+
+        /// <summary>The colour of the player with this client id.</summary>
+        public static Color ColourOf(ulong clientId) => Colours[(int)(clientId % (ulong)Colours.Length)];
+
         /// <summary>This player's colour.</summary>
         public Color Colour => Colours[(int)(OwnerClientId % (ulong)Colours.Length)];
 
@@ -34,10 +48,7 @@ namespace ShiftJam
             _health = GetComponent<NetHealth>();
             if (IsOwner)
             {
-                string me = System.Environment.UserName;
-                if (string.IsNullOrWhiteSpace(me)) me = "Player " + (OwnerClientId + 1);
-                if (me.Length > 16) me = me.Substring(0, 16);
-                _name.Value = new FixedString32Bytes(me);
+                _name.Value = new FixedString32Bytes(PlayerName.Get());   // typed on the title, else the PC's user name (D-0118)
                 return;
             }
             var go = new GameObject("NameTag");
@@ -60,7 +71,7 @@ namespace ShiftJam
             if (cam != null) _tag.transform.rotation = Quaternion.LookRotation(_tag.transform.position - cam.transform.position, Vector3.up);
             if (Time.unscaledTime < _nextText) return;
             _nextText = Time.unscaledTime + 0.15f;
-            string name = _name.Value.Length > 0 ? _name.Value.ToString() : "Player " + (OwnerClientId + 1);
+            string name = DisplayName;
             string colour = ColorUtility.ToHtmlStringRGB(Colour);
             string bar = "";
             if (_health != null)

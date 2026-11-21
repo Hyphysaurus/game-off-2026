@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
@@ -85,9 +86,12 @@ namespace ShiftJam
             {
                 Say("Starting a party...");
                 await s.SignIn();
+                await ShutdownDone();
                 s.EnsureNetworkManager();
-                var options = new SessionOptions { MaxPlayers = MaxPlayers }.WithRelayNetwork();
+                // Named and public, so "Play Online" and the party list find it (D-0122); a code still joins it too.
+                var options = new SessionOptions { MaxPlayers = MaxPlayers, Name = PlayerName.Get() + "'s party", IsPrivate = false }.WithRelayNetwork();
                 s._session = await MultiplayerService.Instance.CreateSessionAsync(options);
+                s._lastId = s._session.Id;
                 s.Watch();
                 GUIUtility.systemCopyBuffer = s._session.Code;
                 Say("Party code " + s._session.Code + " (copied: paste it to your friends)");
@@ -139,6 +143,7 @@ namespace ShiftJam
                 await s.SignIn();
                 s.EnsureNetworkManager();
                 s._session = await MultiplayerService.Instance.JoinSessionByCodeAsync(code);
+                s._lastId = s._session.Id;
                 PlayerPrefs.SetString(LastCodeKey, code); PlayerPrefs.Save();
                 s.Watch();
                 Time.timeScale = 1f;
@@ -162,6 +167,123 @@ namespace ShiftJam
             catch (Exception e) { Fail("Could not join " + LocalCode, e); }
         }
 
+        // ---------------------------------------------------------------- jumping in and out (D-0122)
+
+        /// <summary>One open party as the list shows it.</summary>
+        public readonly struct PartyInfo
+        {
+            public readonly string Id, Name; public readonly int Players, Max;
+            public PartyInfo(string id, string name, int players, int max) { Id = id; Name = name; Players = players; Max = max; }
+        }
+
+        private string _lastId;   // the party we were in: a dropped connection tries it first
+
+        /// <summary>The open Shift Jam parties with room (not locked, no password), fullest first.</summary>
+        public static async Task<List<PartyInfo>> FindParties()
+        {
+            var s = Get();
+            var found = new List<PartyInfo>();
+            try
+            {
+                await s.SignIn();
+                QuerySessionsResults results = await MultiplayerService.Instance.QuerySessionsAsync(new QuerySessionsOptions { Count = 20 });
+                foreach (ISessionInfo info in results.Sessions)
+                {
+                    if (info.IsLocked || info.HasPassword || info.AvailableSlots <= 0) continue;
+                    found.Add(new PartyInfo(info.Id, info.Name, info.MaxPlayers - info.AvailableSlots, info.MaxPlayers));
+                }
+                found.Sort((a, b) => b.Players.CompareTo(a.Players));
+            }
+            catch (Exception e) { Debug.LogWarning("NetSession: finding parties: " + e.Message); }
+            return found;
+        }
+
+        /// <summary>Join the party with this id (from the list).</summary>
+        public static async void JoinParty(string id)
+        {
+            var s = Get();
+            if (s._busy || s._session != null || s._local) return;
+            s._busy = true;
+            try { await s.JoinById(id); }
+            catch (Exception e) { Fail("Could not join that party", e); }
+            finally { s._busy = false; }
+        }
+
+        /// <summary>The seamless way in: an open party if there is one, else a new one with us as host. Waits a moment
+        /// and looks again before hosting, so two players coming in together end up in one world, not two.</summary>
+        public static async void PlayOnline()
+        {
+            var s = Get();
+            if (s._busy || s._session != null || s._local) return;
+            s._busy = true;
+            try { await s.PlayOnlineCore(); }
+            finally { s._busy = false; }
+        }
+
+        private async Task PlayOnlineCore()
+        {
+            Say("Looking for a party...");
+            List<PartyInfo> open = await FindParties();
+            if (open.Count == 0)
+            {
+                await Task.Delay(UnityEngine.Random.Range(600, 2400));
+                open = await FindParties();
+            }
+            foreach (var party in open)
+            {
+                try { await JoinById(party.Id); return; }
+                catch (Exception e) { Debug.LogWarning("NetSession: " + party.Name + " would not take us: " + e.Message); }
+            }
+            _busy = false;   // Host checks it
+            Host();
+        }
+
+        private async Task JoinById(string id)
+        {
+            Say("Joining a party...");
+            await SignIn();
+            await ShutdownDone();
+            EnsureNetworkManager();
+            _scores.Clear();
+            _session = await MultiplayerService.Instance.JoinSessionByIdAsync(id);
+            _lastId = _session.Id;
+            PlayerPrefs.SetString(LastCodeKey, _session.Code ?? ""); PlayerPrefs.Save();
+            Watch();
+            Time.timeScale = 1f;
+            Say("Joined " + (_session.Name ?? "a party"));
+        }
+
+        /// <summary>A NetworkManager still shutting down cannot start again: wait it out.</summary>
+        private static async Task ShutdownDone()
+        {
+            for (int i = 0; i < 100 && NetworkManager.Singleton != null && NetworkManager.Singleton.ShutdownInProgress; i++) await Task.Delay(50);
+        }
+
+        /// <summary>The connection went without our leaving (D-0122): back into the same party if it is still there, else
+        /// straight into another open world, or a new one of our own. Never stranded on the title.</summary>
+        private async void Recover(string why)
+        {
+            if (_busy) return;
+            _busy = true;
+            string last = _lastId;
+            _session = null; _local = false;
+            Say(why + ": reconnecting...");
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(0);   // out of the dead party scene while we look
+            try
+            {
+                await ShutdownDone();
+                for (int attempt = 0; attempt < 2 && !string.IsNullOrEmpty(last); attempt++)
+                {
+                    try { await JoinById(last); return; }
+                    catch (Exception e) { Debug.LogWarning("NetSession: rejoin " + (attempt + 1) + ": " + e.Message); await Task.Delay(1500); }
+                }
+                await PlayOnlineCore();
+            }
+            catch (Exception e) { Fail("Could not get back online", e); }
+            finally { _busy = false; }
+        }
+
         /// <summary>Leave the party (the host's leaving ends it for everyone) and go back to the course's title.</summary>
         public static async void Leave()
         {
@@ -183,11 +305,8 @@ namespace ShiftJam
         private void OnStopped(bool wasHost)
         {
             if (_leaving || (_session == null && !_local)) return;
-            string reason = NetworkManager.Singleton != null ? NetworkManager.Singleton.DisconnectReason : null;
-            _session = null; _local = false;
-            Say("Lost the connection to the party" + (string.IsNullOrEmpty(reason) ? "" : ": " + reason));
-            Time.timeScale = 1f;
-            SceneManager.LoadScene(0);
+            if (_local) { _local = false; Say("Lost the connection to the party"); Time.timeScale = 1f; SceneManager.LoadScene(0); return; }
+            Recover("Lost the connection");
         }
 
         private void Watch()
@@ -200,11 +319,10 @@ namespace ShiftJam
 
         private void OnEnded()
         {
-            if (_session == null) return;   // we left ourselves
-            _session = null;
+            if (_session == null || _leaving) return;   // we left ourselves
+            _lastId = null;   // that party is gone: do not try it again
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening) NetworkManager.Singleton.Shutdown();
-            Say("The party ended.");
-            SceneManager.LoadScene(0);
+            Recover("The party ended");
         }
 
         private async Task SignIn()

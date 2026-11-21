@@ -88,7 +88,7 @@ namespace ShiftJam
         private void OnDestroy() { IsOpen = false; NetSession.StatusChanged -= OnPartyStatus; }   // there is only ever one title
 
         private TMP_Text _hint;
-        private const string HintLine = "mouse, arrows or stick · Enter / A to choose · Join reads a party code you copied";
+        private const string HintLine = "mouse, arrows or stick · Enter / A to choose · Online drops you into a friend's world (or starts one)";
 
         /// <summary>The hint line shows what the party is doing (starting, the code, what went wrong) while there is news.</summary>
         private void OnPartyStatus()
@@ -97,6 +97,16 @@ namespace ShiftJam
             bool news = !string.IsNullOrEmpty(NetSession.Status);
             _hint.text = news ? NetSession.Status : HintLine;
             _hint.alpha = news ? 1f : 0.6f;
+        }
+
+        private PartiesPanel _parties; private Button _partiesButton;
+
+        /// <summary>The party list over the title (D-0122): the title hides while it is up.</summary>
+        private void OpenParties()
+        {
+            if (_parties == null) _parties = PartiesPanel.Create(transform, 51);
+            _root.SetActive(false);
+            _parties.Open(() => { _root.SetActive(true); UiAudio.Hush(); EventSystem.current?.SetSelectedGameObject(_partiesButton.gameObject); });
         }
 
         /// <summary>Options over the title (D-0044): the title hides while it is up and comes back with Options selected.</summary>
@@ -176,8 +186,10 @@ namespace ShiftJam
             MenuButton("Workshop", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); }, 118f, 26f, -252f);
             MenuButton("Raceway", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(RacewayScene); }, 118f, 26f, -126f);
             MenuButton("Colours", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(ColourCornerScene); }, 118f, 26f, 0f);
-            MenuButton("Host", y, () => NetSession.Host(), 118f, 26f, 126f);
-            MenuButton("Join", y, () => NetSession.Join(), 118f, 26f, 252f); y -= 0.062f;
+            // Online (D-0122): Play Online drops you into an open world or starts one; Parties lists them (and keeps host
+            // and code joins for private games).
+            MenuButton("Online", y, () => NetSession.PlayOnline(), 118f, 26f, 126f);
+            _partiesButton = MenuButton("Parties", y, OpenParties, 118f, 26f, 252f); y -= 0.062f;
             // Options and Quit share the last row (a full row more would run into the hint line).
             _optionsButton = MenuButton("Options", y, OpenOptions, 185f, 40f, -97.5f);
             MenuButton("Quit", y, Quit, 185f, 40f, 97.5f);

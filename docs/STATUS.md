@@ -2,6 +2,18 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 14:2x — CHECKPOINT: FRIEND-BUILD PREP DONE (D-0117 shots/gun/names/grenades seen, D-0118 name box, scores, bug notes, ping): BUILT, NOT PLAYED WITH TWO PLAYERS
+- Head `9397db3`. His "proceed with all" on 12 items. DONE: 1 name box, 2 kill feed + Tab scores, 3 F12 bug notes
+  (builds), 4 ping + lost connection. NEXT (in order): HIS two-window test -> the v7 build (BuildTools, plain) ->
+  he plays v7 -> friends. Then: 5 PvE waves with Funny Characters (host-run enemies), 6 King of the Crown,
+  7 TDM then CTF, 8 synced races, 9 emotes (Synty Emotes, owned), 10 pick a character (Funny Characters; rig risk),
+  11 the visual pass (base look, COZY, Kenney cursor/crosshair, HUD set, juice), 12 the tank + gunner seat.
+  Each of 5-12 gets a short plan for his OK first.
+- HIS TWO-WINDOW TEST: names on tags (type one on the title), shoot each other (darts, the gun in hand, the tag's
+  health bar), a grenade near the other (one hit, not two), Tab scores + the kill feed, drive a car while the
+  other watches, try the other's car ("Taken"), stop the host window: the other should go back to the title with
+  "Lost the connection".
+
 ## 21 Nov 2026 14:0x — PICKUPS + FLOOR + TITLE FIX (D-0115), RACE TRACK + ONLINE CARS (D-0116): BUILT, NOT PLAYED ONLINE
 - He played the Stadium solo (Relay works after the Unity restart: code D69KDL): "it's working".
 - Now: sand field, pickups spread, a gate east to the Raceway copy, 4 online cars. Stills: docs/stills/d0116_*.png.

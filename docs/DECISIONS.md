@@ -2272,3 +2272,15 @@
   and gifts placed on the FLOOR (cast from just above it, so roofs are not found) unless meant to be up (the SMG and
   the grenade bomb on the flank platforms); pistols inside the base arches, a supply crate at each arch's back, the
   middle ammo boxes dropped (the lane boxes stay). Unity was closed: rebuild the Stadium, then v9.
+- **D-0121 (21 Nov) v9 built headless; small drop-in/out wins.** Join falls back to the last party code; the pause
+  menu says "Leave Party" online; `PartyBuilder.RebuildAndBuildBatch` (Greybox, rebuild NetPlayer + Stadium, build
+  the next version, quit) for when the editor is closed.
+- **D-0122 (21 Nov) A seamless jump-in, jump-out world.** His: "do the find party list and auto reconnect", "the
+  idea is a seamless jump in and out type of world". Title: Online (`NetSession.PlayOnline`: join the fullest open
+  party, else wait 0.6-2.4 s, look again, else host: two players arriving together land in one world) and Parties
+  (`PartiesPanel`: the open parties with Join, Refresh, Host New Party, Join With Code, Back). Parties are named
+  "<name>'s party", public, and tagged with the game version: the list shows only this version's parties, a code
+  join to another version is left at once with "That party runs vN, you have vM". A lost connection or an ended
+  party (`Recover`): rejoin the same party twice, else PlayOnline into another open world or a new one of our own;
+  never stranded on the title (a LOCAL test party still goes to the title). The host leaving still ends that world
+  (distributed authority would be a large rewrite; not now): everyone is moved within seconds.

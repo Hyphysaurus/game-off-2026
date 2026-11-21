@@ -22,6 +22,7 @@ namespace ShiftJam
         // Workshop extras the asset has no actions for: made here so this stays the only script that knows devices.
         private InputAction _dropWeapon, _scroll, _rotate, _reload, _grenade, _grenadePad, _grenadePadHold;
         private Vector2 _mouseLook;   // pixels moved since the last read
+        private readonly InputAction[] _slots = new InputAction[4];   // 1 to 4: the inventory slots
         private Vector2 _stickLook;   // current right-stick value, -1..1
 
         /// <summary>Stick or WASD direction, clamped to length 1.</summary>
@@ -54,8 +55,11 @@ namespace ShiftJam
         public bool RotateHeld => _rotate != null && _rotate.IsPressed();
         /// <summary>Mouse wheel notches this frame (+1 up, -1 down), 0 when still.</summary>
         public float Scroll { get { float y = _scroll != null ? _scroll.ReadValue<float>() : 0f; return Mathf.Abs(y) < 0.01f ? 0f : Mathf.Sign(y); } }
-        /// <summary>Raised on Previous (1) and Next (2): cycle weapons.</summary>
+        /// <summary>Raised on Previous and Next from the pad (D-pad left / right): step through the inventory's slots.
+        /// The keyboard's 1 and 2 (their keys in the asset) are slot keys now (Slot).</summary>
         public event Action Previous, Next;
+        /// <summary>Raised on 1 to 4: take out the thing in that inventory slot (0 to 3).</summary>
+        public event Action<int> Slot;
         /// <summary>Raised once per press of the Shift action (F, pad RB): the carried shift (ShiftCharge).</summary>
         public event Action Shift;
         /// <summary>Raised on Z (pad: D-pad down): drop the weapon in hand.</summary>
@@ -95,6 +99,12 @@ namespace ShiftJam
             _reload = new InputAction("Reload", InputActionType.Button, "<Keyboard>/r");
             _reload.AddBinding("<Gamepad>/buttonNorth");
             _grenade = new InputAction("Grenade", InputActionType.Button, "<Keyboard>/g");
+            for (int i = 0; i < _slots.Length; i++)
+            {
+                int slot = i;
+                _slots[i] = new InputAction("Slot" + (i + 1), InputActionType.Button, "<Keyboard>/" + (i + 1));
+                _slots[i].performed += _ => Slot?.Invoke(slot);
+            }
             // The pad: both sticks pressed in, the right one first. The only pair on the pad whose own jobs are both
             // "hold" (crouch, run), so the press that throws does nothing else.
             _grenadePadHold = new InputAction("GrenadePadHold", InputActionType.Button, "<Gamepad>/rightStickPress");
@@ -120,12 +130,14 @@ namespace ShiftJam
             _grenadePad.performed += OnGrenadePad;
             _player.Enable();
             _dropWeapon.Enable(); _scroll.Enable(); _rotate.Enable(); _reload.Enable(); _grenade.Enable(); _grenadePad.Enable(); _grenadePadHold.Enable();
+            foreach (var s in _slots) s?.Enable();
         }
 
         private void OnDisable()
         {
             _player.Disable();
             _dropWeapon.Disable(); _scroll.Disable(); _rotate.Disable(); _reload.Disable(); _grenade.Disable(); _grenadePad.Disable(); _grenadePadHold.Disable();
+            foreach (var s in _slots) s?.Disable();
             _reload.performed -= OnReload;
             _grenade.performed -= OnGrenade;
             _grenadePad.performed -= OnGrenadePad;
@@ -147,6 +159,7 @@ namespace ShiftJam
         private void OnDestroy()
         {
             if (_instance != null) Destroy(_instance);
+            foreach (var s in _slots) s?.Dispose();
             _dropWeapon?.Dispose(); _scroll?.Dispose(); _rotate?.Dispose(); _reload?.Dispose(); _grenade?.Dispose(); _grenadePad?.Dispose(); _grenadePadHold?.Dispose();
         }
 
@@ -156,8 +169,8 @@ namespace ShiftJam
         private void OnDrop(InputAction.CallbackContext _) => Drop?.Invoke();
         private void OnAim(InputAction.CallbackContext _) => AimPressed?.Invoke();
         private void OnDodge(InputAction.CallbackContext _) => Dodge?.Invoke();
-        private void OnPrevious(InputAction.CallbackContext _) => Previous?.Invoke();
-        private void OnNext(InputAction.CallbackContext _) => Next?.Invoke();
+        private void OnPrevious(InputAction.CallbackContext ctx) { if (!(ctx.control?.device is Keyboard)) Previous?.Invoke(); }   // 1 is a slot key
+        private void OnNext(InputAction.CallbackContext ctx) { if (!(ctx.control?.device is Keyboard)) Next?.Invoke(); }           // 2 is a slot key
         private void OnShift(InputAction.CallbackContext _) => Shift?.Invoke();
         private void OnDropWeapon(InputAction.CallbackContext _) => DropWeapon?.Invoke();
         private void OnGrenade(InputAction.CallbackContext _) => Grenade?.Invoke();

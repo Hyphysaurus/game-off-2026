@@ -177,7 +177,9 @@ namespace ShiftJam
         {
             var stairs = r3.Find("UpStairs"); var box = r3.Find("StepBox");
             if (stairs != null && box != null) SinkTopBooks(stairs, box);
+            if (stairs != null) StaggerBookSides(stairs);
 
+            TallEndCharger(r3);
             var glint = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/PuzzleGlint.mat");
             var stand = r3.Find("PistolStand");
             if (stand != null)
@@ -289,6 +291,46 @@ namespace ShiftJam
                 book.position += Vector3.down * 0.03f; n++;
             }
             Log.AppendLine($"{stairs.name}: {n} books sunk under the box's top ({top:F3})");
+        }
+
+        /// <summary>A second charge-only core at the tall end's mouth (D-0103): the way back from the playroom lands past
+        /// the bridge, where the hallway's own core (x 162) is behind the toy, and growing in the shaft wants a charge.</summary>
+        static void TallEndCharger(Transform r3)
+        {
+            var old = r3.Find("ChargeCoreTall"); if (old != null) Object.DestroyImmediate(old.gameObject);
+            var coreMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/ShiftCore.mat");
+            var c = Core("ChargeCoreTall", r3, new Vector3(HallTall0 - 6f, 2.5f, LaneZ - 5f), ShiftSource.Mode.ChargeOnly, coreMat, false);
+            Log.AppendLine($"tall end: a charge core at {c.transform.position} (unlimited)");
+        }
+
+        /// <summary>The stair books are one depth and lie in a row, each over the next: their long sides shared a plane and
+        /// flickered. Any book whose side lies within 1 cm of an overlapping book's moves 4 cm off it (alternately each
+        /// way), until none do. Idempotent: a row already apart is left alone.</summary>
+        static void StaggerBookSides(Transform stairs)
+        {
+            var books = stairs.Cast<Transform>().Where(t => t.GetComponentInChildren<Renderer>() != null).ToList();
+            int moved = 0;
+            for (int pass = 0; pass < 4; pass++)
+            {
+                bool any = false;
+                Physics.SyncTransforms();
+                for (int i = 1; i < books.Count; i++)
+                {
+                    var bi = books[i].GetComponentInChildren<Renderer>().bounds;
+                    for (int j = 0; j < i; j++)
+                    {
+                        var bj = books[j].GetComponentInChildren<Renderer>().bounds;
+                        bool overlap = bi.min.x < bj.max.x && bj.min.x < bi.max.x && bi.min.y < bj.max.y && bj.min.y < bi.max.y;
+                        bool shared = Mathf.Abs(bi.min.z - bj.min.z) < 0.01f || Mathf.Abs(bi.max.z - bj.max.z) < 0.01f;
+                        if (!overlap || !shared) continue;
+                        books[i].position += Vector3.forward * (i % 2 == 0 ? 0.04f : -0.04f) * (1 + pass);
+                        moved++; any = true;
+                        break;
+                    }
+                }
+                if (!any) break;
+            }
+            Log.AppendLine($"{stairs.name}: {moved} book moves so no two overlapping books share a side");
         }
 
         static void Glint(GameObject on, Material material, Color color, float min, float max)

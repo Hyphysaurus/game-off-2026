@@ -112,6 +112,24 @@ namespace ShiftJam
         [Tooltip("A long gun: degrees each bone of the support hand's four fingers bends under the barrel (the test room: 40). Its thumb is left as the animation has it.")]
         public float supportCurl = 40f;
 
+        [Header("A handle in the fist (melee, the flashlight)")]
+        [Tooltip("Where the middle of a handle sits from the wrist, along the hand's own directions (x along the knuckles, y towards the thumb's side, z the way the palm faces). Rig metres. The middle of the closed fist, as a gun's grip.")]
+        public Vector3 handleCentre = new Vector3(0.0772f, -0.0041f, 0.0483f);
+        [Tooltip("Which way the blade or the beam leaves the fist, the same three directions: a handle runs through the closed fingers, out past the thumb, and a held tool is cocked forward at the wrist, so half to the thumb's side and half along the knuckles. (Straight to the thumb's side, a tool pointed ahead bent the wrist 90 degrees.)")]
+        public Vector3 handleInHand = new Vector3(1f, 1f, 0f);
+        [Tooltip("Which way the held thing's top (its +Y) points in the hand: back along the knuckles (pointed ahead, the knuckles lean down and forward, the thumb up and forward).")]
+        public Vector3 handleTopInHand = new Vector3(-1f, 0f, 0f);
+        [Tooltip("Degrees each finger bone bends round a handle: x the three gripping fingers, y the index finger (no trigger: it wraps too), z the thumb.")]
+        public Vector3 handleCurl = new Vector3(70f, 70f, 35f);
+        [Tooltip("A worn thing (the foam finger): where its root sits from the wrist, the hand's own directions, rig metres. The hand is folded away inside it.")]
+        public Vector3 wornCentre = new Vector3(0.06f, 0f, 0f);
+        [Tooltip("A worn thing: which way its +Z (the pointing finger) points in the hand. Along the knuckles, as the hand's own fingers.")]
+        public Vector3 wornAlong = new Vector3(1f, 0f, 0f);
+        [Tooltip("A worn thing: which way its +Y points in the hand. The thumb's side.")]
+        public Vector3 wornTop = new Vector3(0f, 1f, 0f);
+        [Range(0f, 1f), Tooltip("A melee swing turns the arm at the shoulder; this share of it is the wrist's, on top (a flick at the end of the arm).")]
+        public float swingWrist = 0.3f;
+
         [Header("A reload")]
         [Tooltip("Third person: where the gun sits from the chest bone while reloading, in the body's own space: x right, y up, z forward (the test room: 0.04 to the right, 0.12 down, 0.24 forward).")]
         public Vector3 reloadPosition = new Vector3(0.04f, -0.119f, 0.238f);

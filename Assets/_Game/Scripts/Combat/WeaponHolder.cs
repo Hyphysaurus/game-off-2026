@@ -16,12 +16,15 @@ namespace ShiftJam
     /// At rest the arm is the animation's and the gun hangs with it. While aim is held, and for a moment after each
     /// shot, the arm comes up and points the gun at the crosshair (ArmAim), the body faces the aim, and a shot waits for
     /// the arm to be up so it leaves along the barrel. A long gun (Weapon.TwoHanded) has both hands on it the whole time
-    /// it is out: carried low across the body, raised to the shoulder the same way. Melee: the arm is raised through the Animator's Arms layer, like
-    /// the Carrier, and the weapon follows it.
+    /// it is out: carried low across the body, raised to the shoulder the same way. Melee (D-0106): the arm is raised
+    /// through the Animator's Arms layer, like the Carrier; the weapon's handle sits in the closed fist along the hand's
+    /// own directions (WeaponHoldSettings, a handle in the fist) and a swing turns the arm at the shoulder and the wrist,
+    /// so the hand carries the weapon. A worn weapon (the foam finger) has the hand folded away inside it.
     /// First person (the test room's rule): a blaster sits low in front of the eye at its View Offset, the player's own
     /// body stands under the eye with its head hidden (ViewBody) and its hands on the gun (ArmAim.OnGun), and aim
-    /// brings the gun's own sight to the middle of the view (Weapon.SightFit). Melee floats in front of the camera
-    /// as a view model. Weapons are parented to the player so they shift size with it.
+    /// brings the gun's own sight to the middle of the view (Weapon.SightFit). Melee sits in front of the camera the
+    /// same way, the swing turning it there, with the hand on its handle (no sight). Weapons are parented to the player
+    /// so they shift size with it.
     /// </summary>
     [DefaultExecutionOrder(100)]   // after the Carrier's arm weight and the cameras, so the weapon never lags a frame
     public sealed class WeaponHolder : MonoBehaviour
@@ -66,6 +69,9 @@ namespace ShiftJam
         private Interactor _interactor;      // what E / the pad's Y would use: that press is not a reload
         private PlayerMotor _motor;          // slowed a little by a heavy gun in the hands
         private FirstPersonBody _fpMotor;    // the same, for the first-person body
+        private Vector3 _handScale = Vector3.one;   // the right hand bone's own scale, put back after a worn weapon
+        private bool _folded;                // the right hand is folded away inside a worn weapon
+        private Inventory _inventory;        // the slots (D-0108): how many it can carry, and the keys that choose
 
         /// <summary>False while the weapon is holstered (X): it is carried but put away, and the hands are empty.</summary>
         public bool Drawn { get; private set; } = true;
@@ -97,7 +103,9 @@ namespace ShiftJam
 
         public Weapon Current => _current >= 0 && _current < _weapons.Count ? _weapons[_current] : null;
         public int Count => _weapons.Count;
-        public bool Full => _weapons.Count >= maxWeapons;
+        public bool Full => _inventory != null ? _inventory.Full : _weapons.Count >= maxWeapons;
+        /// <summary>First person with a prop in the hands: the wheel moves it, the keys are its.</summary>
+        public bool HandsBusyInView => _fpHands != null && _fpHands.Held != null;
         public float Scale => shifter != null ? shifter.Scale : Mathf.Max(0.001f, transform.lossyScale.y);
         public bool FirstPerson => _fpView != null;
         /// <summary>The first-person body standing in for the player, when there is one: never shot by our own shots.</summary>
@@ -125,6 +133,7 @@ namespace ShiftJam
                 {
                     _hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
                     _shoulder = animator.GetBoneTransform(HumanBodyBones.RightUpperArm);
+                    if (_hand != null) _handScale = _hand.localScale;
                 }
                 _layer = animator.GetLayerIndex(armsLayer);
             }
@@ -143,6 +152,8 @@ namespace ShiftJam
             if (input != null && !TryGetComponent(out GrenadeThrower _)) gameObject.AddComponent<GrenadeThrower>();
             // ...and hears and feels its own shots land on things with health (its own piece; numbers in Resources/WeaponAmmo).
             if (input != null && !TryGetComponent(out HitConfirm _)) gameObject.AddComponent<HitConfirm>();
+            // ...and carries what it holds in slots (D-0108): weapons and hand tools in one bar.
+            if (input != null && !TryGetComponent(out _inventory)) _inventory = gameObject.AddComponent<Inventory>();
         }
 
         private void Start() { if (input != null) WeaponHud.Create(this); }   // a player's holder shows its ammo on screen
@@ -165,6 +176,7 @@ namespace ShiftJam
             _grip = 0f;
             _sight = 0f;
             _viewBody.Show(false);
+            FoldHand(false);
             StandDown();
             EndReload();
             SlowBy(1f);   // seated, or the player is off: nothing in the hands slows anything
@@ -188,9 +200,12 @@ namespace ShiftJam
         /// <summary>A long gun on a body that can hold one in both hands.</summary>
         private bool InBothHands(Weapon w) => ByArm(w) && w.TwoHanded && _armAim.BothHands;
 
-        /// <summary>First person, a blaster out and a body whose arms can hold it: the body is drawn under the eye
-        /// with its hands on the gun.</summary>
-        private bool InView(Weapon w) => w != null && w.AimsWithView && FirstPerson && _armAim != null && _armAim.Ready && _viewBody.Ready;
+        /// <summary>First person, a weapon out and a body whose arms can hold it: the body is drawn under the eye
+        /// with its hand on the weapon (a blaster's grip, a melee weapon's handle).</summary>
+        private bool InView(Weapon w) => w != null && FirstPerson && _armAim != null && _armAim.Ready && _viewBody.Ready;
+
+        /// <summary>Third person, a melee weapon on a body with a humanoid arm: its handle is seated in the fist.</summary>
+        private bool InFist(Weapon w) => w != null && !w.AimsWithView && !FirstPerson && _armAim != null && _armAim.Ready;
 
         /// <summary>Called by FirstPersonMode: hold the weapon in front of <paramref name="view"/>, or back in
         /// the hand with nulls.</summary>
@@ -227,7 +242,9 @@ namespace ShiftJam
             Weapon weapon = source.gameObject.scene.IsValid() ? source : Instantiate(source);
             if (weapon.Holder != null && weapon.Holder != this) return null;
             if (_weapons.Contains(weapon)) { Select(_weapons.IndexOf(weapon)); return weapon; }
+            if (Full && Current == null && _inventory != null) { _inventory.RoomForTool(); return null; }   // every slot holds a tool: nothing to swap
             if (Full && Current != null) Drop(Current);
+            if (carrier != null && _inventory != null) carrier.Stow();   // a tool in the hand goes back in its slot
             if (Current != null) { Current.Cancel(); Current.gameObject.SetActive(false); }
 
             var looks = weapon.GetComponent<WeaponLooks>();
@@ -239,6 +256,7 @@ namespace ShiftJam
             SetViewModel(weapon, FirstPerson);
             _weapons.Add(weapon);
             _current = _weapons.Count - 1;
+            if (_inventory != null) _inventory.Added(weapon);
             Drawn = true;   // a weapon just taken is in the hand
             ShowCurrent();
             Pose();
@@ -266,6 +284,7 @@ namespace ShiftJam
             }
             _weapons.Clear();
             _current = -1;
+            if (_inventory != null) foreach (Weapon w in taken) _inventory.Removed(w);
             GameEvents.RaiseAmmoChanged(this);
             return taken;
         }
@@ -281,6 +300,7 @@ namespace ShiftJam
             if (_current >= _weapons.Count) _current = _weapons.Count - 1;
             else if (index < _current) _current--;
             weapon.SetHolder(null);
+            if (_inventory != null) _inventory.Removed(weapon);
             SetViewModel(weapon, false);
             weapon.gameObject.SetActive(true);
             weapon.transform.SetParent(null, true);
@@ -323,8 +343,11 @@ namespace ShiftJam
             ShowCurrent();
             GameEvents.RaiseAmmoChanged(this);
         }
-        private void OnPrevious() => Cycle(-1);
-        private void OnNext() => Cycle(1);
+        private void OnPrevious() { if (_inventory == null) Cycle(-1); }   // with slots, the Inventory chooses
+        private void OnNext() { if (_inventory == null) Cycle(1); }
+
+        /// <summary>Takes <paramref name="weapon"/> out (one we carry), as a slot key does.</summary>
+        public void Select(Weapon weapon) { int i = _weapons.IndexOf(weapon); if (i >= 0) Select(i); }
 
         private void Cycle(int step)
         {
@@ -484,7 +507,7 @@ namespace ShiftJam
             // The mouse wheel swaps weapons while one is out (the test room's rule): down for the next, up for the one
             // before. Not with a prop in the hands (the wheel moves or turns it), nor with the key sheet open.
             float wheel = input != null ? input.Scroll : 0f;
-            if (wheel != 0f && Drawn && !(_fpHands != null && _fpHands.Held != null) && !KeyHelp.IsOpen) Cycle(wheel < 0f ? 1 : -1);
+            if (wheel != 0f && _inventory == null && Drawn && !(_fpHands != null && _fpHands.Held != null) && !KeyHelp.IsOpen) Cycle(wheel < 0f ? 1 : -1);
 
             var w = Current;
             SlowBy(MoveShare);
@@ -510,15 +533,15 @@ namespace ShiftJam
             // eye while aim is held (the test room's rule).
             bool inView = visible && InView(w);
             _viewBody.Show(inView);
-            bool sighting = inView && AimHeld;
+            bool sighting = inView && AimHeld && w.AimsWithView;   // melee has no sight
             _sight = !inView ? 0f : _hold.sightTime > 0f ? Mathf.MoveTowards(_sight, sighting ? 1f : 0f, Time.deltaTime / _hold.sightTime) : sighting ? 1f : 0f;
             // A long gun: both hands come onto it as it is drawn and stay there; a move (a roll, a hit) takes them off.
             // In first person the hands are on any gun the same way.
             bool both = byArm && InBothHands(w);
             _hands = !both && !inView ? 0f : _hold.holdTime > 0f ? Mathf.MoveTowards(_hands, Locked ? 0f : 1f, Time.deltaTime / _hold.holdTime) : Locked ? 0f : 1f;
             bool up = !byArm || (_raise >= _hold.raisedAt && (!both || _hands >= _hold.raisedAt));
-            // The fingers close round the grip while a blaster is in the hand.
-            _grip = !byArm && !inView ? 0f : _hold.gripTime > 0f ? Mathf.MoveTowards(_grip, 1f, Time.deltaTime / _hold.gripTime) : 1f;
+            // The fingers close round the grip or the handle while a weapon is in the hand.
+            _grip = !byArm && !inView && !(visible && InFist(w)) ? 0f : _hold.gripTime > 0f ? Mathf.MoveTowards(_grip, 1f, Time.deltaTime / _hold.gripTime) : 1f;
             if (_trigger && up && Time.timeScale > 0f)
             {
                 _trigger = false;
@@ -540,6 +563,7 @@ namespace ShiftJam
         private void Pose()
         {
             var w = Current;
+            FoldHand(w != null && w.gameObject.activeSelf && w.Worn && _armAim != null && _armAim.Ready);
             if (w == null || !w.gameObject.activeSelf) return;
             float s = Scale;
             float reload = ReloadPose(w);
@@ -590,6 +614,18 @@ namespace ShiftJam
                 CloseFingers(w, both);
                 return;
             }
+            if (InFist(w))
+            {
+                // Melee: the Arms layer holds the arm out. A swing turns that arm at the shoulder and the wrist, and the
+                // weapon is seated in the fist after it, so the hand carries the weapon round (it no longer spins about
+                // the palm with the hand standing still).
+                _armAim.Swing(w.PoseRotation, _hold.swingWrist);
+                Quaternion held = _hand.rotation * HoldTurn(w);
+                w.transform.SetPositionAndRotation(HandPoint(_armAim.InHand(HoldCentre(w))) + held * (w.HandOffset * s), held);
+                CloseFingers(w, false);
+                return;
+            }
+            // No humanoid arm.
             Quaternion frame;
             if (w.AimsWithView) frame = Quaternion.LookRotation(AimForward, Vector3.up);   // no humanoid arm: the gun points with the view
             else
@@ -608,6 +644,33 @@ namespace ShiftJam
         /// <summary>How a blaster is turned in the fist (gun rotation = right hand rotation x this).</summary>
         private Quaternion FistTurn(Weapon w) => _armAim.Grip(_hold.barrelInHand, _hold.topInHand) * Quaternion.Euler(_hold.gripEuler) * w.HandRotation;
 
+        /// <summary>How any weapon is turned in the hand: a blaster by its grip (FistTurn); a melee weapon with its
+        /// handle running through the fist, blade out past the thumb; a worn one along the hand's own fingers.</summary>
+        private Quaternion HoldTurn(Weapon w)
+        {
+            if (w.AimsWithView) return FistTurn(w);
+            Quaternion inHand = w.Worn ? _armAim.Grip(_hold.wornAlong, _hold.wornTop) : _armAim.Grip(_hold.handleInHand, _hold.handleTopInHand);
+            return inHand * w.HandRotation;
+        }
+
+        /// <summary>Where the weapon's root sits from the wrist, in the hand's own directions (rig metres).</summary>
+        private Vector3 HoldCentre(Weapon w) => w.AimsWithView ? _hold.fistCentre : w.Worn ? _hold.wornCentre : _hold.handleCentre;
+
+        /// <summary>The right hand's size in the world as it would be unfolded (a worn weapon shrinks the bone itself).</summary>
+        private Vector3 HandScale => !_folded ? _hand.lossyScale : (_hand.parent != null ? Vector3.Scale(_hand.parent.lossyScale, _handScale) : _handScale);
+
+        /// <summary>A point in the right hand's own space (rig metres), in the world.</summary>
+        private Vector3 HandPoint(Vector3 local) => _hand.position + _hand.rotation * Vector3.Scale(local, HandScale);
+
+        /// <summary>A worn weapon (the foam finger): the right hand bone is shrunk to nothing, so the fist does not show
+        /// through the cuff; put back as it was otherwise. The Animator never writes the bone's scale.</summary>
+        private void FoldHand(bool fold)
+        {
+            if (_hand == null || fold == _folded) return;
+            _folded = fold;
+            _hand.localScale = fold ? _handScale * 0.02f : _handScale;
+        }
+
         /// <summary>What the arms need to know about the gun they hold: how it sits in the fist, its kick this frame,
         /// where the support hand holds a long gun, and during a reload where the magazine is.</summary>
         private ArmAim.Hold Grasp(Weapon w, Quaternion fist, Vector3 inHand, float reload, bool both, float s)
@@ -615,7 +678,7 @@ namespace ShiftJam
             var hold = new ArmAim.Hold
             {
                 grip = fist,
-                seat = Quaternion.Inverse(fist) * Vector3.Scale(inHand, _hand.lossyScale) + w.HandOffset * s,
+                seat = Quaternion.Inverse(fist) * Vector3.Scale(inHand, HandScale) + w.HandOffset * s,
                 muzzle = w.MuzzleOffset,
                 kickTurn = w.PoseRotation,
                 kickSlide = w.PosePosition * s,
@@ -651,7 +714,7 @@ namespace ShiftJam
             float lookUp = Mathf.Max(0f, Mathf.Asin(Mathf.Clamp(look.y, -1f, 1f)) * Mathf.Rad2Deg);
             _armAim.TurnChest((both ? _hold.aimChestTurn : 0f) * weight, lookUp * _hold.chestFollowsView * weight);
             _viewBody.Stand(_fpView.position, transform.forward, -look.y, _hold, s);
-            ArmAim.Hold hold = Grasp(w, FistTurn(w), _armAim.InHand(_hold.fistCentre), reload, both, s);
+            ArmAim.Hold hold = Grasp(w, HoldTurn(w), _armAim.InHand(HoldCentre(w)), reload, both, s);
             _viewBody.Slide(_armAim.OutOfReach(root, gun, hold, _hold));
             _armAim.OnGun(root, gun, both, weight, hold, _hold, s);
             CloseFingers(w, both);
@@ -661,7 +724,8 @@ namespace ShiftJam
         /// gun's own (a thick grip, a fat fore-end), else the shared numbers.</summary>
         private void CloseFingers(Weapon w, bool both)
         {
-            Vector3 curl = w.GripCurl(_hold);
+            if (w.Worn) return;   // the hand is folded away inside it
+            Vector3 curl = w.AimsWithView ? w.GripCurl(_hold) : w.HandleCurl(_hold);
             _fist.Close(Mathf.SmoothStep(0f, 1f, _grip), curl.x, curl.y, curl.z);
             float under = w.SupportCurl(_hold);
             if (both) _support.Close(Mathf.SmoothStep(0f, 1f, Mathf.Min(_grip, _hands)), under, under, 0f);

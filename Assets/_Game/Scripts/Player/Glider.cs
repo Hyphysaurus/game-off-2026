@@ -23,6 +23,7 @@ namespace ShiftJam
         private PlayerMotor _motor; private Shifter _shifter; private PlayerMoves _moves; private PlayerAnimation _animation;
         private bool _owned, _free;
         private Transform _rig;                      // the plane under the feet, made the first time it opens
+        private Transform _plane; private Vector3 _planeBase;   // the plane model, and where it sits before the live ride offset
         private Transform _model;                    // the body, banked with the plane
         private Quaternion _modelRot; private Vector3 _modelPos; private bool _modelHeld;
         private float _bank, _pitch, _lastYaw;
@@ -184,7 +185,8 @@ namespace ShiftJam
             if (!Gliding && Mathf.Abs(_bank) < 0.3f && Mathf.Abs(_pitch) < 0.3f) { _bank = _pitch = 0f; ReleaseModel(); return; }
             Quaternion tilt = Quaternion.Euler(_pitch, 0f, _bank);
             if (_rig != null && Gliding) _rig.rotation = Quaternion.Euler(0f, yaw, 0f) * tilt;
-            TiltModel(tilt);
+            if (_plane != null) _plane.localPosition = _planeBase - _settings.rideOffset;   // live: the rider against the plane
+            TiltModel(Gliding ? tilt * Quaternion.Euler(_settings.rideLean, 0f, 0f) : tilt);
         }
 
         private void TiltModel(Quaternion tilt)
@@ -228,7 +230,35 @@ namespace ShiftJam
             float s = b.size.z > 1e-4f ? _settings.planeLength / b.size.z : 1f;
             float length = _settings.planeLength;
             t.localScale = Vector3.one * s;
-            t.localPosition = new Vector3(-b.center.x * s, _settings.sinkIn * length - b.max.y * s, _settings.standBack * length - b.center.z * s);
+            // The deck: the mesh's top right under the feet (the box's top is the wing tips', well above the body of a
+            // paper plane, and the toy stood on air). Taken from the vertices near the standing spot.
+            Vector3 mid = b.center * s; float standZ = mid.z - _settings.standBack * length;
+            float deck = DeckHeight(t, _rig, s, mid.x, standZ, length * 0.14f, out bool found);
+            if (!found) deck = b.max.y * s;
+            _planeBase = new Vector3(-mid.x, _settings.sinkIn * length - deck, _settings.standBack * length - mid.z);
+            t.localPosition = _planeBase;
+            _plane = t;
+        }
+
+        /// <summary>The highest point of the plane's meshes within <paramref name="half"/> of (x, z), in the rig's space
+        /// with the plane scaled by <paramref name="s"/> but not yet moved.</summary>
+        private static float DeckHeight(Transform plane, Transform rig, float s, float x, float z, float half, out bool found)
+        {
+            found = false; float top = float.MinValue;
+            Matrix4x4 toRig = rig.worldToLocalMatrix;
+            Vector3 shift = plane.localPosition;   // zero while measuring
+            foreach (MeshFilter mf in plane.GetComponentsInChildren<MeshFilter>(true))
+            {
+                Mesh m = mf.sharedMesh; if (m == null || (!m.isReadable && !Application.isEditor)) continue;   // a build reads only readable meshes
+                Matrix4x4 toLocal = toRig * mf.transform.localToWorldMatrix;
+                foreach (Vector3 v in m.vertices)
+                {
+                    Vector3 p = toLocal.MultiplyPoint3x4(v) - shift;
+                    if (Mathf.Abs(p.x - x) > half || Mathf.Abs(p.z - z) > half) continue;
+                    if (p.y > top) { top = p.y; found = true; }
+                }
+            }
+            return top;
         }
 
         /// <summary>The meshes' box under <paramref name="root"/>, in <paramref name="space"/>'s own coordinates.</summary>

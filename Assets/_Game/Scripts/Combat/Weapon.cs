@@ -27,6 +27,8 @@ namespace ShiftJam
         [SerializeField, Tooltip("First person: degrees the gun rolls over to its left as the sight comes to the eye. For a sight that stands at a slant on the gun's right side (an offset sight, made to be used with the gun rolled over): the slant, so the sight stands upright at the eye. 0 = a sight on top.")] private float sightRoll;
         [SerializeField, Tooltip("Field of view while this weapon is aimed in first person, degrees (a scope zooms further). 0 = the first-person settings' aim field of view.")] private float sightFieldOfView;
         [SerializeField, Tooltip("First person: how far in front of the eye this gun's sight sits while aimed, units at scale 1. Further out, the gun is held out more and the hand holding it comes up into view (a pistol at arm's length). 0 = the shared number (Resources/WeaponHold > Sight Distance, the test room's 0.307).")] private float sightDistance;
+        [SerializeField, Tooltip("Its picture in the inventory bar (a thumbnail from Art/Thumbs).")] private Texture2D icon;
+        [SerializeField, Tooltip("Melee: worn on the hand instead of gripped (a foam finger). The hand is folded away inside it and the fingers do not close.")] private bool worn;
         [SerializeField, Range(0.5f, 1f), Tooltip("How fast you move with this weapon out, as a share of normal. A heavy gun is a little slower (the test room: rifle 0.92, shotgun 0.9, sniper 0.82). 1 = no slower.")] private float moveSpeed = 1f;
 
         public string DisplayName => displayName;
@@ -51,6 +53,13 @@ namespace ShiftJam
         /// <summary>Degrees each bone of the gun hand's fingers bends round this grip (x the three gripping fingers, y the
         /// trigger finger, z the thumb): its own number for each, else the shared one.</summary>
         public Vector3 GripCurl(WeaponHoldSettings shared) => new Vector3(gripCurl.x > 0f ? gripCurl.x : shared.fingerCurl, gripCurl.y > 0f ? gripCurl.y : shared.triggerCurl, gripCurl.z > 0f ? gripCurl.z : shared.thumbCurl);
+        /// <summary>Melee: worn on the hand (a foam finger), the hand folded away inside it.</summary>
+        public bool Worn => worn;
+        /// <summary>Its picture in the inventory bar, if it has one.</summary>
+        public Texture2D Icon => icon;
+        /// <summary>A handle (melee): degrees each finger bone bends round it, this weapon's own number for each part
+        /// (its Grip Curl), else the shared handle numbers.</summary>
+        public Vector3 HandleCurl(WeaponHoldSettings shared) => new Vector3(gripCurl.x > 0f ? gripCurl.x : shared.handleCurl.x, gripCurl.y > 0f ? gripCurl.y : shared.handleCurl.y, gripCurl.z > 0f ? gripCurl.z : shared.handleCurl.z);
         public Vector3 ViewOffset => viewOffset;
         public Quaternion ViewRotation => Quaternion.Euler(viewEuler);
         /// <summary>The weapon's own motion this frame (swing, recoil), applied in the hold frame.</summary>

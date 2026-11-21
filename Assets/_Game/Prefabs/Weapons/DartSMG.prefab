@@ -128,6 +128,8 @@ MonoBehaviour:
   sightRoll: 45
   sightFieldOfView: 0
   sightDistance: 0.46
+  icon: {fileID: 2800000, guid: c2de98c92739d424dbbddad0cd585223, type: 3}
+  worn: 0
   moveSpeed: 0.96
   projectile: {fileID: 5713214129242039125, guid: afbb0a2c301f7cd49bdd36580013ba56, type: 3}
   muzzle: {fileID: 4285575023932942298}

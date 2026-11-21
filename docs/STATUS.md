@@ -2,6 +2,47 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 02:5x — THE DART LINE (D-0109) + THE GAP TOY IDLE: WRITTEN AND COMPILED OUTSIDE, NOT LANDED (he was gaming)
+- Staged: `%TEMP%\shiftjam-stage\pass15` (Dart Line, pulled motor state, glider fold, toy-only items) and
+  `pass14` (the gap toy's idle). To land: copy in, refresh, then Land Downstairs, then Land Dart Line.
+- HIS PLAYTEST after landing: take the Dart Line in the armory, the practice shelf, wardrobe pull-up then the zip to the
+  desk, the bed, and up out of the living room through the hole.
+
+## 21 Nov 2026 02:1x — GRIPS FIXED (D-0106) + THE INVENTORY BAR (D-0108): IN HIS EDITOR, NOT PLAYED; NOT COMMITTED
+- Grips: the torch now sits in a closed fist pointing ahead (the hidden glint had put its grip a hand's width off; the
+  handle angle bent the wrist 90). Knife in the fist, swing moves the arm; foam finger worn. Checked in one still.
+- Inventory: slots 1-4 (toy 2, kid 4), wheel / D-pad step; the flashlight is a slot item (stowed, not dropped, on a
+  shift; greyed at toy size). Bar along the bottom with pictures. 1/2 are slot keys now, not weapon cycle.
+- HIS PLAYTEST: pick up the torch as a kid, swap to the pistol and back, shrink and grow, swing the knife.
+- Open: the T-posed toy by the gap; the book flicker (needs his "now"); tools not carried to other scenes or saved.
+
+## 21 Nov 2026 01:0x — THE HUB CLEARED TO A PLAN (D-0107): IN HIS EDITOR, NOT PLAYED; GRIPS (D-0106) STAGED, NOT LANDED; NOT COMMITTED
+- Playroom: 195 loose floor things removed (579 -> 384), the rest gathered into a craft pile, a block pile and a puzzle;
+  books on shelves only; mats one colour per cluster; six zone signs. Every beat untouched; the expressway is the ring road.
+- D-0106 (melee and flashlight held in the fist, the swing moves the arm, foam finger worn, first-person hands on melee):
+  written and compiled outside, waiting for his "go" to land. Staged at `%TEMP%\shiftjam-stage\pass10`.
+- No backyard exists (post-jam in BACKLOG); the downstairs front door is dressing.
+- HIS PLAYTEST: walk the hub as toy and kid: can you tell where things are and how to get there?
+
+## 20 Nov 2026 21:5x — THE LIVING ROOM CLEANED UP AND GROWN (D-0105), GLIDER CONTROLS + BOOSTERS (D-0104), ENTRY-WAY FLICKER: IN HIS EDITOR, NOT PLAYED; NOT COMMITTED
+- Downstairs is 10 x 6 tiles: living room, entry hall with the front door, stairs up (gated), kitchen run + island,
+  dining nook. Painted walls and trim, oak planks, kitchen tile, windows with daylight. Checked in stills only.
+- 10 tan soldiers (an officer on the dining table), one gate for all 10.
+- D-0104: dive (Sprint) / float (Crouch) on the glider, a desk fan and rings, the ring under the gap; the mouse hole back moved in front of the wall (checked by a ray, not played).
+- The hole's edge flicker fixed (shaft stops on the ceiling strips); fall-out height -200.
+- HIS PLAYTEST: glide down through the gap ring, the fight across kitchen and nook, the room's look.
+- Open: the T-posed toy by the gap; the book flicker he still sees (needs his "now" at the spot); the inventory plan
+  awaits his answers.
+
+## 20 Nov 2026 13:2x — CURVED WORLD BEATS (D-0102) + DOWNSTAIRS ARENA (D-0103), GLIDER LANDED AT LAST: IN HIS EDITOR, NOT PLAYED; NOT COMMITTED
+- Garden as a little planet from the window (0.8); the room pulses round the player on every shift.
+- Under the pencil bridge: the living room / kitchen, the Tan Splinter's six soldiers, the toy door home on their rout.
+- The glider is on the playroom desk (it never was before); the playroom mouse hole leads back to the hallway.
+- A charge core at the tall end's mouth; the stair books no longer share side faces.
+- HIS PLAYTEST: the whole loop (bridge look, the toy's words, desk plane, mouse hole back, glide down, clear the kitchen,
+  door home); the shift pulse strength; the garden.
+- Open: the T-posed toy by the gap; the downstairs wallpaper.
+
 ## 20 Nov 2026 12:4x — BREAKABLE PROPS (D-0101): LANDED IN HIS EDITOR, NOT PLAYED; NOT COMMITTED
 - 64 props break into Fraggo pieces that dissolve away; each comes back (dissolving in) after 20 s.
 - HIS PLAYTEST: shoot blocks, cups and cubes in the playroom, the cover box in the hallway; judge how many darts, the

@@ -1980,4 +1980,141 @@
     ShaderGraph_Dissolve URP material, copied per piece with the piece's own texture and colour, a warm glowing edge).
     After 20 s it dissolves back in at its starting place, once the player is not standing there, full of health.
   - Menu: Shift Jam / Breakables / Build Breakables (idempotent; it saves Greybox).
+- **D-0102 (20 Nov, 12:5x) Curved World, for two bespoke beats only (his "not the whole world").**
+  - Installed the URP package (Amazing Assets, out of git). One Little Planet bend (Y, ID 1) on `WorldBend` under
+    R6_Window: at rest pivoted at the window, it rounds the garden (ground and trees on Curved World copies of their
+    materials in `Data/CurvedWorld`; the ground is now a 100 x 80 grid, `GardenGround`, since a box has eight corners to
+    move) into a little planet seen from the sill, curvature 0.8 (stills compared 0 / 0.8 / 1.5 / 3).
+  - On every shift of the player the same bend jumps to the player and pulses (0.7 s, strength over the player's size):
+    the URP Lit renderers round the player are swapped for Curved World copies for the moment, so the room rounds into
+    a little planet and snaps back as the size changes. The player cannot move during a shift.
+  - Rule kept: only what is never walked on, or only while the player cannot act, bends; physics never bends.
+  - Gotcha: a new Curved World material comes with the Classic Runner keyword on; `WorldBend.Bendify` clears every
+    other bend type. Clones without the pack draw these materials pink.
+  - Menu: Shift Jam / Curved World / Land Beats.
+- **D-0103 (20 Nov, 13:2x) Downstairs: the Tan Splinter's living room and kitchen under the hallway, glider-gated.**
+  - Found first: the glider (D-0095) had never been landed in Greybox (no GliderPickup in any commit, no Resources/Glide).
+    `LandGlider` run now: the paper plane is on the playroom desk.
+  - The pit floor under the pencil bridge is cut (x 172..206) with a short shaft to the new room's ceiling: crossing
+    the bridge you look down 160 into a lit living room. A drop breaks a toy (D-0096). The playroom's mouse hole now
+    leads back into the hallway just past the bridge (Portal, toy only), so the plane carries the toy down onto the
+    couch under the gap.
+  - Pointers: a toy by the gap (ProblemHint: the room, the Tan Splinter, a paper plane), a tape note over the gap
+    ("LIVING ROOM BELOW / TOO FAR TO DROP / GLIDE?"), one by the plane on the desk.
+  - The room: 6 x 4 of the bedroom's room modules (x 30..420, z -330..-70, floor -160, ceiling -30, walls turned as the
+    bedroom's), furniture from Cute_Furniture_Free / Christmas_Pack_FREE / Food_Free at 55 to the metre (kept under
+    the ceiling), warm room light, fire glow, kitchen light.
+  - The arena (his "a splinter faction"): six soldiers on a tan copy of the army colour sheet (greens hue-shifted;
+    `_Imports/Generated/Army`, out of git), sight 30, fire 26, sandbag cover, a tan flag, 8 breakables. `SquadGate`:
+    each soldier down once opens a copy of the bedroom's toy door on the south wall, back to the playroom; the HUD
+    counts down.
+  - A second, unlimited charge core at the tall end's mouth (x 226): the way back lands past the hallway's own core.
+  - The stair books' long sides lay in one plane where they overlap (the flicker he still saw): moved 4 cm apart
+    (`StaggerBookSides`).
+  - Open: the toy by the gap stands in a T-pose (the character pack's base model, no animator); the room has the
+    playroom's cloud wallpaper.
+  - Menu: Shift Jam / House / Land Downstairs (D-0103), then Build Breakables.
+- **D-0104 (20 Nov, 14:3x) The glider: where the toy stands, dive and float, air boosters; the way back fixed.**
+  - The way back (D-0103) did not work: its trigger was put 1.5 behind the playroom's west wall face (x 285), out of
+    reach. It is now found from the wall by a ray and stands in front of it (x 285.4..287.8).
+  - Standing: the plane's top was its box's top (the wing tips), so the toy stood on air above a paper plane's body. The
+    deck is now measured from the mesh right under the feet (editor and readable meshes; a build falls back to the box).
+    `GlideSettings.rideOffset` (own units) and `rideLean` (8 degrees forward) are applied every frame: he tunes them in
+    the Inspector while gliding.
+  - Control: hold Sprint to dive (1.7 x speed, 3.2 x sink), hold Crouch to float (0.5 x speed, 0.45 x sink). Pulling
+    the stick back already turns the plane, so it is not the brake. Extra speed (a dive, a ring) bleeds off at 3.5 a
+    second instead of the glide's 10: speed carries.
+  - Boosters, from pieces already made: `BoostPad` (the rings, arches, arrows) also pushes a gliding toy along its
+    flight (14) with a lift (4); the UpdraftFan's wind already lifts a glider (14 up against a 2.5 sink). Placed: a desk
+    fan off the playroom desk's east edge (405, -8), three rings (x3 size) in a line south off its column, one ring flat
+    under the bridge gap downstairs. Menu: Shift Jam / House / Land Glide Boosters (D-0104).
 
+- **D-0105 (20 Nov, 21:5x) The living room cleaned up and grown: 10 x 6 tiles, five parts, 10 Tan Splinter soldiers.**
+  - His "fix the flickering on the entry way there, then begin cleaning up the living room scene area and expand it",
+    then "lets begin dressing" and "go to 10" (soldiers).
+  - The entry-way flicker: the gap's shaft walls reached into the ceiling strips round the hole, so faces shared a
+    plane at its edges. The shaft now stops on top of the strips (DownCeiling + 1). The fall-out height is -200 (it was
+    -20: gliding down respawned him).
+  - The room is 650 x 390 (x 30..680, z -330..60), nothing else in the world below y -28 there. Five parts on one floor:
+    living room round the gap (couch under it, a second couch across the coffee table, fire on the west wall, armchair,
+    floor lamps, tree by a window); entry hall NW (the front door, shut, dressing for now; a mat, coat stand, closet);
+    stairs up the north wall (21 solid steps, banister, into a dark stairwell where one ceiling tile is left out; a baby
+    gate and a clear wall at the bottom: nobody goes up yet); kitchen SE (one run flush on the east wall: fridge,
+    cabinets, stove, sink; wall cabinets, a tiled backsplash, an island with stools); dining nook NE (table, four
+    armchairs, hutch under a window, hanging lamp).
+  - The room's own look instead of the playroom's cloud wallpaper: cream paint over a sage wainscot with a white rail
+    and skirting, oak planks (made from the Playroom pack's Wood_Light: `_Imports/Generated/Downstairs/Planks.png`,
+    out of git), cream and sage kitchen tile (drawn by the builder: `Data/Downstairs/KitchenTile.png`), 8 window frames
+    with daylight behind the glass. Materials in `Data/Downstairs`.
+  - The Christmas pack's cabinets ship without their doors (each door its own prefab, hinged at its own origin); they
+    are hung where the pack's demo scene has them (`PackDoors`).
+  - The arena: 6 soldiers in the kitchen, 3 in the dining nook, a tan officer on the dining table (1.3 x, 140 health,
+    sees 40). Still one `SquadGate` for all 10: the floor is open, so a second gate had no door to hold.
+  - Code: `CourseBuilder.LivingRoom.cs` (new: materials, dressing, stairs, furniture, lights), Downstairs builder sizes
+    and arena. Menu: Shift Jam / House / Land Downstairs (D-0103), then Land Glide Boosters, then Build Breakables.
+- **D-0107 (21 Nov, 01:0x) The hub (playroom) cleared to a plan.**
+  - His "the main hub room is verrrrrry cluttered... i do want there to be a lot to do in there but we need to be able
+    to have a clear plan and layout", then "proceed".
+  - Every beat stays where it is. What went is the seeded floor scatter from BuildPlayroom's `Scatter` calls: 195 loose
+    things (papers, cards, pencils, chalk, cups, CDs, paper planes, drawings, notebooks, puzzle pieces, blocks, floor
+    books and the floor book stacks). The room went from 579 objects to 384.
+  - What stays is gathered: a craft pile on the floor by the desk (11), a block pile (13) and a laid puzzle (5) in the
+    blocks corner by the Raceway door, books only on the two shelves. No loose paper planes: the glider is the only plane.
+  - The expressway stays: it is the hub's ring road (a toy car laps it, stops at the entry, desk, army maze and
+    wardrobe). I had suggested shrinking it before reading it; it is the layout's spine, not clutter.
+  - Each of the six foam-mat clusters is one colour now (a zone's floor mark). Six zone signs on tape (DESK, ARMY FORT,
+    COUCH, WARDROBE, CASTLE, BLOCKS), 20 to 50 up, sized for both a toy and a kid.
+  - Only plain props are touched (mesh, colliders, body, Pushable, Damageable, Breakable): nothing with a script.
+    The sandbag maze is the army beat and is unchanged.
+  - A full rebuild (Build Course) still lays the old scatter: run Land Hub Layout after it. The scene before this pass
+    is kept at `%TEMP%\shiftjam-stage\backups\Greybox_before_hub_1121_0059.unity`.
+  - Menu: Shift Jam / House / Land Hub Layout (D-0107).
+- **D-0106 (21 Nov, 02:1x) Melee and the flashlight held in the fist.**
+  - His "hand grip on the flashlight and other melee items are still bad", then "go" and "grip looks really bad"
+    (two stills: the fist closed on air, the torch lying across the back of the hand).
+  - One hold for every one-handed thing: the handle runs through the closed fist along the hand's own directions
+    (`ArmAim.Grip`/`InHand`, as the guns), fingers closed round it (`FingerCurl`, each item's own Grip Curl, else the
+    shared WeaponHold > A handle in the fist). Melee in third person: the Arms layer holds the arm out and the swing
+    turns the arm (shoulder, plus a wrist share) instead of spinning the weapon round the palm (`ArmAim.Swing`). Melee
+    in first person: the body is drawn under the eye with the hand on the handle, as the guns. The foam finger is worn
+    (`Weapon.Worn`): the hand bone folded away inside the cuff. The flashlight's arm is aimed at the crosshair as a
+    pistol's, its wrist kept within a real one's roll and bend (`Hold.limitWrist`).
+  - Two faults found from his stills: (1) the flashlight's grip was measured with the pick-up sparkle (Highlight's
+    GlintRoot quad, D-0100) floating above it, so its box was 2.8 taller and the grip a hand's width above the tube;
+    `Carryable` now skips the glint (planks' two-hand grips had the same fault). (2) The handle left the fist straight
+    to the thumb's side, so pointing a tool ahead bent the wrist 90 degrees; now half thumb side, half knuckles, the
+    thing's top back along the knuckles (a cocked wrist). Checked in an edit-mode still at kid size.
+- **D-0108 (21 Nov, 02:1x) The inventory: one bar of slots for weapons and hand tools.**
+  - His "when picking up the light, it should become an item in my inventory that i can hot swap in and out", then
+    "begin any missing outstanding work" (my three picks taken: size is the bag, kid-only things greyed when small,
+    the glider stays passive).
+  - `Inventory` (added by the WeaponHolder to a player): slots in pickup order; a toy uses 2, a kid 4. Keys 1 to 4
+    take a slot out (again: empty hands); the wheel and the pad's D-pad step through the usable ones. The keyboard's
+    1 and 2 no longer cycle weapons (they are slot keys). X still holsters a weapon or sets a tool down in the world
+    (it leaves the bar); Z drops a weapon.
+  - The flashlight is a slot item: picked up into a slot and the hand, stowed (switched off from view, its light kept
+    as it was) when another slot is taken out, taken out again by its key. A shift stows it instead of dropping it
+    (it used to fall out of the hand, D-0041); at toy size it is greyed "too big". First person stows it.
+  - A full bar refuses a tool ("Hands full"); a weapon pickup still swaps for the weapon in hand.
+  - `HotbarHud`: the slots along the bottom middle, key, picture and name, the one in hand lit, greyed slots say why.
+    Pictures: weapons from Art/Thumbs via Fit Weapon Holds, flashlights via Shift Jam / Inventory / Wire Tool Icons.
+  - Not yet: tools are not carried through a door to another scene, nor saved; big things (planks, boxes) stay in
+    both hands, out of the bar.
+- **D-0109 (21 Nov) The Dart Line: the dart hookshot with zip lines (roadmap item 3). Staged, not landed.**
+  - His "TOY ONLY", then "PROCEED" (my picks: from the armory rack with a practice target; the downstairs hole gets
+    the way back up).
+  - `DartLineWeapon` (a Weapon, held as the pistol): click fires a foam dart on a line at the `HookAnchor` nearest the
+    crosshair (within 7 degrees, 200 toy units, in sight); targets glow, brighter when aimed at. Only anchors hold:
+    any other hit drops the dart and it reels back. A pull-up reels the toy (38 a second) through the anchor's Via
+    points to its Land point; snagged for 0.4 s it lets go with a hop. A `ZipLine` start pulls the toy under the
+    string and rides it, speeding up with the slope (10 to 46), letting go at the end with at most 8. Click or Jump
+    lets go mid-line; a shift, holster or swap too. The glider folds when the dart holds.
+  - `PlayerMotor.Pull` / `SetPull` / `EndPull`: while pulled the line is the whole velocity (no stick, gravity, jump,
+    and no landing counts as a fall). `Glider.FoldNow`. `Weapon.ToyOnly`: the inventory greys it for a kid ("toy only").
+  - Placed (`CourseBuilder.DartLine`, menu Shift Jam / House / Land Dart Line (D-0109)): the stand at the armory
+    rack's north end; a practice shelf with a pad on the armory's west wall and a sign; up the playroom wardrobe; a
+    zip line from the wardrobe top to the desk; onto the bedroom bed; downstairs, up through the hole beside the
+    pencil bridge to the hallway floor.
+  - Not yet: no hanging pose (the body stands while on the line); sounds borrowed (dart fire, dull impact).
+- **D-0103 addendum: the toy by the gap stands idle** (the Funny Characters figure had no Animator: it stood in its
+  bind pose). `IdleOn` gives it the pack's Idle loop (`Data/GapNpc_Idle.controller`). Staged, lands with Land Downstairs.

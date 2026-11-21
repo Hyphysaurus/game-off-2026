@@ -3,9 +3,10 @@ using UnityEngine;
 namespace ShiftJam
 {
     /// <summary>
-    /// The player's hands for tools. A one-handed tool (the flashlight) sits in the right hand with its grip (Carryable.GripLocal,
-    /// in the tool's own space) at the palm, aimed the way the arm reaches; the animator's Arms layer fades in so the arm comes
-    /// up and the fingers close. A plank is carried flat across the front of the body in both hands, the hands under its two
+    /// The player's hands for tools. A one-handed tool (the flashlight) is held as a pistol is (D-0106): its handle through
+    /// the closed fist along the hand's own directions (Carryable.GripLocal at the fist's middle, its working end out
+    /// past the thumb), the arm pointing it at the crosshair (ArmAim) and the fingers closed round it (FingerCurl); the
+    /// animator's Arms layer fades in under that, for a body without humanoid arms. A plank is carried flat across the front of the body in both hands, the hands under its two
     /// grips through CarryPose (D-0042). Picking up eases the thing from where it lies into the hands; putting down (Crouch)
     /// lowers it to its resting spot before letting go. Attack goes to the held thing. Never parents the thing, so the
     /// player's 35x scale does not touch it. A shift lets go at once, ahead of the body (D-0041): a toy cannot hold a kid's
@@ -45,6 +46,13 @@ namespace ShiftJam
         private Quaternion _carryTurn;                   // a plank's turn against the body's heading while carried
         private HandGoal _lastRight, _lastLeft;          // in the body's space, for the hands coming away after a let-go
         private float _releasedAt = float.NegativeInfinity;
+        private ArmAim _armAim;              // points a one-handed tool's arm at the crosshair
+        private FingerCurl _fist;            // closes the right hand round its handle
+        private WeaponHoldSettings _hold;    // the shared fist numbers (a handle in the fist; the arm's reach and limits)
+        private Inventory _inventory;        // a one-handed tool takes a slot (D-0108): stowed there, taken out again
+
+        /// <summary>A one-handed tool goes in the inventory: picked up into a slot, stowed and taken out by its slot.</summary>
+        private bool InBar(Carryable thing) => _inventory != null && thing != null && thing.KeepInHand && !thing.TwoHanded;
 
         public Carryable Held { get; private set; }
 
@@ -58,6 +66,8 @@ namespace ShiftJam
             _body = GetComponent<CharacterController>();
             _wears = GetComponent<PlayerBody>();
             if (holdPoint == null) holdPoint = transform;
+            _hold = WeaponHoldSettings.Load();
+            _inventory = GetComponent<Inventory>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (animator != null)
             {
@@ -67,6 +77,8 @@ namespace ShiftJam
                     _shoulder = animator.GetBoneTransform(HumanBodyBones.RightUpperArm);
                 }
                 _layer = animator.GetLayerIndex(armsLayer);
+                _armAim = new ArmAim(animator, transform);   // here, before the Animator poses the arm: it reads the rest pose
+                _fist = new FingerCurl(animator, right: true);
                 var pose = CarryPose.On(animator);   // both hands on a plank (D-0042); added if the body lacks it
                 if (pose != null) pose.Add(this);
             }
@@ -90,6 +102,8 @@ namespace ShiftJam
         public void PickUp(Carryable thing)
         {
             if (thing == null || Held != null) return;
+            if (_inventory == null) _inventory = GetComponent<Inventory>();   // the WeaponHolder adds it, maybe after our Awake
+            if (InBar(thing) && !_inventory.RoomForTool()) return;
             KeepApart.Cancel(thing.gameObject);
             Held = thing;
             foreach (var col in Held.GetComponentsInChildren<Collider>()) col.enabled = false;   // out of the physics while in hand
@@ -104,6 +118,31 @@ namespace ShiftJam
             _phase = reachTime > 0f ? Phase.Reaching : Phase.Holding;
             _releasedAt = float.NegativeInfinity;
             GameEvents.RaisePickedUp(thing.transform);
+            if (InBar(thing)) _inventory.Added(thing);
+        }
+
+        /// <summary>Puts the one-handed tool in hand away into its slot (D-0108): out of the world, still carried, its
+        /// light left as it was. Nothing happens with empty hands, a plank, or a put-down under way.</summary>
+        public void Stow()
+        {
+            if (Held == null || !InBar(Held) || _phase == Phase.Lowering) return;
+            Carryable thing = Held;
+            Held = null;
+            _phase = Phase.None;
+            thing.gameObject.SetActive(false);
+        }
+
+        /// <summary>Takes a stowed tool out of its slot into the hand (D-0108).</summary>
+        public void TakeOut(Carryable thing)
+        {
+            if (thing == null || Held != null) return;
+            thing.gameObject.SetActive(true);
+            foreach (var col in thing.GetComponentsInChildren<Collider>()) col.enabled = false;
+            Held = thing;
+            _twoHanded = false;
+            _gripRight = thing.GripLocal;
+            _phase = Phase.Holding;
+            _releasedAt = float.NegativeInfinity;
         }
 
         /// <summary>
@@ -134,6 +173,7 @@ namespace ShiftJam
         private void OnShiftStarted(ShiftSize _)
         {
             if (Held == null) return;
+            if (InBar(Held) && _phase != Phase.Lowering) { Stow(); return; }   // it stays in its slot (D-0108)
             Carryable thing = Held;
             RestPose(thing, ClearSpot(thing));
             Release(thing, fadeHands: false);
@@ -212,6 +252,7 @@ namespace ShiftJam
             else _releasedAt = float.NegativeInfinity;
             Held = null;
             _phase = Phase.None;
+            if (InBar(thing)) _inventory.Removed(thing);
             Collider[] colliders = thing.GetComponentsInChildren<Collider>();
             foreach (var col in colliders) col.enabled = true;
             // Set down around the player (a big thing from a small hand), it ignores the body until they part (D-0041).
@@ -271,8 +312,42 @@ namespace ShiftJam
             if (Held == null) return;
             if (_phase == Phase.Lowering && Time.time - _t0 >= lowerTime) { Finish(fadeHands: true); return; }
             if (_phase == Phase.Reaching && Time.time - _t0 >= reachTime) _phase = Phase.Holding;
+            AimArm();
             PoseNow(out Vector3 p, out Quaternion r);
             Held.transform.SetPositionAndRotation(p, r);
+            if (InFist) _fist.Close(Mathf.SmoothStep(0f, 1f, _armWeight), Held.GripCurl(_hold).x, Held.GripCurl(_hold).y, Held.GripCurl(_hold).z);
+        }
+
+        /// <summary>A one-handed tool held in a humanoid fist (not a plank, not on its way down).</summary>
+        private bool InFist => Held != null && !_twoHanded && _phase != Phase.Lowering && _armAim != null && _armAim.Ready && _hand != null;
+
+        /// <summary>The tool in the fist, as ArmAim reads a gun: z its working end, y its top (hand rotation x this).</summary>
+        private Quaternion FistFrame => _armAim.Grip(_hold.handleInHand, _hold.handleTopInHand);
+
+        /// <summary>From that frame to the thing's own turn: its working end along the frame's z, then its own extra turn.</summary>
+        private Quaternion ThingInFrame(Carryable thing) => thing.GripRotation * Quaternion.Inverse(Quaternion.LookRotation(thing.HeadLocal, thing.UpLocal));
+
+        /// <summary>Points the arm holding a one-handed tool at the crosshair, as a pistol is pointed, as far in as the arm
+        /// pose has faded (so picking up and putting down ease it).</summary>
+        private void AimArm()
+        {
+            if (!InFist) return;
+            float s = Scale;
+            Transform view = Camera.main != null ? Camera.main.transform : null;
+            Vector3 target = view != null ? view.position + view.forward * (100f * s) : transform.position + transform.forward * (100f * s);
+            Quaternion grip = FistFrame;
+            Vector3 size = Held.transform.lossyScale;
+            var hold = new ArmAim.Hold
+            {
+                grip = grip,
+                seat = Quaternion.Inverse(grip) * Vector3.Scale(_armAim.InHand(_hold.handleCentre), _hand.lossyScale),
+                muzzle = Vector3.forward * (Held.ReachLocal * size.z),
+                kickTurn = Quaternion.identity,
+                kickSlide = Vector3.zero,
+                frame = Vector3.zero,
+                limitWrist = true,
+            };
+            _armAim.Aim(target, Mathf.SmoothStep(0f, 1f, _armWeight), hold, _hold, s);
         }
 
         // ---------- where the thing is ----------
@@ -292,13 +367,20 @@ namespace ShiftJam
             pos = Vector3.Lerp(_fromPos, pos, k); rot = Quaternion.Slerp(_fromRot, rot, k);
         }
 
-        /// <summary>In the right hand: the grip at the palm, pointing the way the whole arm reaches (shoulder to hand), so a
-        /// torch reads as aimed by the arm rather than held like a microphone.</summary>
+        /// <summary>In the right hand: its handle through the closed fist (its grip at the fist's middle), its working end
+        /// out past the thumb, so it points where the arm (aimed at the crosshair) points it. A body without humanoid arms
+        /// keeps the old hold: the grip at the palm, pointing the way the arm reaches.</summary>
         private void OneHandPose(out Vector3 pos, out Quaternion rot)
         {
             if (_hand == null)
             {
                 pos = holdPoint.position; rot = Quaternion.Euler(0f, transform.eulerAngles.y, 0f) * Held.HoldRotation;
+                return;
+            }
+            if (_armAim != null && _armAim.Ready)
+            {
+                rot = _hand.rotation * FistFrame * ThingInFrame(Held);
+                pos = _hand.TransformPoint(_armAim.InHand(_hold.handleCentre)) - rot * Vector3.Scale(_gripRight, Held.transform.lossyScale);
                 return;
             }
             Vector3 forward = _shoulder != null ? (_hand.position - _shoulder.position) : _hand.up;

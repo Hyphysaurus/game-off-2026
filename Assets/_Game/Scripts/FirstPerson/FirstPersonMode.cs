@@ -158,7 +158,7 @@ namespace ShiftJam
             float yaw = shoulderCamera != null ? shoulderCamera.Yaw : transform.eulerAngles.y;
             float pitch = shoulderCamera != null ? shoulderCamera.Pitch : 0f;
 
-            if (_carrier != null && _carrier.Held != null) _carrier.PutDown();
+            if (_carrier != null && _carrier.Held != null) { _carrier.Stow(); if (_carrier.Held != null) _carrier.PutDown(); }   // a slot tool goes back in its slot (D-0108); a plank is set down
             _parked.Clear();
             Park(_motor); Park(_interactor); Park(_carrier); Park(shoulderCamera);
             if (_cc.enabled) { _cc.enabled = false; }

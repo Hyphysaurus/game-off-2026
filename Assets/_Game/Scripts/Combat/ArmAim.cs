@@ -47,6 +47,9 @@ namespace ShiftJam
             public Vector3 magazine;
             /// <summary>How far the magazine has come down out of the gun.</summary>
             public float magazineOut;
+            /// <summary>Keep the hand within a real wrist's roll and bend (a tool held in the fist): it then sits a little
+            /// off the aim rather than folding over at the wrist.</summary>
+            public bool limitWrist;
         }
 
         /// <summary>One arm: its bones, each bone's own turn against "y along the bone, z along the elbow's hinge", and
@@ -177,7 +180,8 @@ namespace ShiftJam
                 if (freeHand) { _left.Remember(); HandToMagazine(root, gun, hold, s, scale); }
             }
 
-            Bend(_right, wrist, gun * Quaternion.Inverse(hold.grip), s.elbowDirection);
+            if (hold.limitWrist) Bend(_right, wrist, gun * Quaternion.Inverse(hold.grip), s.elbowDirection, s.forearmRoll, s);
+            else Bend(_right, wrist, gun * Quaternion.Inverse(hold.grip), s.elbowDirection);
             if (weight < 1f) { _right.Blend(weight); if (freeHand) _left.Blend(weight); }
         }
 
@@ -375,6 +379,18 @@ namespace ShiftJam
         {
             Vector3 thumb = Vector3.Cross(fingers, palmWay);
             return Quaternion.LookRotation(fingers, thumb) * Quaternion.Inverse(Quaternion.LookRotation(_left.fingers, _left.thumb));
+        }
+
+        /// <summary>A melee swing: the right arm, as it stands this frame, turned at the shoulder by
+        /// <paramref name="turn"/> (in the body's own axes: pitch lifts, yaw sweeps across), and the hand at the wrist by
+        /// <paramref name="wristShare"/> of it again. Whatever is seated in the fist afterwards goes with the hand, so the
+        /// arm swings the weapon instead of the weapon spinning round the palm.</summary>
+        public void Swing(Quaternion turn, float wristShare)
+        {
+            if (!Ready) return;
+            Quaternion inWorld(Quaternion q) => _body.rotation * q * Quaternion.Inverse(_body.rotation);
+            _right.upper.rotation = inWorld(turn) * _right.upper.rotation;
+            if (wristShare > 0f) _right.hand.rotation = inWorld(Quaternion.Slerp(Quaternion.identity, turn, wristShare)) * _right.hand.rotation;
         }
 
         /// <summary>The free (left) arm on its own, for a throw: its wrist goes to <paramref name="fromShoulder"/> (from

@@ -21,6 +21,8 @@ namespace ShiftJam
         [SerializeField, Tooltip("How long the burst lasts, seconds.")] private float seconds = 1.2f;
         [SerializeField, Range(0f, 1f), Tooltip("Added to the car's nitro meter (full = 1).")] private float nitro = 0.15f;
         [SerializeField, Tooltip("Seconds before the same car can take it again.")] private float cooldown = 0.5f;
+        [SerializeField, Tooltip("A gliding toy flying through (D-0104): speed added along its flight, its own units a second (it eases back to the glide speed after).")] private float glideBoost = 14f;
+        [SerializeField, Tooltip("...and a lift, its own units a second.")] private float glideLift = 4f;
         [Header("Feedback")]
         [SerializeField, Tooltip("What brightens when a car takes it. This object's renderers (and its children's) if empty.")] private Renderer[] glow;
         [SerializeField] private Color flashColour = new Color(0.35f, 0.9f, 1f);
@@ -80,6 +82,22 @@ namespace ShiftJam
         private void OnTriggerEnter(Collider other)
         {
             if (GameMode.Current != GameMode.Mode.Play) return;
+            // a toy on the paper plane takes the ring too (D-0104)
+            var glider = other.GetComponentInParent<Glider>();
+            if (glider != null && glider.Gliding && glider.TryGetComponent(out PlayerMotor motor))
+            {
+                int pid = motor.GetInstanceID(); float t = Time.time;
+                if (_ready.TryGetValue(pid, out float pat) && t < pat) return;
+                _ready[pid] = t + cooldown;
+                float scale = Mathf.Max(1e-4f, motor.Scale);
+                Vector3 flat = Vector3.ProjectOnPlane(motor.Velocity, Vector3.up);
+                Vector3 dir = flat.sqrMagnitude > 1e-6f ? flat.normalized : Vector3.ProjectOnPlane(motor.transform.forward, Vector3.up).normalized;
+                motor.Knock(dir * (glideBoost * scale) + Vector3.up * (glideLift * scale));
+                Flash();
+                PieceSound.Play(gameObject, ref _audio, sound, volume);
+                onBoost?.Invoke();
+                return;
+            }
             var car = BoostableTouch.Find(other, out Rigidbody body);
             if (car == null || body.isKinematic || !car.Driven) return;
             int id = body.GetInstanceID();

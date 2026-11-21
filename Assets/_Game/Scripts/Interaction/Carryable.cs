@@ -22,6 +22,12 @@ namespace ShiftJam
         private Vector3 gripPalm = new Vector3(0f, 0.08f, 0f);
         [SerializeField, Tooltip("Extra turn of the thing in the hand. Zero = the thing's +Z points the way the arm reaches (shoulder to hand).")]
         private Vector3 gripRotation = Vector3.zero;
+        [SerializeField, Tooltip("Degrees each finger bone bends round this thing's handle in the fist: x the three gripping fingers, y the index finger, z the thumb. 0 in a part = the shared number (Resources/WeaponHold > A handle in the fist).")]
+        private Vector3 gripCurl;
+        [SerializeField, Tooltip("Its name in the inventory bar. Empty: \"Flashlight\" for a flashlight, else the object's name.")]
+        private string displayName;
+        [SerializeField, Tooltip("Its picture in the inventory bar (a thumbnail from Art/Thumbs).")]
+        private Texture2D icon;
         [SerializeField, Tooltip("When put down, lie along the ground: the far end finds its own support, so a ruler laid from a table edge toward a box becomes a ramp. Planks are carried flat in both hands.")]
         private bool plank;
         [SerializeField] private UnityEvent onPickedUp;
@@ -34,6 +40,14 @@ namespace ShiftJam
         public Quaternion HoldRotation => Quaternion.Euler(holdRotation);
         public Vector3 GripPalm => gripPalm;
         public Quaternion GripRotation => Quaternion.Euler(gripRotation);
+        /// <summary>Its name in the inventory bar.</summary>
+        public string DisplayName => !string.IsNullOrEmpty(displayName) ? displayName : GetComponent<Flashlight>() != null ? "Flashlight" : name;
+        /// <summary>Its picture in the inventory bar, if it has one.</summary>
+        public Texture2D Icon => icon;
+        /// <summary>Only a kid can hold it (a flashlight, or anything with the kid-only pick-up prompt).</summary>
+        public bool KidOnly => GetComponent<Flashlight>() != null || GetComponent<Carried>() != null;
+        /// <summary>Degrees each finger bone bends round the handle: this thing's own number for each part, else the shared one.</summary>
+        public Vector3 GripCurl(WeaponHoldSettings shared) => new Vector3(gripCurl.x > 0f ? gripCurl.x : shared.handleCurl.x, gripCurl.y > 0f ? gripCurl.y : shared.handleCurl.y, gripCurl.z > 0f ? gripCurl.z : shared.handleCurl.z);
         public bool Plank => plank;
         [SerializeField, Tooltip("Carried in the hand (Carrier) instead of grabbed (ThirdPersonGrab). Planks and flashlights always are.")]
         private bool keepInHand;
@@ -70,6 +84,32 @@ namespace ShiftJam
                 return _local.center - head * (Along(head) * 0.5f);
             }
         }
+
+        /// <summary>Which way its working end points, in its own space (a ± axis): a flashlight's beam, else the + end of
+        /// its longest side. A one-hand tool is held with this end out of the fist past the thumb.</summary>
+        public Vector3 HeadLocal
+        {
+            get
+            {
+                Measure();
+                if (_grip != null) { Vector3 out_ = _local.center - transform.InverseTransformPoint(_grip.position); if (out_.sqrMagnitude > 1e-8f) return Dominant(out_); }
+                if (TryGetComponent(out Flashlight torch) && torch.Beam != null) return Dominant(transform.InverseTransformPoint(torch.Beam.transform.position) - _local.center);
+                return LongAxis();
+            }
+        }
+
+        /// <summary>A ± axis of its own space square to HeadLocal: the thing's top in the hand.</summary>
+        public Vector3 UpLocal
+        {
+            get
+            {
+                Vector3 head = HeadLocal;
+                return Mathf.Abs(head.y) < 0.5f ? Vector3.up : Vector3.forward;
+            }
+        }
+
+        /// <summary>From the one-hand grip to the far end of the working end, in its own space's units.</summary>
+        public float ReachLocal { get { Vector3 head = HeadLocal; return Vector3.Dot(_local.center - GripLocal, head) + Along(head); } }
 
         /// <summary>Where two hands hold it, in the thing's own space: GripR and GripL children, or a quarter in from each end
         /// along its longest side (<paramref name="a"/> the + end, <paramref name="b"/> the - end).</summary>
@@ -124,6 +164,14 @@ namespace ShiftJam
             return a.y >= a.z ? new Vector3(0f, Mathf.Sign(v.y), 0f) : new Vector3(0f, 0f, Mathf.Sign(v.z));
         }
 
+        /// <summary>The pick-up sparkle (Highlight's GlintRoot) floats above the thing: not part of it. Counted, it made
+        /// the flashlight's box 2.8 taller, and its grip a hand's width above the tube (the fist closed on air).</summary>
+        private bool IsGlint(Transform t)
+        {
+            for (; t != null && t != transform; t = t.parent) if (t.name == "GlintRoot" || t.name == "Glint") return true;
+            return false;
+        }
+
         /// <summary>Reads the box from the meshes (in the thing's own space, so it never changes) and finds Grip children.</summary>
         private void Measure()
         {
@@ -134,7 +182,7 @@ namespace ShiftJam
             Bounds box = new Bounds(Vector3.zero, Vector3.zero);
             foreach (var mf in GetComponentsInChildren<MeshFilter>(true))
             {
-                if (mf.sharedMesh == null) continue;
+                if (mf.sharedMesh == null || IsGlint(mf.transform)) continue;
                 Matrix4x4 m = toLocal * mf.transform.localToWorldMatrix;
                 Bounds mb = mf.sharedMesh.bounds;
                 for (int i = 0; i < 8; i++)

@@ -194,7 +194,7 @@ namespace ShiftJam
             }
 
             // On the plane the fall is brought to its steady sink (and a rise braked to it), in place of gravity.
-            if (Glide != null) _vertical = Mathf.MoveTowards(_vertical, -Glide.sinkSpeed * scale, Glide.brake * scale * dt);
+            if (Glide != null) _vertical = Mathf.MoveTowards(_vertical, -Glide.sinkSpeed * GlideSinkShare * scale, Glide.brake * scale * dt);
             else _vertical = Mathf.Max(_vertical - gravity * dt, -settings.maxFallSpeed * scale);
             // Wind, after gravity, so a column only lifts when it blows harder than gravity pulls.
             if (_windFrame >= Time.frameCount - 1)
@@ -255,8 +255,18 @@ namespace ShiftJam
                 heading = Quaternion.Euler(0f, Mathf.MoveTowardsAngle(from, to, g.turnRate * dt), 0f) * Vector3.forward;
             }
             float want = g.glideSpeed * (steering ? Mathf.Lerp(g.idleShare, 1f, Mathf.Clamp01(wish.magnitude)) : g.idleShare) * scale;
-            return heading * Mathf.MoveTowards(speed, want, g.acceleration * scale * dt);
+            if (GlideDiving) want = g.glideSpeed * g.diveSpeed * scale;
+            else if (GlideFloating) want *= g.floatSpeed;
+            // speeding up comes at the glide's acceleration; extra speed (a dive, a ring) bleeds off slowly: it carries
+            float rate = (want >= speed ? g.acceleration : Mathf.Max(0.1f, g.slowDown)) * scale;
+            return heading * Mathf.MoveTowards(speed, want, rate * dt);
         }
+
+        /// <summary>Gliding and Sprint held: the nose down, faster and sinking faster (D-0104).</summary>
+        public bool GlideDiving => Glide != null && input != null && input.Sprint;
+        /// <summary>Gliding and Crouch held (not diving): slower, and a gentle sink.</summary>
+        public bool GlideFloating => Glide != null && input != null && input.CrouchHeld && !input.Sprint;
+        private float GlideSinkShare => GlideDiving ? Glide.diveSink : GlideFloating ? Glide.floatSink : 1f;
 
         /// <summary>Throws the player straight up as if from a spring: a pad calls this. Height is in the player's own
         /// units, so a toy and a kid get the same look. Not a jump: no jump cut, no buffer.</summary>

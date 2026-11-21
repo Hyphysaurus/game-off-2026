@@ -25,6 +25,14 @@ namespace ShiftJam
         public float brake = 45f;
         [Tooltip("The glider does not open nearer the ground than this (own units): a Jump pressed just before landing stays a jump.")]
         public float minOpenHeight = 3f;
+        [Tooltip("Above the glide speed (out of a dive, a ring), speed bleeds off this slowly, own units a second per second: speed carries.")]
+        public float slowDown = 3.5f;
+
+        [Header("Dive (hold Sprint) and float (hold Crouch), D-0104")]
+        [Tooltip("Diving: the glide speed times this...")] public float diveSpeed = 1.7f;
+        [Tooltip("...and the sink times this.")] public float diveSink = 3.2f;
+        [Tooltip("Floating: the glide speed times this...")] public float floatSpeed = 0.5f;
+        [Tooltip("...and the sink times this.")] public float floatSink = 0.45f;
 
         [Header("Look")]
         [Tooltip("The model the toy rides (the Playroom pack's Paper_Plane_01). Its colliders are taken off.")]
@@ -35,8 +43,12 @@ namespace ShiftJam
         public float planeLength = 5.4f;
         [Tooltip("Where the feet stand along the plane, a share of its length behind its middle.")]
         public float standBack = 0.08f;
-        [Tooltip("How far the feet sink into the plane's top, a share of its length (its top is the wing tips' height).")]
-        public float sinkIn = 0.04f;
+        [Tooltip("How far the feet sink into the plane's deck (the mesh's top right under the feet), a share of its length.")]
+        public float sinkIn = 0.01f;
+        [Tooltip("The rider against the plane, own units: x right, y up, z forward. Live: change it while gliding.")]
+        public Vector3 rideOffset = Vector3.zero;
+        [Tooltip("The rider leans into the flight by this, degrees (+ forward). Live.")]
+        public float rideLean = 8f;
         [Tooltip("Bank on a turn at the full turn rate, degrees.")]
         public float bankDegrees = 24f;
         [Tooltip("The nose follows the flight path by this share of its angle...")]

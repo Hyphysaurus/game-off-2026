@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 446239d97daa32f4a947434b6e409bab, type: 3}
+  m_Name: Glide
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.GlideSettings
+  sinkSpeed: 2.5
+  glideSpeed: 9
+  idleShare: 0.55
+  acceleration: 10
+  turnRate: 150
+  brake: 45
+  minOpenHeight: 3
+  planePrefab: {fileID: 2789980745514170244, guid: 928b1e83d1c128d41987975074bf465d, type: 3}
+  planeEuler: {x: 0, y: 0, z: 0}
+  planeLength: 5.4
+  standBack: 0.08
+  sinkIn: 0.04
+  bankDegrees: 24
+  pitchShare: 0.5
+  maxPitch: 18
+  cameraPullBack: 0.35
+  open:
+    clip: {fileID: 8300000, guid: b7289aa3f5674c84f8edfd3cde00e1c0, type: 3}
+    volume: 0.5
+    pitchSpread: 0.06
+  fold:
+    clip: {fileID: 8300000, guid: 876a8d362916e024ba4397b29918fef5, type: 3}
+    volume: 0.35
+    pitchSpread: 0.08
+  windLoop: {fileID: 8300000, guid: c835372ae07e27c46a6657643e2409c7, type: 3}
+  windVolume: 0.35

@@ -452,7 +452,7 @@ namespace ShiftJam
             var root = new GameObject("PartyHud", typeof(RectTransform));
             root.transform.SetParent(transform, false);
             var canvas = root.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 40;
-            var scaler = root.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = 0.5f;
+            var scaler = root.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = BuildUiKit.HudMatch;   // by screen height (D-0133)
             var textGo = new GameObject("Code", typeof(RectTransform));
             textGo.transform.SetParent(root.transform, false);
             var rt = (RectTransform)textGo.transform;

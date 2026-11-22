@@ -75,6 +75,7 @@ namespace ShiftJam
             Show(false);
             if (s != null && s.breakSounds != null && s.breakSounds.Length > 0)
                 AudioSource.PlayClipAtPoint(s.breakSounds[Random.Range(0, s.breakSounds.Length)], transform.position, s.breakVolume);
+            GameEvents.RaisePropBroke(this);
         }
 
         private void Shatter(BreakSettings s, CarDamageFxSettings.Cut cut, Vector3 from, Vector3 knock)

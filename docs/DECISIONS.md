@@ -2419,3 +2419,19 @@
   centred 46 up) had been drawn across the bar's slots whenever both showed; while the bar shows (anything carried) they
   and their two text lines now sit 8 above the bar's top (HotbarHud.Top), back down when it hides. Not done (his call,
   offered): every HUD sized by the screen's height only, so an ultrawide does not make it 16% bigger.
+- **D-0133 (21 Nov) The large pass, part 1: a hitch catcher, and the HUD sized by screen height (his "proceed").**
+  (1) `HitchCatcher` (Debug/, made before the first scene, off in batch mode): a frame over 0.3 s writes a note to
+  persistentDataPath/Bug notes/hitches.txt (beside the F12 notes) and a "[hitch]" warning to the log: the scene, the
+  player's place and size, garbage collections that frame and "GC Allocated In Frame" (a counter every build has),
+  what the game reported in the 2 s before (scene loads, shift start/finish, pickups and set-downs, weapons taken,
+  reloads, shots, grenades, props breaking (new `GameEvents.PropBroke`), knock-downs (KnockDown.Shown), soldiers
+  getting up, doors, the glider, respawns, cores) and the last 3 lines logged. In the editor and development builds it
+  also reads Unity's own timers by name (Shader.CreateGPUProgram, Loading.ReadObject, Loading.AwakeFromLoad,
+  Instantiate, GC.Collect; found among the build's available recorders, so no category is guessed); release builds
+  do not have those. Frames within 1.5 s of the window losing or getting focus, and the first 3 s, do not count; at
+  most 200 notes a run. Why: the 1-2 s hitches were never profiled; the playtest itself now says what was going on.
+  (2) `BuildUiKit.HudMatch = 1`: the in-game HUD (health, ammo, the inventory bar, shift batteries, kill feed and Tab
+  board, the car's HUD, Colour Corner's, the online status line, the F12 note's toast, and the house's own HUD canvas
+  in Greybox, copied to HubHud) scales by screen height only. On 21:9 that is about 14% smaller than before and the
+  same as a 16:9 screen of that height. Menus (title, pause, options, parties, key sheet, garage, Build Mode) keep 0.5:
+  matched by height, their 1920-wide layouts would run off a 16:10 or 4:3 screen.

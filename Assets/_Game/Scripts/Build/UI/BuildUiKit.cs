@@ -13,6 +13,11 @@ namespace ShiftJam
         public static readonly Color ActiveColor = new Color(0.35f, 0.85f, 1f, 0.45f);
         public static readonly Color WarnColor = new Color(1f, 0.45f, 0.3f, 0.6f);
 
+        /// <summary>How the in-game HUD scales with the screen (D-0133): by its height alone, so a 21:9 screen shows it at
+        /// the size a 16:9 screen of the same height does (half by width, half by height made it about 16% bigger there).
+        /// Menus keep 0.5: matched by height, their wide layouts would run off a narrow screen.</summary>
+        public const float HudMatch = 1f;
+
         public static RectTransform Rect(string name, Transform parent, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 position, Vector2 size)
         {
             var rt = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();

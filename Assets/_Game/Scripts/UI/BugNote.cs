@@ -66,7 +66,7 @@ namespace ShiftJam
                 root.transform.SetParent(transform, false);
                 var canvas = root.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 90;
                 var scaler = root.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                scaler.referenceResolution = new Vector2(1920f, 1080f); scaler.matchWidthOrHeight = 0.5f;
+                scaler.referenceResolution = new Vector2(1920f, 1080f); scaler.matchWidthOrHeight = BuildUiKit.HudMatch;   // by screen height (D-0133)
                 var rt = BuildUiKit.Rect("Toast", root.transform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -90f), new Vector2(1400f, 90f));
                 _toast = BuildUiKit.Label(rt, "", 26, TextAlignmentOptions.Top);
                 _toast.outlineWidth = 0.2f; _toast.outlineColor = new Color32(0, 0, 0, 220);

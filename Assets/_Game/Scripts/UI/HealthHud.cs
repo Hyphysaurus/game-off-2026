@@ -36,7 +36,7 @@ namespace ShiftJam
             _root.transform.SetParent(transform, false);
             var canvas = _root.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 20;
             var scaler = _root.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920f, 1080f); scaler.matchWidthOrHeight = 0.5f;
+            scaler.referenceResolution = new Vector2(1920f, 1080f); scaler.matchWidthOrHeight = BuildUiKit.HudMatch;   // by screen height (D-0133)
 
             float w = _s.barWidth, h = _s.barHeight, gap = Mathf.Round(h * 0.4f);
             var box = BuildUiKit.Rect("Bars", _root.transform, _s.hudCorner, _s.hudCorner, _s.hudCorner, _s.hudOffset, new Vector2(w, h * 2f + gap));

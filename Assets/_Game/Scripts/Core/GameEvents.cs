@@ -76,6 +76,8 @@ namespace ShiftJam
         public static event Action<Glider> GliderTaken;
         /// <summary>The glider opened (true) or folded (false); Glider.LastFold says why it folded.</summary>
         public static event Action<Glider, bool> GlideChanged;
+        /// <summary>A breakable prop broke into its pieces on this PC (D-0101; the hitch catcher notes it, D-0133).</summary>
+        public static event Action<Breakable> PropBroke;
 
         internal static void RaiseShiftStarted(Shifter who, ShiftSize size) => ShiftStarted?.Invoke(who, size);
         internal static void RaiseShifted(Shifter who, ShiftSize size) => Shifted?.Invoke(who, size);
@@ -108,5 +110,6 @@ namespace ShiftJam
         internal static void RaiseOpeningEnded(bool skipped) => OpeningEnded?.Invoke(skipped);
         internal static void RaiseGliderTaken(Glider glider) => GliderTaken?.Invoke(glider);
         internal static void RaiseGlideChanged(Glider glider, bool open) => GlideChanged?.Invoke(glider, open);
+        internal static void RaisePropBroke(Breakable prop) => PropBroke?.Invoke(prop);
     }
 }

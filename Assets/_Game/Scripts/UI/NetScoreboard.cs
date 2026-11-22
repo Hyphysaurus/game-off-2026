@@ -97,7 +97,7 @@ namespace ShiftJam
             _root.transform.SetParent(transform, false);
             var canvas = _root.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 45;
             var scaler = _root.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920f, 1080f); scaler.matchWidthOrHeight = 0.5f;
+            scaler.referenceResolution = new Vector2(1920f, 1080f); scaler.matchWidthOrHeight = BuildUiKit.HudMatch;   // by screen height (D-0133)
 
             var feed = BuildUiKit.Rect("Feed", _root.transform, Vector2.one, Vector2.one, Vector2.one, new Vector2(-30f, -24f), new Vector2(700f, 220f));
             _feedText = BuildUiKit.Label(feed, "", 26, TextAlignmentOptions.TopRight);

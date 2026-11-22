@@ -43,7 +43,9 @@ namespace ShiftJam
             Ensure(NetDir); Ensure(CameraDir);
             var cc = player.GetComponent<CharacterController>();
             float body = cc != null ? cc.height * player.transform.lossyScale.y : 1f;
-            SavePlayer(player);
+            GameObject playerAsset = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabBuilder.PrefabPath);
+            if (playerAsset != null) SaveNetPlayerVariant(playerAsset, null);   // one player for every scene (D-0143)
+            else SavePlayer(player);
             SaveCamera(rig.gameObject);
             var hud = GameObject.Find("HUD");
             if (hud != null) SaveHud(hud);
@@ -65,9 +67,32 @@ namespace ShiftJam
             EditorApplication.Exit(ok ? 0 : 1);
         }
 
+        /// <summary>The online player as a variant of the one Player prefab (D-0143): what every player has comes from it,
+        /// and only the online parts are its own. The asset keeps its path and id, so the session's list still finds it.</summary>
+        public static bool SaveNetPlayerVariant(GameObject playerAsset, System.Text.StringBuilder log)
+        {
+            var copy = (GameObject)PrefabUtility.InstantiatePrefab(playerAsset);
+            Online(copy);
+            GameObject saved = PrefabUtility.SaveAsPrefabAsset(copy, PlayerPath, out bool ok);
+            Object.DestroyImmediate(copy);
+            bool variant = ok && saved != null && PrefabUtility.GetPrefabAssetType(saved) == PrefabAssetType.Variant;
+            string line = variant ? $"NetPlayer: rebuilt as a variant of {PlayerPrefabBuilder.PrefabPath}" : "NetPlayer: NOT saved as a variant";
+            if (log != null) log.AppendLine(line); else Debug.Log("PartyBuilder: " + line);
+            return variant;
+        }
+
+        /// <summary>The old way, before the Player prefab: a plain copy of Greybox's player.</summary>
         private static void SavePlayer(GameObject player)
         {
             GameObject copy = Object.Instantiate(player);
+            Online(copy);
+            PrefabUtility.SaveAsPrefabAsset(copy, PlayerPath);
+            Object.DestroyImmediate(copy);
+        }
+
+        /// <summary>Makes a player the online one: no course wake-up or room warps, the network parts on.</summary>
+        private static void Online(GameObject copy)
+        {
             copy.name = "NetPlayer";
             copy.transform.position = Vector3.zero;
             foreach (var c in copy.GetComponents<WakeUp>()) Object.DestroyImmediate(c);     // the course's wake-in-the-box
@@ -103,8 +128,6 @@ namespace ShiftJam
                 so.FindProperty("loadSave").boolValue = false;   // the course's save slot would warp the player out of the hub
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
-            PrefabUtility.SaveAsPrefabAsset(copy, PlayerPath);
-            Object.DestroyImmediate(copy);
         }
 
         /// <summary>The course's HUD for the Stadium (D-0125): the "E" prompt (it finds this PC's own player by itself) and

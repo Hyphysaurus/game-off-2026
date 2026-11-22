@@ -2555,4 +2555,24 @@
   - No crosshair for the flashlight (the beam is the aim), as in Alan Wake 2. No focus sound yet (none in the library
     fits; his pick).
   - Compiled outside with Unity's csc; landed in his editor; not played.
+- **D-0142 (22 Nov, 15:2x) A lit flashlight's bulb glows.**
+  - His spawn still ("since the light is ON, it should have a glow in the center here").
+  - The bulb is part of the lens's Glass material (a dome 0.38 across, 1.25 behind the Beam light in the torch's units),
+    so it cannot glow on its own through its material. `BeamShaft.AddBulb`: a ball round it drawn by
+    `ShiftJam/BulbGlow` (Resources/FX, additive, bright core fading to its rim; over 1 blooms), unparented like the cone,
+    shown while the light is on, scaled with the torch, brighter with the focus. Flashlight: Bulb Glow 2.5, Bulb Back
+    1.25, Bulb Radius 0.6.
+- **D-0143 (22 Nov, 15:2x) One player prefab for every scene (systems plan step 1).**
+  - His "stop hardcoding so much... design cohesively, baking each system we create and making it modular so it fits
+    into any potential section of the game", "i do want independent hands", then "proceed and yes commit" to the plan:
+    (1) one player prefab, (2) a hands model with independent left and right hands (shoot and aim the light at once),
+    (3) tools carried between scenes, (4) a flashlight prefab with a made-at size, (5) Light Target (anything reacts to
+    the beam), (6) Dark Zone volume, (7) a parts catalog in ARCHITECTURE.md, (8) the hallway beats from those parts.
+  - Found: each scene had its own hand-edited Player (Greybox lacked SafeGround: no safe spot out of a car in the house;
+    Colour Corner adds AmmoBelt and Loadout), the Stadium uses the NetPlayer, itself a copy of Greybox's.
+  - `PlayerPrefabBuilder` (menu Shift Jam / Player / Make One Player Prefab (D-0143), or batch): Prefabs/Player/Player.prefab
+    from Greybox's player plus SafeGround; each scene's Player converted IN PLACE (PrefabUtility.ConvertToPrefabInstance,
+    by hierarchy), so every reference to it holds and each scene's own values and extras stay as its overrides.
+    `PartyBuilder.SaveNetPlayerVariant`: the NetPlayer is a variant of it (same path and id). The course builders only
+    move the player or add to it, so their changes land as overrides.
 

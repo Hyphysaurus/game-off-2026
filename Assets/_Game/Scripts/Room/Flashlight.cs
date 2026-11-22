@@ -28,6 +28,10 @@ namespace ShiftJam
         [SerializeField, Range(0.05f, 1f), Tooltip("How long the cone is, as a share of the light's range.")] private float shaftLength = 0.45f;
         [SerializeField, Range(0f, 0.9f), Tooltip("How wide the cone starts at the lens, as a share of its far width.")] private float shaftLens = 0.06f;
         [SerializeField, Range(0f, 2f), Tooltip("How bright the cone is (0 = the shader's own, 0.22).")] private float shaftStrength = 0.22f;
+        [Header("The bulb's glow while on (D-0142)")]
+        [SerializeField, Min(0f), Tooltip("How bright the bulb glows while on (0 = no glow; over 1 blooms).")] private float bulbGlow = 2.5f;
+        [SerializeField, Tooltip("How far behind the Beam light the bulb's middle is, in the flashlight's own units (the Playroom flashlight: 1.25).")] private float bulbBack = 1.25f;
+        [SerializeField, Min(0f), Tooltip("The glow ball's radius round the bulb, in the flashlight's own units (the Playroom flashlight's bulb is 0.38; the glow reaches a little past it).")] private float bulbRadius = 0.6f;
         [Header("Focus while aiming (D-0141)")]
         [SerializeField, Range(0.1f, 1f), Tooltip("The cone's angle when focused, as a share of its own.")] private float focusAngle = 0.45f;
         [SerializeField, Min(1f), Tooltip("How much brighter when focused.")] private float focusBrightness = 2.5f;
@@ -63,6 +67,7 @@ namespace ShiftJam
             }
             FitBeam();
             if (showShaft && beam != null) _shaft = BeamShaft.Add(beam, shaftLength, shaftLens, shaftStrength);
+            if (_shaft != null && bulbGlow > 0f) _shaft.AddBulb(bulbBack, bulbRadius, bulbGlow);   // the bulb glows while on (D-0142)
             Set(startOn, silent: true);
         }
 

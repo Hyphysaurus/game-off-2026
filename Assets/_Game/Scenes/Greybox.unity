@@ -95048,6 +95048,15 @@ MonoBehaviour:
   shaftLength: 0.45
   shaftLens: 0.06
   shaftStrength: 0.22
+  bulbGlow: 2.5
+  bulbBack: 1.25
+  bulbRadius: 0.6
+  focusAngle: 0.45
+  focusBrightness: 2.5
+  focusReach: 1.35
+  focusShaft: 1.8
+  focusIn: 0.15
+  focusOut: 0.3
   startOn: 1
   toyUsesE: 0
   onTurnedOn:
@@ -121688,6 +121697,15 @@ MonoBehaviour:
   shaftLength: 0.45
   shaftLens: 0.06
   shaftStrength: 0.22
+  bulbGlow: 2.5
+  bulbBack: 1.25
+  bulbRadius: 0.6
+  focusAngle: 0.45
+  focusBrightness: 2.5
+  focusReach: 1.35
+  focusShaft: 1.8
+  focusIn: 0.15
+  focusOut: 0.3
   startOn: 0
   toyUsesE: 0
   onTurnedOn:

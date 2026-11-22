@@ -12,19 +12,24 @@ namespace ShiftJam
     /// that measures a carried thing by its meshes (its grip and front, the put-down, the pick-up glint) would take the cone
     /// for part of the flashlight (it did: the torch was held off the hand, pointing back at the player). It follows the
     /// lens instead, after everything else has moved this frame, and goes when the light does.
+    /// It can also light the bulb (D-0142): a small glowing ball round it (ShiftJam/BulbGlow, Resources/FX/BulbGlow),
+    /// placed behind the light in the light's own units, so it goes with the flashlight's size; brighter with Boost.
     /// </summary>
     [DefaultExecutionOrder(10000)]   // after the Carrier puts the torch in the hand
     public sealed class BeamShaft : MonoBehaviour
     {
         private const int Sides = 24;
         private static Mesh _cone;
-        private static Shader _shader;
+        private static Shader _shader, _bulbShader;
         private static bool _warned;
 
         private Light _light;
         private MeshRenderer _renderer;
         private Material _material;
         private float _lengthShare, _lensShare, _strength, _boostWas = -1f;
+        private Transform _bulb;                 // the bulb's glow, or null
+        private Material _bulbMaterial;
+        private float _bulbBack, _bulbRadius, _bulbStrength;
 
         /// <summary>Brightness multiplier on top of the strength it was made with (a focused flashlight, D-0141).</summary>
         public float Boost { get; set; } = 1f;
@@ -62,9 +67,35 @@ namespace ShiftJam
             return shaft;
         }
 
+        /// <summary>Lights the bulb while the light is on (D-0142): a glowing ball <paramref name="radius"/> across the
+        /// bulb's middle, <paramref name="back"/> behind the light along its axis (both in the light's own units, so they
+        /// scale with the flashlight), <paramref name="strength"/> bright (over 1 blooms).</summary>
+        public void AddBulb(float back, float radius, float strength)
+        {
+            if (_bulb != null || radius <= 0f || strength <= 0f) return;
+            if (_bulbShader == null) _bulbShader = Resources.Load<Shader>("FX/BulbGlow");
+            if (_bulbShader == null) { Debug.LogWarning("BeamShaft: Resources/FX/BulbGlow shader not found; bulbs do not glow."); return; }
+            GameObject ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            ball.name = "BulbGlow";
+            Destroy(ball.GetComponent<Collider>());
+            ball.layer = gameObject.layer;
+            SceneManager.MoveGameObjectToScene(ball, gameObject.scene);
+            var r = ball.GetComponent<MeshRenderer>();
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            r.receiveShadows = false;
+            r.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+            r.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
+            _bulbMaterial = new Material(_bulbShader) { name = "BulbGlow (instance)" };
+            r.sharedMaterial = _bulbMaterial;
+            _bulb = ball.transform;
+            _bulbBack = back; _bulbRadius = radius; _bulbStrength = strength;
+            _boostWas = -1f;
+            Fit();
+        }
+
         private void LateUpdate()
         {
-            if (_light == null) { Destroy(gameObject); return; }   // the flashlight went (a scene closing, a destroy)
+            if (_light == null) { if (_bulb != null) Destroy(_bulb.gameObject); Destroy(gameObject); return; }   // the flashlight went (a scene closing, a destroy)
             Fit();
         }
 
@@ -73,17 +104,36 @@ namespace ShiftJam
         {
             bool on = _light != null && _light.enabled && _light.isActiveAndEnabled && _light.type == LightType.Spot;
             if (_renderer.enabled != on) _renderer.enabled = on;
+            if (_bulb != null && _bulb.gameObject.activeSelf != on) _bulb.gameObject.SetActive(on);
             if (!on) return;
             float length = _light.range * _lengthShare;
             float radius = Mathf.Tan(_light.spotAngle * 0.5f * Mathf.Deg2Rad) * length;
             transform.SetPositionAndRotation(_light.transform.position, _light.transform.rotation);
             transform.localScale = new Vector3(radius, radius, length);   // no parent: world units
-            if (Boost != _boostWas) { _boostWas = Boost; _material.SetFloat("_Strength", _strength * Boost); }
+            if (Boost != _boostWas)
+            {
+                _boostWas = Boost;
+                _material.SetFloat("_Strength", _strength * Boost);
+                if (_bulbMaterial != null) _bulbMaterial.SetFloat("_Strength", _bulbStrength * Boost);
+            }
             Color c = _light.color;
+            if (_bulb != null)
+            {
+                Transform l = _light.transform;
+                float unit = Mathf.Abs(l.lossyScale.z);   // the light's own units (the flashlight's size)
+                _bulb.SetPositionAndRotation(l.position - l.forward * (_bulbBack * unit), l.rotation);
+                _bulb.localScale = Vector3.one * (2f * _bulbRadius * unit);   // the primitive ball is 1 across
+                _bulbMaterial.SetColor("_BaseColor", new Color(c.r, c.g, c.b, 1f));
+            }
             _material.SetColor("_BaseColor", new Color(c.r, c.g, c.b, 1f));
         }
 
-        private void OnDestroy() { if (_material != null) Destroy(_material); }
+        private void OnDestroy()
+        {
+            if (_material != null) Destroy(_material);
+            if (_bulbMaterial != null) Destroy(_bulbMaterial);
+            if (_bulb != null) Destroy(_bulb.gameObject);
+        }
 
         /// <summary>An open cone along +Z, 1 long, radius <paramref name="lens"/> at z 0 and 1 at z 1; uv.y = z.</summary>
         private static Mesh Cone(float lens)

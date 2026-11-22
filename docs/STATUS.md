@@ -2,7 +2,7 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 21 Nov 2026 20:4x — CO-OP STEP 2 (D-0131): THE HOST RUNS SOLDIERS, PROPS AND PICKUPS: COMPILED OUTSIDE, NOT BUILT, NOT PLAYED
+## 21 Nov 2026 20:4x — CO-OP STEP 2 (D-0131): THE HOST RUNS SOLDIERS, PROPS AND PICKUPS: v16 BUILT + CHECKED (5 scenes, 0 errors), UPLOAD IS HIS; NOT PLAYED
 - His "proceed with coop step 2": in a party (Stadium or house) the host's PC runs the toy soldiers, breakable props and
   pickups and everyone sees the same ones: anyone's shot hurts the same soldier, it falls on every screen, its darts
   hurt whoever they hit; a prop breaks for everyone and comes back when nobody stands there; a pickup goes to whoever
@@ -10,7 +10,8 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
 - Done without touching his scenes: every PC numbers them the same way when the world loads (CoopWorld) and checks
   the numbering with the host's; messages ride the new NetWorld part on each player (PartyBuilder adds it).
 - Fixed on the way: other players' copies "took" ammo boxes on your screen for nobody (since D-0128).
-- Needs: a v16 build (ship) and two players. v15 (the reload/swing/throw animations) is built, upload is his.
+- v16 built on his "ship" (`ship.ps1 -NoUpload`; he runs `-Existing` to push). v15 went live 20:3x (he pushed it).
+- Needs two players to see any of it.
 - Old builds: v12 and v13 deleted (his "remove old builds"); v14 (live on itch, fallback) and v15 kept.
 
 ## 21 Nov 2026 19:14 — OTHER PLAYERS' RELOADS (D-0129), MELEE SWINGS + GRENADE-THROW ARMS (D-0130): v15 BUILT + CHECKED 20:15 (5 scenes, 0 errors), UPLOAD IS HIS; NOT PLAYED

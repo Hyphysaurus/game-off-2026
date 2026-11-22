@@ -43,6 +43,7 @@ namespace ShiftJam
         public override void OnNetworkSpawn()
         {
             if (!IsOwner) { SetUpPuppet(); return; }
+            OnlineWorld.EnsureApplied();   // joined into the scene we already had open: no load came to set it up (D-0126)
             SetUpOwn();
             if (TryGetComponent(out Damageable health)) health.Died += OnKnockedOut;
             SceneManager.sceneLoaded += OnSceneLoaded;

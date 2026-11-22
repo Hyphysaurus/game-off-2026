@@ -110,6 +110,13 @@ namespace ShiftJam
             if (_copies.TryGetValue(m, out var copy) && copy != null) return copy;
             copy = new Material(template) { name = m.name + " (bend)" };
             copy.CopyPropertiesFromMaterial(m);
+            // CopyPropertiesFromMaterial takes values, not the shader's feature switches: without them a copy kept the
+            // template's (specular highlights and reflections ON where the toy packs turn them off, no emission, no
+            // alpha clip...), so things turned shiny for the shift and the bloom (D-0119) made them glow (his "bright
+            // glowing materials when shifting", D-0126). Take the original's switches and draw order, then the bend's.
+            copy.shaderKeywords = m.shaderKeywords;
+            copy.renderQueue = m.renderQueue;
+            copy.globalIlluminationFlags = m.globalIlluminationFlags;
             Bendify(copy);
             _copies[m] = copy;
             return copy;

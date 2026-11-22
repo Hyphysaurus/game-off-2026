@@ -63,6 +63,7 @@ namespace ShiftJam
         public static WeaponHud Create(WeaponHolder holder)
         {
             var go = new GameObject("WeaponHud");
+            if (holder.GetComponent<NetPlayer>() != null) DontDestroyOnLoad(go);   // an online player outlives scene loads (it was made on the title, before its world): so does its HUD (D-0126)
             var hud = go.AddComponent<WeaponHud>();
             hud._holder = holder;
             hud._s = WeaponAmmoSettings.Load();

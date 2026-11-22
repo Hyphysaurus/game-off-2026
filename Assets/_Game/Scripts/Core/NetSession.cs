@@ -109,7 +109,9 @@ namespace ShiftJam
                 GUIUtility.systemCopyBuffer = s._session.Code;
                 Say("Party code " + s._session.Code + " (copied: paste it to your friends)");
                 Time.timeScale = 1f;
-                NetworkManager.Singleton.SceneManager.LoadScene(world, LoadSceneMode.Single);
+                // Already in that world (the house's title is the house): stay; the own player's arrival sets it up (D-0126).
+                if (SceneManager.GetActiveScene().name != world) NetworkManager.Singleton.SceneManager.LoadScene(world, LoadSceneMode.Single);
+                else OnlineWorld.EnsureApplied();
             }
             catch (Exception e)
             {
@@ -134,7 +136,8 @@ namespace ShiftJam
                 GUIUtility.systemCopyBuffer = LocalCode;
                 Say("Relay unavailable: playing on this PC only (a second window joins with " + LocalCode + ")");
                 Time.timeScale = 1f;
-                NetworkManager.Singleton.SceneManager.LoadScene(world, LoadSceneMode.Single);
+                if (SceneManager.GetActiveScene().name != world) NetworkManager.Singleton.SceneManager.LoadScene(world, LoadSceneMode.Single);
+                else OnlineWorld.EnsureApplied();
             }
             catch (Exception e) { Fail("Could not start a party", e); }
         }

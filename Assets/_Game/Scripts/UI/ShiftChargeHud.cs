@@ -26,6 +26,7 @@ namespace ShiftJam
         public static ShiftChargeHud Create(ShiftCharge charge)
         {
             var go = new GameObject("ShiftChargeHud");
+            if (charge.GetComponent<NetPlayer>() != null) DontDestroyOnLoad(go);   // an online player outlives scene loads (it was made on the title, before its world): so does its HUD (D-0126)
             var hud = go.AddComponent<ShiftChargeHud>();
             hud._charge = charge;
             hud.Build();
@@ -60,6 +61,7 @@ namespace ShiftJam
 
         private void Update()
         {
+            if (_charge == null) { Destroy(gameObject); return; }   // the player is gone (its scene, or a party left): as the other HUDs do
             bool show = _charge != null && _charge.isActiveAndEnabled && GameMode.Current == GameMode.Mode.Play && !PauseMenu.IsOpen && !TitleMenu.IsOpen;
             _group.alpha = show ? 1f : 0f;
             _noticeGroup.alpha = Mathf.Clamp01((_noticeUntil - Time.unscaledTime) / 0.4f);

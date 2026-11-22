@@ -30,19 +30,47 @@ namespace ShiftJam
         /// <summary>True while this scene runs with the online sandbox rules.</summary>
         public static bool Active { get; private set; }
 
+        private static int _appliedHandle = -1;   // the scene the rules were last put on (Apply runs at most once a scene)
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Boot()
         {
             Active = false;
+            _appliedHandle = -1;
             SceneManager.sceneLoaded -= OnLoaded;
             SceneManager.sceneLoaded += OnLoaded;
         }
 
         private static void OnLoaded(Scene scene, LoadSceneMode mode)
         {
+            if (mode != LoadSceneMode.Single) return;
             Active = false;
-            if (!NetSession.InParty || scene.name == NetSession.PartyScene || mode != LoadSceneMode.Single) return;
+            Apply(scene);
+        }
+
+        /// <summary>
+        /// Put the online rules on the active scene if they are not on it yet (D-0126). A scene load is not enough: a friend
+        /// who joins from the house's own title screen is already in the house, and Netcode deliberately does not load the
+        /// active scene again (DefaultSceneManagerHandler.ClientShouldPassThrough), so no load event ever comes. The own
+        /// online player calls this as it appears.
+        /// </summary>
+        public static void EnsureApplied() => Apply(SceneManager.GetActiveScene());
+
+        private static void Apply(Scene scene)
+        {
+            if (!NetSession.InParty || !scene.IsValid() || !scene.isLoaded || scene.name == NetSession.PartyScene) return;
+            if (scene.handle == _appliedHandle) { Active = true; return; }
+            _appliedHandle = scene.handle;
             Active = true;
+
+            // The title (and the party list over it) may still be up underneath: the friend joined from it and no load came
+            // to clear it. It had stopped time, frozen the camera and freed the mouse: undo all three.
+            foreach (var title in Object.FindObjectsByType<TitleMenu>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (title != null) Object.Destroy(title.gameObject);
+            Time.timeScale = 1f;
+            AudioListener.pause = false;
+            foreach (var cam in Object.FindObjectsByType<ShoulderCamera>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                if (!cam.enabled) cam.enabled = true;   // its OnEnable locks the mouse again
 
             int removed = 0;
             foreach (var root in scene.GetRootGameObjects())

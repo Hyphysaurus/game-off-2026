@@ -22,6 +22,7 @@ namespace ShiftJam
         public static HealthHud Create(PlayerHurt hurt)
         {
             var hud = new GameObject("HealthHud").AddComponent<HealthHud>();
+            if (hurt.GetComponent<NetPlayer>() != null) DontDestroyOnLoad(hud.gameObject);   // an online player outlives scene loads (it was made on the title, before its world): so does its HUD (D-0126)
             hud._hurt = hurt;
             hud._motor = hurt.GetComponent<PlayerMotor>();
             hud._s = PlayerHealthSettings.Load();

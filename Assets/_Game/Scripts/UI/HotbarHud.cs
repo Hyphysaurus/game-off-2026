@@ -27,6 +27,7 @@ namespace ShiftJam
         public static HotbarHud Create(Inventory inventory)
         {
             var hud = new GameObject("HotbarHud").AddComponent<HotbarHud>();
+            if (inventory.GetComponent<NetPlayer>() != null) DontDestroyOnLoad(hud.gameObject);   // an online player outlives scene loads (it was made on the title, before its world): so does its HUD (D-0126)
             hud._inventory = inventory;
             hud.Build();
             return hud;

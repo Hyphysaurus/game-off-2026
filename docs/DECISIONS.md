@@ -2310,3 +2310,15 @@
   this PC's own player when its scene player is gone; the Stadium gets a copy of the course HUD (the "E" prompt, the
   fade; not the goal text, the cards, GameFlow). Steps 2 (host-run soldiers and breakables) and 3 (doors take the
   group) are next; until then each PC runs its own soldiers.
+- **D-0126 (21 Nov) Fixes from his first two-PC test (his brother, v11).** (1) "Another large copy of his model, dropped
+  into the tutorial zone": a friend joining the house from the house's own title is already in that scene, and Netcode
+  does not load the active scene again (DefaultSceneManagerHandler.ClientShouldPassThrough), so OnlineWorld (on scene
+  load only) never ran: the single-player player stayed and no spawns were made. Now `OnlineWorld.EnsureApplied` (once
+  per scene) also runs as the own online player appears; it also clears a leftover title / party list, starts time,
+  wakes the frozen camera; hosting the house from its own title no longer reloads it. (2) "No gun cursor", "I can't
+  tell if I have ammo": the host's online player is made on the title, its HUDs (WeaponHud: crosshair + ammo,
+  HealthHud, HotbarHud, ShiftChargeHud) were made there and died with the title scene; an online player's HUDs are now
+  DontDestroyOnLoad (each removes itself when its player is gone; ShiftChargeHud now too). (3) "Bright glowing
+  materials when shifting": WorldBend's copies took values but not keywords (specular highlights / reflections back on
+  where the toy packs switch them off), shiny under the new bloom; copies now take the original's keywords, render
+  queue and GI flags.

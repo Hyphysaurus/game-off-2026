@@ -13,7 +13,7 @@ namespace ShiftJam
     ///  - every Door opens and every dormant core wakes: no gates, no puzzles in the way;
     ///  - spawns: the course's own arrival spots become NetSpawnPoints (the playroom's Entry first, everyone's landing;
     ///    the wardrobe front and the hallway's arrivals for comebacks).
-    /// The shift costs nothing online (ShiftCharge), doors to other rooms wait for group travel (HubDoor), the title
+    /// The shift costs nothing online (ShiftCharge), doors to other rooms take the whole party (HubDoor, NetTravel), the title
     /// never opens (TitleMenu). In every party world, the Stadium too, the host runs the soldiers, breakable props and
     /// pickups for everyone (CoopWorld, D-0131).
     /// </summary>
@@ -66,7 +66,8 @@ namespace ShiftJam
             if (scene.handle == _appliedHandle) { Active = house; return; }
             _appliedHandle = scene.handle;
             CoopWorld.Bind(scene);   // every party world: the host runs its soldiers, props and pickups (D-0131); before the player is removed below
-            if (!house) return;
+            Transform arrival = NetTravel.ArrivalIn(scene);   // the party came through a door: it lands at the one it leads to (D-0134)
+            if (!house) { if (arrival != null) LandAt(scene, arrival); return; }
             Active = true;
 
             // The title (and the party list over it) may still be up underneath: the friend joined from it and no load came
@@ -112,7 +113,31 @@ namespace ShiftJam
                     spawns++;
                 }
             }
-            Debug.Log($"OnlineWorld: {scene.name} as an online sandbox: {removed} single-player player(s) removed, {doors} doors opened, {cores} cores woken, {spawns} spawns.");
+            // A room with none of the house's markers (the Colour Corner): anyone arriving without a door (a friend joining
+            // there) lands at its door home.
+            if (Object.FindFirstObjectByType<NetSpawnPoint>() == null)
+                foreach (GameObject root in scene.GetRootGameObjects())
+                {
+                    HubDoor door = root.GetComponentInChildren<HubDoor>(true);
+                    if (door == null) continue;
+                    LandAt(scene, door.ArrivePoint != null ? door.ArrivePoint : door.transform);
+                    spawns++;
+                    break;
+                }
+            if (arrival != null) LandAt(scene, arrival);
+            Debug.Log($"OnlineWorld: {scene.name} as an online sandbox: {removed} single-player player(s) removed, {doors} doors opened, {cores} cores woken, {spawns} spawns" +
+                      (arrival != null ? $", the party lands at {arrival.name}." : "."));
+        }
+
+        /// <summary>Everyone's landing from now on is <paramref name="at"/> (each player a little round it, NetPlayer): the
+        /// scene's other spawns stay for comebacks after a knock-out.</summary>
+        private static void LandAt(Scene scene, Transform at)
+        {
+            foreach (var p in Object.FindObjectsByType<NetSpawnPoint>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)) p.MarkFirst(false);
+            var go = new GameObject("Spawn_Arrival");
+            SceneManager.MoveGameObjectToScene(go, scene);
+            go.transform.SetPositionAndRotation(Grounded(at.position), Quaternion.Euler(0f, at.eulerAngles.y, 0f));
+            go.AddComponent<NetSpawnPoint>().MarkFirst(true);
         }
 
         /// <summary>The floor under an arrival marker (markers can float a little).</summary>

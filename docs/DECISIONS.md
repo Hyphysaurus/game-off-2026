@@ -2435,3 +2435,22 @@
   in Greybox, copied to HubHud) scales by screen height only. On 21:9 that is about 14% smaller than before and the
   same as a 16:9 screen of that height. Menus (title, pause, options, parties, key sheet, garage, Build Mode) keep 0.5:
   matched by height, their 1920-wide layouts would run off a 16:10 or 4:3 screen.
+- **D-0134 (21 Nov) Co-op step 3: doors take the group (the large pass, his "proceed").** Online, E at a HubDoor (the
+  playroom's two doors, the Colour Corner's door home, and a new door in the Stadium) calls `NetTravel.Ask`: a player
+  asks the host (NetWorld.TravelRpc); the host starts a 5 s countdown on every PC (GoingRpc, SendTo.Everyone; the
+  line "Going to the Colour Corner in 5" top middle, NetScoreboard); at zero the host loads that room for the party
+  with Netcode's scene manager, and OnlineWorld lands everyone at the door it leads to (`NetTravel.ArrivalIn`: the
+  HubDoor with that id, else a point of that name; `LandAt` marks a new spawn there First and keeps the scene's
+  others for comebacks). The arrival is kept from the countdown's start, since the host's load can reach a PC before
+  that PC's own countdown ends. Players keep size, weapons, charge and glider (their NetPlayer goes with the load); a
+  tool in the hand stays in its room (the bar drops it). Through the countdown each PC keeps its player out of cars:
+  a seat parents the driver to the car, and the car goes with the old scene. One trip at a time.
+  One change from the plan, said before building: the Stadium keeps its copy of the Raceway. The Raceway room's cars
+  are single-player cars (only PartyBuilder's copy has networked ones, D-0116), so online the playroom's garage door
+  takes the party to the Stadium's track (its RacewayArrive point), and a new door in the arena (PartyBuilder
+  `HouseDoor`: an inflatable arch at (-23.2, 0, -5), the race gate's twin across the middle) takes it back to the
+  playroom's garage door. Single player's Raceway is untouched. A room without the house's spawn markers (the Colour
+  Corner) lands anyone arriving without a door at its door home. GameFlow online shows no start card and no end card
+  (the card's R and P would load a scene on one PC only, taking that player out of the party). Not done: the party
+  list still names the world the party started in; the Colour Corner's paint is each PC's own; a player joining
+  during a countdown just follows the load.

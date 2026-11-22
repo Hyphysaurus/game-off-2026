@@ -151,6 +151,7 @@ namespace ShiftJam
 
             StadiumLayout.Build(scene, body);   // the stadium, the field, the play pieces and the spawns (D-0113)
             AddRaceway(scene, body);            // the race track beside it, its cars online (D-0116)
+            HouseDoor(scene, new Vector3(-23.2f, 0f, -5f), Quaternion.Euler(0f, 90f, 0f), body);   // the arena's door to the house (D-0134): the race gate's twin across the middle
             Vector3 centre = Vector3.zero;
 
             var hudAsset = AssetDatabase.LoadAssetAtPath<GameObject>(HudPath);
@@ -260,6 +261,35 @@ namespace ShiftJam
                 a.transform.localScale = arch.transform.localScale * 0.3f;
             }
             return go.AddComponent<HubTeleport>();
+        }
+
+        /// <summary>
+        /// The door to the house (D-0134, co-op step 3): an inflatable arch whose E takes the whole party to the playroom
+        /// (NetTravel), landing at its garage door: the one that leads back to this Stadium's race track. A HubDoor, as the
+        /// house's own doors are; the Stadium is only ever played online.
+        /// </summary>
+        private static void HouseDoor(Scene scene, Vector3 at, Quaternion facing, float body)
+        {
+            var go = new GameObject("ToHouse", typeof(BoxCollider));
+            SceneManager.MoveGameObjectToScene(go, scene);
+            go.transform.SetPositionAndRotation(at, facing);
+            var box = go.GetComponent<BoxCollider>();
+            box.isTrigger = true; box.size = new Vector3(body * 1.6f, body * 1.4f, body * 0.6f); box.center = new Vector3(0f, body * 0.7f, 0f);
+            var arch = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Imports/ithappy/Battle_Stadium/Prefabs/Inflatable/checkpoint_001.prefab");
+            if (arch != null)
+            {
+                var a = (GameObject)PrefabUtility.InstantiatePrefab(arch, go.transform);
+                a.transform.localPosition = Vector3.zero; a.transform.localRotation = Quaternion.identity;
+                a.transform.localScale = arch.transform.localScale * 0.3f;
+            }
+            var door = go.AddComponent<HubDoor>();
+            var so = new SerializedObject(door);
+            so.FindProperty("id").stringValue = "stadium.house";
+            so.FindProperty("scene").stringValue = NetSession.HouseScene;
+            so.FindProperty("arriveAt").stringValue = "playroom.raceway";
+            so.FindProperty("prompt").stringValue = "Into the house";
+            so.FindProperty("fade").floatValue = 0f;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static Bounds BoundsOf(GameObject go)

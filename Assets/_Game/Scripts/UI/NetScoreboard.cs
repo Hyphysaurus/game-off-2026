@@ -23,7 +23,7 @@ namespace ShiftJam
         private readonly Dictionary<ulong, int> _kos = new Dictionary<ulong, int>(), _downs = new Dictionary<ulong, int>();
         private readonly List<(string text, float until)> _feed = new List<(string, float)>();
         private GameObject _root, _board;
-        private TextMeshProUGUI _feedText, _boardText;
+        private TextMeshProUGUI _feedText, _boardText, _travelText;
         private float _nextBoard;
 
         private void OnEnable() => NetHealth.KnockedOut += OnKnockedOut;
@@ -58,6 +58,9 @@ namespace ShiftJam
             if (_root.activeSelf != show) _root.SetActive(show);
             if (!show) return;
             if (_feed.Count > 0 && _feed[0].until < Time.unscaledTime) { _feed.RemoveAt(0); RefreshFeed(); }
+            // A door is taking the party somewhere (D-0134): the countdown, top middle.
+            string travel = NetTravel.Going ? $"Going to {NetTravel.Label} in {Mathf.CeilToInt(NetTravel.SecondsLeft)}" : "";
+            if (_travelText.text != travel) _travelText.text = travel;
             var k = Keyboard.current;
             bool held = k != null && k.tabKey.isPressed && !PauseMenu.IsOpen;
             if (_board.activeSelf != held) _board.SetActive(held);
@@ -102,6 +105,10 @@ namespace ShiftJam
             var feed = BuildUiKit.Rect("Feed", _root.transform, Vector2.one, Vector2.one, Vector2.one, new Vector2(-30f, -24f), new Vector2(700f, 220f));
             _feedText = BuildUiKit.Label(feed, "", 26, TextAlignmentOptions.TopRight);
             _feedText.outlineWidth = 0.2f; _feedText.outlineColor = new Color32(0, 0, 0, 200);
+
+            var travel = BuildUiKit.Rect("Travel", _root.transform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -90f), new Vector2(1000f, 50f));
+            _travelText = BuildUiKit.Label(travel, "", 34, TextAlignmentOptions.Center);
+            _travelText.outlineWidth = 0.2f; _travelText.outlineColor = new Color32(0, 0, 0, 200);
 
             var board = BuildUiKit.Rect("Board", _root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 420f));
             BuildUiKit.Panel(board, BuildUiKit.PanelColor);

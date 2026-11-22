@@ -28,8 +28,9 @@ namespace ShiftJam
             // Unity runs Awake even on a switched-off component. A switched-off flow (the Workshop's) must not raise a
             // start card that only its own Update can take down.
             if (!enabled) return;
-            // Back through a door from another room (D-0091): the game is under way, no "press any key".
-            if (HouseCarry.Arriving) { _started = true; if (startCard != null) startCard.SetActive(false); if (endCard != null) endCard.SetActive(false); return; }
+            // Back through a door from another room (D-0091), or online (the party is under way: a door took everyone here,
+            // or a friend is joining, D-0134): no "press any key".
+            if (HouseCarry.Arriving || NetSession.InParty) { _started = true; if (startCard != null) startCard.SetActive(false); if (endCard != null) endCard.SetActive(false); return; }
             if (startCard != null) startCard.SetActive(true);
             if (endCard != null) endCard.SetActive(false);
         }
@@ -59,7 +60,9 @@ namespace ShiftJam
         /// <summary>The last Goal calls this: fade to black, show the end card.</summary>
         public void End()
         {
-            if (_ended) return;
+            // Online the house is a sandbox (D-0125): no ending. Its card's R and P would load a scene on one PC only and
+            // take that player out of the party's world (D-0134).
+            if (_ended || NetSession.InParty) return;
             _ended = true;
             if (fade != null) fade.Cover(endFade, () => { if (endCard != null) endCard.SetActive(true); });
             else if (endCard != null) endCard.SetActive(true);

@@ -8,7 +8,9 @@ namespace ShiftJam
     /// Raceway and the Colour Corner, and each room's door home. E (any size) loads the other scene; the door there named
     /// Arrive At puts the player down at its Arrive point with the size, the weapons in hand and the shift charge they
     /// had (HouseCarry). Needs a collider for the Interactor to find (a trigger over the door's front). Placed by
-    /// CourseBuilder.LandHouse.
+    /// CourseBuilder.LandHouse. Online (D-0134) E asks the host to take the whole party (NetTravel): a countdown on
+    /// every screen, then everyone lands at the door it leads to. The Stadium's door to the house is one of these too
+    /// (PartyBuilder).
     /// </summary>
     public sealed class HubDoor : MonoBehaviour, IInteractable
     {
@@ -36,15 +38,15 @@ namespace ShiftJam
 
         public string PromptFor(Interactor who)
         {
-            if (NetSession.InParty) return "Online: this door opens later";   // the group travels together (D-0125 step 3)
             if (_going || who == null || who.Shifter == null || who.Shifter.Shifting) return "";
+            if (NetSession.InParty) return NetTravel.Going ? "" : prompt + " (everyone goes)";   // the group travels together (D-0134)
             return prompt;
         }
 
         public void Interact(Interactor who)
         {
             if (_going || who == null || who.Shifter == null || who.Shifter.Shifting || string.IsNullOrEmpty(scene)) return;
-            if (NetSession.InParty) return;   // one player alone may not take the scene away from the party
+            if (NetSession.InParty) { NetTravel.Ask(scene, arriveAt); return; }   // online: the host takes the whole party (D-0134)
             _going = true;
             GameObject player = who.gameObject;
             ScreenFade screen = fade > 0f ? ScreenFade.Find() : null;

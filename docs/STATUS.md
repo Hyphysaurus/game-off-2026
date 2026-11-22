@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 22:xx — THE LARGE PASS (his "proceed"): D-0133 HITCH CATCHER + HUD BY SCREEN HEIGHT, D-0134 DOORS TAKE THE GROUP: COMPILED OUTSIDE, NOT BUILT, NOT PLAYED
+- Hitch catcher: frames over 0.3 s go to Bug notes/hitches.txt (beside the F12 notes) with what was going on.
+- The in-game HUD scales by screen height (his ultrawide shows it ~14% smaller); menus unchanged.
+- Online, house doors take the whole party after a 5 s countdown (Colour Corner, and the garage door to the Stadium's
+  race track); a new arch in the Stadium arena leads to the playroom. The Stadium keeps its Raceway copy (its cars are
+  the networked ones). Online the course has no start or end card.
+- Still in the pass: the jam page rewrite (docs/ITCH_PAGE.md). Then "ship" for v17 and his playtest: a solo run of the
+  house, then two players (doors, soldiers, props, pickups).
+
 ## 21 Nov 2026 21:5x — FLASHLIGHT GRIP + SMALLER INVENTORY BAR (D-0132): COMPILED OUTSIDE, NOT SEEN
 - His screenshot (21:34, v16 from Downloads): the flashlight's tube ran back out of the fist into his wrist. Now held
   at its handle end, tipped a little to the thumb's side (Resources/WeaponHold > Tool End In Fist 0.05, Tool Tilt 10).

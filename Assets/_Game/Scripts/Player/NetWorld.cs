@@ -7,7 +7,8 @@ namespace ShiftJam
     /// The co-op world's messages (D-0131), on every NetPlayer. The host runs the soldiers, the breakable props and the
     /// pickups (CoopWorld) and tells everyone what happened through its own player's copy of this; every other player
     /// asks the host through their own: a hit on a soldier or a prop, a pickup touched, and the world's state as they
-    /// arrive. It holds nothing itself: CoopWorld does the work.
+    /// arrive. Doors that take the whole party to another room travel the same way (NetTravel, D-0134). It holds nothing
+    /// itself: CoopWorld and NetTravel do the work.
     /// </summary>
     public sealed class NetWorld : NetworkBehaviour
     {
@@ -36,7 +37,16 @@ namespace ShiftJam
         private void Update()
         {
             if (Host == this && IsSpawned) CoopWorld.HostTick();
+            if (Local == this && IsSpawned) NetTravel.Tick();   // the door countdown, on every PC (D-0134)
         }
+
+        // ---------------------------------------------------------------- doors take the group (D-0134)
+
+        [Rpc(SendTo.Server)]
+        public void TravelRpc(string scene, string arriveAt) => NetTravel.Begin(scene, arriveAt);
+
+        [Rpc(SendTo.Everyone)]   // sent by the host on its own player: every PC, the host too, starts the same countdown
+        public void GoingRpc(string scene, string arriveAt, float seconds) => NetTravel.OnGoing(scene, arriveAt, seconds);
 
         // ---------------------------------------------------------------- a player asks the host (on their own player)
 

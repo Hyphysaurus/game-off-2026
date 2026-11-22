@@ -2322,3 +2322,18 @@
   materials when shifting": WorldBend's copies took values but not keywords (specular highlights / reflections back on
   where the toy packs switch them off), shiny under the new bloom; copies now take the original's keywords, render
   queue and GI flags.
+- **D-0127 (21 Nov) One ship command (his "proceed" on step 1 of unifying the builds).** `docs/tools/ship.ps1`
+  (replaces itch_push.ps1; Windows PowerShell 5.1, kept ASCII-only because 5.1 reads a BOM-less script as ANSI):
+  Build (Unity headless at low priority, `PartyBuilder.RebuildAndBuildBatch`; refuses while any Unity has the project
+  open) -> Check (`-smoketest`, stops on any error or a missing DONE line) -> Upload (butler push, `--userversion N`)
+  -> Live (polls `butler --json status` until the channel's head is vN `completed`; 10 min cap). It stops at the first
+  failure, so nothing unchecked reaches itch. Switches: `-NoUpload`, `-Existing [-Version N]`, `-Status`, `-NoPause`
+  (for scripts). One line a run in `Builds/Windows/logs/ship-log.txt`. Builds now go straight to
+  `Builds/Windows/ShiftJam_vN` (development: `ShiftJam_vN_dev`) with the build report and logs in `Builds/Windows/logs`,
+  so the folder ships as built: no hand-made share copy. LLMUnity's Windows libraries (425 MB; it keeps 3.9 GB for all
+  platforms in Assets/StreamingAssets, which Unity copies into every build) are deleted from the build when no ticked
+  scene depends on an LLMUnity script (kept, to be safe, when no scene lists any script). Deleting from the build was
+  chosen over moving them out of the project for the build: LLMUnity downloads a missing library again on editor load
+  and already moves folders about during builds, a crash mid-build could leave its library moved, and the copy costs
+  seconds. Tested while he was gaming: parser 0 errors, `-Status` (v12 live), a missing build stops with exit 1. Not
+  yet run end to end: the first real run is the next version.

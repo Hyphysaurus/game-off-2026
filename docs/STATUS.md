@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 16:40 — D-0127 SHIP COMMAND (code done; first end-to-end run = the next version)
+- `docs/tools/ship.ps1`: build -> check -> upload -> live in one go (he can right-click it; Unity must be closed).
+  Builds now land in `Builds/Windows/ShiftJam_vN`, ready to ship (no share copy; LLMUnity's libraries dropped in the
+  build); logs in `Builds/Windows/logs`. `-Status` shows what itch has live.
+- Unifying the builds, agreed order: (1) ship command DONE, (2) co-op step 2: the host runs soldiers, breakables and
+  pickups, (3) step 3: doors take the group (then the Raceway copy in the Stadium goes; Stadium and house joined by
+  a door), (4) single player as "a party of one" (one player, one code path; his call owed: whose progress counts
+  when a friend joins). Along the way: profile the 1-2 s hitches; the online code review (Workflow only on his ask).
+- Disk: Builds/Windows holds 12 GB (v7-v12, each twice: vN + share copy), C: 16 GB free: prune on his OK.
+
 ## 21 Nov 2026 evening — CHECKPOINT: v11 ON ITCH, FIRST REAL TWO-PC TEST (HIS BROTHER) STARTING
 - Online: Relay, Online/Parties, version-tagged parties, reconnect, Stadium + pickups + Raceway + online cars, shots,
   grenades, guns, name tags, kill feed, F12 notes, health/shield, the camera follows behind, the house as a co-op

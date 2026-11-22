@@ -2,7 +2,7 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 21 Nov 2026 16:40 — D-0127 SHIP COMMAND (code done; first end-to-end run = the next version)
+## 21 Nov 2026 16:40 — D-0127 SHIP COMMAND (WORKS: v13 shipped with it end to end)
 - `docs/tools/ship.ps1`: build -> check -> upload -> live in one go (he can right-click it; Unity must be closed).
   Builds now land in `Builds/Windows/ShiftJam_vN`, ready to ship (no share copy; LLMUnity's libraries dropped in the
   build); logs in `Builds/Windows/logs`. `-Status` shows what itch has live.
@@ -2494,6 +2494,7 @@ tutorial room in Greybox.unity, Feel hooks on ShiftSource/Switch/Door, a Core sc
 → STEP 3 room greybox + shift beat → feel pass → commit → v1.
 
 ## Versions
+- v13 — 21 Nov 2026: the first run of the ship command (D-0127), on itch as build #2462686. The same game as v12; built to prove the pipeline end to end: built headless 0.9 min, 0 errors; LLMUnity libraries left out of the build (491 MB); smoke 5/5, 0 errors; pushed 669.55 MiB / 261 files (the same set as v12's share copy; StreamingAssets keeps UnityServicesProjectConfiguration.json, which Relay sign-in needs); live after processing. `Builds/Windows/ShiftJam_v13`.
 - v12 — 21 Nov 2026: on itch (build #2462441, a patch on v11): D-0126 (a friend joining the house from its own title gets the online rules: no extra single-player copy, the playroom spawn; the host's HUDs survive the scene load: crosshair, ammo, health, hotbar, charge; the shift's bend copies keep their materials' switches: no glow). Built headless 0.6 min, 0 errors; smoke 5/5, 0 errors. NOT YET PLAYED.
 - v11 — 21 Nov 2026: on itch (butler, channel windows, userversion 11): + D-0124 (the camera follows behind on foot) + D-0125 (co-op sandbox step 1: Parties > Host House Party, the house online with doors open, cores awake, free shift, spawns at the playroom Entry; "E" prompts online; the Stadium gets the course HUD). Built headless, 0.8 min, 0 errors; share copy smoke 5/5, 0 errors. His brother is installing through the itch app (v10 first, v11 as an update). NOT YET PLAYED.
 - v10 — 21 Nov 2026: THE FRIEND BUILD (replaces v9): + D-0122 (title: Online = join an open world or host one; Parties = the list, Host New, Join With Code; a drop rejoins the same party, else another open world or a new one; parties tagged with the game version: other versions hidden or refused) + batch builds restore LLMUnity's moved libraries (the 3.4 GB LLMUnityBuild leftover is back in place). Built headless, 0.7 min, 0 errors; share copy `Builds/Windows/ShiftJam_v10` smoke 5/5, 0 errors; `ShiftJam_v10.zip` 224 MB. The 8-agent review workflow was refused by the permission system (his CLAUDE.md: workflows only when he names one). NOT YET PLAYED by two copies. Next: the private itch.io page (his "let's make the private itch page").

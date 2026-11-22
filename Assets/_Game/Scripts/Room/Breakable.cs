@@ -10,6 +10,9 @@ namespace ShiftJam
     /// prop dissolves back in where it started, once the player is not standing there, whole and full of health again,
     /// so a lesson's cover or a tower of blocks is never gone for good. A prop whose mesh was never cut dissolves away
     /// whole instead. Placed by Shift Jam / Breakables / Build Breakables.
+    /// Online (D-0131, CoopWorld) the host's props are the real ones: one breaks on every PC (each flies its own pieces)
+    /// and comes back on every PC once no player stands in its spot. On the other PCs each prop is a copy (UseMirror):
+    /// a hit on it goes to the host, and it breaks and comes back when the host says.
     /// </summary>
     [RequireComponent(typeof(Damageable))]
     public sealed class Breakable : MonoBehaviour
@@ -29,9 +32,13 @@ namespace ShiftJam
         private Vector3 _startPos;
         private Quaternion _startRot;
         private Transform _player;
+        private bool _mirror;        // online, not the host: a copy that breaks and comes back when the host's does
+        private Coroutine _comeBack;
 
         /// <summary>Broken and not back yet.</summary>
         public bool Broken { get; private set; }
+        /// <summary>Its number in the party's world, the same on every PC (CoopWorld); -1 offline.</summary>
+        public int NetId { get; set; } = -1;
 
         private void Awake()
         {
@@ -50,16 +57,24 @@ namespace ShiftJam
         private void OnDied(DamageInfo hit)
         {
             if (Broken) return;
+            Vector3 from = hit.Point == Vector3.zero ? transform.position - Vector3.up : hit.Point;
+            BreakApart(from, hit.Knock);
+            CoopWorld.Broke(this, from, hit.Knock);   // online host: it breaks on every PC (D-0131)
+            var s = BreakSettings.Load();
+            if (s != null && s.comeBackAfter > 0f) _comeBack = StartCoroutine(ComeBack(s));
+        }
+
+        /// <summary>Swapped for its pieces (or a ghost that dissolves), flying from <paramref name="from"/>, with the sound.</summary>
+        private void BreakApart(Vector3 from, Vector3 knock)
+        {
             var s = BreakSettings.Load();
             Broken = true;
-            Vector3 from = hit.Point == Vector3.zero ? transform.position - Vector3.up : hit.Point;
             var cut = s != null && _mesh != null && _mesh.sharedMesh != null ? s.CutOf(_mesh.sharedMesh.name) : null;
-            if (cut != null) Shatter(s, cut, from, hit.Knock);
+            if (cut != null) Shatter(s, cut, from, knock);
             else if (s != null && s.dissolve != null) Ghost(s);   // never cut: the whole prop dissolves away
             Show(false);
             if (s != null && s.breakSounds != null && s.breakSounds.Length > 0)
                 AudioSource.PlayClipAtPoint(s.breakSounds[Random.Range(0, s.breakSounds.Length)], transform.position, s.breakVolume);
-            if (s != null && s.comeBackAfter > 0f) StartCoroutine(ComeBack(s));
         }
 
         private void Shatter(BreakSettings s, CarDamageFxSettings.Cut cut, Vector3 from, Vector3 knock)
@@ -110,19 +125,78 @@ namespace ShiftJam
         {
             yield return new WaitForSeconds(s.comeBackAfter);
             float clear = s.clearOfPlayer * Mathf.Max(0.5f, _mesh != null && _mesh.GetComponent<Renderer>() != null ? _mesh.GetComponent<Renderer>().bounds.extents.magnitude : 1f);
-            while (true)
+            while (SomeoneNear(clear)) yield return new WaitForSeconds(0.5f);
+            _comeBack = null;
+            CoopWorld.CameBack(this);   // online host: back on every PC (D-0131)
+            yield return Return(s);
+        }
+
+        /// <summary>True while a player stands within <paramref name="clear"/> of its spot: this PC's own player, and
+        /// online on the host every player (D-0131).</summary>
+        private bool SomeoneNear(float clear)
+        {
+            if (CoopWorld.IsHost)
             {
-                if (_player == null) { var p = GameObject.Find("Player"); if (p != null) _player = p.transform; }
-                if (_player == null || (_player.position - _startPos).sqrMagnitude > clear * clear) break;
-                yield return new WaitForSeconds(0.5f);
+                foreach (var p in NetPlayer.Spawned)
+                    if (p != null && (p.transform.position - _startPos).sqrMagnitude <= clear * clear) return true;
+                return false;
             }
+            if (_player == null) { var p = GameObject.Find("Player"); if (p != null) _player = p.transform; }
+            return _player != null && (_player.position - _startPos).sqrMagnitude <= clear * clear;
+        }
+
+        /// <summary>Whole again where it started, full of health, dissolving in.</summary>
+        private IEnumerator Return(BreakSettings s)
+        {
             if (_body != null) { _body.linearVelocity = Vector3.zero; _body.angularVelocity = Vector3.zero; }
             transform.SetPositionAndRotation(_startPos, _startRot);
             Physics.SyncTransforms();
             _health.ResetState();
             Broken = false;
             Show(true);
-            if (s.dissolve != null) yield return DissolveIn(s);
+            if (s != null && s.dissolve != null) yield return DissolveIn(s);
+        }
+
+        // ---------------------------------------------------------------- online: a copy of the host's prop (D-0131)
+
+        /// <summary>Online, on every PC but the host's: from now on this prop breaks and comes back when the host's does,
+        /// and a hit on it goes to the host (<paramref name="relay"/>: the copy only flashes). A way back of its own that
+        /// was under way stops: the host says when.</summary>
+        public void UseMirror(System.Func<DamageInfo, bool> relay)
+        {
+            _mirror = true;
+            _health.Relay = relay;
+            if (_comeBack != null) { StopCoroutine(_comeBack); _comeBack = null; }
+        }
+
+        /// <summary>Back to a prop of this PC's own (the host's world turned out not to match ours).</summary>
+        public void LeaveMirror()
+        {
+            if (!_mirror) return;
+            _mirror = false;
+            _health.Relay = null;
+            var s = BreakSettings.Load();
+            if (Broken && _comeBack == null && s != null && s.comeBackAfter > 0f) _comeBack = StartCoroutine(ComeBack(s));
+        }
+
+        /// <summary>The host's prop broke: this one breaks too, its pieces this PC's own.</summary>
+        public void MirrorBreak(Vector3 from, Vector3 knock)
+        {
+            if (_mirror && !Broken) BreakApart(from, knock);
+        }
+
+        /// <summary>It was already broken on the host when we arrived: gone, without pieces.</summary>
+        public void MirrorBroken()
+        {
+            if (!_mirror || Broken) return;
+            Broken = true;
+            Show(false);
+        }
+
+        /// <summary>The host's prop came back: this one comes back too, dissolving in.</summary>
+        public void MirrorBack()
+        {
+            if (_mirror && Broken) StartCoroutine(Return(BreakSettings.Load()));
         }
 
         /// <summary>The prop's own materials swapped for dissolve copies, run from gone to whole, then put back.</summary>

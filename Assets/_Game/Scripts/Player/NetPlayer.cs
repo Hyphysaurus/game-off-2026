@@ -27,6 +27,18 @@ namespace ShiftJam
         /// <summary>True while this player sits in a car (D-0116): every other PC hides the body, as the seat does here.</summary>
         private readonly NetworkVariable<bool> _seated = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         private Renderer[] _bodies;
+        private NetHealth _health;
+
+        /// <summary>Every online player spawned on this PC, its own and the others' (D-0131: the host's soldiers aim at
+        /// them all, a prop comes back only once all are clear of it).</summary>
+        public static readonly List<NetPlayer> Spawned = new List<NetPlayer>();
+        /// <summary>True while this player sits in a car.</summary>
+        public bool Seated => _seated.Value;
+        /// <summary>True while this player is knocked out, as their own PC last said.</summary>
+        public bool Down => _health != null && _health.Health <= 0f;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ForgetAll() => Spawned.Clear();   // a new play in the editor starts with nobody
 
         private void Update()
         {
@@ -44,6 +56,8 @@ namespace ShiftJam
 
         public override void OnNetworkSpawn()
         {
+            _health = GetComponent<NetHealth>();
+            if (!Spawned.Contains(this)) Spawned.Add(this);
             if (!IsOwner) { SetUpPuppet(); return; }
             OnlineWorld.EnsureApplied();   // joined into the scene we already had open: no load came to set it up (D-0126)
             SetUpOwn();
@@ -99,6 +113,7 @@ namespace ShiftJam
 
         public override void OnNetworkDespawn()
         {
+            Spawned.Remove(this);
             if (IsOwner && TryGetComponent(out Damageable health)) health.Died -= OnKnockedOut;
             if (IsOwner) SceneManager.sceneLoaded -= OnSceneLoaded;
         }

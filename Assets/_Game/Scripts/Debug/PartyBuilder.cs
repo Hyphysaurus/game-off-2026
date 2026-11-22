@@ -95,6 +95,7 @@ namespace ShiftJam
             for (int i = 0; i < weapons.Length; i++) weaponList.GetArrayElementAtIndex(i).objectReferenceValue = weapons[i];
             cso.ApplyModifiedPropertiesWithoutUndo();
             copy.AddComponent<NetNameTag>();   // D-0117: name, colour and health over other players' heads
+            copy.AddComponent<NetWorld>();     // D-0131: the host runs the soldiers, props and pickups; their messages ride here
             Debug.Log($"PartyBuilder: NetCombat knows {shots.Length} shots, {weapons.Length} weapons ({string.Join(", ", weapons.Select(w => w.name))}).");
             if (copy.TryGetComponent(out Respawn respawn))
             {

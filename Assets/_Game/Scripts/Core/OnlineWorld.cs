@@ -14,7 +14,8 @@ namespace ShiftJam
     ///  - spawns: the course's own arrival spots become NetSpawnPoints (the playroom's Entry first, everyone's landing;
     ///    the wardrobe front and the hallway's arrivals for comebacks).
     /// The shift costs nothing online (ShiftCharge), doors to other rooms wait for group travel (HubDoor), the title
-    /// never opens (TitleMenu). Soldiers and breakables are still each PC's own (step 2).
+    /// never opens (TitleMenu). In every party world, the Stadium too, the host runs the soldiers, breakable props and
+    /// pickups for everyone (CoopWorld, D-0131).
     /// </summary>
     public static class OnlineWorld
     {
@@ -37,6 +38,7 @@ namespace ShiftJam
         {
             Active = false;
             _appliedHandle = -1;
+            CoopWorld.Clear();
             SceneManager.sceneLoaded -= OnLoaded;
             SceneManager.sceneLoaded += OnLoaded;
         }
@@ -45,6 +47,7 @@ namespace ShiftJam
         {
             if (mode != LoadSceneMode.Single) return;
             Active = false;
+            CoopWorld.Clear();   // the last world's soldiers, props and pickups went with it
             Apply(scene);
         }
 
@@ -58,9 +61,12 @@ namespace ShiftJam
 
         private static void Apply(Scene scene)
         {
-            if (!NetSession.InParty || !scene.IsValid() || !scene.isLoaded || scene.name == NetSession.PartyScene) return;
-            if (scene.handle == _appliedHandle) { Active = true; return; }
+            if (!NetSession.InParty || !scene.IsValid() || !scene.isLoaded) return;
+            bool house = scene.name != NetSession.PartyScene;   // the Stadium is built for the party: none of the house's rules
+            if (scene.handle == _appliedHandle) { Active = house; return; }
             _appliedHandle = scene.handle;
+            CoopWorld.Bind(scene);   // every party world: the host runs its soldiers, props and pickups (D-0131); before the player is removed below
+            if (!house) return;
             Active = true;
 
             // The title (and the party list over it) may still be up underneath: the friend joined from it and no load came

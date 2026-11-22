@@ -10,6 +10,9 @@ namespace ShiftJam
     /// it nearest its own chest height, so a kid towering over it is shot in the legs. Holds still while Build Mode is
     /// on, and wherever Build Mode puts it becomes its post. Speeds and distances are for a soldier at scale 1 and scale
     /// with its transform.
+    /// Online (D-0131, CoopWorld) the host's soldiers are the real ones: they aim at the nearest player they can see,
+    /// turn on whoever shoots them, and tell every other PC their place, shots, falls and getting up. On those PCs each
+    /// soldier is a copy (UseMirror) that only shows the host's, and a hit on it goes to the host.
     /// </summary>
     [RequireComponent(typeof(CharacterController), typeof(Damageable))]
     public sealed class ToySoldier : MonoBehaviour, IResettable, IBuildMoved
@@ -57,8 +60,19 @@ namespace ShiftJam
         private int _routeIndex, _routeStep = 1;
         private float _stuckFor, _vertical, _seenFor, _lastSeen = -100f, _nextLook, _nextFire, _waitUntil, _downAt;
         private bool _sees;
+        private NetPlayer _other;      // online host (D-0131): another player it is after; null = this PC's own player
+        private NetPlayer _shotBy;     // online host: the other player who shot it last; null = this PC's own player
+        private bool _mirror;          // online, not the host: a copy that only shows the host's soldier
+        private bool _netPose;         // a copy has heard where the host's soldier stands
+        private Vector3 _netPos;
+        private float _netYaw;
 
         private float Scale => Mathf.Max(0.001f, transform.lossyScale.y);
+
+        /// <summary>Its number in the party's world, the same on every PC (CoopWorld); -1 offline.</summary>
+        public int NetId { get; set; } = -1;
+        /// <summary>True while it lies knocked down.</summary>
+        public bool Down => _state == State.Down;
 
         private void Awake()
         {
@@ -79,6 +93,12 @@ namespace ShiftJam
         {
             if (_state == State.Down || hit.Source == null || hit.Source.IsChildOf(transform)) return;
             if (hit.Source.GetComponentInParent<ToySoldier>() != null) return;   // a friend's stray dart is not a call to arms
+            if (CoopWorld.IsHost)
+            {
+                // Online host: it turns on whoever shot it, another player too (their hit came here from their PC).
+                var shooter = hit.Source.GetComponentInParent<NetPlayer>();
+                _other = _shotBy = shooter != null && !shooter.IsOwner ? shooter : null;
+            }
             float reach = Vector3.Distance(hit.Source.position, transform.position) + 2f * Scale;
             _alertReach = Alerted ? Mathf.Max(_alertReach, reach) : reach;
             _alertUntil = Time.time + AlertSeconds;
@@ -101,6 +121,7 @@ namespace ShiftJam
             _state = State.Patrol; _routeIndex = 0; _routeStep = 1; _wanderTo = _post;
             _vertical = 0f; _seenFor = 0f; _lastSeen = -100f; _sees = false; _waitUntil = 0f;
             _alertUntil = -100f; _alertReach = 0f;
+            _other = _shotBy = null;
         }
 
         /// <summary>Build Mode placed, moved, copied or re-posed us: stand guard here from now on (F9 and getting up after a
@@ -116,14 +137,21 @@ namespace ShiftJam
             _state = State.Down; _downAt = Time.time; _sees = false; _seenFor = 0f;
             _cc.enabled = false;
             KnockDown.Show(transform, hit, visual, true);   // a burst of bits, a bigger squash and the thud
+            CoopWorld.SoldierDown(this, hit.Point);         // online host: it falls on every PC (D-0131)
         }
 
         private void Update()
         {
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
+            if (_mirror) { MirrorUpdate(dt); return; }   // online, not the host: it only shows the host's soldier
             if (GameMode.Current == GameMode.Mode.Build) return;   // held still while the room is edited, or a drag jitters
-            if (_state == State.Down) { Topple(); if (Time.time - _downAt >= downTime) { ResetState(); GameEvents.RaiseSoldierUp(this); } return; }
+            if (_state == State.Down)
+            {
+                Topple();
+                if (Time.time - _downAt >= downTime) { ResetState(); GameEvents.RaiseSoldierUp(this); CoopWorld.SoldierUp(this); }
+                return;
+            }
 
             Perceive(dt);
             Vector3 move = Vector3.zero, face = Vector3.zero;
@@ -165,10 +193,22 @@ namespace ShiftJam
             else if (_state == State.Engage && Time.time - _lastSeen >= loseSightTime) { _state = State.Patrol; _seenFor = 0f; }
         }
 
-        /// <summary>The player's stand-in and the point to aim at: first-person body, the car being driven, or the player.
+        /// <summary>The player it is after and the point to aim at: online on the host (D-0131) another player when
+        /// CanSee chose one (_other), else this PC's own (TryOwnTarget).</summary>
+        private bool TryTarget(out Vector3 aim, out Transform root)
+        {
+            if (_other != null)
+            {
+                if (CoopWorld.IsHost && AimAt(_other, out aim, out root)) return true;
+                _other = null;   // gone, knocked out, or the party is over: back to this PC's own player
+            }
+            return TryOwnTarget(out aim, out root);
+        }
+
+        /// <summary>This PC's own player's stand-in and the point to aim at: first-person body, the car being driven, or the player.
         /// On foot the aim is the point between its legs and its chest nearest our own chest height: a toy on our floor is
         /// aimed at the chest as before, and the kid is shot in the legs (its chest is far out of range above us).</summary>
-        private bool TryTarget(out Vector3 aim, out Transform root)
+        private bool TryOwnTarget(out Vector3 aim, out Transform root)
         {
             aim = Vector3.zero; root = null;
             if (GameMode.Current == GameMode.Mode.Build) return false;   // the builder is not a target
@@ -204,14 +244,58 @@ namespace ShiftJam
             return true;
         }
 
+        /// <summary>Online host (D-0131): the point to aim at on another player's copy here, as TryOwnTarget aims at our
+        /// own: the car while they drive, else between their legs and chest nearest our chest height. False while they
+        /// are knocked out (as their own PC says).</summary>
+        private bool AimAt(NetPlayer player, out Vector3 aim, out Transform root)
+        {
+            aim = Vector3.zero; root = null;
+            if (player == null || !player.IsSpawned || player.Down || !player.gameObject.activeInHierarchy) return false;
+            root = player.transform;
+            float size = Mathf.Max(0.001f, root.lossyScale.y);   // the network sizes their body with their shift
+            if (player.Seated) { aim = root.position + Vector3.up * (0.6f * size); return true; }
+            float chest = 0.6f * 1.8f * size;
+            float ours = transform.position.y + chestHeight * Scale - root.position.y;
+            aim = root.position + Vector3.up * Mathf.Clamp(ours, Mathf.Min(0.5f * Scale, chest), chest);
+            return true;
+        }
+
         private Vector3 Eye => muzzle != null ? muzzle.position : transform.position + Vector3.up * (chestHeight * Scale) + transform.forward * (0.3f * Scale);
 
+        /// <summary>Whether it sees the player it is after. Online on the host (D-0131) it looks at every player: shot at
+        /// lately, whoever did it comes first while it can see them (D-0100's "turns on whoever did it"); otherwise it goes
+        /// after the nearest one it sees. Seeing nobody, it stays after the last.</summary>
         private bool CanSee()
         {
-            if (!TryTarget(out Vector3 aim, out Transform root)) return false;
+            if (!CoopWorld.IsHost)
+            {
+                _other = null;
+                return TryOwnTarget(out Vector3 aim, out Transform root) && Sees(aim, root, out _);
+            }
+            Vector3 a; Transform r; float d;
+            if (Alerted && (_shotBy != null ? AimAt(_shotBy, out a, out r) : TryOwnTarget(out a, out r)) && Sees(a, r, out _))
+            {
+                _other = _shotBy;
+                return true;
+            }
+            bool any = false; NetPlayer best = null; float nearest = float.MaxValue;
+            if (TryOwnTarget(out a, out r) && Sees(a, r, out d)) { any = true; nearest = d; }
+            foreach (NetPlayer player in NetPlayer.Spawned)
+            {
+                if (player == null || player.IsOwner || !AimAt(player, out a, out r) || !Sees(a, r, out d) || d >= nearest) continue;
+                any = true; best = player; nearest = d;
+            }
+            if (any) _other = best;
+            return any;
+        }
+
+        /// <summary>True when <paramref name="aim"/> on <paramref name="root"/> is in range, in the view cone (all round
+        /// once engaged) and not behind anything. <paramref name="distance"/>: how far away it is.</summary>
+        private bool Sees(Vector3 aim, Transform root, out float distance)
+        {
             Vector3 from = transform.position + Vector3.up * (chestHeight * Scale);
             Vector3 to = aim - from;
-            float distance = to.magnitude;
+            distance = to.magnitude;
             if (distance > SightReach) return false;
             if (_state != State.Engage && Vector3.Angle(transform.forward, Vector3.ProjectOnPlane(to, Vector3.up)) > viewAngle) return false;
             if (distance < 1e-3f) return true;
@@ -244,7 +328,13 @@ namespace ShiftJam
                 dir = Quaternion.AngleAxis(spread * Mathf.Sqrt(Random.value), axis) * dir;
             }
             Projectile.Fire(projectile, from, dir, damage, knockback, Scale, transform);
-            // Its own clip, else its dart's (the player's dart pistol sound): the course's soldiers were built with none and fired silently.
+            CoopWorld.SoldierShot(this, from, dir);   // online host: a harmless copy of the dart on every other PC (D-0131)
+            PlayFire();
+        }
+
+        /// <summary>Its own clip, else its dart's (the player's dart pistol sound): the course's soldiers were built with none and fired silently.</summary>
+        private void PlayFire()
+        {
             AudioClip clip = fireClip != null ? fireClip : projectile.FireClip();
             if (clip != null) { _audio.pitch = Random.Range(0.9f, 1.05f); _audio.PlayOneShot(clip); }
         }
@@ -283,6 +373,76 @@ namespace ShiftJam
                 if (route != null && route.Length > 1) { _routeStep = -_routeStep; _routeIndex = Mathf.Clamp(_routeIndex + _routeStep, 0, route.Length - 1); }
             }
             return offset.normalized * (moveSpeed * Scale);
+        }
+
+        // ---------------------------------------------------------------- online: a copy of the host's soldier (D-0131)
+
+        /// <summary>Online, on every PC but the host's: from now on this soldier only shows the host's. It thinks and fires
+        /// nothing of its own; it stands where the host's stands (MirrorPose), falls and gets up when it does, and a hit
+        /// on it goes to the host (<paramref name="relay"/>: the copy only flashes).</summary>
+        public void UseMirror(System.Func<DamageInfo, bool> relay)
+        {
+            _mirror = true;
+            _netPose = false;
+            _sees = false; _seenFor = 0f; _other = null;
+            _health.Relay = relay;
+        }
+
+        /// <summary>Back to a soldier of this PC's own (the host's world turned out not to match ours): at its post, whole.</summary>
+        public void LeaveMirror()
+        {
+            if (!_mirror) return;
+            _mirror = false;
+            _health.Relay = null;
+            ResetState();
+        }
+
+        /// <summary>Where the host's soldier stands and which way it faces. The copy follows a tenth of a second behind;
+        /// the first word, or a jump (back at its post after a fall), puts it there at once.</summary>
+        public void MirrorPose(Vector3 at, float yaw)
+        {
+            if (!_mirror) return;
+            bool jump = !_netPose || (at - transform.position).sqrMagnitude > 4f * Scale * Scale;
+            _netPos = at; _netYaw = yaw; _netPose = true;
+            if (jump) transform.SetPositionAndRotation(at, Quaternion.Euler(0f, yaw, 0f));
+        }
+
+        /// <summary>The host's soldier was knocked down: it tips over here too, with the burst and the thud
+        /// (<paramref name="quiet"/>: it already lay there when we arrived, so it simply lies there).</summary>
+        public void MirrorDown(Vector3 point, bool quiet)
+        {
+            if (!_mirror || _state == State.Down) return;
+            _state = State.Down;
+            _downAt = quiet ? Time.time - 1f : Time.time;
+            _cc.enabled = false;   // darts pass over it, as over the host's
+            if (!quiet) KnockDown.Show(transform, new DamageInfo(0f, Vector3.zero, point, null), visual, true);
+        }
+
+        /// <summary>The host's soldier got up (its place at its post comes with the next MirrorPose).</summary>
+        public void MirrorUp()
+        {
+            if (!_mirror) return;
+            _state = State.Patrol;
+            if (visual != null) visual.localRotation = _visualRest;
+            _cc.enabled = true;
+        }
+
+        /// <summary>The host's soldier fired: a harmless copy of its dart flies here, with its sound. The real dart is the
+        /// host's: if it hits this PC's player, the hit comes from the host.</summary>
+        public void MirrorShot(Vector3 from, Vector3 direction)
+        {
+            if (!_mirror || projectile == null) return;
+            Projectile.Fire(projectile, from, direction, 0f, 0f, Scale, transform);
+            PlayFire();
+        }
+
+        private void MirrorUpdate(float dt)
+        {
+            if (_state == State.Down) Topple();
+            if (!_netPose) return;
+            float k = 1f - Mathf.Exp(-12f * dt);
+            transform.SetPositionAndRotation(Vector3.Lerp(transform.position, _netPos, k),
+                Quaternion.Slerp(transform.rotation, Quaternion.Euler(0f, _netYaw, 0f), k));
         }
     }
 }

@@ -2,6 +2,17 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 20:4x — CO-OP STEP 2 (D-0131): THE HOST RUNS SOLDIERS, PROPS AND PICKUPS: COMPILED OUTSIDE, NOT BUILT, NOT PLAYED
+- His "proceed with coop step 2": in a party (Stadium or house) the host's PC runs the toy soldiers, breakable props and
+  pickups and everyone sees the same ones: anyone's shot hurts the same soldier, it falls on every screen, its darts
+  hurt whoever they hit; a prop breaks for everyone and comes back when nobody stands there; a pickup goes to whoever
+  touched it first and vanishes for all. Single player untouched.
+- Done without touching his scenes: every PC numbers them the same way when the world loads (CoopWorld) and checks
+  the numbering with the host's; messages ride the new NetWorld part on each player (PartyBuilder adds it).
+- Fixed on the way: other players' copies "took" ammo boxes on your screen for nobody (since D-0128).
+- Needs: a v16 build (ship) and two players. v15 (the reload/swing/throw animations) is built, upload is his.
+- Old builds: v12 and v13 deleted (his "remove old builds"); v14 (live on itch, fallback) and v15 kept.
+
 ## 21 Nov 2026 19:14 — OTHER PLAYERS' RELOADS (D-0129), MELEE SWINGS + GRENADE-THROW ARMS (D-0130): v15 BUILT + CHECKED 20:15 (5 scenes, 0 errors), UPLOAD IS HIS; NOT PLAYED
 - His "Begin animating it" (v14's known limit): another player's reload now plays on your screen as it does on theirs:
   arm down, gun tipped in front of the chest, magazine out and back with the free hand, the two reload sounds from

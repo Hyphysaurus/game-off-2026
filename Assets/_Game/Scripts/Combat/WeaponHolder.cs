@@ -471,10 +471,21 @@ namespace ShiftJam
         /// was needed, and the box stays.</summary>
         public int AddAmmo(int magazines)
         {
+            if (_puppet) return 0;   // another player's copy: their own PC takes the ammo (its guns are look-only copies)
             int gained = 0;
             foreach (Weapon w in _weapons) if (w is BlasterWeapon gun) gained += gun.Magazine.Add(magazines);
             if (gained > 0) { GameEvents.RaiseAmmoTaken(this, gained); GameEvents.RaiseAmmoChanged(this); }
             return gained;
+        }
+
+        /// <summary>True when an ammo box would give something: a blaster carried whose reserve is not full. Online the
+        /// host is asked for a box only then (D-0131).</summary>
+        public bool WantsAmmo()
+        {
+            if (_puppet) return false;
+            foreach (Weapon w in _weapons)
+                if (w is BlasterWeapon gun && !gun.Magazine.Endless && gun.Magazine.Reserve < gun.Magazine.reserveMax) return true;
+            return false;
         }
 
         private void ShowCurrent()

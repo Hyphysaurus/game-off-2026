@@ -2375,3 +2375,32 @@
   `GrenadeRpc` at the owner's release, which lands at the same point in the copy's swing. A look-only thrower's
   Scale is its body's (their Shifter does not run here). Not shown: the owner's hit-stop (0.06 s) on a connecting
   swing, and melee hit sounds on other PCs.
+- **D-0131 (21 Nov) Co-op step 2: the host runs the soldiers, breakable props and pickups (his "proceed with coop step
+  2").** The plan's substance as agreed (the host decides, hits go to the host, the host tells everyone), with one
+  change of means: no builder adds network parts to the house scene, the soldier prefab or the pickups. Instead, when a
+  party world loads (OnlineWorld.Apply, now for the Stadium too), `CoopWorld.Bind` numbers every active ToySoldier,
+  Breakable and shared pickup (PlayerPickup; AmmoBox with a respawn time: a supply crate is never used up and stays
+  each PC's own) by its place in the scene (root name, then name#sibling-index), sorted, the same on every PC, and an
+  FNV hash of those paths is checked against the host's when a player arrives (mismatch: that PC's copies go back to
+  being its own, with a warning). Why: his hand-made house scene stays untouched, and a friend who joins from the
+  house's own title (no scene load, D-0126) needs no in-scene NetworkObjects that Netcode never loaded. The messages
+  ride a new NetworkBehaviour on the NetPlayer (`NetWorld`, added by PartyBuilder): a player asks the host on their own
+  player object (HitRpc, TakeRpc, WantStateRpc), the host answers one player on that player's object (StateRpc,
+  SendTo.Owner: who is down, what is broken, what is taken) and tells everyone on its own (NotServer: SoldiersRpc
+  ten a second with every soldier's place and facing (Vector3[] + byte[] yaw, unreliable), SoldierShotRpc
+  (unreliable), SoldierDownRpc, SoldierUpRpc, BrokeRpc, BackRpc, PickupTakenRpc, PickupBackRpc).
+  The host: soldiers think as before but aim at the nearest player they can see (`NetPlayer.Spawned`; a player knocked
+  out (NetHealth) is skipped; one in a car is aimed at the seat); a soldier shot at turns on the shooter first while
+  alerted and it can see them (D-0100's rule, now for any player: a client's hit arrives with that player's object as
+  its source). Their darts are real on the host and hurt whoever they hit (on another player's copy the hit goes to
+  that player's PC through NetHealth, as player darts do). A prop comes back once no player at all stands in its spot.
+  A pickup goes to the first player who asks; it hides for everyone and the host's timer brings it back.
+  Every other PC: soldiers are copies (`UseMirror`: no brain; they follow the host's places a tenth of a second
+  behind, jump when the gap is over 2 body sizes, fall with the burst and thud, get up, fire harmless dart copies with
+  the sound); a hit on a soldier or prop copy goes to the host through `Damageable.Relay` (the copy flashes; down or
+  broken: no hit marker); props break with their own pieces and come back when told; a pickup touched is asked for
+  only if this player would gain from it (CanGive), and given (GiveTo) when the host says it is theirs.
+  Also fixed: since D-0128 other players' copies hold real weapon copies, so a copy walking into an ammo box "took" it
+  on this PC for nobody (AmmoBox did not skip copies as PlayerPickup does); copies are skipped now and
+  `WeaponHolder.AddAmmo` gives a copy nothing. Not shared, as planned: gun stands, loose physics, Colour Corner.
+  Not shown on other PCs: SquadGate's "N to go" hints (doors are open online anyway), soldier squash on a relayed hit.

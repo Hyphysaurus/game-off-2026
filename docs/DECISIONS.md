@@ -2454,3 +2454,13 @@
   (the card's R and P would load a scene on one PC only, taking that player out of the party). Not done: the party
   list still names the world the party started in; the Colour Corner's paint is each PC's own; a player joining
   during a countdown just follows the load.
+- **D-0135 (21 Nov) The jam page and README brought up to date (the large pass, part 3).** docs/ITCH_PAGE.md rewritten
+  for what the game is now (the house alone, the online party: Stadium and co-op house, the weapons), the controls
+  read from the input bindings (F shift, X holster/put down, 1-4 slots, R, G, Left Ctrl, Q, V, Tab, F12), a new
+  public page for the jam (the restricted playtest page stays), the submit steps, and credits from the v16 build
+  log's used-asset list (ithappy packs including the free Christmas / Cute Furniture / Food ones, Case Portman, Polygon
+  Arsenal, Modular 3D Text, Text Animator, DOTween, Fraggo, yasirkula's console and panels, Netcode; Curved World,
+  Stylized Water 3 and MudBun marked for him to check). Corrected, flagged to him: the 9 Nov line "no art, audio,
+  models or animation from AI generators ship" was no longer true. Claude Code wrote the code and most on-screen
+  text, and scripts it wrote made the shift orb, portal ring and nitro star models (plus the spark texture and the
+  arms-carry pose). The page and the README now say exactly that, and itch's generative-AI answer is yes.

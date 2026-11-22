@@ -10,7 +10,8 @@ namespace ShiftJam
     /// A kid's throw leaves from the kid's chest and is as many times faster as the kid is bigger; the grenade does the
     /// rest (Grenade). It tells the game what happened (GameEvents: GrenadesChanged, GrenadeThrown, GrenadeWentOff);
     /// the weapon read-out, the hit marker and the play log listen. The WeaponHolder of a player adds one of these;
-    /// every number is in Resources/Grenades.
+    /// every number is in Resources/Grenades. Online (D-0130), each throw's start is told to the other PCs (Started),
+    /// where the thrower on this player's copy, made look-only (UseLookOnly), swings the same arm and throws nothing.
     /// </summary>
     [DefaultExecutionOrder(110)]   // after the WeaponHolder has put the arms on a gun: the throw goes on top
     public sealed class GrenadeThrower : MonoBehaviour, IResettable
@@ -23,7 +24,10 @@ namespace ShiftJam
         private ThrowPose _pose;
         private float _wait, _swingLeft;
         private bool _released = true;
+        private bool _look;   // another player's copy on this PC (D-0130): it swings the arm when told and throws nothing
 
+        /// <summary>True on another player's copy on this PC: it only swings the arm, when NetCombat says.</summary>
+        public bool LookOnly => _look;
         /// <summary>Grenades carried now.</summary>
         public int Carried { get; private set; }
         /// <summary>The most that can be carried.</summary>
@@ -39,7 +43,8 @@ namespace ShiftJam
         /// <summary>The numbers in use.</summary>
         public GrenadeSettings Settings => _s;
 
-        private float Scale => _shifter != null ? _shifter.Scale : Mathf.Max(0.001f, transform.lossyScale.y);
+        // Another player's copy: their Shifter does not run here, but the network sizes the body with their shift.
+        private float Scale => _shifter != null && !_look ? _shifter.Scale : Mathf.Max(0.001f, transform.lossyScale.y);
 
         private void Awake()
         {
@@ -69,18 +74,46 @@ namespace ShiftJam
         /// under way, the hands full, or no grenade set.</summary>
         public bool StartThrow()
         {
-            if (!isActiveAndEnabled || Carried <= 0 || _wait > 0f || _s.grenade == null) return false;
+            if (_look || !isActiveAndEnabled || Carried <= 0 || _wait > 0f || _s.grenade == null) return false;
             if (_holder != null && !_holder.FreeToAct) return false;
             Carried--;
             _wait = _s.cooldown;
             _swingLeft = _s.swingSeconds;
             _released = false;
             GameEvents.RaiseGrenadesChanged(this);
+            Started?.Invoke(this);
             return true;
         }
 
+        /// <summary>Raised as a throw starts, before the grenade leaves (online: NetCombat has the other PCs swing this
+        /// player's arm too, D-0130).</summary>
+        public static event System.Action<GrenadeThrower> Started;
+
         /// <summary>Raised as a grenade leaves the hand: (thrower, where, velocity, spin, thrower's scale).</summary>
         public static event System.Action<GrenadeThrower, Vector3, Vector3, Vector3, float> Released;
+
+        /// <summary>
+        /// Online (D-0130): this is another player's copy on this PC. From now on it reads no key and throws nothing; it
+        /// only swings the free arm when their throw starts (SwingLook). Their grenade's flight comes from their PC
+        /// (NetCombat). The key is let go first.
+        /// </summary>
+        public void UseLookOnly()
+        {
+            if (_look) return;
+            enabled = false;   // OnDisable lets go of the key while _input is still set
+            _input = null;
+            _look = true;
+            enabled = true;
+        }
+
+        /// <summary>Another player's copy: their throw started. The free arm winds up and swings through as theirs does
+        /// (the grenade itself leaves from their PC at the same point in the swing). One under way starts over.</summary>
+        public void SwingLook()
+        {
+            if (!_look) return;
+            _swingLeft = _s.swingSeconds;
+            _released = true;   // nothing to let go here
+        }
 
         /// <summary>Adds grenades, up to the most that can be carried. False when already full (a pickup then stays).</summary>
         public bool Add(int count)

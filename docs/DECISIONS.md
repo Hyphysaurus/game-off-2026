@@ -2361,3 +2361,17 @@
   (swap, roll, hit, holster) arrives as 0 and ends it; a weapon change ends it. A copy loads nothing and raises no
   reload or ammo events. A reload already under way when a player joins is not shown (it is over in a second or two).
   Still not shown on copies: melee swings and the grenade throw's arm (their weapon and thrower code does not run there).
+- **D-0130 (21 Nov) Other players' melee swings and grenade-throw arms (his "Yes proceed with all").** Both are told
+  as they start, by reliable RPCs from the owner's NetCombat (`SwingRpc`, `ThrowStartRpc`), which listens to two new
+  static events: `MeleeWeapon.Swung` (raised in TriggerPressed) and `GrenadeThrower.Started` (raised in StartThrow).
+  Events, not polling `Busy`: a held attack can end one swing and start the next between two reads. A swing carries
+  the weapon's index and shows it first (an RPC can arrive before the `_held` change sent on the next tick).
+  On the copy the knife or foam finger swings through the owner's own code: `MeleeWeapon.SwingLook` restarts the
+  swing time with its swing sound, `WeaponHolder.PuppetUpdate` steps it (`StepLook`: time only, no hit, no hit-stop;
+  a copy's own Update does not run), and Pose turns the arm at the shoulder and wrist as for the owner. The throw:
+  the copy's GrenadeThrower, which NetPlayer switches off with the other key readers, is switched back on look-only
+  by NetCombat (`UseLookOnly`, the same pattern as `UsePuppet`; NetPlayer's KeepOnPuppet keeps it too) and
+  `SwingLook` runs the owner's swing timing and arm pose with nothing to let go; the grenade copy still comes from
+  `GrenadeRpc` at the owner's release, which lands at the same point in the copy's swing. A look-only thrower's
+  Scale is its body's (their Shifter does not run here). Not shown: the owner's hit-stop (0.06 s) on a connecting
+  swing, and melee hit sounds on other PCs.

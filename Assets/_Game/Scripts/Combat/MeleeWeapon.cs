@@ -7,7 +7,8 @@ namespace ShiftJam
     /// A toy sword / knife / foam finger. A swing has a windup (readable anticipation), an active window during which a
     /// sphere in front of the holder hits each target at most once (knockback plus a little knockup, never through walls),
     /// and a recovery. A connecting hit freezes the swing for a moment (hit-stop) so it lands with weight. Reach and shove
-    /// scale with the holder. Loose props are batted too.
+    /// scale with the holder. Loose props are batted too. Online (D-0130), each swing is told to the other PCs (Swung),
+    /// where the copy in this player's hand swings the same way and hits nothing (SwingLook, StepLook).
     /// </summary>
     public sealed class MeleeWeapon : Weapon
     {
@@ -38,15 +39,37 @@ namespace ShiftJam
         private float Total => windup + active + recovery;
         public override bool Busy => _t >= 0f;
 
+        /// <summary>Raised as a swing starts (online: NetCombat has the other PCs play it on this player's copy, D-0130).</summary>
+        public static event System.Action<MeleeWeapon> Swung;
+
         public override void TriggerPressed()
         {
             if (_t >= 0f || Holder == null) return;
             _t = 0f;
             _struck.Clear();
             Holder.PlayClip(swingClip, 1.15f);
+            Swung?.Invoke(this);
         }
 
         public override void Cancel() { _t = -1f; _struck.Clear(); }
+
+        /// <summary>Another player's swing, on the copy in their hand on this PC (D-0130): the same moves and swing sound,
+        /// no hit (their PC does the hitting). A copy's own Update does not run, so its holder steps it (StepLook). One
+        /// already under way starts over.</summary>
+        public void SwingLook()
+        {
+            _t = 0f;
+            _struck.Clear();
+            if (Holder != null) Holder.PlayClip(swingClip, 1.15f);
+        }
+
+        /// <summary>One step of a swing on a copy: the time only, no hit and no hit-stop.</summary>
+        public void StepLook(float deltaTime)
+        {
+            if (_t < 0f) return;
+            _t += deltaTime;
+            if (_t >= Total) _t = -1f;
+        }
 
         public override Quaternion PoseRotation
         {

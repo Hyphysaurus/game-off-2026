@@ -671,9 +671,10 @@ namespace ShiftJam
 
         /// <summary>
         /// Online (D-0128): this holder is another player's copy on this PC. From now on it only shows that player's
-        /// weapon the way they hold it (NetCombat feeds it the weapon, the aim and their reloads), with this same posing:
-        /// the grip in the fist, both hands on a long gun, the arm up on their aim, their reload, a melee weapon in the
-        /// fist, a worn one over the hand. It reads no keys, fires nothing, keeps no ammo and puts nothing on the screen.
+        /// weapon the way they hold it (NetCombat feeds it the weapon, the aim, their reloads and their swings), with this
+        /// same posing: the grip in the fist, both hands on a long gun, the arm up on their aim, their reload, a melee
+        /// weapon in the fist and its swing, a worn one over the hand. It reads no keys, fires nothing, hits nothing, keeps
+        /// no ammo and puts nothing on the screen.
         /// The keys are let go first; with no input, OnEnable takes none and Start makes no ammo screen.
         /// </summary>
         public void UsePuppet()
@@ -738,16 +739,26 @@ namespace ShiftJam
             PlayClip(_ammo.reloadStartClip, 1f);
         }
 
+        /// <summary>Another player's copy (D-0130): they swung the melee weapon in their hand. The copy swings the same
+        /// way (the arm turns at the shoulder and the wrist and carries it round, as their own does), with its swing
+        /// sound; it hits nothing, their PC does the hitting.</summary>
+        public void PuppetSwing()
+        {
+            if (_puppet && Current is MeleeWeapon melee && melee.gameObject.activeSelf) melee.SwingLook();
+        }
+
         /// <summary>The owner's Update without the keys and the shots: what shows, their reload (timed here from the
-        /// moment it was heard of), how far the arm is up (their aim held, or a shot just now; down through a reload),
-        /// both hands on a long gun, the fingers round the grip, and a melee weapon's arm held out through the Arms
-        /// layer. Always third person: other players see the body, not the view.</summary>
+        /// moment it was heard of), a melee swing (stepped here: a copy's own Update does not run), how far the arm is up
+        /// (their aim held, or a shot just now; down through a reload), both hands on a long gun, the fingers round the
+        /// grip, and a melee weapon's arm held out through the Arms layer. Always third person: other players see the
+        /// body, not the view.</summary>
         private void PuppetUpdate()
         {
             var w = Current;
             bool visible = w != null && Drawn;
             if (w != null && w.gameObject.activeSelf != visible) w.gameObject.SetActive(visible);
             RunReload(w, visible);
+            if (w is MeleeWeapon melee) melee.StepLook(Time.deltaTime);
             bool byArm = visible && ByArm(w);
             if (!byArm || Reloading) StandDown();
             bool aiming = byArm && !Reloading && (_puppetAim || _aimTime > 0f);

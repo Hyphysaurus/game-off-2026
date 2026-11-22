@@ -10,7 +10,9 @@ namespace ShiftJam
     /// weapon in this player's hand is sent as a number into Weapons, with whether their aim is held and how high it
     /// points; on other PCs this player's own WeaponHolder, made a look-only copy (D-0128), holds a copy of that weapon
     /// exactly as they hold it: in the fist, both hands on a long gun, the arm up on the aim and after a shot. A reload is
-    /// sent as its length while it runs (D-0129): the copy plays the same reload, with its sounds, and loads nothing.
+    /// sent as its length while it runs (D-0129): the copy plays the same reload, with its sounds, and loads nothing. A
+    /// melee swing and a grenade throw's start are sent as they happen (D-0130): the copy swings the knife or the foam
+    /// finger, or winds the free arm up and throws, the same way, hitting and throwing nothing.
     /// </summary>
     public sealed class NetCombat : NetworkBehaviour
     {
@@ -28,13 +30,21 @@ namespace ShiftJam
         private readonly NetworkVariable<float> _reload = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
         private WeaponHolder _holder;
+        private GrenadeThrower _thrower;
         private int _shownIndex = None;
 
         public override void OnNetworkSpawn()
         {
             _holder = GetComponent<WeaponHolder>();
-            if (IsOwner) { Projectile.Fired += OnFired; GrenadeThrower.Released += OnThrown; return; }
+            _thrower = GetComponent<GrenadeThrower>();
+            if (IsOwner)
+            {
+                Projectile.Fired += OnFired; GrenadeThrower.Released += OnThrown;
+                MeleeWeapon.Swung += OnSwung; GrenadeThrower.Started += OnThrowStarted;
+                return;
+            }
             if (_holder != null) _holder.UsePuppet();
+            if (_thrower != null) _thrower.UseLookOnly();   // NetPlayer switched it off as a key reader: back on, look-only (D-0130)
             _held.OnValueChanged += OnHeldChanged;
             _reload.OnValueChanged += OnReloadChanged;   // a reload already under way when this copy appeared is not shown: it is over in a second or two
             // The weapon already in their hand when this copy appeared (OnValueChanged reports only later changes: a
@@ -44,7 +54,12 @@ namespace ShiftJam
 
         public override void OnNetworkDespawn()
         {
-            if (IsOwner) { Projectile.Fired -= OnFired; GrenadeThrower.Released -= OnThrown; return; }
+            if (IsOwner)
+            {
+                Projectile.Fired -= OnFired; GrenadeThrower.Released -= OnThrown;
+                MeleeWeapon.Swung -= OnSwung; GrenadeThrower.Started -= OnThrowStarted;
+                return;
+            }
             _held.OnValueChanged -= OnHeldChanged;
             _reload.OnValueChanged -= OnReloadChanged;
             if (_holder != null) _holder.ShowPuppet(null);
@@ -75,7 +90,33 @@ namespace ShiftJam
             if (clip != null) AudioSource.PlayClipAtPoint(clip, position, 0.6f);
         }
 
+        // ---------------------------------------------------------------- melee swings (D-0130)
+
+        private void OnSwung(MeleeWeapon weapon)
+        {
+            if (weapon == null || weapon.Holder != _holder || !IsSpawned) return;   // only this player's own swings
+            int i = IndexOf(weapon);
+            if (i >= 0) SwingRpc((sbyte)i);
+        }
+
+        [Rpc(SendTo.NotMe)]   // reliable: rarer than shots, and it shows where the hit that follows came from
+        private void SwingRpc(sbyte weapon)
+        {
+            if (_holder == null) return;
+            Show(weapon);   // the weapon it was swung with, should the swap that took it out not have arrived yet
+            _holder.PuppetSwing();
+        }
+
         // ---------------------------------------------------------------- grenades
+
+        private void OnThrowStarted(GrenadeThrower thrower)
+        {
+            if (thrower == null || thrower.gameObject != gameObject || !IsSpawned) return;
+            ThrowStartRpc();
+        }
+
+        [Rpc(SendTo.NotMe)]   // reliable, as the grenade: the arm winds up, and the grenade (GrenadeRpc) leaves part-way through
+        private void ThrowStartRpc() { if (_thrower != null) _thrower.SwingLook(); }
 
         private void OnThrown(GrenadeThrower thrower, Vector3 from, Vector3 velocity, Vector3 spin, float scale)
         {

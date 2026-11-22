@@ -75,6 +75,11 @@ namespace ShiftJam
             Online(copy);
             GameObject saved = PrefabUtility.SaveAsPrefabAsset(copy, PlayerPath, out bool ok);
             Object.DestroyImmediate(copy);
+            // Saved from a scene instance, the network id on disk is the instance's; reimported, Netcode works out the
+            // asset's own, and the rewrite stores it, so a build and the editor agree on it.
+            AssetDatabase.ImportAsset(PlayerPath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ForceReserializeAssets(new[] { PlayerPath });
+            saved = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPath);
             bool variant = ok && saved != null && PrefabUtility.GetPrefabAssetType(saved) == PrefabAssetType.Variant;
             string line = variant ? $"NetPlayer: rebuilt as a variant of {PlayerPrefabBuilder.PrefabPath}" : "NetPlayer: NOT saved as a variant";
             if (log != null) log.AppendLine(line); else Debug.Log("PartyBuilder: " + line);

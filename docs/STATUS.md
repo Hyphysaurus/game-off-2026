@@ -2,6 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 22 Nov 2026 15:2x — ONE PLAYER PREFAB (D-0143, systems plan step 1) + BULB GLOW (D-0142): IN HIS EDITOR, NOT PLAYED
+- Prefabs/Player/Player.prefab; Greybox, Workshop, Raceway, Colour Corner's Player each an instance of it, converted in
+  place (camera targets hold, 0 broken references in all four scenes); the house's player gained SafeGround; Colour
+  Corner keeps AmmoBelt + Loadout as its own. NetPlayer = a variant of it (network id stored 3123185403, in its list).
+- Parts catalog started in docs/ARCHITECTURE.md ("Parts").
+- Next: he plays a scene or two; then step 2, the hands model (independent left and right hands).
+
 ## 22 Nov 2026 15:1x — AIM LIKE ALAN WAKE 2 + FLASHLIGHT FOCUS (D-0141): LANDED IN HIS EDITOR, NOT PLAYED, NOT COMMITTED
 - Not aiming: the body no longer turns to the aim; the waist twists toward it (up to 45 across / 50 out) and the arm
   reaches the rest. Aim held (right mouse / LT) with a gun or the flashlight: body faces the aim, walk any way at 0.6

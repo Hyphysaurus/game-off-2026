@@ -46,3 +46,13 @@ listens to `started`, so E is a press. `PlayerInput` is still the only script th
 `_Game` ours (Scripts by feature, Data, Prefabs, Animation, Scenes, Input, Materials, UI). `_Imports` bought
 content. `_Tools` bought tools. All of `_Imports`, Feel, Shapes, FastScriptReload and Linework Lite are
 git-ignored at any depth (licences); UVCS carries them.
+
+## Parts: drop-in pieces for any scene or section (D-0143 on)
+His rule (22 Nov): every system ships as a part that works dropped into any section, its tuning on the part or in a
+data asset, wired into the one player and the scene carry if the player holds it, and listed here with how to place it.
+Level beats are placed parts, not coordinates in builder code.
+
+| Part | Where | How to use it |
+| --- | --- | --- |
+| **Player** | `Prefabs/Player/Player.prefab` | The one player: every scene's Player is an instance of it (Greybox, Workshop, Raceway, Colour Corner), the online `Resources/Net/NetPlayer` a variant. Something every player needs goes on the prefab, once. A scene's own start or extras (Colour Corner's AmmoBelt, Loadout) stay overrides on its instance. A new scene: drag the prefab in, name it Player. Rebuilt or re-linked by Shift Jam / Player / Make One Player Prefab (safe to run again). |
+

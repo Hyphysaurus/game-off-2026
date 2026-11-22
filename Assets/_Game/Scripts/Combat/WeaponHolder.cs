@@ -65,6 +65,9 @@ namespace ShiftJam
         private bool _trigger;               // a click whose shot has not left: it waits for the arm
         private WeaponAmmoSettings _ammo;    // what an empty gun does, how a reload runs
         private readonly Reload _reload = new Reload();   // the reload under way, if any
+        private bool _puppet;                // another player's copy on this PC (D-0128): shows their weapon, takes no keys
+        private bool _puppetAim;             // their aim is held: the arm comes up
+        private float _puppetPitch;          // degrees their aim is above level (below: negative)
         private float _reloadPose;           // 0 the normal hold, 1 the gun tipped in front of the chest for the reload
         private Interactor _interactor;      // what E / the pad's Y would use: that press is not a reload
         private PlayerMotor _motor;          // slowed a little by a heavy gun in the hands
@@ -106,7 +109,8 @@ namespace ShiftJam
         public bool Full => _inventory != null ? _inventory.Full : _weapons.Count >= maxWeapons;
         /// <summary>First person with a prop in the hands: the wheel moves it, the keys are its.</summary>
         public bool HandsBusyInView => _fpHands != null && _fpHands.Held != null;
-        public float Scale => shifter != null ? shifter.Scale : Mathf.Max(0.001f, transform.lossyScale.y);
+        // Another player's copy: their Shifter does not run here, but the network scales the body with their shift.
+        public float Scale => shifter != null && !_puppet ? shifter.Scale : Mathf.Max(0.001f, transform.lossyScale.y);
         public bool FirstPerson => _fpView != null;
         /// <summary>The first-person body standing in for the player, when there is one: never shot by our own shots.</summary>
         public Transform FirstPersonBodyRoot => _fpBody;
@@ -114,7 +118,7 @@ namespace ShiftJam
         private Transform OwnView() { Camera view = PlayerSlot.ViewFor(this); return view != null ? view.transform : null; }   // a party player's own (D-0110)
         /// <summary>Where the aim ray starts: the camera.</summary>
         public Vector3 AimOrigin => View != null ? View.position : AttackOrigin;
-        public Vector3 AimForward => View != null ? View.forward : transform.forward;
+        public Vector3 AimForward => _puppet ? PuppetForward : View != null ? View.forward : transform.forward;
         /// <summary>Where melee and the muzzle check start: the eyes in first person, the chest in third.</summary>
         public Vector3 AttackOrigin => _fpView != null ? _fpView.position : transform.position + Vector3.up * (chestHeight * Scale);
         /// <summary>Which way melee hits: the view in first person, the body's facing in third.</summary>
@@ -515,6 +519,7 @@ namespace ShiftJam
 
         private void Update()
         {
+            if (_puppet) { PuppetUpdate(); return; }
             // The mouse wheel swaps weapons while one is out (the test room's rule): down for the next, up for the one
             // before. Not with a prop in the hands (the wheel moves or turns it), nor with the key sheet open.
             float wheel = input != null ? input.Scroll : 0f;
@@ -616,7 +621,7 @@ namespace ShiftJam
                 if (both ? _hands > 0f : _raise > 0f || reload > 0f)
                 {
                     ArmAim.Hold hold = Grasp(w, fist, inHand, reload, both, s);
-                    Vector3 target = _raise > 0f ? w.AimPoint() : transform.position + transform.forward * (100f * s);
+                    Vector3 target = _raise > 0f ? (_puppet ? PuppetTarget() : w.AimPoint()) : transform.position + transform.forward * (100f * s);
                     if (both) _armAim.Shoulder2(target, Mathf.SmoothStep(0f, 1f, _raise), Mathf.SmoothStep(0f, 1f, _hands), hold, _hold, s);
                     else _armAim.Aim(target, Mathf.Max(Mathf.SmoothStep(0f, 1f, _raise), reload), hold, _hold, s);   // a reload needs the arm even when the gun hung at the side
                 }
@@ -650,6 +655,97 @@ namespace ShiftJam
             Quaternion r = frame * w.PoseRotation * w.HandRotation;
             Vector3 grip = _hand != null ? _hand.TransformPoint(_wears != null ? _wears.Palm(palm) : palm) : transform.position + Vector3.up * (chestHeight * s) + transform.right * (0.3f * s) + transform.forward * (0.3f * s);
             w.transform.SetPositionAndRotation(grip + r * ((w.HandOffset + w.PosePosition) * s), r);
+        }
+
+        // ---------------------------------------------------------------- another player's copy (D-0128)
+
+        /// <summary>True on another player's copy on this PC (online): it shows their weapon and takes no keys.</summary>
+        public bool IsPuppet => _puppet;
+
+        /// <summary>
+        /// Online (D-0128): this holder is another player's copy on this PC. From now on it only shows that player's
+        /// weapon the way they hold it (NetCombat feeds it the weapon and the aim), with this same posing: the grip in
+        /// the fist, both hands on a long gun, the arm up on their aim, a melee weapon in the fist, a worn one over the
+        /// hand. It reads no keys, fires nothing, keeps no ammo and puts nothing on the screen. The keys are let go
+        /// first; with no input, OnEnable takes none and Start makes no ammo screen.
+        /// </summary>
+        public void UsePuppet()
+        {
+            if (_puppet) return;
+            enabled = false;   // OnDisable lets go of the keys while input is still set
+            input = null;
+            _puppet = true;
+            enabled = true;
+        }
+
+        /// <summary>Another player's copy: a look-only copy of <paramref name="prefab"/> in the hand (null: empty hands),
+        /// seated as Equip seats a weapon taken (under the player, so it grows with their shift). Nothing in it runs.</summary>
+        public void ShowPuppet(Weapon prefab)
+        {
+            if (!_puppet) return;
+            foreach (var old in _weapons) if (old != null) Destroy(old.gameObject);
+            _weapons.Clear();
+            _current = -1;
+            _raise = _hands = _grip = _aimTime = 0f;
+            FoldHand(false);
+            if (prefab == null) return;
+            Weapon copy = Instantiate(prefab);
+            copy.name = prefab.name + " (shown)";
+            foreach (var b in copy.GetComponentsInChildren<Behaviour>(true)) b.enabled = false;   // a look: no shots, no ammo, no sound
+            foreach (var c in copy.GetComponentsInChildren<Collider>(true)) c.enabled = false;    // not shot, bumped or picked up
+            foreach (var rb in copy.GetComponentsInChildren<Rigidbody>(true)) rb.isKinematic = true;
+            var looks = copy.GetComponent<WeaponLooks>();
+            if (looks == null) looks = copy.gameObject.AddComponent<WeaponLooks>();
+            looks.SetLoose(false);
+            looks.enabled = false;
+            copy.transform.SetParent(transform, false);
+            copy.transform.localScale = looks.BaseScale;
+            copy.SetHolder(this);
+            SetViewModel(copy, false);
+            _weapons.Add(copy);
+            _current = 0;
+            Drawn = true;
+        }
+
+        /// <summary>Another player's copy: whether their aim is held, and how many degrees above level it points.</summary>
+        public void PuppetAim(bool held, float pitchDegrees) { _puppetAim = held; _puppetPitch = pitchDegrees; }
+
+        /// <summary>Another player's copy: one of their shots just left. The arm comes up for a moment, as their own does
+        /// after a shot (in first person too, where their view hides it from them).</summary>
+        public void PuppetShot() { if (_puppet) _aimTime = _hold.lowerDelay; }
+
+        /// <summary>The owner's Update without the keys, the shots and the reload: what shows, how far the arm is up (their
+        /// aim held, or a shot just now), both hands on a long gun, the fingers round the grip, and a melee weapon's arm
+        /// held out through the Arms layer. Always third person: other players see the body, not the view.</summary>
+        private void PuppetUpdate()
+        {
+            var w = Current;
+            bool visible = w != null && Drawn;
+            if (w != null && w.gameObject.activeSelf != visible) w.gameObject.SetActive(visible);
+            bool byArm = visible && ByArm(w);
+            bool aiming = byArm && (_puppetAim || _aimTime > 0f);
+            _aimTime = Mathf.Max(0f, _aimTime - Time.deltaTime);
+            float seconds = aiming ? _hold.raiseTime : _hold.lowerTime;
+            _raise = !byArm ? 0f : seconds > 0f ? Mathf.MoveTowards(_raise, aiming ? 1f : 0f, Time.deltaTime / seconds) : aiming ? 1f : 0f;
+            bool both = byArm && InBothHands(w);
+            _hands = !both ? 0f : _hold.holdTime > 0f ? Mathf.MoveTowards(_hands, 1f, Time.deltaTime / _hold.holdTime) : 1f;
+            _grip = !byArm && !(visible && InFist(w)) ? 0f : _hold.gripTime > 0f ? Mathf.MoveTowards(_grip, 1f, Time.deltaTime / _hold.gripTime) : 1f;
+            if (animator != null && _layer >= 0)
+            {
+                _arm = Mathf.MoveTowards(_arm, visible && !byArm ? 1f : 0f, Time.deltaTime / 0.15f);
+                if (_arm > 0f) animator.SetLayerWeight(_layer, Mathf.Max(animator.GetLayerWeight(_layer), _arm));
+            }
+        }
+
+        /// <summary>Another player's copy: which way their aim points, as far as this PC can tell: the way the body faces
+        /// (it turns to the aim while the arm is up), tipped up or down by their aim's pitch.</summary>
+        private Vector3 PuppetForward => Quaternion.AngleAxis(-_puppetPitch, transform.right) * transform.forward;
+
+        /// <summary>Another player's copy: a point far along their aim from the chest, for the arm to point the gun at.</summary>
+        private Vector3 PuppetTarget()
+        {
+            float s = Scale;
+            return transform.position + Vector3.up * (chestHeight * s) + PuppetForward * (100f * s);
         }
 
         /// <summary>How a blaster is turned in the fist (gun rotation = right hand rotation x this).</summary>

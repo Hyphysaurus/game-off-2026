@@ -7,8 +7,9 @@ namespace ShiftJam
     /// What other players see of this player's fighting (D-0117), on the NetPlayer. Every shot this player fires is sent
     /// on (fast and lossy: a lost dart's look does not matter, lateness does) and the other PCs fly a harmless copy of
     /// it, no damage, no shove, with its sound: the damage itself still comes from the shooter's PC (NetHealth). The
-    /// weapon in this player's hand is sent as a number into Weapons; other PCs show a copy of it at the body's right
-    /// hand, pointing the way the body faces, while it is drawn.
+    /// weapon in this player's hand is sent as a number into Weapons, with whether their aim is held and how high it
+    /// points; on other PCs this player's own WeaponHolder, made a look-only copy (D-0128), holds a copy of that weapon
+    /// exactly as they hold it: in the fist, both hands on a long gun, the arm up on the aim and after a shot.
     /// </summary>
     public sealed class NetCombat : NetworkBehaviour
     {
@@ -19,23 +20,32 @@ namespace ShiftJam
 
         private const int None = -1;
         private readonly NetworkVariable<int> _held = new NetworkVariable<int>(None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        private readonly NetworkVariable<bool> _aimHeld = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        private readonly NetworkVariable<sbyte> _pitch = new NetworkVariable<sbyte>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);   // degrees above level
 
         private WeaponHolder _holder;
-        private GameObject _shown; private int _shownIndex = None;
-        private Transform _hand;
+        private int _shownIndex = None;
 
         public override void OnNetworkSpawn()
         {
             _holder = GetComponent<WeaponHolder>();
-            if (IsOwner) { Projectile.Fired += OnFired; GrenadeThrower.Released += OnThrown; }
-            else _held.OnValueChanged += (_, now) => Show(now);
+            if (IsOwner) { Projectile.Fired += OnFired; GrenadeThrower.Released += OnThrown; return; }
+            if (_holder != null) _holder.UsePuppet();
+            _held.OnValueChanged += OnHeldChanged;
+            // The weapon already in their hand when this copy appeared (OnValueChanged reports only later changes: a
+            // friend who joined after the host drew a gun never saw it, D-0128).
+            Show(_held.Value);
         }
 
         public override void OnNetworkDespawn()
         {
-            if (IsOwner) { Projectile.Fired -= OnFired; GrenadeThrower.Released -= OnThrown; }
-            if (_shown != null) Destroy(_shown);
+            if (IsOwner) { Projectile.Fired -= OnFired; GrenadeThrower.Released -= OnThrown; return; }
+            _held.OnValueChanged -= OnHeldChanged;
+            if (_holder != null) _holder.ShowPuppet(null);
+            _shownIndex = None;
         }
+
+        private void OnHeldChanged(int before, int now) => Show(now);
 
         // ---------------------------------------------------------------- shots
 
@@ -52,6 +62,7 @@ namespace ShiftJam
         {
             if (index >= shots.Length || shots[index] == null) return;
             Projectile.Fire(shots[index], position, direction, 0f, 0f, scale, transform, null, speed);   // a look: no damage, no shove
+            if (_holder != null) _holder.PuppetShot();   // their arm comes up with the shot
             AudioClip clip = shots[index].FireClip();
             if (clip != null) AudioSource.PlayClipAtPoint(clip, position, 0.6f);
         }
@@ -79,21 +90,17 @@ namespace ShiftJam
 
         private void Update()
         {
-            if (!IsSpawned) return;
-            if (IsOwner)
-            {
-                int now = None;
-                if (_holder != null && _holder.Drawn && _holder.Current != null) now = IndexOf(_holder.Current);
-                if (_held.Value != now) _held.Value = now;
-            }
-        }
-
-        private void LateUpdate()
-        {
-            if (_shown == null) return;
-            if (_hand == null) FindHand();
-            Vector3 at = _hand != null ? _hand.position : transform.position + transform.up * (0.55f * Body()) + transform.right * (0.2f * Body());
-            _shown.transform.SetPositionAndRotation(at, transform.rotation);
+            if (!IsSpawned || _holder == null) return;
+            if (!IsOwner) { _holder.PuppetAim(_aimHeld.Value, _pitch.Value); return; }
+            // Armed: drawn, in hand, and not put away for a carried thing or a car seat (the holder is off when seated).
+            int now = _holder.Armed ? IndexOf(_holder.Current) : None;
+            if (_held.Value != now) _held.Value = now;
+            bool aiming = now != None && _holder.Aiming;
+            if (_aimHeld.Value != aiming) _aimHeld.Value = aiming;
+            if (now == None) return;
+            float y = Mathf.Clamp(_holder.AimForward.y, -1f, 1f);
+            int pitch = Mathf.Clamp(Mathf.RoundToInt(Mathf.Asin(y) * Mathf.Rad2Deg), -90, 90);
+            if (Mathf.Abs(pitch - _pitch.Value) >= 2) _pitch.Value = (sbyte)pitch;   // 2 degrees: the arm reads the same, half the sends
         }
 
         private int IndexOf(Weapon w)
@@ -105,28 +112,9 @@ namespace ShiftJam
 
         private void Show(int index)
         {
-            if (index == _shownIndex) return;
+            if (index == _shownIndex || _holder == null) return;
             _shownIndex = index;
-            if (_shown != null) { Destroy(_shown); _shown = null; }
-            if (index < 0 || index >= weapons.Length || weapons[index] == null) return;
-            _shown = Instantiate(weapons[index].gameObject);
-            _shown.name = "Shown_" + weapons[index].name;
-            foreach (var b in _shown.GetComponentsInChildren<Behaviour>(true)) b.enabled = false;   // a look only
-            foreach (var c in _shown.GetComponentsInChildren<Collider>(true)) c.enabled = false;
-            foreach (var rb in _shown.GetComponentsInChildren<Rigidbody>(true)) rb.isKinematic = true;
-            _shown.transform.localScale = weapons[index].transform.localScale * transform.lossyScale.y;
-        }
-
-        private void FindHand()
-        {
-            var animator = GetComponentInChildren<Animator>();
-            if (animator != null && animator.isHuman) _hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
-        }
-
-        private float Body()
-        {
-            var cc = GetComponent<CharacterController>();
-            return cc != null ? cc.height * transform.lossyScale.y : 1f;
+            _holder.ShowPuppet(index >= 0 && index < weapons.Length ? weapons[index] : null);
         }
     }
 }

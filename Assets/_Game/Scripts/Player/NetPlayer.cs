@@ -20,7 +20,8 @@ namespace ShiftJam
 
         /// <summary>Scripts a puppet keeps running: they only draw or are driven by the network.</summary>
         private static bool KeepOnPuppet(Behaviour b) =>
-            b is NetworkBehaviour || b is Animator || b is PlayerBody || b is PlayerAnimation || b is TMPro.TMP_Text;   // the name tag (D-0117)
+            b is NetworkBehaviour || b is Animator || b is PlayerBody || b is PlayerAnimation || b is TMPro.TMP_Text   // the name tag (D-0117)
+            || (b is WeaponHolder holder && holder.IsPuppet);   // made look-only by NetCombat: it holds their weapon as they do (D-0128)
 
         /// <summary>True while this player sits in a car (D-0116): every other PC hides the body, as the seat does here.</summary>
         private readonly NetworkVariable<bool> _seated = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);

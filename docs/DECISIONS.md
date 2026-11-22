@@ -2337,3 +2337,15 @@
   and already moves folders about during builds, a crash mid-build could leave its library moved, and the copy costs
   seconds. Tested while he was gaming: parser 0 errors, `-Status` (v12 live), a missing build stops with exit 1. Not
   yet run end to end: the first real run is the next version.
+- **D-0128 (21 Nov) Other players' guns (his first two-PC test).** (1) "My brother couldn't see my gun": NetCombat drew
+  another player's weapon only on `_held.OnValueChanged`, which Netcode does not raise for the value a player receives
+  when it spawns, so a gun the host drew before the friend joined never showed. The value at spawn is now shown.
+  (2) "The gun placement in his hand looked very very wonky": the copy was set with its root on the right-hand bone,
+  turned with the body. Now that player's own WeaponHolder on this PC runs look-only (`UsePuppet`: keys let go and
+  cleared, so no keys, no shots, no ammo screen; `ShowPuppet` seats a look-only copy the way Equip seats a weapon;
+  `PuppetUpdate` is the owner's pose state without keys, shots or reload) and the same Pose code holds it: grip in the
+  fist, both hands on a long gun, the arm up on the aim, melee in the fist, the foam finger worn over the hand.
+  NetCombat also sends `_aimHeld` (WeaponHolder.Aiming) and `_pitch` (the aim's pitch, whole degrees, sent on a 2+
+  degree change); a shot arriving raises the arm for lowerDelay (first-person shots too). `_held` follows `Armed`, so
+  the copy goes with a carried thing or a car seat. A copy's Scale is its body's (their Shifter does not run here).
+  Limits: no reload pose on copies; a first-person player is seen in the third-person hold.

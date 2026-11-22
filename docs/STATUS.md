@@ -2,7 +2,7 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 21 Nov 2026 22:4x — THE LARGE PASS (his "proceed"): D-0133 HITCH CATCHER + HUD BY SCREEN HEIGHT, D-0134 DOORS TAKE THE GROUP: COMPILED OUTSIDE, NOT BUILT, NOT PLAYED
+## 21 Nov 2026 22:4x — THE LARGE PASS (his "proceed"): D-0132..D-0135 IN v17 (BUILT + CHECKED 22:5x, 5 scenes, 0 errors; UPLOAD IS HIS), NOT PLAYED
 - Hitch catcher: frames over 0.3 s go to Bug notes/hitches.txt (beside the F12 notes) with what was going on.
 - The in-game HUD scales by screen height (his ultrawide shows it ~14% smaller); menus unchanged.
 - Online, house doors take the whole party after a 5 s countdown (Colour Corner, and the garage door to the Stadium's

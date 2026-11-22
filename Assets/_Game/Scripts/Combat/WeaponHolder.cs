@@ -96,6 +96,9 @@ namespace ShiftJam
         public bool Reloading => _reload.Active;
         /// <summary>How far through the reload we are, 0 to 1 (0 when none runs).</summary>
         public float ReloadDone => _reload.Done;
+        /// <summary>How long the reload under way takes, seconds (0 when none runs): sent to the other players, whose PCs
+        /// play it on this player's copy (D-0129).</summary>
+        public float ReloadSeconds => _reload.Active ? _reload.Length : 0f;
         /// <summary>The player's moves set this while one is under way (a roll, a block, a hit, dead): no firing, the arm comes down.</summary>
         public bool Locked { get; set; }
         /// <summary>How fast the player moves with what is in the hands, as a share of normal: a heavy gun out is a
@@ -421,6 +424,7 @@ namespace ShiftJam
             _reload.Stop();
             _reloadPose = 0f;
             if (gun != null) gun.MagazinePart.Seat();
+            if (_puppet) return;   // another player's copy: only the moves were shown here, nothing else follows them
             GameEvents.RaiseReloadEnded(this, gun, loaded);
             GameEvents.RaiseAmmoChanged(this);
         }
@@ -434,9 +438,12 @@ namespace ShiftJam
             bool over = _reload.Tick(Time.deltaTime, _ammo, out bool seated);
             if (seated)
             {
-                _reload.Weapon.Magazine.Load();
                 PlayClip(_ammo.reloadSeatClip, 1f);
-                GameEvents.RaiseAmmoChanged(this);
+                if (!_puppet)   // another player's copy: their PC counts their rounds in
+                {
+                    _reload.Weapon.Magazine.Load();
+                    GameEvents.RaiseAmmoChanged(this);
+                }
             }
             if (over) { EndReload(); return; }
             _reloadPose = _reload.Pose(_ammo);
@@ -664,10 +671,10 @@ namespace ShiftJam
 
         /// <summary>
         /// Online (D-0128): this holder is another player's copy on this PC. From now on it only shows that player's
-        /// weapon the way they hold it (NetCombat feeds it the weapon and the aim), with this same posing: the grip in
-        /// the fist, both hands on a long gun, the arm up on their aim, a melee weapon in the fist, a worn one over the
-        /// hand. It reads no keys, fires nothing, keeps no ammo and puts nothing on the screen. The keys are let go
-        /// first; with no input, OnEnable takes none and Start makes no ammo screen.
+        /// weapon the way they hold it (NetCombat feeds it the weapon, the aim and their reloads), with this same posing:
+        /// the grip in the fist, both hands on a long gun, the arm up on their aim, their reload, a melee weapon in the
+        /// fist, a worn one over the hand. It reads no keys, fires nothing, keeps no ammo and puts nothing on the screen.
+        /// The keys are let go first; with no input, OnEnable takes none and Start makes no ammo screen.
         /// </summary>
         public void UsePuppet()
         {
@@ -676,6 +683,7 @@ namespace ShiftJam
             input = null;
             _puppet = true;
             enabled = true;
+            if (_audio != null) _audio.spatialBlend = 1f;   // their reload is heard from where they stand, as their shots are (D-0129)
         }
 
         /// <summary>Another player's copy: a look-only copy of <paramref name="prefab"/> in the hand (null: empty hands),
@@ -683,6 +691,7 @@ namespace ShiftJam
         public void ShowPuppet(Weapon prefab)
         {
             if (!_puppet) return;
+            EndReload();   // a reload of the copy going away stops with it
             foreach (var old in _weapons) if (old != null) Destroy(old.gameObject);
             _weapons.Clear();
             _current = -1;
@@ -712,18 +721,36 @@ namespace ShiftJam
 
         /// <summary>Another player's copy: one of their shots just left. The arm comes up for a moment, as their own does
         /// after a shot (in first person too, where their view hides it from them).</summary>
-        public void PuppetShot() { if (_puppet) _aimTime = _hold.lowerDelay; }
+        public void PuppetShot() { if (_puppet && !Reloading) _aimTime = _hold.lowerDelay; }
 
-        /// <summary>The owner's Update without the keys, the shots and the reload: what shows, how far the arm is up (their
-        /// aim held, or a shot just now), both hands on a long gun, the fingers round the grip, and a melee weapon's arm
-        /// held out through the Arms layer. Always third person: other players see the body, not the view.</summary>
+        /// <summary>
+        /// Another player's copy (D-0129): their reload began, <paramref name="seconds"/> long as their PC timed it, or
+        /// (0) it stopped early: a swap, a roll, a hit. The same reload as their own, on the copy in the hand: the arm
+        /// comes down, the gun tips in front of the chest, the free hand takes the magazine out and back, and its two
+        /// sounds play where they stand. Nothing is loaded here.
+        /// </summary>
+        public void PuppetReload(float seconds)
+        {
+            if (!_puppet) return;
+            EndReload();
+            if (seconds <= 0f || !(Current is BlasterWeapon gun) || !_reload.Mirror(gun, seconds)) return;
+            StandDown();   // as their own: no arm left up for a shot through a reload
+            PlayClip(_ammo.reloadStartClip, 1f);
+        }
+
+        /// <summary>The owner's Update without the keys and the shots: what shows, their reload (timed here from the
+        /// moment it was heard of), how far the arm is up (their aim held, or a shot just now; down through a reload),
+        /// both hands on a long gun, the fingers round the grip, and a melee weapon's arm held out through the Arms
+        /// layer. Always third person: other players see the body, not the view.</summary>
         private void PuppetUpdate()
         {
             var w = Current;
             bool visible = w != null && Drawn;
             if (w != null && w.gameObject.activeSelf != visible) w.gameObject.SetActive(visible);
+            RunReload(w, visible);
             bool byArm = visible && ByArm(w);
-            bool aiming = byArm && (_puppetAim || _aimTime > 0f);
+            if (!byArm || Reloading) StandDown();
+            bool aiming = byArm && !Reloading && (_puppetAim || _aimTime > 0f);
             _aimTime = Mathf.Max(0f, _aimTime - Time.deltaTime);
             float seconds = aiming ? _hold.raiseTime : _hold.lowerTime;
             _raise = !byArm ? 0f : seconds > 0f ? Mathf.MoveTowards(_raise, aiming ? 1f : 0f, Time.deltaTime / seconds) : aiming ? 1f : 0f;

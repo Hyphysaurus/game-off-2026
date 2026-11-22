@@ -2349,3 +2349,15 @@
   degree change); a shot arriving raises the arm for lowerDelay (first-person shots too). `_held` follows `Armed`, so
   the copy goes with a carried thing or a car seat. A copy's Scale is its body's (their Shifter does not run here).
   Limits: no reload pose on copies; a first-person player is seen in the third-person hold.
+- **D-0129 (21 Nov) Other players' reloads (his "Begin animating it", after v14's known limit).** A reload is sent as
+  its length: NetCombat `_reload` (a float NetworkVariable, owner-write) holds `WeaponHolder.ReloadSeconds` while the
+  owner's reload runs, 0 otherwise. It is declared after `_held` on purpose: Netcode applies the changes in one send in
+  declaration order (its code generator walks the fields in order; each `ReadDelta` raises `OnValueChanged` at once), so
+  a swap and a reload sent together reach the copy swap first. On other PCs the look-only holder plays it
+  (`PuppetReload` -> `Reload.Mirror`: the owner's Reload timing, without the CanReload check) through the owner's own
+  RunReload and Pose code: the arm comes down (a shot arriving does not raise it through a reload), the gun tips in
+  front of the chest, the free hand takes the magazine down and back, and the start and seat sounds play from the
+  player (a copy's AudioSource is fully 3D now, like the shots). Timed on this PC from when the start arrived; a stop
+  (swap, roll, hit, holster) arrives as 0 and ends it; a weapon change ends it. A copy loads nothing and raises no
+  reload or ammo events. A reload already under way when a player joins is not shown (it is over in a second or two).
+  Still not shown on copies: melee swings and the grenade throw's arm (their weapon and thrower code does not run there).

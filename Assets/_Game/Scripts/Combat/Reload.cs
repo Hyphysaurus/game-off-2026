@@ -36,6 +36,19 @@ namespace ShiftJam
             return true;
         }
 
+        /// <summary>Another player's reload, played on this PC (D-0129): the same moves over <paramref name="seconds"/>,
+        /// the length their PC gave it. Nothing is checked or loaded here: their PC keeps their rounds. A reload already
+        /// running starts over.</summary>
+        public bool Mirror(BlasterWeapon weapon, float seconds)
+        {
+            if (weapon == null || seconds <= 0f) return false;
+            Weapon = weapon;
+            _total = seconds;
+            _left = seconds;
+            _seated = false;
+            return true;
+        }
+
         /// <summary>One step. <paramref name="seated"/> is true on the step the new magazine seats (count the rounds
         /// in, play the sound); the return is true on the step the reload is over.</summary>
         public bool Tick(float deltaTime, WeaponAmmoSettings s, out bool seated)

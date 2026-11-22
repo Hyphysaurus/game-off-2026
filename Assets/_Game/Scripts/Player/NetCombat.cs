@@ -9,7 +9,8 @@ namespace ShiftJam
     /// it, no damage, no shove, with its sound: the damage itself still comes from the shooter's PC (NetHealth). The
     /// weapon in this player's hand is sent as a number into Weapons, with whether their aim is held and how high it
     /// points; on other PCs this player's own WeaponHolder, made a look-only copy (D-0128), holds a copy of that weapon
-    /// exactly as they hold it: in the fist, both hands on a long gun, the arm up on the aim and after a shot.
+    /// exactly as they hold it: in the fist, both hands on a long gun, the arm up on the aim and after a shot. A reload is
+    /// sent as its length while it runs (D-0129): the copy plays the same reload, with its sounds, and loads nothing.
     /// </summary>
     public sealed class NetCombat : NetworkBehaviour
     {
@@ -22,6 +23,9 @@ namespace ShiftJam
         private readonly NetworkVariable<int> _held = new NetworkVariable<int>(None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         private readonly NetworkVariable<bool> _aimHeld = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         private readonly NetworkVariable<sbyte> _pitch = new NetworkVariable<sbyte>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);   // degrees above level
+        // Seconds the reload under way takes, 0 = none (D-0129). Declared after _held on purpose: Netcode applies the
+        // changes in one send in the order declared, so a swap and a reload sent together reach the copy swap first.
+        private readonly NetworkVariable<float> _reload = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
         private WeaponHolder _holder;
         private int _shownIndex = None;
@@ -32,6 +36,7 @@ namespace ShiftJam
             if (IsOwner) { Projectile.Fired += OnFired; GrenadeThrower.Released += OnThrown; return; }
             if (_holder != null) _holder.UsePuppet();
             _held.OnValueChanged += OnHeldChanged;
+            _reload.OnValueChanged += OnReloadChanged;   // a reload already under way when this copy appeared is not shown: it is over in a second or two
             // The weapon already in their hand when this copy appeared (OnValueChanged reports only later changes: a
             // friend who joined after the host drew a gun never saw it, D-0128).
             Show(_held.Value);
@@ -41,11 +46,14 @@ namespace ShiftJam
         {
             if (IsOwner) { Projectile.Fired -= OnFired; GrenadeThrower.Released -= OnThrown; return; }
             _held.OnValueChanged -= OnHeldChanged;
+            _reload.OnValueChanged -= OnReloadChanged;
             if (_holder != null) _holder.ShowPuppet(null);
             _shownIndex = None;
         }
 
         private void OnHeldChanged(int before, int now) => Show(now);
+
+        private void OnReloadChanged(float before, float now) { if (_holder != null) _holder.PuppetReload(now); }
 
         // ---------------------------------------------------------------- shots
 
@@ -97,6 +105,8 @@ namespace ShiftJam
             if (_held.Value != now) _held.Value = now;
             bool aiming = now != None && _holder.Aiming;
             if (_aimHeld.Value != aiming) _aimHeld.Value = aiming;
+            float reload = now != None ? _holder.ReloadSeconds : 0f;
+            if (_reload.Value != reload) _reload.Value = reload;
             if (now == None) return;
             float y = Mathf.Clamp(_holder.AimForward.y, -1f, 1f);
             int pitch = Mathf.Clamp(Mathf.RoundToInt(Mathf.Asin(y) * Mathf.Rad2Deg), -90, 90);

@@ -2,6 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 19:14 — OTHER PLAYERS' RELOADS (D-0129): COMPILED OUTSIDE, NOT PLAYED, NOT SHIPPED
+- His "Begin animating it" (v14's known limit): another player's reload now plays on your screen as it does on theirs:
+  arm down, gun tipped in front of the chest, magazine out and back with the free hand, the two reload sounds from
+  where they stand. NetCombat sends the reload's length; their look-only copy plays it with the owner's own reload code.
+- Needs two PCs on the same new version to see it (v15 when he says ship; v14 and v15 cannot join each other).
+- Still not shown on other players: melee swings, the grenade throw's arm. Co-op step 2 still awaits his "proceed".
+
 ## 21 Nov 2026 16:40 — D-0127 SHIP COMMAND (WORKS: v13 shipped with it end to end)
 - `docs/tools/ship.ps1`: build -> check -> upload -> live in one go (he can right-click it; Unity must be closed).
   Builds now land in `Builds/Windows/ShiftJam_vN`, ready to ship (no share copy; LLMUnity's libraries dropped in the

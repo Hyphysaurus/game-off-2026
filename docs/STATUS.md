@@ -2,11 +2,13 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 21 Nov 2026 19:14 — OTHER PLAYERS' RELOADS (D-0129), MELEE SWINGS + GRENADE-THROW ARMS (D-0130): COMPILED OUTSIDE, NOT PLAYED
+## 21 Nov 2026 19:14 — OTHER PLAYERS' RELOADS (D-0129), MELEE SWINGS + GRENADE-THROW ARMS (D-0130): v15 BUILT + CHECKED 20:15 (5 scenes, 0 errors), UPLOAD IS HIS; NOT PLAYED
 - His "Begin animating it" (v14's known limit): another player's reload now plays on your screen as it does on theirs:
   arm down, gun tipped in front of the chest, magazine out and back with the free hand, the two reload sounds from
   where they stand. NetCombat sends the reload's length; their look-only copy plays it with the owner's own reload code.
 - Needs two PCs on the same new version to see it (v14 and v15 cannot join each other).
+- The upload: auto mode refused ship.ps1's push to itch, so `ship.ps1 -NoUpload` built v15 and he runs
+  `ship.ps1 -Existing -NoPause` (checks the newest build again, pushes it, waits until itch has it live).
 - His "Yes proceed with all" (19:2x): other players' knife and foam-finger swings (with the swing sound) and their
   throwing arm (wind-up and throw; the grenade already flew) now show too, played by the owner's own code on the copy.
 - Co-op step 2 still awaits his "proceed" (it was not in the message he answered).

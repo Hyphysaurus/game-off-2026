@@ -11,8 +11,9 @@ namespace ShiftJam
     /// animator's Arms layer fades in under that, for a body without humanoid arms. A plank is carried flat across the front of the body in both hands, the hands under its two
     /// grips through CarryPose (D-0042). Picking up eases the thing from where it lies into the hands; putting down (Crouch)
     /// lowers it to its resting spot before letting go. Attack goes to the held thing. Never parents the thing, so the
-    /// player's 35x scale does not touch it. A shift lets go at once, ahead of the body (D-0041): a toy cannot hold a kid's
-    /// flashlight, and setting it down from a toy's hand boxed the toy in.
+    /// player's 35x scale does not touch it. A shift lets go at once, ahead of the body (D-0041), and a tool in the bar
+    /// is stowed; tools in the bar take the hand's size (D-0138): picked up, taken out and after each shift, so the toy
+    /// holds a toy-sized flashlight and the kid a kid-sized one.
     /// </summary>
     public sealed class Carrier : MonoBehaviour, ICarryHands
     {
@@ -59,6 +60,8 @@ namespace ShiftJam
         public Carryable Held { get; private set; }
 
         private float Scale => shifter != null ? shifter.Scale : transform.lossyScale.y;
+        /// <summary>The hand's size as a share of the kid's: what a tool in the bar is resized to (D-0138).</summary>
+        private float HandShare => shifter != null ? shifter.Scale / Mathf.Max(1e-4f, shifter.ScaleOf(ShiftSize.Kid)) : 1f;
         private Quaternion Heading => Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
 
         private void Awake()
@@ -89,13 +92,14 @@ namespace ShiftJam
         private void OnEnable()
         {
             if (input != null) { input.UseHeld += OnUse; input.Drop += PutDown; }
-            if (shifter != null) shifter.ShiftStarted += OnShiftStarted;
+            if (shifter != null) { shifter.ShiftStarted += OnShiftStarted; shifter.Shifted += OnShifted; }
         }
 
         private void OnDisable()
         {
             if (input != null) { input.UseHeld -= OnUse; input.Drop -= PutDown; }
-            if (shifter != null) shifter.ShiftStarted -= OnShiftStarted;
+            if (shifter != null) { shifter.ShiftStarted -= OnShiftStarted; shifter.Shifted -= OnShifted; }
+            if (_armAim != null) _armAim.ResetTwist();
             // Parked mid put-down (first person puts down, then parks the hands): it rests where it was going, now.
             if (Held != null && _phase == Phase.Lowering) Finish(fadeHands: false);
             _releasedAt = float.NegativeInfinity;
@@ -107,6 +111,7 @@ namespace ShiftJam
             if (_inventory == null) _inventory = GetComponent<Inventory>();   // the WeaponHolder adds it, maybe after our Awake
             if (InBar(thing) && !_inventory.RoomForTool()) return;
             KeepApart.Cancel(thing.gameObject);
+            if (InBar(thing)) thing.Resize(HandShare);   // a tool takes the hand's size (D-0138)
             Held = thing;
             foreach (var col in Held.GetComponentsInChildren<Collider>()) col.enabled = false;   // out of the physics while in hand
             Held.SetCarried(true);
@@ -138,6 +143,7 @@ namespace ShiftJam
         public void TakeOut(Carryable thing)
         {
             if (thing == null || Held != null) return;
+            thing.Resize(HandShare);
             thing.gameObject.SetActive(true);
             foreach (var col in thing.GetComponentsInChildren<Collider>()) col.enabled = false;
             Held = thing;
@@ -179,6 +185,15 @@ namespace ShiftJam
             Carryable thing = Held;
             RestPose(thing, ClearSpot(thing));
             Release(thing, fadeHands: false);
+        }
+
+        /// <summary>After a shift every tool in the bar takes the new size (D-0138); they are all stowed by now.</summary>
+        private void OnShifted(ShiftSize _)
+        {
+            if (_inventory == null) return;
+            float share = HandShare;
+            foreach (var item in _inventory.Items) if (item.Tool != null) item.Tool.Resize(share);
+            if (Held != null && InBar(Held)) _gripRight = OneHandGrip(Held);
         }
 
         /// <summary>A point at chest height ahead of the player, far enough that the thing, turned as it will rest, does not reach the body.</summary>
@@ -307,13 +322,31 @@ namespace ShiftJam
             float target = Held != null && !_twoHanded && _phase != Phase.Lowering ? 1f : 0f;
             _armWeight = Mathf.MoveTowards(_armWeight, target, Time.deltaTime / Mathf.Max(0.01f, armFade));
             animator.SetLayerWeight(_layer, _armWeight);
+            if (Held != null && Held.TryGetComponent(out Flashlight torch)) torch.Aimed(AimHeld);   // aim held: the beam focuses (D-0141)
+        }
+
+        /// <summary>A one-handed tool is up in the fist: the camera takes the over-the-shoulder view, as with a gun (D-0141).</summary>
+        public bool ToolUp => isActiveAndEnabled && InFist;
+
+        /// <summary>Aim is held with a one-handed tool up (D-0141, Alan Wake 2): the body faces the aim and steps any way
+        /// (PlayerMoves), the camera comes in (ShoulderCamera), a flashlight focuses its beam.</summary>
+        public bool AimHeld => ToolUp && input != null && input.AimHeld && Time.timeScale > 0f && GameMode.Current != GameMode.Mode.Build;
+
+        /// <summary>Where a held tool points: far along the view, or ahead of the body without one.</summary>
+        private Vector3 AimTarget()
+        {
+            float s = Scale;
+            Camera cam = PlayerSlot.ViewFor(this); Transform view = cam != null ? cam.transform : null;
+            return view != null ? view.position + view.forward * (100f * s) : transform.position + transform.forward * (100f * s);
         }
 
         private void LateUpdate()
         {
-            if (Held == null) return;
+            if (Held == null) { if (_armAim != null) _armAim.ResetTwist(); return; }
             if (_phase == Phase.Lowering && Time.time - _t0 >= lowerTime) { Finish(fadeHands: true); return; }
             if (_phase == Phase.Reaching && Time.time - _t0 >= reachTime) _phase = Phase.Holding;
+            // Not aiming, the body is not turned to the aim: the waist twists toward it and the arm reaches the rest (D-0141).
+            if (InFist) _armAim.TwistTorso(AimTarget(), Mathf.SmoothStep(0f, 1f, _armWeight), _hold, Time.deltaTime);
             AimArm();
             PoseNow(out Vector3 p, out Quaternion r);
             Held.transform.SetPositionAndRotation(p, r);
@@ -348,8 +381,7 @@ namespace ShiftJam
         {
             if (!InFist) return;
             float s = Scale;
-            Camera cam = PlayerSlot.ViewFor(this); Transform view = cam != null ? cam.transform : null;
-            Vector3 target = view != null ? view.position + view.forward * (100f * s) : transform.position + transform.forward * (100f * s);
+            Vector3 target = AimTarget();
             Quaternion grip = FistFrame;
             var hold = new ArmAim.Hold
             {

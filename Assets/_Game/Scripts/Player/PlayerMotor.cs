@@ -76,6 +76,8 @@ namespace ShiftJam
         public Vector3? Drive { get; set; }
         /// <summary>The body turns to this heading instead of the way it travels (aiming: it steps sideways and backwards).</summary>
         public float? FaceYaw { get; set; }
+        /// <summary>Share of the top speed kept while aiming (D-0141; PlayerMoves sets it). 1 = full speed.</summary>
+        public float AimShare { get; set; } = 1f;
         /// <summary>The body's sideways velocity, world units a second.</summary>
         public Vector3 PlanarVelocity => _planar;
         /// <summary>The fastest the body runs, own units a second (the legs' playback is worked out against it).</summary>
@@ -185,7 +187,7 @@ namespace ShiftJam
             else
             {
                 // Horizontal speed eases toward the target instead of snapping: that is the "weight".
-                float topSpeed = Mathf.Min(input.Sprint && !SprintLocked ? settings.sprintSpeed : settings.walkSpeed, SpeedCap) * SpeedShare * scale;
+                float topSpeed = Mathf.Min(input.Sprint && !SprintLocked ? settings.sprintSpeed : settings.walkSpeed, SpeedCap) * SpeedShare * AimShare * scale;
                 float rate = (steering ? settings.acceleration : settings.deceleration) * scale;
                 if (!Grounded) rate *= settings.airControl;
                 _planar = Drive ?? Vector3.MoveTowards(_planar, wish * topSpeed, rate * dt);

@@ -228,7 +228,9 @@ namespace ShiftJam
         private void Orders()
         {
             bool free = Free;
-            bool aiming = free && _holder != null && _holder.AimHeld && _motor.View != null;
+            // Aim held with a gun or the flashlight (D-0141): the body faces the aim and steps any way, slower (Alan Wake 2).
+            bool aiming = free && _motor.View != null && ((_holder != null && _holder.AimHeld) || (_carrier != null && _carrier.AimHeld));
+            _motor.AimShare = aiming ? settings.aimMoveShare : 1f;
             _motor.SteerLocked = !free && Current != Move.Roll;
             _motor.JumpLocked = !free || (_stance != null && _stance.NoHeadroom);
             _motor.SprintLocked = aiming;

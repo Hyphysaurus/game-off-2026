@@ -77,8 +77,15 @@ namespace ShiftJam
         private const float MostStretch = 0.985f;   // the furthest a wrist is put from its shoulder, as a share of the arm
         private const float PalmShare = 0.75f;      // the palm's middle: this far from the wrist to the middle knuckle
 
-        private readonly Transform _body, _hips, _chest, _neck;
+        private readonly Transform _body, _hips, _chest, _neck, _head;
         private readonly Arm _right = new Arm(), _left = new Arm();
+        private readonly Transform[] _spine;   // spine, chest, upper chest: the waist twist is shared over them (D-0141)
+        private float _twistNow;   // the waist twist, eased, degrees (+ to the right)
+        private float _twist;      // the twist the next Aim measures its limits from (set by TwistTorso, cleared by Aim)
+
+        /// <summary>The chest's frame: the body's, turned by the waist twist this frame (D-0141). The one-handed limits and
+        /// the chest check are measured in it, so a twist adds to the arm's own reach.</summary>
+        private Quaternion Torso => _twist == 0f ? _body.rotation : Quaternion.AngleAxis(_twist, _body.up) * _body.rotation;
 
         /// <summary>False when the body has no humanoid right arm: nothing is posed.</summary>
         public bool Ready => _right.ok;
@@ -107,6 +114,7 @@ namespace ShiftJam
         public ArmAim(Animator animator, Transform body)
         {
             _body = body;
+            _spine = new Transform[0];
             if (animator == null || !animator.isHuman) return;
             _hips = animator.GetBoneTransform(HumanBodyBones.Hips);
             _chest = animator.GetBoneTransform(HumanBodyBones.UpperChest);
@@ -114,6 +122,14 @@ namespace ShiftJam
             if (_chest == null) _chest = animator.GetBoneTransform(HumanBodyBones.Spine);
             _neck = animator.GetBoneTransform(HumanBodyBones.Neck);
             if (_neck == null) _neck = animator.GetBoneTransform(HumanBodyBones.Head);
+            _head = animator.GetBoneTransform(HumanBodyBones.Head);
+            var spine = new System.Collections.Generic.List<Transform>();
+            foreach (var bone in new[] { HumanBodyBones.Spine, HumanBodyBones.Chest, HumanBodyBones.UpperChest })
+            {
+                Transform b = animator.GetBoneTransform(bone);
+                if (b != null && !spine.Contains(b)) spine.Add(b);
+            }
+            _spine = spine.ToArray();
             Measure(_right, animator, body, HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm, HumanBodyBones.RightHand, HumanBodyBones.RightMiddleProximal, HumanBodyBones.RightThumbProximal);
             Measure(_left, animator, body, HumanBodyBones.LeftUpperArm, HumanBodyBones.LeftLowerArm, HumanBodyBones.LeftHand, HumanBodyBones.LeftMiddleProximal, HumanBodyBones.LeftThumbProximal);
             // The way each palm faces: fingers x thumb on a right hand, the other way round on a left.
@@ -152,17 +168,19 @@ namespace ShiftJam
         /// <paramref name="weight"/> (0 leaves the animation, 1 is the full aim).</summary>
         public void Aim(Vector3 target, float weight, in Hold hold, WeaponHoldSettings s, float scale)
         {
-            if (!Ready || weight <= 0f) return;
+            if (!Ready || weight <= 0f) { _twist = 0f; return; }
             _right.Remember();
 
             Vector3 shoulder = _right.upper.position;
             float length = Vector3.Distance(_right.fore.position, shoulder) + Vector3.Distance(_right.hand.position, _right.fore.position);
-            Vector3 direction = _body.forward;
-            if ((target - shoulder).sqrMagnitude > 1e-4f * scale * scale) direction = Limit((target - shoulder).normalized, s);
+            Vector3 direction = Torso * Vector3.forward;
+            if ((target - shoulder).sqrMagnitude > 1e-4f * scale * scale) direction = Limit((target - shoulder).normalized, s, oneHand: true);
             Vector3 wrist = ClearOfBody(shoulder + direction * (length * s.reach), direction, s, scale);
+            // The elbow and forearm stay out of the chest, the fist out of the face: the hand goes further forward instead.
+            wrist = ClearOfTorso(_right, wrist, s.elbowDirection, s, scale);
 
             // The gun: put on the wrist and turned until the barrel itself is on the target.
-            Quaternion gun = BarrelOn(wrist, hold.seat, hold.muzzle, target, direction, s);
+            Quaternion gun = BarrelOn(wrist, hold.seat, hold.muzzle, target, direction, s, oneHand: true);
             // The kick: the gun jumps back along its barrel and the barrel flips, the hand with it.
             wrist += gun * hold.kickSlide;
             gun *= hold.kickTurn;
@@ -183,6 +201,7 @@ namespace ShiftJam
             if (hold.limitWrist) Bend(_right, wrist, gun * Quaternion.Inverse(hold.grip), s.elbowDirection, s.forearmRoll, s);
             else Bend(_right, wrist, gun * Quaternion.Inverse(hold.grip), s.elbowDirection);
             if (weight < 1f) { _right.Blend(weight); if (freeHand) _left.Blend(weight); }
+            _twist = 0f;   // the twist is this frame's, for this aim only
         }
 
         /// <summary>Where a gun is held for a reload: in front of the chest, barrel tipped up, rolled so the magazine
@@ -415,17 +434,7 @@ namespace ShiftJam
         private void Bend(Arm arm, Vector3 wrist, Quaternion handTurn, Vector3 elbowWay, float rollShare = 0f, WeaponHoldSettings limits = null)
         {
             Vector3 shoulder = arm.upper.position;
-            float upperLength = Vector3.Distance(arm.fore.position, shoulder), foreLength = Vector3.Distance(arm.hand.position, arm.fore.position);
-            Vector3 line = wrist - shoulder;
-            float distance = Mathf.Clamp(line.magnitude, 0.05f * (upperLength + foreLength), (upperLength + foreLength) * MostStretch);
-            Vector3 way = line.sqrMagnitude > 1e-10f ? line.normalized : _body.forward;
-            wrist = shoulder + way * distance;
-            float along = (upperLength * upperLength - foreLength * foreLength + distance * distance) / (2f * distance);
-            float out_ = Mathf.Sqrt(Mathf.Max(upperLength * upperLength - along * along, 0f));
-            Vector3 pole = _body.rotation * elbowWay;
-            pole -= way * Vector3.Dot(pole, way);
-            pole = pole.sqrMagnitude > 1e-8f ? pole.normalized : -_body.up;
-            Vector3 elbow = shoulder + way * along + pole * out_;
+            Vector3 elbow = Elbow(arm, ref wrist, elbowWay, out Vector3 way, out Vector3 pole);
             Vector3 hinge = Vector3.Cross(elbow - shoulder, wrist - elbow);
             if (hinge.sqrMagnitude < 1e-12f) hinge = Vector3.Cross(way, pole);
             arm.upper.rotation = Frame(elbow - shoulder, hinge) * arm.upperFix;
@@ -453,12 +462,122 @@ namespace ShiftJam
             arm.hand.rotation = handTurn;
         }
 
+        /// <summary>Where the elbow goes for the wrist at <paramref name="wrist"/> (brought within the arm's reach, so it
+        /// may move): the upper arm and the forearm make a triangle with the line from the shoulder, the elbow pointing
+        /// along <paramref name="elbowWay"/> (the body's own space). <paramref name="way"/> is that line's direction,
+        /// <paramref name="pole"/> the way the elbow stands off it.</summary>
+        private Vector3 Elbow(Arm arm, ref Vector3 wrist, Vector3 elbowWay, out Vector3 way, out Vector3 pole)
+        {
+            Vector3 shoulder = arm.upper.position;
+            float upperLength = Vector3.Distance(arm.fore.position, shoulder), foreLength = Vector3.Distance(arm.hand.position, arm.fore.position);
+            Vector3 line = wrist - shoulder;
+            float distance = Mathf.Clamp(line.magnitude, 0.05f * (upperLength + foreLength), (upperLength + foreLength) * MostStretch);
+            way = line.sqrMagnitude > 1e-10f ? line.normalized : _body.forward;
+            wrist = shoulder + way * distance;
+            float along = (upperLength * upperLength - foreLength * foreLength + distance * distance) / (2f * distance);
+            float out_ = Mathf.Sqrt(Mathf.Max(upperLength * upperLength - along * along, 0f));
+            pole = Torso * elbowWay;
+            pole -= way * Vector3.Dot(pole, way);
+            pole = pole.sqrMagnitude > 1e-8f ? pole.normalized : -_body.up;
+            return shoulder + way * along + pole * out_;
+        }
+
+        /// <summary>Keeps an arm out of the chest (D-0136) and its fist out of the face (D-0137). The chest seen from above
+        /// is an oval round the chest bone (Chest Half Width and Depth), from the hips up to the neck; the head a ball Head
+        /// Centre Up above the head bone, Head Clear wide. Where the outer half of the upper arm or any of the forearm
+        /// would be inside the chest, or the forearm's far half or the fist inside the head's ball, the wrist goes
+        /// forward by as much, a few rounds, so the arm passes in front instead of through.</summary>
+        private Vector3 ClearOfTorso(Arm arm, Vector3 wrist, Vector3 elbowWay, WeaponHoldSettings s, float scale)
+        {
+            float width = s.chestHalfWidth * scale, depth = s.chestHalfDepth * scale;
+            bool chest = _chest != null && width > 0f && depth > 0f;
+            float headR = s.headClear * scale;
+            bool head = _head != null && headR > 0f;
+            if (!chest && !head) return wrist;
+            Vector3 face = head ? _head.position + _body.up * (s.headCentreUp * scale) : Vector3.zero;
+            float palm = arm.knuckle != null ? Vector3.Distance(arm.knuckle.position, arm.hand.position) * PalmShare : 0.07f * scale;
+            if (!chest) width = depth = 1f;
+            Quaternion toBody = Quaternion.Inverse(Torso);
+            Vector3 middle = chest ? _chest.position : arm.upper.position;
+            float bottom = _hips != null ? (toBody * (_hips.position - middle)).y : -3f * depth;
+            float top = _neck != null ? (toBody * (_neck.position - middle)).y : 2f * depth;
+            Vector3 forward = Torso * Vector3.forward;
+            for (int pass = 0; pass < 4; pass++)
+            {
+                Vector3 at = wrist;
+                Vector3 elbow = Elbow(arm, ref at, elbowWay, out _, out _);
+                Vector3 shoulder = arm.upper.position;
+                float push = 0f;
+                Vector3 fist = at + (at - elbow).normalized * palm;
+                for (int i = 0; i < 8; i++)
+                {
+                    // Three points down the upper arm's outer half (the shoulder itself sits at the chest's edge), four
+                    // along the forearm to the wrist, and the middle of the fist.
+                    Vector3 p = i < 3 ? Vector3.Lerp(shoulder, elbow, 0.5f + 0.25f * i) : i < 7 ? Vector3.Lerp(elbow, at, 0.25f * (i - 2)) : fist;
+                    if (chest && i < 7)
+                    {
+                        Vector3 local = toBody * (p - middle);
+                        if (local.y >= bottom && local.y <= top)
+                        {
+                            float u = local.x / width;
+                            if (u * u < 1f)
+                            {
+                                float front = depth * Mathf.Sqrt(1f - u * u);
+                                if (local.z < front) push = Mathf.Max(push, front - local.z);
+                            }
+                        }
+                    }
+                    if (head && i >= 4)
+                    {
+                        // How far forward takes the point out of the head's ball: |d + forward t| = r, t > 0.
+                        Vector3 d = p - face;
+                        float c = d.sqrMagnitude - headR * headR;
+                        if (c < 0f)
+                        {
+                            float b = Vector3.Dot(d, forward);
+                            push = Mathf.Max(push, -b + Mathf.Sqrt(b * b - c));
+                        }
+                    }
+                }
+                if (push <= 1e-4f * scale) break;
+                wrist = at + forward * push;
+            }
+            return wrist;
+        }
+
+        /// <summary>One-handed, third person (D-0141, his "move the aim of the camera without rotating the character"):
+        /// the body is not turned to the aim; the waist twists toward it instead, Twist Share of the way, at most Max Twist
+        /// Across to the left and Max Twist Out to the right, shared over the spine bones, eased at Twist Rate. The arm then
+        /// reaches from the twisted chest (its limits are measured from it), so the two add up. Past both the light stops
+        /// at its limit. Call after the Animator has posed the body and before <see cref="Aim"/>, every frame the tool is
+        /// up (<paramref name="weight"/> 0 eases the twist away).</summary>
+        public void TwistTorso(Vector3 target, float weight, WeaponHoldSettings s, float dt)
+        {
+            _twist = 0f;
+            if (!Ready || _spine.Length == 0) { _twistNow = 0f; return; }
+            float want = 0f;
+            Vector3 flat = Vector3.ProjectOnPlane(target - _right.upper.position, Vector3.up);
+            if (weight > 0f && flat.sqrMagnitude > 1e-10f)
+            {
+                float off = Mathf.DeltaAngle(_body.eulerAngles.y, Mathf.Atan2(flat.x, flat.z) * Mathf.Rad2Deg);   // + to the right
+                want = Mathf.Clamp(off * s.twistShare, -s.maxTwistAcross, s.maxTwistOut) * weight;
+            }
+            _twistNow = Mathf.Lerp(_twistNow, want, 1f - Mathf.Exp(-Mathf.Max(0.01f, s.twistRate) * dt));
+            if (Mathf.Abs(_twistNow) < 0.01f) return;
+            float each = _twistNow / _spine.Length;
+            foreach (Transform bone in _spine) bone.rotation = Quaternion.AngleAxis(each, _body.up) * bone.rotation;
+            _twist = _twistNow;
+        }
+
+        /// <summary>No twist: the tool was put away or set down.</summary>
+        public void ResetTwist() { _twistNow = 0f; _twist = 0f; }
+
         /// <summary>Puts the gun on <paramref name="anchor"/> (the wrist, or the stock's place at the shoulder) and turns
         /// it until the barrel itself is on the target. <paramref name="seat"/> is where the gun's root sits from the
         /// anchor, in the gun's axes; <paramref name="direction"/> is the way from the shoulder to the target. The barrel
         /// runs beside that line, so held parallel to it the gun would point past anything close; closer than a few
         /// times that distance the correction fades out, so something touching the gun cannot swing it round.</summary>
-        private Quaternion BarrelOn(Vector3 anchor, Vector3 seat, Vector3 muzzle, Vector3 target, Vector3 direction, WeaponHoldSettings s)
+        private Quaternion BarrelOn(Vector3 anchor, Vector3 seat, Vector3 muzzle, Vector3 target, Vector3 direction, WeaponHoldSettings s, bool oneHand = false)
         {
             Vector3 beside = seat + muzzle; beside.z = 0f;
             float near = beside.magnitude * s.nearestTrueAim;
@@ -470,7 +589,7 @@ namespace ShiftJam
                 {
                     Vector3 from = anchor + Quaternion.LookRotation(trueWay, Vector3.up) * beside;
                     if ((target - from).sqrMagnitude < 1e-10f) break;
-                    trueWay = Limit((target - from).normalized, s);
+                    trueWay = Limit((target - from).normalized, s, oneHand);
                 }
                 direction = Vector3.Slerp(direction, trueWay, trust).normalized;
             }
@@ -496,13 +615,21 @@ namespace ShiftJam
             return flat.sqrMagnitude > 1e-6f ? flat.normalized : Vector3.Cross(palmWay, Vector3.up).normalized;
         }
 
-        /// <summary>Keeps the aim in front of the body and within reach of the shoulder.</summary>
-        private Vector3 Limit(Vector3 direction, WeaponHoldSettings s)
+        /// <summary>One-handed: how far across the body the right arm reaches when pointing <paramref name="pitch"/> degrees
+        /// up: Max Turn Across when level (or down), narrowing to Max Turn Across Up at Max Pitch Up (D-0137).</summary>
+        private static float Across(WeaponHoldSettings s, float pitch) =>
+            Mathf.Lerp(s.maxTurnAcross, s.maxTurnAcrossUp, s.maxPitchUp > 0f ? Mathf.Clamp01(pitch / s.maxPitchUp) : 0f);
+
+        /// <summary>Keeps the aim in front of the body and within reach of the shoulder. One-handed (the right arm alone)
+        /// it reaches less far across the body than out to its own side (D-0136); a long gun turns the same both ways.</summary>
+        private Vector3 Limit(Vector3 direction, WeaponHoldSettings s, bool oneHand = false)
         {
-            Vector3 local = Quaternion.Inverse(_body.rotation) * direction;
+            Quaternion torso = Torso;
+            Vector3 local = Quaternion.Inverse(torso) * direction;
             float pitch = Mathf.Clamp(Mathf.Asin(Mathf.Clamp(local.y, -1f, 1f)) * Mathf.Rad2Deg, -s.maxPitchDown, s.maxPitchUp) * Mathf.Deg2Rad;
-            float turn = Mathf.Clamp(Mathf.Atan2(local.x, local.z) * Mathf.Rad2Deg, -s.maxTurn, s.maxTurn) * Mathf.Deg2Rad;
-            return _body.rotation * new Vector3(Mathf.Sin(turn) * Mathf.Cos(pitch), Mathf.Sin(pitch), Mathf.Cos(turn) * Mathf.Cos(pitch));
+            float left = oneHand ? Across(s, pitch * Mathf.Rad2Deg) : s.maxTurn, right = oneHand ? s.maxTurnOut : s.maxTurn;
+            float turn = Mathf.Clamp(Mathf.Atan2(local.x, local.z) * Mathf.Rad2Deg, -left, right) * Mathf.Deg2Rad;
+            return torso * new Vector3(Mathf.Sin(turn) * Mathf.Cos(pitch), Mathf.Sin(pitch), Mathf.Cos(turn) * Mathf.Cos(pitch));
         }
 
         /// <summary>Keeps the gun hand out of the body. Inside the body's oval (seen from above, round the hips), the

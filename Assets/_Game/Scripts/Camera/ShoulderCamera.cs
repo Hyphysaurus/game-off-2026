@@ -33,6 +33,7 @@ namespace ShiftJam
 
         private Camera _camera;
         private WeaponHolder _holder;        // on the target: a drawn weapon picks the view
+        private Carrier _carrier;            // on the target: the flashlight in hand picks the view too (D-0141)
         private PlayerStance _stance;        // on the target: a crouch lowers the pivot
         private Glider _glider;              // on the target: gliding pulls the camera back (D-0095)
         private PlayerMotor _motor;          // on the target: the way it moves, for following behind (D-0124)
@@ -154,6 +155,7 @@ namespace ShiftJam
             if (target != null)
             {
                 _holder = target.GetComponent<WeaponHolder>();
+                _carrier = target.GetComponent<Carrier>();
                 _stance = target.GetComponent<PlayerStance>();
                 _capsule = target.GetComponent<CharacterController>();
                 _motor = target.GetComponent<PlayerMotor>();
@@ -215,6 +217,7 @@ namespace ShiftJam
             target = newTarget; input = newInput;
             shifter = target != null ? target.GetComponent<Shifter>() : null;
             _holder = target != null ? target.GetComponent<WeaponHolder>() : null;
+            _carrier = target != null ? target.GetComponent<Carrier>() : null;
             _stance = target != null ? target.GetComponent<PlayerStance>() : null;
             _capsule = target != null ? target.GetComponent<CharacterController>() : null;
             _glider = target != null ? target.GetComponent<Glider>() : null;
@@ -257,8 +260,10 @@ namespace ShiftJam
             }
 
             // Which view: wide with empty hands, over the shoulder with a weapon drawn, closer and narrower while aiming.
-            bool armed = _holder != null && _holder.Armed;
-            bool aiming = armed && _holder.AimHeld;
+            // A flashlight in hand is held as a pistol is, so it takes the same views (D-0141).
+            bool gunOut = _holder != null && _holder.Armed;
+            bool armed = gunOut || (_carrier != null && _carrier.ToolUp);
+            bool aiming = (gunOut && _holder.AimHeld) || (_carrier != null && _carrier.AimHeld);
             if (!armed) FollowBehind(dt);
             float wantSide = armed ? settings.armedShoulderOffset : settings.shoulderOffset;
             float wantRise = armed ? settings.armedRise : 0f;

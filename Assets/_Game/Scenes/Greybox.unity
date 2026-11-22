@@ -95043,6 +95043,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.Flashlight
   beam: {fileID: 1733752627}
   core: {fileID: 0}
+  beamIntensity: 3000
+  showShaft: 1
+  shaftLength: 0.45
+  shaftLens: 0.06
+  shaftStrength: 0.22
   startOn: 1
   toyUsesE: 0
   onTurnedOn:
@@ -120933,7 +120938,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6758446303596948505, guid: 2c59f53549b2d584984ee7c1bf943d90, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 10.093315
+      value: 10.043315
       objectReference: {fileID: 0}
     - target: {fileID: 6758446303596948505, guid: 2c59f53549b2d584984ee7c1bf943d90, type: 3}
       propertyPath: m_LocalPosition.z
@@ -121678,6 +121683,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.Flashlight
   beam: {fileID: 1352559626}
   core: {fileID: 0}
+  beamIntensity: 3000
+  showShaft: 1
+  shaftLength: 0.45
+  shaftLens: 0.06
+  shaftStrength: 0.22
   startOn: 0
   toyUsesE: 0
   onTurnedOn:
@@ -154113,7 +154123,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 600826712187267911, guid: 67e6b10ce72d1a641b1a58151d4c3e8c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 37.30819
+      value: 37.25819
       objectReference: {fileID: 0}
     - target: {fileID: 600826712187267911, guid: 67e6b10ce72d1a641b1a58151d4c3e8c, type: 3}
       propertyPath: m_LocalPosition.z

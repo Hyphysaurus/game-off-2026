@@ -725,6 +725,8 @@ namespace ShiftJam
         /// riser (at most 1.2) above the last, whatever the book's thickness (the pack's books run 1 to 2.4 thick; set by
         /// their bottoms the risers came out 0.4 to 2.4, and 2.3 / 2.4 are over the toy's 2.0 jump: walk check 19 Nov, D-0081).
         /// The last book's top is y1.</summary>
+        /// The extra book past the last step (the landing) sits <see cref="BookLandingSink"/> under y1: at y1 its cover lay at
+        /// the same height as the last step's where they overlap, and the two flickered (his stills 22 Nov, D-0139).
         static void BookStairs(Transform parent, Vector3 from, Vector3 dir, float y0, float y1, string name)
         {
             var holder = Child(parent, name); int n = Mathf.CeilToInt(Mathf.Abs(y1 - y0) / 1.2f); float step = (y1 - y0) / Mathf.Max(1, n);
@@ -741,7 +743,7 @@ namespace ShiftJam
                   b.transform.position += dir * (back - off); }
                 var bb = B(b);
                 float top = y0 + (i + 1) * step;   // book 0's top is one riser up; the book after the last tops out at y1 + step (none)
-                if (i == n) top = y1;
+                if (i == n) top = y1 - BookLandingSink;   // the landing book: a hair under the last step, whose top is also y1 (D-0139)
                 b.transform.position += Vector3.up * (top - bb.max.y);
             }
         }

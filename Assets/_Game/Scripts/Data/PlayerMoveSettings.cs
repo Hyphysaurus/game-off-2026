@@ -33,6 +33,10 @@ namespace ShiftJam
         [Tooltip("The stand-up check is pulled in this far at the feet and sides, body heights, so the floor and walls the player rests against never count.")]
         public float standInset = 0.003f;
 
+        [Header("Aiming (D-0141)")]
+        [Range(0.1f, 1f), Tooltip("Top speed while aim is held (a gun or the flashlight), as a share of the walk: the body faces the aim and steps any way, slower, as in Alan Wake 2. Sprint is off while aiming.")]
+        public float aimMoveShare = 0.6f;
+
         [Header("Dodge roll")]
         [Tooltip("How far a roll carries, body heights (the test room: 3.4 m).")] public float rollDistance = 1.87f;
         [Tooltip("How fast the roll clip plays.")] public float rollPlayback = 1.5f;

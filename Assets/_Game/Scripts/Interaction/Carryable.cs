@@ -44,8 +44,9 @@ namespace ShiftJam
         public string DisplayName => !string.IsNullOrEmpty(displayName) ? displayName : GetComponent<Flashlight>() != null ? "Flashlight" : name;
         /// <summary>Its picture in the inventory bar, if it has one.</summary>
         public Texture2D Icon => icon;
-        /// <summary>Only a kid can hold it (a flashlight, or anything with the kid-only pick-up prompt).</summary>
-        public bool KidOnly => GetComponent<Flashlight>() != null || GetComponent<Carried>() != null;
+        /// <summary>Only a kid can hold it (anything with the kid-only pick-up prompt). A flashlight is not: it goes with
+        /// the hand's size (Resize), so a toy holds a toy-sized one (D-0138).</summary>
+        public bool KidOnly => GetComponent<Carried>() != null;
         /// <summary>Degrees each finger bone bends round the handle: this thing's own number for each part, else the shared one.</summary>
         public Vector3 GripCurl(WeaponHoldSettings shared) => new Vector3(gripCurl.x > 0f ? gripCurl.x : shared.handleCurl.x, gripCurl.y > 0f ? gripCurl.y : shared.handleCurl.y, gripCurl.z > 0f ? gripCurl.z : shared.handleCurl.z);
         public bool Plank => plank;
@@ -157,6 +158,23 @@ namespace ShiftJam
             Vector3 s = _local.size;
             if (s.x <= s.y && s.x <= s.z) return Vector3.right;
             return s.y <= s.z ? Vector3.up : Vector3.forward;
+        }
+
+        private Vector3 _bornScale;
+        private bool _born;
+
+        /// <summary>Its size now as a share of the size it was made at (the kid's: tools are laid in the room at a kid's
+        /// size). 1 until something resizes it.</summary>
+        public float SizeShare { get; private set; } = 1f;
+
+        /// <summary>Makes it <paramref name="share"/> of the size it was made at (D-0138): a tool in the bar goes with the
+        /// size of the hand holding it, the toy's 1/35 of the kid's. Its grips are in its own space, so they follow.</summary>
+        public void Resize(float share)
+        {
+            if (!_born) { _bornScale = transform.localScale; _born = true; }
+            share = Mathf.Max(1e-4f, share);
+            SizeShare = share;
+            transform.localScale = _bornScale * share;
         }
 
         internal void SetCarried(bool carried)

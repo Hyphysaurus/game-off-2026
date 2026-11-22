@@ -35,14 +35,37 @@ namespace ShiftJam
         public float maxPitchUp = 60f;
         [Tooltip("How far down, degrees. The camera looks down 80 and the gun follows it.")]
         public float maxPitchDown = 85f;
-        [Tooltip("How far to either side of the body's facing the gun can point, degrees.")]
+        [Tooltip("A long gun: how far to either side of the body's facing it can point, degrees.")]
         public float maxTurn = 80f;
+        [Tooltip("One-handed (a pistol, the flashlight): how far the right arm points across the body, to the left, degrees. A real arm gets about this far before the shoulders have to turn; past it the body turns instead (D-0136).")]
+        public float maxTurnAcross = 35f;
+        [Tooltip("One-handed: how far across the body it points when pointing fully up (Max Pitch Up), degrees. In between it narrows from Max Turn Across: pointed up and across, a real arm would cross the face, so the shoulders turn sooner (D-0137).")]
+        public float maxTurnAcrossUp = 10f;
+        [Tooltip("One-handed: how far the right arm points out to its own side, degrees.")]
+        public float maxTurnOut = 100f;
+        [Header("Waist twist, one-handed, third person (D-0141)")]
+        [Tooltip("The body does not turn to the aim: the waist twists this share of the way toward it, and the arm reaches the rest from the twisted chest.")]
+        [Range(0f, 1f)] public float twistShare = 0.5f;
+        [Tooltip("The most the waist twists to the left (the tool across the body), degrees.")]
+        public float maxTwistAcross = 45f;
+        [Tooltip("The most the waist twists to the right (the tool out to its own side), degrees.")]
+        public float maxTwistOut = 50f;
+        [Tooltip("How quickly the twist follows the aim (higher = snappier).")]
+        public float twistRate = 10f;
 
         [Header("Keeping the hand out of the body")]
         [Tooltip("The body seen from above, an oval round the hips: half its width (the test room: 0.24 m).")]
         public float bodyHalfWidth = 0.238f;
         [Tooltip("How far the oval's front is from its middle (the test room: 0.17 m).")]
         public float bodyHalfDepth = 0.168f;
+        [Tooltip("The chest seen from above, an oval round the chest bone, from the hips up to the neck: half its width. A one-handed arm's elbow and forearm are kept out of it (D-0136); the hand goes further forward instead.")]
+        public float chestHalfWidth = 0.15f;
+        [Tooltip("How far the chest oval's front is from the chest bone.")]
+        public float chestHalfDepth = 0.12f;
+        [Tooltip("The head kept clear of a one-handed arm's fist and forearm (D-0137): a ball this far above the head bone...")]
+        public float headCentreUp = 0.1f;
+        [Tooltip("...this wide (its radius, including the room a fist needs). Inside it, the hand goes further forward.")]
+        public float headClear = 0.2f;
 
         [Header("The gun in the fist")]
         [Tooltip("Where the middle of a gun's grip sits from the wrist, along the hand's own directions: x along the knuckles, y towards the thumb's side, z the way the palm faces. Rig metres. Measured in the test room (its fist centre on the Playroom hand).")]

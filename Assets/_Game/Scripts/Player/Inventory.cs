@@ -9,7 +9,8 @@ namespace ShiftJam
     /// inventory that i can hot swap in and out"). One bar for everything held in a hand: the weapons (the
     /// WeaponHolder's) and the hand tools (the Carrier's one-handed carryables: the flashlight).
     /// - Size is the bag: a toy has the first two slots, a kid all four (the kid's backpack). Things in a slot the size
-    ///   cannot use are kept but greyed: slots 3 and 4 at toy size, and anything kid-only (a flashlight) at toy size.
+    ///   cannot use are kept but greyed: slots 3 and 4 at toy size, and anything kid-only at toy size. A flashlight is not
+    ///   kid-only: it takes the hand's size (D-0138).
     /// - 1 to 4 take that slot's thing out (pressed again: empty hands); the mouse wheel and the pad's D-pad left and
     ///   right step through the usable ones. X still holsters a weapon or sets a tool down in the world (it leaves the
     ///   bar); Z drops a weapon.

@@ -2,6 +2,39 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 22 Nov 2026 15:1x — AIM LIKE ALAN WAKE 2 + FLASHLIGHT FOCUS (D-0141): LANDED IN HIS EDITOR, NOT PLAYED, NOT COMMITTED
+- Not aiming: the body no longer turns to the aim; the waist twists toward it (up to 45 across / 50 out) and the arm
+  reaches the rest. Aim held (right mouse / LT) with a gun or the flashlight: body faces the aim, walk any way at 0.6
+  speed, over-the-shoulder aim camera. Flashlight aim = focus (narrow, 2.5x bright, 1.35x reach, brighter cone; turns
+  on for the aim if off). Tune: WeaponHold > Waist twist; PlayerMoves > Aim Move Share; each Flashlight > Focus.
+- See it: bedroom flashlight, walk while looking around (no body turn), then hold right mouse and strafe.
+
+## 22 Nov 2026 14:4x — FLASHLIGHT FOR KID AND TOY + BEAM IN THE AIR, FASTER WALK, BOOK LADDER TOP (D-0138..0140): LANDED IN HIS EDITOR, NOT PLAYED, NOT COMMITTED
+- His "the light doesn't seem functional ... USE the light as kid AND toy, scale matches", then "a" (movement too slow).
+- Found: the house flashlight's beam (Flashlight_01) was at brightness 5 (the wardrobe torch 3000): it lit nothing at a
+  kid's size. And the flashlight was kid-only: greyed "too big" at toy size.
+- Now: a tool in the bar takes the hand's size (picked up, taken out, after each shift): toy 1/35 of the kid's. The beam
+  goes with it (reach with the size, brightness with its square), so it lights the same patch round you at either size.
+  A toy can pick up a toy-sized flashlight; a kid picks up any (it grows). Beam brightness is the Flashlight's Beam
+  Intensity (3000 at kid size, replacing the light's own). Walk 5.5 -> 7, sprint 8 -> 11 (Data/MovementSettings).
+- D-0139 book ladder top flicker: the last two books of a ladder topped out level (UpStairs Book10/11); the landing
+  book now sits 5 cm lower (builder + menu Shift Jam > House > Fix Book Ladder Tops, to run once with Greybox open).
+- D-0140: while on, the beam shows in the air as a soft cone (BeamShaft; tune on the Flashlight: Shaft Length / Lens /
+  Strength).
+- Landed 14:48 (D-0138/0139) and 14:49 (D-0140). Ladder menu run by him 15:1x: UpStairs + Flight0 landings 5 cm under the last step (checked).
+
+## 22 Nov 2026 09:5x — ARM KEPT OUT OF THE BODY AND FACE (D-0136, D-0137): COMPILED OUTSIDE + BATCH-PROBED, NOT PLAYED, NOT IN A BUILD
+- D-0137 (his "first pic still awkward"): pointing UP and across, the arm reaches less across (35 level -> 10 fully up) and the
+  body turns sooner; the fist is kept out of a ball round the head. Probe: fist/torch nearest the face 16 -> 22 cm.
+  Stills: docs/stills/arm_reach_up_d0137.jpg. Tune: WeaponHold > Max Turn Across Up, Head Centre Up, Head Clear.
+- His F12 stills (21 Nov 23:17): pointing the flashlight behind him swung his right arm through his chest and neck.
+- Now (flashlight and pistols): the right arm reaches only 35 degrees across the body (100 out to its side); past that
+  the BODY turns toward the light; the elbow and forearm are kept in front of the chest.
+- Probe against the kid's real torso: arm up to 15.5 cm inside the body before, 0.8 cm now. Stills:
+  docs/stills/arm_reach_d0136.jpg. Numbers to tune: Resources/WeaponHold > Max Turn Across / Out, Body Turn Margin,
+  Chest Half Width / Depth.
+- See it: editor, the bedroom, pick up the flashlight, swing the camera round in front of him. Uncommitted (his call).
+
 ## 21 Nov 2026 22:4x — THE LARGE PASS (his "proceed"): D-0132..D-0135 IN v17 (BUILT + CHECKED 22:5x, 5 scenes, 0 errors; UPLOAD IS HIS), NOT PLAYED
 - Hitch catcher: frames over 0.3 s go to Bug notes/hitches.txt (beside the F12 notes) with what was going on.
 - The in-game HUD scales by screen height (his ultrawide shows it ~14% smaller); menus unchanged.

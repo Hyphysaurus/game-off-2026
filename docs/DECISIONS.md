@@ -2464,3 +2464,95 @@
   models or animation from AI generators ship" was no longer true. Claude Code wrote the code and most on-screen
   text, and scripts it wrote made the shift orb, portal ring and nitro star models (plus the spark texture and the
   arms-carry pose). The page and the README now say exactly that, and itch's generative-AI answer is yes.
+- **D-0136 (22 Nov) A one-handed arm kept to what a real arm can reach: the flashlight and pistols (his "the arm still
+  clips through the entire body, it should be restricted as if it were lifelike", two F12 stills 21 Nov 23:17).**
+  The fault: with the camera in front of the kid, the light aimed into the room behind him, and the right arm swung
+  across his chest and through his neck to get there. Three causes: the one-handed aim reached 80 degrees to EITHER
+  side (Max Turn); the body never turned for a carried tool (only a click turned it, and only for guns); and the only
+  body check kept the wrist out of an oval round the hips, nothing for the elbow and forearm at chest height.
+  Now, for the one-handed aim (`ArmAim.Aim`: the flashlight via Carrier, pistols via WeaponHolder): (1) the right arm
+  reaches Max Turn Across 35 degrees across the body and Max Turn Out 100 to its own side (WeaponHold; Max Turn 80
+  stays for long guns). (2) Third person with a tool in the fist, an aim past either limit turns the body
+  (`ArmAim.BodyYawFor` -> new `PlayerMotor.ArmYaw`, under FaceYaw, at the motor's turn speed) until the aim is Body
+  Turn Margin 20 back inside, so it does not hover at the edge; walking, the body keeps facing the light and steps
+  sideways, as aiming a gun already does. Pistols already face the aim while aimed (FaceYaw); the limit keeps the arm
+  in front during that turn. (3) `ArmAim.ClearOfChest`: an oval round the chest bone (Chest Half Width 0.15, Depth
+  0.12, hips to neck); where the outer upper arm or forearm would be inside it, the hand goes further forward instead.
+  Checked in a batch probe (deleted after): a copy of the player holding the flashlight as the Carrier does, aimed at
+  36 directions, measured against the body's own baked torso skin (not the settings' oval): the arm went up to 15.5 cm
+  into the torso with the old rule, 0.8 cm with the new one (pointing 20 degrees across and 30 down, both rules; the
+  sleeve's edge). The body turn: aim 40 across -> turns 25, aim behind -> turns until it is 15 across. Stills:
+  docs/stills/arm_reach_d0136.jpg (top: old across-and-up, new, new across-and-down; bottom: old and new from above,
+  new pointing out to the side). Not done: the head and neck are not checked (the across limit keeps the arm clear of
+  them in the probe); long guns unchanged.
+- **D-0137 (22 Nov) Pointing up and across: the arm reaches less across the higher it points, and the fist is kept
+  out of the face (his "first pic, positioning is still a bit awkwardly shaped", then "proceed").** At D-0136's
+  35 degrees across at every height, pointing up 30 and across put the fist and the flashlight straight in front of
+  his face. Now the across limit narrows with height: Max Turn Across 35 level, Max Turn Across Up 10 at Max Pitch Up
+  (60), in between by the pitch; the body turn (`BodyYawFor`) uses the same narrowed limit, so pointing up and across
+  turns the shoulders sooner, and its margin never turns the body past straight ahead. `ClearOfChest` became
+  `ClearOfTorso`: it also keeps the forearm's far half and the fist out of a ball round the head (Head Centre Up 0.1
+  above the head bone, Head Clear 0.2), pushing the hand forward. Batch probe (deleted after) against the kid's own
+  head and torso skin, 24 aims: the nearest the fist or the flashlight came to the head's skin went from 16.4 cm
+  (D-0136) to 22.3 cm; the hand pointing up 45 and across is now 16 degrees across (was 35); nothing in the torso
+  either way. The head ball did not fire in any probed aim (the narrowing kept the fist clear first); it stays as the
+  guard. From in front, pointing up 30 just after a turn (15 across), the fist still overlaps the face in the picture
+  while being about 35 cm in front of it: a camera-angle overlap, not contact. Stills: docs/stills/arm_reach_up_d0137.jpg
+  (top: D-0136 up 30 across, now up 30 across, now up 55 across; bottom: up 30 after the body turn, up 55 ahead, level
+  across).
+- **D-0138 (22 Nov, 14:2x) The flashlight works at both sizes, its beam to scale; faster walk.**
+  - His "the lighty doesnt seem to be functional, ideally we can USE the light, as kid AND toy. so make sure the scale
+    matches", and "a" for movement (walk and sprint up) after "movement still feels slow and sluggish".
+  - Cause: the house flashlight's beam (Flashlight_01) was at intensity 5 (range 90) where the wardrobe torch is 3000:
+    switching it on lit nothing at a kid's size. The flashlight was also kid-only (Carryable.KidOnly), greyed at toy size.
+  - `Carryable.Resize(share)` / `SizeShare`: a tool's size as a share of the size it was made at (the kid's). The Carrier
+    resizes every bar tool to the hand (`HandShare` = Shifter.Scale / kid scale) on pick-up, take-out and after a shift
+    (all are stowed by then); grips are in the tool's own space, so they follow.
+  - `Flashlight`: Beam Intensity (3000 at kid size, 0 = the light's own) replaces the light's; the beam's range goes with
+    the size and its intensity with the square (inverse-square falloff), so the lit patch keeps its size relative to the
+    holder; the LightSensor reads range and cone, so a toy's beam wakes cores at a toy's reach. A toy picks up a
+    flashlight its own size or smaller (E); a kid any. KidOnly no longer includes flashlights.
+  - MovementSettings: walk 5.5 -> 7, sprint 8 -> 11 (toy units a second, scaled with size).
+  - Compiled outside with Unity's csc (staged in %TEMP%/shiftjam-stage/light); not played.
+- **D-0139 (22 Nov, 14:3x) The book ladder's top flicker, third pass: the last two books no longer share a top.**
+  - His still (toy on R3_SkirtingRun/UpStairs Book9, looking at the top) and "i was referring to the book material on the
+    top of the book ladder", then "a" (it flickers in strips).
+  - Cause: `BookStairs` sets the last step's top AND the landing book past it to y1, so their covers overlap at one
+    height. D-0100's `SinkTopBooks` sank both 3 cm (they met the step box's top), keeping them level with each other;
+    D-0103 only parted the sides. Book10 and Book11 of UpStairs (and the last two of R5 Flight0 and the BookStairs piece).
+  - Builder: the landing book sits `BookLandingSink` (0.05) under y1. Existing scenes: Shift Jam > House > Fix Book Ladder
+    Tops (D-0139) sinks the landing of every ladder (children Book0..BookN) whose last two tops are level, in the open
+    scenes and the BookStairs piece, and saves; a ladder already right is left alone. Step heights are unchanged.
+  - Compiled outside (staged with D-0138); not run yet.
+- **D-0140 (22 Nov, 14:4x) The flashlight's beam shows in the air.**
+  - His "land and add the beam" (offered after "will it turn ON OR OFF? and display a beam of light?").
+  - `BeamShaft` (Room/): a soft glowing open cone on a child of the spot light, shown only while the light is on, sized
+    each frame from the light (Shaft Length 0.45 of its range, its cone angle, Shaft Lens 0.06 wide at the lens), so it
+    follows D-0138's size; tinted with the light's colour; no shadows or collider. Shader `ShiftJam/BeamShaft`
+    (Resources/FX, additive, brightest along the middle as seen, fading at the rim, the lens and the far end).
+  - Flashlight: Show Shaft (on), Shaft Length, Shaft Lens, Shaft Strength (0.22) in the inspector.
+  - First play (his "the flashlight now floats in the air and is aimed at me"): the cone was a child of the torch, so
+    Carryable.Measure took it for part of the torch (box 38 x 38 x 52 instead of about 13 x 7 x 9): the grip went off the
+    handle and the front flipped. Measured live: grip 13 units off the hand. Now the cone has no parent and follows the
+    lens after everything else moves (execution order 10000); nothing that measures a carried thing can see it.
+- D-0138 and D-0139 landed in his editor 14:48 (compiled clean). He ran the ladder menu (15:1x); checked in his editor: UpStairs and Flight0 landings now 0.050 under the last step; the hallway/desk/wardrobe Steps (XwBookSteps) were already distinct; the BookStairs piece (an older build, tops not level) needed nothing.
+- **D-0141 (22 Nov, 15:1x) Aim like Alan Wake 2, for guns and the flashlight; the flashlight focuses.**
+  - His "allow the camera to move the AIM of the camera without ROTATING the character", then "move and aim freely
+    while aiming down the sight for gun OR flashlight, think Alan Wake 2", then "proceed and add the focus, emulate
+    that feel AS CLOSE AS WE CAN".
+  - Not aiming: the body is not turned to the aim any more (D-0136's body turn, `ArmAim.BodyYawFor` /
+    `PlayerMotor.ArmYaw`, is gone). `ArmAim.TwistTorso`: the waist twists toward the aim (Twist Share 0.5 of the way,
+    at most 45 across / 50 out, shared over spine, chest, upper chest, eased at Twist Rate 10); the one-handed limits and
+    the chest check are measured from the twisted chest (`Torso`), so the arm's 35 / 100 add on (about 80 across, 150
+    out). Past that the light stops at its limit.
+  - Aim held (right mouse / LT) with a gun OR the flashlight: the body faces the aim and steps any way (the existing
+    strafe blend), at Aim Move Share 0.6 of the walk (PlayerMoveSettings, new; guns too), no sprint; the camera takes
+    the over-the-shoulder aim view (ShoulderCamera: a flashlight in hand counts as armed, its aim as aiming).
+    `Carrier.ToolUp`, `Carrier.AimHeld`.
+  - Focus (Flashlight, "Focus while aiming"): aim held narrows the cone to 0.45 of its angle, 2.5x brighter, 1.35x the
+    reach (so the LightSensor wakes cores further away), the cone in the air 1.8x brighter; in over 0.15 s, out over
+    0.3 s. Aiming with it off switches it on for the aim and off after; a click mid-aim is kept.
+  - No crosshair for the flashlight (the beam is the aim), as in Alan Wake 2. No focus sound yet (none in the library
+    fits; his pick).
+  - Compiled outside with Unity's csc; landed in his editor; not played.
+

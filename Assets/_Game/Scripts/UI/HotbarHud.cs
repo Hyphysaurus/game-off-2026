@@ -14,7 +14,9 @@ namespace ShiftJam
     public sealed class HotbarHud : MonoBehaviour
     {
         private const string LabelFont = "HUD/Fredoka SDF";
-        private const float Box = 96f, Gap = 10f, Bottom = 24f;
+        private const float Box = 64f, Gap = 8f, Bottom = 16f;   // D-0132, his "pretty large": a third smaller than the first 96 / 10 / 24
+        /// <summary>The bar's top edge above the screen's bottom (1920 x 1080 units): the shift batteries sit above it while it shows.</summary>
+        public const float Top = Bottom + Box;
         private static readonly Color Empty = new Color(0f, 0f, 0f, 0.25f), Filled = new Color(0f, 0f, 0f, 0.45f), Lit = new Color(1f, 0.78f, 0.3f, 0.75f);
 
         private Inventory _inventory;
@@ -52,16 +54,18 @@ namespace ShiftJam
                 var slot = BuildUiKit.Rect("Slot" + (i + 1), row, Vector2.zero, Vector2.zero, Vector2.zero, new Vector2(i * (Box + Gap), 0f), new Vector2(Box, Box));
                 _slotGroups[i] = slot.gameObject.AddComponent<CanvasGroup>();
                 _panels[i] = BuildUiKit.Panel(slot, Empty); _panels[i].raycastTarget = false;
-                var iconRt = BuildUiKit.Rect("Icon", slot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 8f), new Vector2(Box * 0.62f, Box * 0.62f));
+                // Picture above, name along the bottom, key number top left (sized for a 64 slot; the words shrink less
+                // than the slot so they stay readable).
+                var iconRt = BuildUiKit.Rect("Icon", slot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 6f), new Vector2(Box * 0.58f, Box * 0.58f));
                 _icons[i] = iconRt.gameObject.AddComponent<RawImage>(); _icons[i].raycastTarget = false;
-                var keyRt = BuildUiKit.Rect("Key", slot, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(6f, -2f), new Vector2(24f, 24f));
-                _keys[i] = BuildUiKit.Label(keyRt, (i + 1).ToString(), 20f, TextAlignmentOptions.TopLeft);
-                var nameRt = BuildUiKit.Rect("Name", slot, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 3f), new Vector2(Box - 6f, 22f));
-                _names[i] = BuildUiKit.Label(nameRt, "", 15f, TextAlignmentOptions.Bottom);
-                var noteRt = BuildUiKit.Rect("Note", slot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 10f), new Vector2(Box - 6f, 40f));
-                _notes[i] = BuildUiKit.Label(noteRt, "", 14f, TextAlignmentOptions.Center);
+                var keyRt = BuildUiKit.Rect("Key", slot, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(4f, -1f), new Vector2(18f, 18f));
+                _keys[i] = BuildUiKit.Label(keyRt, (i + 1).ToString(), 15f, TextAlignmentOptions.TopLeft);
+                var nameRt = BuildUiKit.Rect("Name", slot, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 2f), new Vector2(Box - 4f, 16f));
+                _names[i] = BuildUiKit.Label(nameRt, "", 12f, TextAlignmentOptions.Bottom);
+                var noteRt = BuildUiKit.Rect("Note", slot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 7f), new Vector2(Box - 4f, 28f));
+                _notes[i] = BuildUiKit.Label(noteRt, "", 11f, TextAlignmentOptions.Center);
                 if (font != null) { _keys[i].font = font; _names[i].font = font; _notes[i].font = font; }
-                _names[i].enableAutoSizing = true; _names[i].fontSizeMin = 10f; _names[i].fontSizeMax = 15f;
+                _names[i].enableAutoSizing = true; _names[i].fontSizeMin = 9f; _names[i].fontSizeMax = 12f;
             }
         }
 

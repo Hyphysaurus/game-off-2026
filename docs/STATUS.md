@@ -2,6 +2,12 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 21 Nov 2026 21:5x — FLASHLIGHT GRIP + SMALLER INVENTORY BAR (D-0132): COMPILED OUTSIDE, NOT SEEN
+- His screenshot (21:34, v16 from Downloads): the flashlight's tube ran back out of the fist into his wrist. Now held
+  at its handle end, tipped a little to the thumb's side (Resources/WeaponHold > Tool End In Fist 0.05, Tool Tilt 10).
+- His "inventory bar pretty large": slots a third smaller (96 to 64); the shift batteries no longer sit on the bar.
+- See it: editor, the house, pick up a flashlight (and look at the bar). Or "ship" for v17.
+
 ## 21 Nov 2026 20:4x — CO-OP STEP 2 (D-0131): THE HOST RUNS SOLDIERS, PROPS AND PICKUPS: v16 BUILT + CHECKED (5 scenes, 0 errors), UPLOAD IS HIS; NOT PLAYED
 - His "proceed with coop step 2": in a party (Stadium or house) the host's PC runs the toy soldiers, breakable props and
   pickups and everyone sees the same ones: anyone's shot hurts the same soldier, it falls on every screen, its darts

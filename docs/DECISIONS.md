@@ -2404,3 +2404,18 @@
   on this PC for nobody (AmmoBox did not skip copies as PlayerPickup does); copies are skipped now and
   `WeaponHolder.AddAmmo` gives a copy nothing. Not shared, as planned: gun stands, loose physics, Colour Corner.
   Not shown on other PCs: SquadGate's "N to go" hints (doors are open online anyway), soldier squash on a relayed hit.
+- **D-0132 (21 Nov) The flashlight's grip, and a smaller inventory bar (his screenshot 21:34 + "the inventory bar looking
+  pretty large").** (1) The flashlight (ithappy Flashlight_01, no Grip marker) was gripped a quarter of its length in
+  from the tail (Carryable.GripLocal), so with the arm aimed (D-0106's handle-in-fist frame) the rest of the tube ran
+  out of the fist's little-finger side back into the wrist and forearm. A one-handed tool with no Grip marker is now
+  held at its handle end: `Carryable.HandleEndGrip` puts the fist's middle WeaponHold > Tool End In Fist (0.05 rig
+  metres, about half a fist, scaled by the hand bone) in from the end, never past the middle, so the end just clears
+  the little finger; the arm's reach is measured from that grip (`ReachFrom`). The tool also leaves the fist Tool Tilt
+  (10 degrees) further to the thumb's side than a blade (Handle In Hand turned about the palm's axis), so its end dips
+  under the wrist; the wrist cocks that much more to point it. Both numbers are in Resources/WeaponHold for him to tune.
+  Melee and guns are unchanged (their own frames). A thing with a Grip marker keeps it; a body without humanoid arms
+  keeps the old quarter-length grip. (2) HotbarHud slots 96 to 64 (gap 10 to 8, 16 from the bottom instead of 24),
+  its key, name and note words shrunk less than the slot (20/15/14 to 15/12/11). The shift batteries (ShiftChargeHud,
+  centred 46 up) had been drawn across the bar's slots whenever both showed; while the bar shows (anything carried) they
+  and their two text lines now sit 8 above the bar's top (HotbarHud.Top), back down when it hides. Not done (his call,
+  offered): every HUD sized by the screen's height only, so an ultrawide does not make it 16% bigger.

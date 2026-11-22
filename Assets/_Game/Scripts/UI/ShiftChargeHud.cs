@@ -13,6 +13,13 @@ namespace ShiftJam
     {
         private static readonly Color Lit = new Color(0.35f, 0.9f, 1f, 0.95f), Dark = new Color(1f, 1f, 1f, 0.15f);
         private const float NoticeSeconds = 1.6f, HintSeconds = 7f;
+        // Heights above the screen's bottom (1920 x 1080 units): the batteries' row middle, the refusal line, the hint.
+        // While the inventory bar shows they all go up so the row sits just above the bar, not across its slots (D-0132).
+        private const float RowY = 46f, RowHeight = 44f, NoticeY = 100f, HintY = 140f;
+        private const float RaisedRowY = HotbarHud.Top + 8f + RowHeight * 0.5f;
+
+        private Inventory _inventory;
+        private float _lift = -1f;
 
         private ShiftCharge _charge;
         private CanvasGroup _group;
@@ -66,6 +73,16 @@ namespace ShiftJam
             _group.alpha = show ? 1f : 0f;
             _noticeGroup.alpha = Mathf.Clamp01((_noticeUntil - Time.unscaledTime) / 0.4f);
             _hint.alpha = Mathf.Clamp01((_hintUntil - Time.unscaledTime) / 0.8f);
+            // The inventory bar shows while anything is carried (HotbarHud): sit above it then.
+            if (_inventory == null) _inventory = _charge.GetComponent<Inventory>();
+            float lift = _inventory != null && _inventory.isActiveAndEnabled && _inventory.Items.Count > 0 ? RaisedRowY - RowY : 0f;
+            if (lift != _lift)
+            {
+                _lift = lift;
+                _row.anchoredPosition = new Vector2(0f, RowY + lift);
+                _notice.rectTransform.anchoredPosition = new Vector2(0f, NoticeY + lift);
+                _hint.rectTransform.anchoredPosition = new Vector2(0f, HintY + lift);
+            }
         }
 
         private void Build()
@@ -75,13 +92,13 @@ namespace ShiftJam
             var canvas = canvasGo.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 40;
             var scaler = canvasGo.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = 0.5f;
             _group = canvasGo.AddComponent<CanvasGroup>(); _group.blocksRaycasts = false; _group.interactable = false;
-            _row = MenuKit.Rect("Charges", canvasGo.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 46f), new Vector2(300f, 44f));
+            _row = MenuKit.Rect("Charges", canvasGo.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, RowY), new Vector2(300f, RowHeight));
             _notice = MenuKit.Text("Notice", canvasGo.transform, "", 30, new Vector2(0.5f, 0f), new Vector2(1000f, 44f));
-            _notice.rectTransform.anchoredPosition = new Vector2(0f, 100f);
+            _notice.rectTransform.anchoredPosition = new Vector2(0f, NoticeY);
             _noticeGroup = _notice.gameObject.AddComponent<CanvasGroup>(); _noticeGroup.alpha = 0f;
             _noticeFx = TextFx.On(_notice);
             _hint = MenuKit.Text("Hint", canvasGo.transform, "", 26, new Vector2(0.5f, 0f), new Vector2(1200f, 44f));
-            _hint.rectTransform.anchoredPosition = new Vector2(0f, 140f); _hint.alpha = 0f;
+            _hint.rectTransform.anchoredPosition = new Vector2(0f, HintY); _hint.alpha = 0f;
         }
     }
 }

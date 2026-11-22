@@ -121,6 +121,11 @@ namespace ShiftJam
         public Vector3 handleTopInHand = new Vector3(-1f, 0f, 0f);
         [Tooltip("Degrees each finger bone bends round a handle: x the three gripping fingers, y the index finger (no trigger: it wraps too), z the thumb.")]
         public Vector3 handleCurl = new Vector3(70f, 70f, 35f);
+        [Header("A tool in the fist (the flashlight, D-0132)")]
+        [Tooltip("Degrees a held tool leaves the fist further to the thumb's side than a blade does (Handle In Hand, turned towards the thumb). Higher: its handle end dips under the wrist instead of lying along the forearm, and the wrist cocks a little more to point it.")]
+        public float toolTilt = 10f;
+        [Tooltip("A tool with no Grip marker is held at its handle end: how far in from that end the middle of the fist closes, rig metres. About half a fist, so the end just clears the little finger. (Before: a quarter of its length in, and the rest ran back into the wrist.)")]
+        public float toolEndInFist = 0.05f;
         [Tooltip("A worn thing (the foam finger): where its root sits from the wrist, the hand's own directions, rig metres. The hand is folded away inside it.")]
         public Vector3 wornCentre = new Vector3(0.06f, 0f, 0f);
         [Tooltip("A worn thing: which way its +Z (the pointing finger) points in the hand. Along the knuckles, as the hand's own fingers.")]

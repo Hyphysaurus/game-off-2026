@@ -4,8 +4,10 @@ namespace ShiftJam
 {
     /// <summary>
     /// The player's hands for tools. A one-handed tool (the flashlight) is held as a pistol is (D-0106): its handle through
-    /// the closed fist along the hand's own directions (Carryable.GripLocal at the fist's middle, its working end out
-    /// past the thumb), the arm pointing it at the crosshair (ArmAim) and the fingers closed round it (FingerCurl); the
+    /// the closed fist along the hand's own directions, its working end out past the thumb, the fist closed at its handle
+    /// end so nothing of it runs back into the wrist (D-0132: Carryable.HandleEndGrip, WeaponHold > Tool End In Fist; a
+    /// touch more to the thumb's side than a blade, Tool Tilt), the arm pointing it at the crosshair (ArmAim) and the
+    /// fingers closed round it (FingerCurl); the
     /// animator's Arms layer fades in under that, for a body without humanoid arms. A plank is carried flat across the front of the body in both hands, the hands under its two
     /// grips through CarryPose (D-0042). Picking up eases the thing from where it lies into the hands; putting down (Crouch)
     /// lowers it to its resting spot before letting go. Attack goes to the held thing. Never parents the thing, so the
@@ -110,7 +112,7 @@ namespace ShiftJam
             Held.SetCarried(true);
             _twoHanded = thing.TwoHanded;
             if (_twoHanded) SetUpTwoHands(thing);
-            else _gripRight = thing.GripLocal;
+            else _gripRight = OneHandGrip(thing);
             // Reach: it travels from where it lies into the hands.
             _fromPos = thing.transform.position;
             _fromRot = thing.transform.rotation;
@@ -140,7 +142,7 @@ namespace ShiftJam
             foreach (var col in thing.GetComponentsInChildren<Collider>()) col.enabled = false;
             Held = thing;
             _twoHanded = false;
-            _gripRight = thing.GripLocal;
+            _gripRight = OneHandGrip(thing);
             _phase = Phase.Holding;
             _releasedAt = float.NegativeInfinity;
         }
@@ -321,8 +323,21 @@ namespace ShiftJam
         /// <summary>A one-handed tool held in a humanoid fist (not a plank, not on its way down).</summary>
         private bool InFist => Held != null && !_twoHanded && _phase != Phase.Lowering && _armAim != null && _armAim.Ready && _hand != null;
 
-        /// <summary>The tool in the fist, as ArmAim reads a gun: z its working end, y its top (hand rotation x this).</summary>
-        private Quaternion FistFrame => _armAim.Grip(_hold.handleInHand, _hold.handleTopInHand);
+        /// <summary>The tool in the fist, as ArmAim reads a gun: z its working end, y its top (hand rotation x this). It
+        /// leaves the fist Tool Tilt degrees further to the thumb's side than a blade (D-0132), so its handle end dips
+        /// under the wrist rather than lying along the forearm.</summary>
+        private Quaternion FistFrame => _armAim.Grip(Quaternion.AngleAxis(_hold.toolTilt, Vector3.forward) * _hold.handleInHand, _hold.handleTopInHand);
+
+        /// <summary>Where the fist closes on a one-handed tool, in its own space: its Grip marker, else its handle end with
+        /// the end just past the little finger (D-0132), so nothing of it sticks out behind the hand into the wrist. A body
+        /// without humanoid arms keeps the old grip, a quarter of the length in.</summary>
+        private Vector3 OneHandGrip(Carryable thing)
+        {
+            if (_hand == null || _armAim == null || !_armAim.Ready) return thing.GripLocal;
+            Vector3 s = _hand.lossyScale;
+            float hand = (Mathf.Abs(s.x) + Mathf.Abs(s.y) + Mathf.Abs(s.z)) / 3f;   // rig metres to the world
+            return thing.HandleEndGrip(_hold.toolEndInFist * hand);
+        }
 
         /// <summary>From that frame to the thing's own turn: its working end along the frame's z, then its own extra turn.</summary>
         private Quaternion ThingInFrame(Carryable thing) => thing.GripRotation * Quaternion.Inverse(Quaternion.LookRotation(thing.HeadLocal, thing.UpLocal));
@@ -336,12 +351,11 @@ namespace ShiftJam
             Camera cam = PlayerSlot.ViewFor(this); Transform view = cam != null ? cam.transform : null;
             Vector3 target = view != null ? view.position + view.forward * (100f * s) : transform.position + transform.forward * (100f * s);
             Quaternion grip = FistFrame;
-            Vector3 size = Held.transform.lossyScale;
             var hold = new ArmAim.Hold
             {
                 grip = grip,
                 seat = Quaternion.Inverse(grip) * Vector3.Scale(_armAim.InHand(_hold.handleCentre), _hand.lossyScale),
-                muzzle = Vector3.forward * (Held.ReachLocal * size.z),
+                muzzle = Vector3.forward * (Held.ReachFrom(_gripRight) * Held.HeadScale),   // from where the fist holds it to its far end
                 kickTurn = Quaternion.identity,
                 kickSlide = Vector3.zero,
                 frame = Vector3.zero,

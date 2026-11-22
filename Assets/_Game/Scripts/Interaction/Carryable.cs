@@ -109,7 +109,29 @@ namespace ShiftJam
         }
 
         /// <summary>From the one-hand grip to the far end of the working end, in its own space's units.</summary>
-        public float ReachLocal { get { Vector3 head = HeadLocal; return Vector3.Dot(_local.center - GripLocal, head) + Along(head); } }
+        public float ReachLocal => ReachFrom(GripLocal);
+
+        /// <summary>From <paramref name="grip"/> (its own space) to the far end of the working end, in its own units.</summary>
+        public float ReachFrom(Vector3 grip) { Vector3 head = HeadLocal; return Vector3.Dot(_local.center - grip, head) + Along(head); }
+
+        /// <summary>How long one of its own units is in the world, along its working end.</summary>
+        public float HeadScale
+        {
+            get { Vector3 h = HeadLocal, s = transform.lossyScale; return Mathf.Abs(h.x) * Mathf.Abs(s.x) + Mathf.Abs(h.y) * Mathf.Abs(s.y) + Mathf.Abs(h.z) * Mathf.Abs(s.z); }
+        }
+
+        /// <summary>Where a fist closes on it at its handle end (D-0132): <paramref name="inFromEnd"/> (world units) in from
+        /// the end away from its working end, never past its middle, so nothing of it sticks out behind the hand. A Grip
+        /// marker, when it has one, wins.</summary>
+        public Vector3 HandleEndGrip(float inFromEnd)
+        {
+            Measure();
+            if (_grip != null) return transform.InverseTransformPoint(_grip.position);
+            Vector3 head = HeadLocal;
+            float half = Along(head);
+            float inLocal = Mathf.Min(inFromEnd / Mathf.Max(1e-5f, HeadScale), half);
+            return _local.center - head * (half - inLocal);
+        }
 
         /// <summary>Where two hands hold it, in the thing's own space: GripR and GripL children, or a quarter in from each end
         /// along its longest side (<paramref name="a"/> the + end, <paramref name="b"/> the - end).</summary>

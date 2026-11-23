@@ -2726,4 +2726,17 @@
     and the thing ignore each other (the creep).
   - Edited straight into the project while he was in Play (against the rule: stage, land out of Play); Fast Script
     Reload's hot patch failed harmlessly; recompiled clean after he stopped.
+- **D-0158 (22 Nov, 19:3x) The giant flashlight rides a turntable.**
+  - His "still seems stuck... the positioning and layout isn't helping", "scan the asset and battle stadium and all
+    the ithappy packs, is there anything we can use to manipulate it?", "proceed". Found: a toy block sat in the
+    flashlight's swing; in the packs, Battle Stadium's obstacle_14_001 is a spinning disc on a hub (a turntable; its own
+    RotationScript spin set to 0). Also seen: obstacle_8 (swinging bar), obstacle_6 (paddle), a propeller trampoline,
+    the Playroom fan base (does not turn): not used.
+  - Toy box: a Turntable (empty root at the hub (-1, floor, -21), kinematic Rigidbody, Grabbable: Anchored, no push,
+    Steer View aimed by the flashlight's Beam, Turn Speed 40, prompt "Turn") with the disc (14 across) and the giant
+    flashlight lying across it (its loose Rigidbody, Pushable and own Grabbable removed). The toy blocks moved to the
+    back-left corner. It starts 114 degrees off the core; the core's prompt: "Dark. Turn the big light on its
+    turntable (E) onto this." Spawn 2 units clear of the rim.
+  - `Grabbable` Anchored: turns only about its own pivot as a kinematic body (riders turn with it), never pushed.
+  - 0 broken references. Not played.
 

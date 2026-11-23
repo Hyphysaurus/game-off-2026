@@ -63,5 +63,5 @@ Level beats are placed parts, not coordinates in builder code.
 | **ArcPreview** | `FX/ArcPreview.cs` | Draws any thrown thing's predicted path and landing ring (`ArcPreview.For(owner)`, then Show / Hide). The grenade uses it with `BallFlight.Predict`. |
 | **DarkZone** | `Room/DarkZone.cs` (+ `KeepLit`) | A stretch that goes dark while the player is in it: add to an empty object, size its box (gizmo). It dims the lights inside and the ambient; checkpoints, core embers and flashlights stay lit; add KeepLit to a lantern to keep it. |
 | **BlastRing** | `FX/BlastRing.cs` | `BlastRing.Play(at, radius, colour, width, seconds)`: a shockwave ring growing to a blast's reach. The grenade uses it. |
-| **Grabbable** | `Interaction/Grabbable.cs` (+ a Rigidbody) | A heavy thing to grab (E) and steer: turn (left / right) about its middle or far end, push / pull (forward / back). Set who may grab it and the speeds on it. The player is held by `PlayerMotor.HoldAt`. |
+| **Grabbable** | `Interaction/Grabbable.cs` (+ a Rigidbody) | A heavy thing to grab (E) and steer: by view (it points where you look) or stick, about its middle or far end, push / pull (forward / back); **Anchored** for a thing that only turns on a hub (a turntable: put what rides it under it). Set who may grab it and the speeds on it. The player is held by `PlayerMotor.HoldAt`. |
 

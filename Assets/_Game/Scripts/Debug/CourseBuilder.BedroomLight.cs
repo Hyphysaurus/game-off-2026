@@ -21,6 +21,14 @@ namespace ShiftJam
     {
         const string AmmoBoxPrefab = "Assets/_Game/Prefabs/Pieces/Weapons/AmmoBox.prefab";
         const string SupplyCratePrefab = "Assets/_Game/Prefabs/Pieces/Weapons/SupplyCrate.prefab";
+        const string TurntablePrefab = "Assets/_Imports/ithappy/Battle_Stadium/Prefabs/Obstacles/obstacle_14_001.prefab";
+
+        /// <summary>A child anywhere under <paramref name="root"/> by name (the light may already ride a turntable).</summary>
+        static Transform FindDeep(Transform root, string name)
+        {
+            foreach (Transform t in root.GetComponentsInChildren<Transform>(true)) if (t.name == name) return t;
+            return null;
+        }
 
         [MenuItem("Shift Jam/House/Land Bedroom Light Beats (D-0155)")]
         public static void LandBedroomLight()
@@ -32,27 +40,64 @@ namespace ShiftJam
             var bedroom = GameObject.Find("Room/Bedroom");
             if (toyBox == null || bedroom == null) { Debug.LogError("D-0155: no Room/ToyBox or Room/Bedroom"); return; }
 
-            // 1. The giant flashlight, pushable; the box's core dark until it is lit.
-            Transform torch = toyBox.transform.Find("Flashlight_01");
+            // 1. The giant flashlight rides a turntable (D-0158, his "C would be cool if we have the assets": Battle Stadium's
+            // spinning disc, its own spin off). The toy grabs the rim (E) and turns it: look where the beam should go. The
+            // disc only turns on its hub, so the light cannot slide, roll or jam. The box's core stays dark until lit.
+            Transform torch = FindDeep(toyBox.transform, "Flashlight_01");
             var core = toyBox.transform.Find("ShiftCore") != null ? toyBox.transform.Find("ShiftCore").GetComponent<ShiftSource>() : null;
-            if (torch != null)
+            Transform floor = toyBox.transform.Find("Floor");
+            float floorTop = floor != null ? B(floor.gameObject).max.y : 1f;
+            Vector3 hub = new Vector3(-1f, floorTop, -21f);
+            if (torch != null) torch.SetParent(toyBox.transform, true);   // out of an old turntable before it goes
+            Remove(toyBox.transform, "Turntable");
+            foreach (var (name, at) in new[] { ("Constructor_01", new Vector3(-12f, 1f, -29f)), ("Constructor_02", new Vector3(-12f, 1f, -25.5f)) })
             {
-                if (torch.TryGetComponent(out MeshCollider mc)) mc.convex = true;   // a moving body needs a convex shape
-                if (!torch.TryGetComponent(out Rigidbody body)) body = torch.gameObject.AddComponent<Rigidbody>();
-                body.mass = 3f; body.linearDamping = 3f; body.angularDamping = 6f;
-                body.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;   // it stays lying level: a push swings it round
-                body.interpolation = RigidbodyInterpolation.Interpolate;
-                body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-                if (torch.TryGetComponent(out Pushable shove)) Object.DestroyImmediate(shove);   // walked into, it was hard to aim (D-0156)
-                if (!torch.TryGetComponent(out Grabbable _)) torch.gameObject.AddComponent<Grabbable>();   // E: grab it, A / D turn it, W / S push it
-                Log.AppendLine($"giant flashlight: grabbable by the toy (turn and push), lying level at {torch.position}");
+                Transform block = toyBox.transform.Find(name);
+                if (block != null) block.position = at;   // the toy blocks go to the back-left corner, out of the way
             }
-            else Log.AppendLine("NO Flashlight_01 in the toy box");
+            var table = new GameObject("Turntable").transform;
+            table.SetParent(toyBox.transform, true);
+            table.SetPositionAndRotation(hub, Quaternion.identity);
+            var discAsset = AssetDatabase.LoadAssetAtPath<GameObject>(TurntablePrefab);
+            if (discAsset != null && torch != null)
+            {
+                var disc = (GameObject)PrefabUtility.InstantiatePrefab(discAsset, table);
+                disc.name = "Disc";
+                float across = 14f;
+                disc.transform.localScale = Vector3.one * (across / 8.5f);   // the pack's disc is 8.5 across: the 12-long light lies on it
+                disc.transform.localPosition = Vector3.zero;
+                disc.transform.position += Vector3.up * (floorTop - B(disc).min.y);
+                foreach (var spin in disc.GetComponentsInChildren<MonoBehaviour>(true))
+                    if (spin != null && spin.GetType().Name == "RotationScript") { var rso = new SerializedObject(spin); rso.FindProperty("rotationSpeed").floatValue = 0f; rso.ApplyModifiedPropertiesWithoutUndo(); }
+                float top = B(disc).max.y;
+                var body = table.gameObject.AddComponent<Rigidbody>();
+                body.isKinematic = true; body.interpolation = RigidbodyInterpolation.Interpolate;
+                // The light lies across the disc, riding it: no loose body of its own, no grab of its own.
+                if (torch.TryGetComponent(out Grabbable oldGrab)) Object.DestroyImmediate(oldGrab);
+                if (torch.TryGetComponent(out Pushable shove)) Object.DestroyImmediate(shove);
+                if (torch.TryGetComponent(out Rigidbody loose)) Object.DestroyImmediate(loose);
+                torch.SetParent(table, true);
+                torch.rotation = Quaternion.Euler(0f, 33f, 0f);
+                torch.position = new Vector3(hub.x, torch.position.y, hub.z);
+                Bounds lb = B(torch.gameObject);
+                torch.position += new Vector3(hub.x - lb.center.x, top + 0.02f - lb.min.y, hub.z - lb.center.z);
+                var grab = table.gameObject.AddComponent<Grabbable>();
+                var gso = new SerializedObject(grab);
+                gso.FindProperty("prompt").stringValue = "Turn";
+                gso.FindProperty("anchored").boolValue = true;
+                gso.FindProperty("canPush").boolValue = false;
+                gso.FindProperty("turnSpeed").floatValue = 40f;
+                var torchLight = torch.GetComponent<Flashlight>();
+                gso.FindProperty("aim").objectReferenceValue = torchLight != null && torchLight.Beam != null ? torchLight.Beam.transform : torch;
+                gso.ApplyModifiedPropertiesWithoutUndo();
+                Log.AppendLine($"turntable at {hub} ({across} across), the giant flashlight riding it at {torch.position}; toy blocks moved to the back-left corner");
+            }
+            else Log.AppendLine("NO turntable prefab or NO Flashlight_01");
             if (core != null)
             {
                 var so = new SerializedObject(core);
                 so.FindProperty("startDormant").boolValue = true;
-                so.FindProperty("dormantPrompt").stringValue = "Dark. Grab the big light (E) and turn it onto this.";
+                so.FindProperty("dormantPrompt").stringValue = "Dark. Turn the big light on its turntable (E) onto this.";
                 so.ApplyModifiedPropertiesWithoutUndo();
                 Transform middle = core.transform.Find("LightPoint");
                 if (middle == null) { middle = new GameObject("LightPoint").transform; middle.SetParent(core.transform, false); }

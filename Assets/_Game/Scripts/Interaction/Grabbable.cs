@@ -23,6 +23,7 @@ namespace ShiftJam
         [SerializeField, Tooltip("View: it turns to point where the player looks (a giant flashlight: look at the target). Stick: left / right turn it.")] private Steer steer = Steer.View;
         [SerializeField, Tooltip("Optional. The way it points (a flashlight's Beam). Its own forward if empty, or a Flashlight's beam when it has one.")] private Transform aim;
         [SerializeField, Tooltip("It may be turned.")] private bool canTurn = true;
+        [SerializeField, Tooltip("It only turns in place about its own pivot, on a fixed hub (a turntable, a valve, D-0158): never pushed, never knocked about; what rides on it (its children) turns with it. Its body stays kinematic.")] private bool anchored;
         [SerializeField, Tooltip("Forward / back push and pull it.")] private bool canPush = true;
         [SerializeField, Min(0f), Tooltip("Degrees a second at full stick.")] private float turnSpeed = 45f;
         [SerializeField, Min(0f), Tooltip("Push / pull speed at full stick, in the grabber's own heights a second.")] private float pushSpeed = 0.8f;
@@ -85,7 +86,7 @@ namespace ShiftJam
             float half = Mathf.Abs(away.x) > Mathf.Abs(away.z) ? local.extents.x : local.extents.z;
             _far = middle + (away.sqrMagnitude > 1e-6f ? away.normalized * half : Vector3.zero);
             _wasKinematic = _body.isKinematic;
-            _body.isKinematic = false;
+            if (!anchored) _body.isKinematic = false;
             _turn = _push = 0f;
             if (_input != null) _input.Jump += LetGo;
             if (_shifter != null) _shifter.ShiftStarted += OnShift;
@@ -104,8 +105,7 @@ namespace ShiftJam
             Held.Remove(_who);
             _who = null;
             _body.isKinematic = _wasKinematic;
-            _body.linearVelocity = Vector3.zero;
-            _body.angularVelocity = Vector3.zero;
+            if (!_body.isKinematic) { _body.linearVelocity = Vector3.zero; _body.angularVelocity = Vector3.zero; }
         }
 
         private void OnDisable() => LetGo();
@@ -136,6 +136,12 @@ namespace ShiftJam
             Vector3 along = _body.worldCenterOfMass - grabber; along.y = 0f;
             along = along.sqrMagnitude > 1e-6f ? along.normalized : _who.transform.forward;
             float spin = _turn * turnSpeed * Mathf.Deg2Rad;   // + = to the right (clockwise seen from above)
+            if (anchored)
+            {
+                // On its hub: only a turn about its own pivot, moved as a kinematic body (riders turn with it).
+                _body.MoveRotation(Quaternion.AngleAxis(spin * Mathf.Rad2Deg * Time.fixedDeltaTime, Vector3.up) * _body.rotation);
+                return;
+            }
             Vector3 velocity = along * (_push * pushSpeed * GrabberScale * 1.8f);   // the toy's height is 1.8 of its units
             if (pivot == Pivot.FarEnd)
             {

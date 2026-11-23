@@ -36,7 +36,18 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
 - **Also found by the check:** nothing that exists today works as a prize before the gun (x 89). Other answers kept
   for later: close the two strips with boxes (30 minutes, no code); armory charms as finds on climbs (one session);
   cut the stairs to 6 books and a box 6.6 high (an hour; gives 7 of headroom, so a running jump into a rope works).
-- Waiting on: his "proceed" (my order: the jump first, then the rope).
+- **12:40 his go: "IM IN WOW, can you automate for me".** Read as: build both (the jump first, then the rope) and do
+  the editor steps myself through his open editor; no Play runs, nothing that takes focus; how it feels stays his.
+- **CHECKPOINT 12:5x (if this run dies, pick up here):** two editor tests passed first (a state timed by a number
+  works; holding `RootT.y` takes the lift out: lowest foot 0.12 to 0.27 over the root at every phase). Contract:
+  `%TEMP%\shiftjam-stage\jump\JUMP_CONTRACT.md`. Run `wf_2af4a96f-d6e` (script under the session's
+  `workflows/scripts/jump-build-rope-contract-*.js`): jump builder -> reviewer -> fixer, staged in
+  `%TEMP%\shiftjam-stage\jump\build` (edited copies + `.orig.cs` + `manifest.tsv`; compile with
+  `sjcsc-staged.sh <dir>` and `--player`); beside it a rope designer -> skeptic writing
+  `%TEMP%\shiftjam-stage\rope\ROPE_CONTRACT.md` and `ROPE_CONTRACT_CHECK.md`. NOTHING is in the project yet.
+  To land the jump: editor not in Play; `cmp` each `.orig.cs` with the project file; copy; let Unity compile; run
+  Shift Jam > Player > Rebuild Clips + Controllers (D-0169); read the `[PlayerPort]` lines; `git status` must show
+  only the three scripts and the two controllers.
 
 ## 23 Nov 2026 12:1x — ARMORY BENCH: HIS TWO MENUS RAN, THE BENCH IS PLACED IN GREYBOX (D-0167): IN THE SCENE, NOT PLAYED
 - He ran both menus at 12:06 and asked me to place the bench ("can you place them in for me?"). The bake logged what

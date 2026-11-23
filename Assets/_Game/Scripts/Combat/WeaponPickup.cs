@@ -26,7 +26,14 @@ namespace ShiftJam
         /// <summary>Makes this a dropped weapon that offers itself.</summary>
         public void Offer(Weapon w) { weapon = w; display = null; respawnSeconds = 0f; }
 
-        private void Awake() { if (display != null) _displayRest = display.localPosition; }
+        private void Awake()
+        {
+            if (display == null) return;
+            _displayRest = display.localPosition;
+            // The gun shown on a stand is the bare model, not a weapon: its sight takes the game's look here (D-0166).
+            SightLook look = SightLook.Load();
+            if (look != null) look.Apply(display, weapon != null ? weapon.Reticle : null);
+        }
 
         public string PromptFor(Interactor who)
         {

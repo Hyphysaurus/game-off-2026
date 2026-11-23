@@ -19,6 +19,7 @@ namespace ShiftJam
     {
         public const string TypeKeyword = "CURVEDWORLD_BEND_TYPE_LITTLEPLANET_Y", IdKeyword = "CURVEDWORLD_BEND_ID_1", NormalKeyword = "CURVEDWORLD_NORMAL_TRANSFORMATION_ON";
         private static readonly int SettingsId = Shader.PropertyToID("_CurvedWorldBendSettings");
+        private const string Lit = "Universal Render Pipeline/Lit";
 
         [Header("At rest: the garden")]
         [SerializeField, Tooltip("Where the bend is pivoted at rest (the window).")] private Transform restPivot;
@@ -94,11 +95,18 @@ namespace ShiftJam
                     if (r == null || r is ParticleSystemRenderer || r is SkinnedMeshRenderer || r.transform.IsChildOf(centre)) continue;
                     if (_swapped.Exists(s => s.r == r)) continue;
                     var own = r.sharedMaterials;
-                    bool allLit = own.Length > 0;
-                    foreach (var m in own) if (m == null || m.shader == null || m.shader.name != "Universal Render Pipeline/Lit") { allLit = false; break; }
-                    if (!allLit) continue;
+                    // Only what is drawn with URP Lit bends. A sight's own lens and reticle (SightLook, D-0166) may ride
+                    // along as they are, so the sight's housing still bends with its gun and does not float off it.
+                    bool ok = own.Length > 0, anyLit = false;
+                    foreach (var m in own)
+                    {
+                        if (m == null || m.shader == null) { ok = false; break; }
+                        if (m.shader.name == Lit) anyLit = true;
+                        else if (m.shader.name != SightLook.OverlayShader) { ok = false; break; }
+                    }
+                    if (!ok || !anyLit) continue;
                     var bent = new Material[own.Length];
-                    for (int i = 0; i < own.Length; i++) bent[i] = CopyOf(own[i]);
+                    for (int i = 0; i < own.Length; i++) bent[i] = own[i].shader.name == Lit ? CopyOf(own[i]) : own[i];
                     _swapped.Add((r, own));
                     r.sharedMaterials = bent;
                 }

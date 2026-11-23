@@ -54,8 +54,9 @@ namespace ShiftJam
 
         private bool IsToy => _shifter == null || _shifter.Size == ShiftSize.Toy;
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();   // the sight's look (SightLook, D-0166)
             _muzzle = transform.Find("Muzzle");
             var lineGo = new GameObject("Line");
             lineGo.transform.SetParent(transform, false);

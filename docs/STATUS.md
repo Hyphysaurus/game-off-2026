@@ -2,6 +2,28 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 06:0x — SIGHTS YOU CAN SEE THROUGH (D-0166): COMPILED OUTSIDE, IN THE PROJECT, NOT YET OPENED IN UNITY, NOT PLAYED
+- His note: hard to see targets through the guns' reticles and sights. His go: "proceed on all".
+- Now, in Play: every sight has a clear lens and a cyan reticle that is lit by itself (it shows in the dark stretch
+  too): pistol a dot, SMG a ring with a dot, shotgun an open ring (its black scope picture and grey plate are gone).
+  Aiming zooms less: 56 -> pistol 72, SMG 68, shotgun 75. The guns on the armory stands show the same look.
+- FIRST THING when Unity opens: it imports a new shader, five materials and one asset that were written by hand. If a
+  sight shows PINK, or the Console names `Data/Sights`, `SightOverlay` or `SightLook`, tell me: that is the one part
+  that could not be checked here.
+- Try (first person, each gun): aim at a target in the playroom, then in the hallway's dark stretch. Look for: can you
+  see the target through the lens; is the reticle the right size and colour; does the zoom feel right; does anything
+  look wrong on the stands.
+- To tune, all in the Inspector: `Data/Sights/Reticle_*` (Colour, Size, Faces Drawn), `Sight_Glass_Clear` (Colour's
+  alpha = how much lens you see); zoom = Sight Field Of View on each Dart prefab AND its row in WorkshopPieces (the
+  builder owns those numbers). Out of Play the prefabs still show the pack's purple lens: the look is put on in Play.
+- Not done, his calls: the SMG still rolls 45 degrees on aim (a level sight, or a top-rail sight on the SMG, are the
+  ways out); the shotgun's sight stays 0.307 from the eye (0.40 would put the left hand past its reach).
+- ARMORY IDEA (his: adjust builds at the armory, in game): studied, checked, written up in docs/ARMORY_FEASIBILITY.md.
+  Feasible with limits. S = a looks bench (10 skins, 24 charms, live): 2 to 3 sessions, fits before the jam if started
+  by 27 Nov. M = working parts (sights, muzzles, stocks, magazines, a gun light, a foregrip): 4 more sessions, after
+  the jam. L = full builds (stats, saves, online, more guns): 6 to 10. NOTHING BUILT: it waits for his pick (8 calls
+  in the report; the first is "S before the jam, or park it all?").
+
 ## 23 Nov 2026 05:5x — FIRST PERSON: THE LEFT HAND STAYS PUT ON THE GUN (D-0165): COMPILED OUTSIDE, IN THE PROJECT, NOT PLAYED
 - His note: in first person the left (grip) hand moved a little on the SMG while walking.
 - Why: at the hip the hold was at the very end of the left arm, so it slid along the barrel with every shoulder

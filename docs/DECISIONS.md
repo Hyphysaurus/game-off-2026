@@ -2841,3 +2841,40 @@
   - Open, his calls after he has seen it: Support Reach (0.96 to 0.975 all work); the wrist bend limit 55 -> 65 (shared
     with third person) or per-gun palm rolls for the wobble that is left; the SMG's sight distance 0.46 -> 0.40 (the
     body then moves 2 cm, not 7, when it is aimed).
+- **D-0166 (23 Nov, 06:0x) Gun sights you can see through: a clear lens, a reticle that lights itself, less zoom.**
+  - His playtest: "we need to work on the ADS sights for each gun, its hard to see targets through those reticles or
+    target sights"; his go on the plan: "proceed on all".
+  - Found: the pack's lens (`Sight_Glass`) is URP Lit, purple, glossy, 26% solid. The shotgun's sight adds a grey plate
+    (`Sight_Projection`, 36%) and its reticle is a full scope picture (`Sight_01`), half solid black and lit by the
+    room, so it goes dark in a Dark Zone. Every gun zoomed from 90 to 56 when aimed.
+  - The shader `ShiftJam/SightOverlay` (`Shaders/`): one flat colour the room's light never touches. The picture's
+    ALPHA is the shape (the pack's reticles are black drawings on a clear background), Size scales it about the middle
+    of the lens, Faces Drawn says which side shows. Five materials on it in `Data/Sights`.
+  - `SightLook` (`Resources/SightLook`, a ScriptableObject): the one list "a material of the pack's sights -> what the
+    game shows". A weapon asks as it wakes (`Weapon.Awake`, new, `protected virtual`; `DartLineWeapon` overrides it and
+    calls base), and a stand asks for its display (`WeaponPickup.Awake`: a stand shows the bare model, not a weapon).
+    So every gun, and any sight fitted later, gets the look with nothing per prefab. A gun may name its own reticle
+    (`Weapon > Reticle`).
+  - Rule to keep: `GunSight.Find` finds the line of sight from materials whose NAME starts `Sight_Glass` or
+    `Sight_Projection`. The two lens materials keep those prefixes (`Sight_Glass_Clear`, `Sight_Projection_None`); a
+    lens material named otherwise would silently move the aim point to the sight's mount.
+  - Per gun: pistol a dot (pack `Sight_16`, size 1.5), SMG a ring with a dot (`Sight_20`; `Sight_12`, the first pick,
+    has stray pixels at its edge), shotgun an open ring (`Sight_17`, size 0.75); cyan at 1.0, under the bloom
+    threshold. Aim field of view 56 -> pistol 72, SMG 68, shotgun 75 (`sightFieldOfView`).
+  - The numbers are in the builder's rows too (`WorkshopPieces` WeaponSpec: SightFieldOfView, Reticle, written by
+    FitHold), because the full build remakes the Dart prefabs from nothing and would have wiped them.
+  - Side effects handled: `WorldBend` lets a sight's lens and reticle ride along unbent, so its housing still bends
+    with its gun on a shift; a hidden `_Surface` on the shader lets `BodyFade` fade the sight with the gun; reticles are
+    drawn from the shooter's side only, as the pack's were.
+  - Dropped from the plan: the shotgun's sight distance 0.307 -> 0.40. The review: it puts the support hand 2 to 5 cm
+    past the left arm's reach and makes the scope's opening about a fifth smaller on screen. 0.34 at most if wanted
+    (in the shotgun's row as well).
+  - Left as it was, his call: the SMG's 45 degree roll on aim. Known, as before: on the SMG's slanted sight the
+    reticle sits about 3 px (at 1080p) from where the darts go; an Offset to try on `Reticle_RingDot`: x 0.0053,
+    y -0.0689 (the sign is not confirmed).
+  - In the editor, out of Play, a gun still shows the pack's look: the change is made as the game runs.
+  - Checked: compiled outside (0 errors); one independent review (the shader's constructs against the URP 17.3
+    sources and the project's working shaders; every hand-written YAML file against files Unity wrote; the nine new
+    GUIDs unique; the sight meshes read from the FBX: each reticle is a quad or disc with UV 0..1, centred on the
+    lens). NOT yet through Unity: the shader, the five materials and the asset are imported for the first time when
+    the editor next opens. A pink sight, or an import error naming `Data/Sights` or `SightLook`, is the thing to report.

@@ -126,8 +126,9 @@ MonoBehaviour:
   gripCurl: {x: 0, y: 20, z: 1}
   sightPoint: {x: 0, y: 0, z: 0}
   sightRoll: 45
-  sightFieldOfView: 0
+  sightFieldOfView: 68
   sightDistance: 0.46
+  reticle: {fileID: 2100000, guid: ff32a1f2a5714702bf6b97588b5794e8, type: 2}
   icon: {fileID: 2800000, guid: c2de98c92739d424dbbddad0cd585223, type: 3}
   worn: 0
   moveSpeed: 0.96

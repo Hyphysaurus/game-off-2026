@@ -28,6 +28,7 @@ namespace ShiftJam
         [SerializeField, Tooltip("First person: degrees the gun rolls over to its left as the sight comes to the eye. For a sight that stands at a slant on the gun's right side (an offset sight, made to be used with the gun rolled over): the slant, so the sight stands upright at the eye. 0 = a sight on top.")] private float sightRoll;
         [SerializeField, Tooltip("Field of view while this weapon is aimed in first person, degrees (a scope zooms further). 0 = the first-person settings' aim field of view.")] private float sightFieldOfView;
         [SerializeField, Tooltip("First person: how far in front of the eye this gun's sight sits while aimed, units at scale 1. Further out, the gun is held out more and the hand holding it comes up into view (a pistol at arm's length). 0 = the shared number (Resources/WeaponHold > Sight Distance, the test room's 0.307).")] private float sightDistance;
+        [SerializeField, Tooltip("The reticle this gun's sight shows: a material on the Sight Overlay shader (Data/Sights; its colour and size are set on it). Empty: the sight's own kind decides (Resources/SightLook).")] private Material reticle;
         [SerializeField, Tooltip("Its picture in the inventory bar (a thumbnail from Art/Thumbs).")] private Texture2D icon;
         [SerializeField, Tooltip("Melee: worn on the hand instead of gripped (a foam finger). The hand is folded away inside it and the fingers do not close.")] private bool worn;
         [SerializeField, Range(0.5f, 1f), Tooltip("How fast you move with this weapon out, as a share of normal. A heavy gun is a little slower (the test room: rifle 0.92, shotgun 0.9, sniper 0.82). 1 = no slower.")] private float moveSpeed = 1f;
@@ -41,6 +42,8 @@ namespace ShiftJam
         public bool TwoHanded => twoHanded;
         /// <summary>This weapon's own field of view while aimed in first person; 0 = none of its own.</summary>
         public float SightFieldOfView => sightFieldOfView;
+        /// <summary>This gun's own reticle (a material on the Sight Overlay shader), or null: the sight's own kind decides (SightLook).</summary>
+        public Material Reticle => reticle;
         /// <summary>Degrees the gun rolls over as its sight comes to the eye in first person (an offset sight); 0 = none.</summary>
         public float SightRoll => sightRoll;
         /// <summary>First person: how far in front of the eye the sight sits while aimed: this gun's own, else the shared one.</summary>
@@ -85,6 +88,14 @@ namespace ShiftJam
         public virtual void TriggerHeld() { }
         /// <summary>Put away or dropped mid-action: stop cleanly.</summary>
         public virtual void Cancel() { }
+
+        /// <summary>Every weapon, as it wakes: its sight's lens and reticle take the game's look (SightLook, D-0166).
+        /// A weapon with an Awake of its own calls this one first (base.Awake()).</summary>
+        protected virtual void Awake()
+        {
+            SightLook look = SightLook.Load();
+            if (look != null) look.Apply(transform, reticle);
+        }
 
         private bool _fitted; private float _stock; private Vector3 _support;
         private bool _sighted, _sightOnMount; private Vector3 _sight;

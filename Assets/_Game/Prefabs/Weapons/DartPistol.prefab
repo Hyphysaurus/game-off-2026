@@ -126,7 +126,7 @@ MonoBehaviour:
   gripCurl: {x: 0, y: 20, z: 0}
   sightPoint: {x: 0, y: 0, z: 0}
   sightRoll: 0
-  sightFieldOfView: 0
+  sightFieldOfView: 72
   sightDistance: 0.55
   icon: {fileID: 2800000, guid: f331b4ae90c64d841bd8e22cc36dde6c, type: 3}
   worn: 0

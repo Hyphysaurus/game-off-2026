@@ -2715,4 +2715,15 @@
     while holding, E lets go.
   - The toy box's giant flashlight: Pushable off, Grabbable on; the core's prompt: "Dark. Grab the big light (E) and
     turn it onto this." (Land Bedroom Light Beats again.)
+- **D-0157 (22 Nov, 19:2x) The grabbed giant flashlight points where you look.**
+  - His "maybe rotate doesnt work here... any other suggestions so that we could EASILY manipulate it?", then "C would
+    be cool if we have the assets for it, if not, A works". No turntable in the packs (plates and inflatable platforms
+    only), so A: steer by view.
+  - Live scan first: E grabbed and held it, but the stick read zero throughout (also while walking, so the reading path
+    is unexplained) and the toy and the torch crept together (about 1 unit in 40 s, no input).
+  - `Grabbable` Steer: View (default; turns its aim, a Flashlight's Beam or an Aim transform, toward the camera's flat
+    forward, full Turn Speed from 30 degrees off, easing in) or Stick (left / right). While held, the grabber's capsule
+    and the thing ignore each other (the creep).
+  - Edited straight into the project while he was in Play (against the rule: stage, land out of Play); Fast Script
+    Reload's hot patch failed harmlessly; recompiled clean after he stopped.
 

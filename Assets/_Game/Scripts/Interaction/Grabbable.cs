@@ -5,7 +5,8 @@ namespace ShiftJam
 {
     /// <summary>
     /// A heavy thing taken hold of and steered, as in Zelda (D-0156, his "a Zelda-like grab onto the item and we can
-    /// rotate it"): E takes hold where the player stands; left / right turn it (about its middle, or about its far end),
+    /// rotate it"): E takes hold where the player stands; it turns to face where the player looks (Steer View, D-0157:
+    /// left / right on the stick did not get through and were hard to aim with) or with left / right (Steer Stick),
     /// forward / back push and pull it; E or Jump lets go. The player is held at their grip, facing it, and walks round
     /// with it. Its own physics body moves it (by speed, so walls stop it). The giant flashlight in the toy box has one:
     /// steer its beam onto the core. Who may grab it, how fast it turns and slides, and its pivot are set on it.
@@ -14,11 +15,14 @@ namespace ShiftJam
     public sealed class Grabbable : MonoBehaviour, IInteractable
     {
         public enum Pivot { Middle, FarEnd }
+        public enum Steer { View, Stick }
 
         [SerializeField] private string prompt = "Grab";
         [SerializeField, Tooltip("A toy may grab it.")] private bool toyCan = true;
         [SerializeField, Tooltip("A kid may grab it.")] private bool kidCan;
-        [SerializeField, Tooltip("Left / right turn it.")] private bool canTurn = true;
+        [SerializeField, Tooltip("View: it turns to point where the player looks (a giant flashlight: look at the target). Stick: left / right turn it.")] private Steer steer = Steer.View;
+        [SerializeField, Tooltip("Optional. The way it points (a flashlight's Beam). Its own forward if empty, or a Flashlight's beam when it has one.")] private Transform aim;
+        [SerializeField, Tooltip("It may be turned.")] private bool canTurn = true;
         [SerializeField, Tooltip("Forward / back push and pull it.")] private bool canPush = true;
         [SerializeField, Min(0f), Tooltip("Degrees a second at full stick.")] private float turnSpeed = 45f;
         [SerializeField, Min(0f), Tooltip("Push / pull speed at full stick, in the grabber's own heights a second.")] private float pushSpeed = 0.8f;
@@ -37,6 +41,8 @@ namespace ShiftJam
         private Vector3 _far;           // the far end from the grip, in its own space (the Far End pivot)
         private float _turn, _push;     // eased
         private bool _wasKinematic;
+        private Collider[] _mine;
+        private CharacterController _cc;
 
         /// <summary>True while someone holds it.</summary>
         public bool Grabbed => _who != null;
@@ -67,7 +73,12 @@ namespace ShiftJam
             _motor = _who.GetComponent<PlayerMotor>();
             _shifter = _who.GetComponent<Shifter>();
             Held[_who] = this;
+            // Grabber and thing do not push each other while held (they crept apart together, D-0157).
+            _cc = _who.GetComponent<CharacterController>();
+            _mine = GetComponentsInChildren<Collider>();
+            if (_cc != null) foreach (var c in _mine) if (c != null) Physics.IgnoreCollision(_cc, c, true);
             _grip = transform.InverseTransformPoint(_who.transform.position);
+            if (aim == null && TryGetComponent(out Flashlight torch) && torch.Beam != null) aim = torch.Beam.transform;
             Vector3 middle = transform.InverseTransformPoint(_body.worldCenterOfMass);
             Vector3 away = middle - _grip; away.y = 0f;
             Bounds local = LocalBox();
@@ -89,6 +100,7 @@ namespace ShiftJam
             if (_input != null) _input.Jump -= LetGo;
             if (_shifter != null) _shifter.ShiftStarted -= OnShift;
             if (_motor != null) _motor.HoldAt = null;
+            if (_cc != null && _mine != null) foreach (var c in _mine) if (c != null) Physics.IgnoreCollision(_cc, c, false);
             Held.Remove(_who);
             _who = null;
             _body.isKinematic = _wasKinematic;
@@ -105,7 +117,18 @@ namespace ShiftJam
             if (_who == null) return;
             Vector2 stick = _input != null && Time.timeScale > 0f ? _input.Move : Vector2.zero;
             float k = 1f - Mathf.Exp(-ease * Time.fixedDeltaTime);
-            _turn = Mathf.Lerp(_turn, canTurn ? stick.x : 0f, k);
+            float want = 0f;
+            if (canTurn && steer == Steer.Stick) want = stick.x;
+            else if (canTurn)
+            {
+                // Point where the player looks: the turn that brings its aim round to the view, flat, heavier near the end.
+                Camera view = PlayerSlot.ViewFor(_who.transform);
+                Transform way = aim != null ? aim : transform;
+                Vector3 now = Vector3.ProjectOnPlane(way.forward, Vector3.up), to = view != null ? Vector3.ProjectOnPlane(view.transform.forward, Vector3.up) : now;
+                if (now.sqrMagnitude > 1e-6f && to.sqrMagnitude > 1e-6f)
+                    want = Mathf.Clamp(Vector3.SignedAngle(now, to, Vector3.up) / 30f, -1f, 1f);   // full speed when 30 degrees or more off
+            }
+            _turn = Mathf.Lerp(_turn, want, k);
             _push = Mathf.Lerp(_push, canPush ? stick.y : 0f, k);
 
             // Turn about the chosen pivot; push along the grabber's line to it, flat.

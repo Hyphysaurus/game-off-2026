@@ -2789,3 +2789,26 @@
     its keys: `howTo` on Weapon / Carryable, defaults for blasters and the flashlight), ammo box / crate ("Darts topped
     up, grenades +N"), a core waking (`ShiftSource.awakeToast`, Core), the first dazzle per save (Tip "Dazzled!").
     BugNote keeps its own toast (a tester tool). Menu Shift Jam/UI/Show Sample Toasts (Play) shows one of each.
+- **D-0163 (23 Nov, 04:0x) The grenade's burst is grown to its true reach.**
+  - His pick "grow the burst" (the open call from D-0148: the throw ring shows the true 4.5 damage reach, the burst
+    read as about half of it). Why it read small: `PaintDrops.Puff` throws the bits up a 60 degree cone at 40-100% of
+    the top speed, they fall and shrink to nothing, so few are seen near the edge.
+  - `Grenade`: a flat ground skirt of bright bits (`PaintSplats.Ring`: no fall, one speed) arrives at the full reach
+    with the shockwave ring; a smoke skirt rolls to Ground Smoke Reach (0.85) of it; the spray's Burst Reach 0.9 ->
+    1.3 (the fastest bit; the average lands near the edge). Damage reach unchanged. New fields: Ground Bits (36),
+    Ground Smoke (20), Ground Smoke Reach.
+- **D-0164 (23 Nov, 04:2x) Hands on a grabbed heavy thing; the turntable is walked round.**
+  - His playtest: "pressing E on the spinning light puzzle doesn't move the character ... we should see the
+    character move along with the wheel OR AT LEAST have the character's arms on the spinning piece". Replaces
+    D-0161's stand-still (kept from it: nothing turns the disc but A / D; kept from D-0160: the camera does not swing
+    behind while holding, which was what made the older carried-round version read as the disc turning by itself).
+  - `Grabbable` is an `ICarryHands` source: on the grab it casts against its OWN colliders from in front of the
+    grabber and puts both palms on its top edge when that is between knee and head height (a rim), else flat on the
+    face in front of them; the marks are kept in its own space, so the palms ride with it. CarryPose fades them on
+    and off (Hands Fade). Any Grabbable gets this, not only the turntable.
+  - Anchored: the grabber is held at their grip on the rim again, so they side-step round with it facing the hub
+    (the walk blend takes the side-step). Blocked (they trail their grip by more than Block At of their height: a
+    wall, a block), it stops turning that way instead of dragging them off it.
+  - Hands are freed for it: a tool in hand goes to its slot on the grab (`Carrier.Stow`); the gun hides while held
+    (`WeaponHolder.HandsFull` also asks `Grabbable.Holds`), as for a carried box.
+  - Left out: a forward lean into the push (no body-bend hook exists; new pose code if the push reads light).

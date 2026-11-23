@@ -2,6 +2,18 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 04:2x — TURNTABLE: HANDS ON THE RIM, HE WALKS IT ROUND (D-0164): COMPILED OUTSIDE, IN HIS EDITOR, NOT PLAYED
+- His note while playing: E on the turntable did not move the kid; he wants the kid to move with the wheel or at
+  least have his arms on it.
+- Now: both palms on the rim (top edge, else its face), he side-steps round with the disc facing the hub, the camera
+  stays put; blocked by a wall or a block, the disc stops turning that way. A light in hand goes to its slot on the
+  grab; the gun hides while holding. Any Grabbable gets the hands.
+- Try: Greybox, toy size, E at the turntable's rim, A / D. Look at: where the palms land, the side-step, what happens
+  against the toy box. Tune on the turntable's Grabbable: Hands Apart, Hands Fade, Block At, Turn Speed, Ease.
+- Not checked by me: the look of it (no play run; palm marks not probed against the real disc). No lean into the push.
+- Open from his playtest, plans owed (analysis done, awaiting his go): the SMG hand creeping on the gun in first
+  person while walking; the aim sights are hard to see targets through.
+
 ## 23 Nov 2026 04:0x — GRENADE BURST GROWN TO THE TRUE REACH (D-0163, his pick "a"): COMPILED, NOT PLAYED
 - The visible burst read as about half the 4.5 reach (bits up a 60 degree cone at 40-100% speed, shrinking, falling).
 - Now: a flat ground skirt of 36 bright bits reaches the full reach with the shockwave ring, a smoke skirt rolls to

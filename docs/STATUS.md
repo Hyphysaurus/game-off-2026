@@ -2,6 +2,21 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 05:3x — CHECKPOINT: THE 04:55 WORKFLOW WAS CUT BY THE USAGE LIMIT AT 05:22 (NOTHING OF IT LANDED)
+- His words since: "its not the trigger hand but the grip hand, the left hand"; the armory idea (adjust builds at the armory,
+  in game); "proceed on all, keep the work light as ill be AFK in AOE4"; after the cut: "proceed, fable limit was reset".
+- Run wf_78e7348c-085 (hand creep + armory study). Finished and kept (`%TEMP%\shiftjam-stage\salvage`): both armory
+  readers, the hand "reach" analysis. Cut: two hand analysts, the armory report. Never started: design, build, reviews.
+- Carried on leaner: the hand fix (D-0165) is built from the finished analysis, then checked by a small run; the armory
+  report and the sights review restart as a small run. No Unity runs: the editor is closed and he is in another game.
+- Hand cause, from that analysis's numeric copy of the arm code (it reproduces four 19 Nov probe readings): at the hip the
+  SMG's support hold asks 99.9% of the left arm and the code allows 98.5%, so the hold slides back along the barrel on
+  every frame, 1 cm per cm the shoulder moves; looking up adds about 0.5 cm per degree. The walk clip moves the
+  shoulders because only the head is pinned to the eye. Fix chosen: in first person the body slides to the gun for the
+  LEFT arm as it already does for the right (new Support Reach, 0.96 of the arm), so the hold never has to slide.
+- Sights (D-0166): staged in `%TEMP%\shiftjam-stage\sights`, compiles outside; lands after the hand fix.
+- D-0164 (turntable) WAS PLAYED by him at 04:46 (3:26, 0 errors, the toy-box core lit at 0:40); no word on the look.
+
 ## 23 Nov 2026 04:2x — TURNTABLE: HANDS ON THE RIM, HE WALKS IT ROUND (D-0164): COMPILED OUTSIDE, IN HIS EDITOR, NOT PLAYED
 - His note while playing: E on the turntable did not move the kid; he wants the kid to move with the wheel or at
   least have his arms on it.

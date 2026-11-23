@@ -35,7 +35,10 @@ namespace ShiftJam
         [SerializeField, Min(0), Tooltip("Bright bits thrown up from the middle (the test room: 28).")] private int blastBits = 28;
         [SerializeField, Tooltip("The bright bits: the fastest one's speed, a bit's radius, how fast they fall, all at toy size (the test room: 9, 0.09, 6).")] private Vector3 blastSpeedSizeFall = new Vector3(9f, 0.09f, 6f);
         [SerializeField, Min(0.01f), Tooltip("Seconds a bright bit lasts (the test room: 0.5).")] private float blastSeconds = 0.5f;
-        [SerializeField, Range(0f, 1.5f), Tooltip("How far the bright bits fly, as a share of the blast's reach (D-0153: the burst fills what the blast hits; the throw arc's ring). Their speed is raised to reach it.")] private float burstReach = 0.9f;
+        [SerializeField, Range(0f, 2f), Tooltip("How far the FASTEST bright bit would fly, as a share of the blast's reach (D-0153; D-0163 0.9 -> 1.3: bits leave at 40-100% of that speed, up a 60 degree cone, and shrink as they go, so 0.9 read as half the reach). Their speed is raised to reach it.")] private float burstReach = 1.3f;
+        [SerializeField, Min(0), Tooltip("Bright bits in a flat skirt that sweeps along the ground to the blast's full reach with the shockwave ring (D-0163). 0 = none.")] private int groundBits = 36;
+        [SerializeField, Min(0), Tooltip("Smoke bits in a flat skirt that rolls out to most of the blast's reach (D-0163). 0 = none.")] private int groundSmoke = 20;
+        [SerializeField, Range(0.1f, 1.5f), Tooltip("How far the smoke skirt rolls, as a share of the blast's reach (D-0163).")] private float groundSmokeReach = 0.85f;
         [SerializeField, Tooltip("A shockwave ring grows from the middle to the blast's reach as it goes off (D-0153).")] private bool shockRing = true;
         [SerializeField, Min(0.01f), Tooltip("Seconds the shockwave ring takes to grow and fade.")] private float ringSeconds = 0.4f;
         [SerializeField, Min(0f), Tooltip("The shockwave ring's width, units at toy size.")] private float ringWidth = 0.12f;
@@ -170,6 +173,10 @@ namespace ShiftJam
             float smokeSpeed = Mathf.Max(smokeSpeedSizeFall.x * _size, reach * burstReach * 0.6f / smokeSeconds);
             keeper.Puff(middle, Vector3.up, blastColour, blastBits, bitSpeed, blastSpeedSizeFall.y * _size, blastSpeedSizeFall.z * _size, blastSeconds);
             keeper.Puff(middle, Vector3.up, smokeColour, smokeBits, smokeSpeed, smokeSpeedSizeFall.y * _size * 1.6f, smokeSpeedSizeFall.z * _size, smokeSeconds);
+            // The ground skirt (D-0163): bits that do not fall, all at one speed, so the bright edge arrives at the
+            // blast's reach with the shockwave ring and the smoke rolls out under it: the burst covers what it hits.
+            keeper.Ring(middle + Vector3.up * (blastSpeedSizeFall.y * _size), Vector3.up, blastColour, groundBits, reach / ringSeconds, blastSpeedSizeFall.y * _size * 1.5f, ringSeconds);
+            keeper.Ring(middle + Vector3.up * (smokeSpeedSizeFall.y * _size), Vector3.up, smokeColour, groundSmoke, reach * groundSmokeReach / smokeSeconds, smokeSpeedSizeFall.y * _size * 1.6f, smokeSeconds);
             if (shockRing) BlastRing.Play(middle, reach, blastColour, ringWidth * _size, ringSeconds);
             if (blastClips != null && blastClips.Length > 0)
             {

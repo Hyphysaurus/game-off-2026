@@ -28,6 +28,8 @@ namespace ShiftJam
         private string displayName;
         [SerializeField, Tooltip("Its picture in the inventory bar (a thumbnail from Art/Thumbs).")]
         private Texture2D icon;
+        [SerializeField, Tooltip("The keys, on the toast the first time it is taken (D-0162). <b>Key</b> shows as a key cap. Empty: a flashlight says light / focus, anything else only its name.")]
+        private string howTo;
         [SerializeField, Tooltip("When put down, lie along the ground: the far end finds its own support, so a ruler laid from a table edge toward a box becomes a ramp. Planks are carried flat in both hands.")]
         private bool plank;
         /// <summary>Which hand a one-handed tool goes in (D-0144). Auto: a flashlight in the left (Alan Wake 2: the light
@@ -47,6 +49,8 @@ namespace ShiftJam
         public Quaternion GripRotation => Quaternion.Euler(gripRotation);
         /// <summary>Its name in the inventory bar.</summary>
         public string DisplayName => !string.IsNullOrEmpty(displayName) ? displayName : GetComponent<Flashlight>() != null ? "Flashlight" : name;
+        /// <summary>How to use it, for the first-pickup toast.</summary>
+        public string HowTo => !string.IsNullOrEmpty(howTo) ? howTo : GetComponent<Flashlight>() != null ? "<b>L</b> light   <b>Right click</b> aim and focus" : "";
         /// <summary>Its picture in the inventory bar, if it has one.</summary>
         public Texture2D Icon => icon;
         /// <summary>Only a kid can hold it (anything with the kid-only pick-up prompt). A flashlight is not: it goes with

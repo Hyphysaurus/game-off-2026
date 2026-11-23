@@ -52,10 +52,10 @@ namespace ShiftJam
             if (_open || !_fallen.Add(s)) return;
             int standing = 0; foreach (var x in soldiers) if (x != null && !_fallen.Contains(x)) standing++;
             var charge = FindFirstObjectByType<ShiftCharge>();
-            if (standing > 0) { if (charge != null && !string.IsNullOrEmpty(left)) charge.ShowHint(string.Format(left, standing)); return; }
+            if (standing > 0) { if (charge != null && !string.IsNullOrEmpty(left)) charge.ShowHint(string.Format(left, standing), ToastKind.Warning); return; }
             _open = true;
             foreach (var d in doors) if (d != null) d.Open();
-            if (charge != null) charge.ShowHint(routed);
+            if (charge != null) charge.ShowHint(routed, ToastKind.Got);
             onRouted?.Invoke();
         }
     }

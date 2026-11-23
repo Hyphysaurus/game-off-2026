@@ -109,7 +109,11 @@ namespace ShiftJam
         }
 
         /// <summary>Blinds it for its own Blind Seconds: wire a LightTarget's On Filled here (focus, then shoot).</summary>
-        public void Dazzle() => Blind(blindSeconds);
+        public void Dazzle()
+        {
+            if (_state != State.Down && Time.time >= _blindUntil) Toasts.Once("dazzle", "He can't see you for a few seconds: slip past or tag him.", ToastKind.Tip, "Dazzled!");   // the first time a save sees it (D-0162)
+            Blind(blindSeconds);
+        }
 
         /// <summary>True while blinded.</summary>
         public bool Blinded => Time.time < _blindUntil;

@@ -2771,4 +2771,21 @@
     Steer Stick (A / D, 40 degrees a second; nothing turns it by itself), prompt "Grab (A / D turn)", the core's
     prompt "Dark. Grab the turntable (E), turn the light onto this (A / D)."
   - The earlier "stick reads 0" came from the recorders (input read from the editor's update shows 0, the mouse too).
-
+- **D-0162 (22 Nov, 21:4x) One toast system, in the Toy Box sticker style (HUD step 1 of 3).**
+  - His pick from the HUD mockup canvas (https://claude.ai/artifact/4gN4jHdwr4EJutcfVhmPrT): "go with your
+    recommendations, make it diegetic where possible" = A+B (light always-on HUD, Toy Box stickers for moments),
+    diegetic where it helps. Steps: 1 toasts (this), 2 light HUD (style + zones, restyle ammo / health / hotbar /
+    charge), 3 diegetic (E prompt as a tag on its object, Light Target fill ring on the object, ammo tags at the gun).
+  - `Toasts.Show(text, kind, title)` from any script, any scene (the HUD makes itself, kept across loads); kinds Tip,
+    Got, Refused, Warning, Core pick colour, icon, label and sound (Toast / Confirm / Denied / Toast / Win). `ShowFor`
+    / `OnceFor` take a player and show only where it is played (its ShiftCharge has a HUD); `Once` = once per save
+    slot (SaveGame seen list). `<b>Key</b>` draws as a key cap.
+  - Cards: cream sticker, 4 px ink outline, 6 px drop shadow, badge with a drawn icon (`HudShapes`: rounded 9-slice,
+    check, cross, ring; no texture files), Fredoka. Top middle, up to 3 (the oldest leaves early), drop in with a
+    slight alternate tilt, a refusal shakes, a repeat shows x2 and bumps. Hidden under pause / title.
+  - Moved onto it: every ShiftChargeHud hint and refusal line (that HUD keeps only the batteries), Inventory
+    refusals, Dart Line kid refusal, Squad Gate count (Warning) and routed (Got), glider taken (Got), glider find
+    (Warning), first charge (Tip "Shift charge"). New: first pickup of each tool / weapon per save ("Flashlight!" +
+    its keys: `howTo` on Weapon / Carryable, defaults for blasters and the flashlight), ammo box / crate ("Darts topped
+    up, grenades +N"), a core waking (`ShiftSource.awakeToast`, Core), the first dazzle per save (Tip "Dazzled!").
+    BugNote keeps its own toast (a tester tool). Menu Shift Jam/UI/Show Sample Toasts (Play) shows one of each.

@@ -310,7 +310,7 @@ namespace ShiftJam
         {
             var charge = Holder != null ? Holder.GetComponent<ShiftCharge>() : null;
             if (charge == null) charge = FindFirstObjectByType<ShiftCharge>();
-            if (charge != null && !string.IsNullOrEmpty(text)) charge.ShowHint(text);
+            if (charge != null && !string.IsNullOrEmpty(text)) charge.ShowHint(text, ToastKind.Refused);
         }
     }
 }

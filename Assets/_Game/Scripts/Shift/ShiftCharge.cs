@@ -87,12 +87,15 @@ namespace ShiftJam
             if (wasEmpty && Max > 0 && !SaveGame.Seen(SaveGame.Slot, HintId))
             {
                 SaveGame.MarkSeen(SaveGame.Slot, HintId);
-                if (_hud != null) _hud.ShowHint(Hint);
+                if (_hud != null) _hud.ShowHint(Hint, ToastKind.Tip, "Shift charge");
             }
         }
 
-        /// <summary>A line on the HUD's hint row for a few seconds (the glider's "how to", D-0095).</summary>
-        public void ShowHint(string text) { if (_hud != null) _hud.ShowHint(text); }
+        /// <summary>A toast for this player (the glider's "how to", D-0095): only on the screen where it is played.</summary>
+        public void ShowHint(string text, ToastKind kind = ToastKind.Tip, string title = null) { if (_hud != null) _hud.ShowHint(text, kind, title); }
+
+        /// <summary>True on the PC where this player is played: its HUD exists (D-0162 toasts check it).</summary>
+        public bool HasHud => _hud != null;
 
         /// <summary>Exactly this many (clamped to 0..Max): what a door between the house's rooms carried over (D-0091).</summary>
         public void SetCharges(int charges) { Charges = Mathf.Clamp(charges, 0, Max); if (_hud != null) _hud.Refresh(); }
@@ -135,7 +138,7 @@ namespace ShiftJam
             if (inAir && to == ShiftSize.Toy && (glider == null || !glider.Owned) && !SaveGame.Seen(SaveGame.Slot, GliderHintId))
             {
                 SaveGame.MarkSeen(SaveGame.Slot, GliderHintId);
-                ShowHint(Glider.FindHint);
+                ShowHint(Glider.FindHint, ToastKind.Warning);
             }
         }
 

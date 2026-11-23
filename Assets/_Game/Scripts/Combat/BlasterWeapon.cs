@@ -16,6 +16,9 @@ namespace ShiftJam
     /// </summary>
     public sealed class BlasterWeapon : Weapon
     {
+        /// <summary>The first-pickup toast's keys (D-0162): its own if set, else fire / aim / reload.</summary>
+        public override string HowTo => !string.IsNullOrEmpty(base.HowTo) ? base.HowTo : "<b>Right click</b> aim   <b>Click</b> fire   <b>R</b> reload";
+
         [Header("Fire")]
         [SerializeField] private Projectile projectile;
         [SerializeField, Tooltip("Where shots leave. The weapon's root if empty.")] private Transform muzzle;

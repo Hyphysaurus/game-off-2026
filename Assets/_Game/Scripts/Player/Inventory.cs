@@ -135,14 +135,14 @@ namespace ShiftJam
         /// <summary>A weapon was taken: into the first free slot (or where the one it swapped for was).</summary>
         public void Added(Weapon w)
         {
-            if (w != null && _items.FindIndex(i => i.Weapon == w) < 0) _items.Add(new Item { Weapon = w });
+            if (w != null && _items.FindIndex(i => i.Weapon == w) < 0) { _items.Add(new Item { Weapon = w }); Got(w.DisplayName, w.HowTo); }
             int slot = _items.FindIndex(i => i.Weapon == w);
             if (slot >= 0 && !CanUse(slot) && _holder != null) _holder.SetDrawn(false);   // taken at a size that cannot use it (a kid and the Dart Line): carried, not in the hand
             Changed?.Invoke();
         }
 
         /// <summary>A tool was picked up into the hand.</summary>
-        public void Added(Carryable t) { if (t != null && _items.FindIndex(i => i.Tool == t) < 0) _items.Add(new Item { Tool = t }); if (_hands != null) _hands.MakeRoomFor(t); Changed?.Invoke(); }
+        public void Added(Carryable t) { if (t != null && _items.FindIndex(i => i.Tool == t) < 0) { _items.Add(new Item { Tool = t }); Got(t.DisplayName, t.HowTo); } if (_hands != null) _hands.MakeRoomFor(t); Changed?.Invoke(); }
 
         /// <summary>A tool carried in through a door (D-0145): into the bar, not into the hand (the carry puts back what
         /// was in hand afterwards).</summary>
@@ -248,7 +248,15 @@ namespace ShiftJam
         {
             var charge = GetComponent<ShiftCharge>();
             if (charge == null) charge = FindFirstObjectByType<ShiftCharge>();
-            if (charge != null && !string.IsNullOrEmpty(text)) charge.ShowHint(text);
+            if (charge != null && !string.IsNullOrEmpty(text)) charge.ShowHint(text, ToastKind.Refused);
+        }
+
+        /// <summary>The first time a save takes a thing of this name: a "Got a ..." toast with its keys (D-0162). Later
+        /// pickups, and things a door or a loaded save hands back, say nothing.</summary>
+        private void Got(string thing, string howTo)
+        {
+            if (string.IsNullOrEmpty(thing)) return;
+            Toasts.OnceFor(this, "got:" + thing, howTo, ToastKind.Got, thing + "!");
         }
     }
 }

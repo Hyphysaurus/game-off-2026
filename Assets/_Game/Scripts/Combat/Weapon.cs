@@ -12,6 +12,7 @@ namespace ShiftJam
     public abstract class Weapon : MonoBehaviour
     {
         [SerializeField] private string displayName = "Weapon";
+        [SerializeField, Tooltip("The keys, on the toast the first time it is taken (D-0162). <b>Key</b> shows as a key cap. Empty: a blaster says fire / aim / reload, anything else only its name.")] private string howTo;
         [Header("Hold")]
         [SerializeField, Tooltip("Extra turn of the weapon in the hand, on top of the hold the hand itself gives (a blaster) or of pointing along the arm (melee).")] private Vector3 handEuler;
         [SerializeField, Tooltip("Slide from the palm, in the weapon's own axes, units at scale 1.")] private Vector3 handOffset;
@@ -32,6 +33,8 @@ namespace ShiftJam
         [SerializeField, Range(0.5f, 1f), Tooltip("How fast you move with this weapon out, as a share of normal. A heavy gun is a little slower (the test room: rifle 0.92, shotgun 0.9, sniper 0.82). 1 = no slower.")] private float moveSpeed = 1f;
 
         public string DisplayName => displayName;
+        /// <summary>How to use it, for the first-pickup toast.</summary>
+        public virtual string HowTo => howTo;
         public WeaponHolder Holder { get; private set; }
         public bool AimsWithView => aimsWithView;
         /// <summary>True for a long gun: held in both hands, carried across the body, raised to the shoulder to aim.</summary>

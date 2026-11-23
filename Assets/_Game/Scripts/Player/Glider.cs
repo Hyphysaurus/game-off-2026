@@ -73,7 +73,7 @@ namespace ShiftJam
             if (Owned) return;
             _owned = true;
             PlayCue(_settings != null ? _settings.open : default);
-            if (TryGetComponent(out ShiftCharge charge)) charge.ShowHint(TakeHint);
+            if (TryGetComponent(out ShiftCharge charge)) charge.ShowHint(TakeHint, ToastKind.Got, "Got a paper plane!");
             GameEvents.RaiseGliderTaken(this);
         }
 

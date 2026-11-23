@@ -6,16 +6,15 @@ namespace ShiftJam
 {
     /// <summary>
     /// The carried shift on screen (D-0045): one small battery per charge at the bottom centre (lit = ready, dark =
-    /// spent), a line above it when a press is refused ("No room to grow"), and the one-time hint the first time a save
-    /// gets a charge. Hidden outside Play mode and under menus. Made by ShiftCharge; built in code like the other HUDs.
+    /// spent). Hidden outside Play mode and under menus. Made by ShiftCharge; built in code like the other HUDs. Its
+    /// lines (a refused press, the hints) are toasts now (D-0162): this HUD existing is what marks the local player.
     /// </summary>
     public sealed class ShiftChargeHud : MonoBehaviour
     {
         private static readonly Color Lit = new Color(0.35f, 0.9f, 1f, 0.95f), Dark = new Color(1f, 1f, 1f, 0.15f);
-        private const float NoticeSeconds = 1.6f, HintSeconds = 7f;
-        // Heights above the screen's bottom (1920 x 1080 units): the batteries' row middle, the refusal line, the hint.
-        // While the inventory bar shows they all go up so the row sits just above the bar, not across its slots (D-0132).
-        private const float RowY = 46f, RowHeight = 44f, NoticeY = 100f, HintY = 140f;
+        // Height above the screen's bottom (1920 x 1080 units) of the batteries' row middle. While the inventory bar
+        // shows it goes up so the row sits just above the bar, not across its slots (D-0132).
+        private const float RowY = 46f, RowHeight = 44f;
         private const float RaisedRowY = HotbarHud.Top + 8f + RowHeight * 0.5f;
 
         private Inventory _inventory;
@@ -25,10 +24,6 @@ namespace ShiftJam
         private CanvasGroup _group;
         private RectTransform _row;
         private Image[] _cells = new Image[0];
-        private TextMeshProUGUI _notice, _hint;
-        private Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP _noticeFx;
-        private CanvasGroup _noticeGroup;   // the notice fades by its group: Text Animator owns the letters' colours
-        private float _noticeUntil, _hintUntil;
 
         public static ShiftChargeHud Create(ShiftCharge charge)
         {
@@ -63,26 +58,18 @@ namespace ShiftJam
             for (int i = 0; i < _cells.Length; i++) _cells[i].color = i < _charge.Charges ? Lit : Dark;
         }
 
-        public void ShowNotice(string text) { TextFx.Set(_noticeFx, _notice, TextFx.Shaken(text)); _noticeUntil = Time.unscaledTime + NoticeSeconds; }   // shakes in (D-0098)
-        public void ShowHint(string text) { _hint.text = text; _hintUntil = Time.unscaledTime + HintSeconds; UiAudio.Play(UiAudio.Kind.Toast); }
+        public void ShowNotice(string text) => Toasts.Show(text, ToastKind.Refused);   // a refused press: the card shakes in (D-0098, D-0162)
+        public void ShowHint(string text, ToastKind kind = ToastKind.Tip, string title = null) => Toasts.Show(text, kind, title);
 
         private void Update()
         {
             if (_charge == null) { Destroy(gameObject); return; }   // the player is gone (its scene, or a party left): as the other HUDs do
             bool show = _charge != null && _charge.isActiveAndEnabled && GameMode.Current == GameMode.Mode.Play && !PauseMenu.IsOpen && !TitleMenu.IsOpen;
             _group.alpha = show ? 1f : 0f;
-            _noticeGroup.alpha = Mathf.Clamp01((_noticeUntil - Time.unscaledTime) / 0.4f);
-            _hint.alpha = Mathf.Clamp01((_hintUntil - Time.unscaledTime) / 0.8f);
             // The inventory bar shows while anything is carried (HotbarHud): sit above it then.
             if (_inventory == null) _inventory = _charge.GetComponent<Inventory>();
             float lift = _inventory != null && _inventory.isActiveAndEnabled && _inventory.Items.Count > 0 ? RaisedRowY - RowY : 0f;
-            if (lift != _lift)
-            {
-                _lift = lift;
-                _row.anchoredPosition = new Vector2(0f, RowY + lift);
-                _notice.rectTransform.anchoredPosition = new Vector2(0f, NoticeY + lift);
-                _hint.rectTransform.anchoredPosition = new Vector2(0f, HintY + lift);
-            }
+            if (lift != _lift) { _lift = lift; _row.anchoredPosition = new Vector2(0f, RowY + lift); }
         }
 
         private void Build()
@@ -93,12 +80,6 @@ namespace ShiftJam
             var scaler = canvasGo.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = BuildUiKit.HudMatch;   // by screen height (D-0133)
             _group = canvasGo.AddComponent<CanvasGroup>(); _group.blocksRaycasts = false; _group.interactable = false;
             _row = MenuKit.Rect("Charges", canvasGo.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, RowY), new Vector2(300f, RowHeight));
-            _notice = MenuKit.Text("Notice", canvasGo.transform, "", 30, new Vector2(0.5f, 0f), new Vector2(1000f, 44f));
-            _notice.rectTransform.anchoredPosition = new Vector2(0f, NoticeY);
-            _noticeGroup = _notice.gameObject.AddComponent<CanvasGroup>(); _noticeGroup.alpha = 0f;
-            _noticeFx = TextFx.On(_notice);
-            _hint = MenuKit.Text("Hint", canvasGo.transform, "", 26, new Vector2(0.5f, 0f), new Vector2(1200f, 44f));
-            _hint.rectTransform.anchoredPosition = new Vector2(0f, HintY); _hint.alpha = 0f;
         }
     }
 }

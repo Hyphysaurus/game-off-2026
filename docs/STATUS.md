@@ -2,6 +2,12 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 22 Nov 2026 21:4x — TOASTS (D-0162, HUD step 1 of 3) + A / D TURNTABLE (D-0161): IN HIS EDITOR, NOT PLAYED
+- HUD mockups (7 directions + toast board): https://claude.ai/artifact/4gN4jHdwr4EJutcfVhmPrT. His pick: A+B, diegetic where possible.
+- One toast system (Toy Box stickers, top middle, kinds + sounds, merged repeats, once-per-save tips); all old hint lines moved onto it; new: first pickups with keys, ammo box, core woke, first dazzle. Look over: Shift Jam/UI/Show Sample Toasts (Play).
+- Turntable: grab (E), A / D turn, you stand still (committed 1a0d213).
+- Next: step 2 light HUD (shared style + zones; ammo / health / hotbar / charge restyled), step 3 diegetic (E prompt tag on the object, Light Target ring, ammo tag at the gun).
+
 ## 22 Nov 2026 17:5x — LIGHT BEATS IN THE BEDROOM + HALLWAY, DAZZLE FX, GRENADE BURST, DOT ONLY WHEN AIMING (D-0152..0155): IN HIS EDITOR, NOT PLAYED
 - Toy box: its grow core starts dark; push the giant lit flashlight round until its beam wakes it (first puzzle).
 - Under the bed: a dark cave with the player's own toy flashlight, darts, grenades and a note only light shows.

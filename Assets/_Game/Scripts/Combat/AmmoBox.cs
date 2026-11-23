@@ -74,10 +74,18 @@ namespace ShiftJam
         /// <summary>The ammo itself, with the sound and the squash. False when nothing was needed.</summary>
         private bool Hand(WeaponHolder holder)
         {
-            bool took = holder.AddAmmo(magazines) > 0;
+            bool darts = holder.AddAmmo(magazines) > 0, took = darts;
+            int grenades = 0;
             // A supply crate also tops up the grenades (the test room's rule: only the crate, not a box).
-            if (magazines <= 0 && holder.TryGetComponent(out GrenadeThrower thrower)) took = thrower.Add(thrower.MostCarried) || took;
+            if (magazines <= 0 && holder.TryGetComponent(out GrenadeThrower thrower))
+            {
+                int before = thrower.Carried;
+                took = thrower.Add(thrower.MostCarried) || took;
+                grenades = thrower.Carried - before;
+            }
             if (!took) return false;
+            string got = darts && grenades > 0 ? "Darts topped up, grenades +" + grenades : darts ? "Darts topped up" : "Grenades +" + grenades;
+            Toasts.ShowFor(holder, got, ToastKind.Got);   // on the taker's own screen only (D-0162)
             holder.PlayClip(WeaponAmmoSettings.Load().pickupClip, 1f);
             _squashedAt = Time.time;
             return true;

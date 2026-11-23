@@ -34,6 +34,7 @@ namespace ShiftJam
         [SerializeField] private Material marbleDark;
         [Header("Events")]
         [SerializeField, Tooltip("Hook Feel feedbacks here: the flash, the punch, the sound.")] private UnityEvent onUsed;
+        [SerializeField, Tooltip("A toast when it wakes (D-0162). Empty: none.")] private string awakeToast = "The core woke up. Use it to shift (E).";
         [SerializeField] private UnityEvent onAwaken;
         [SerializeField] private UnityEvent onSleep;
         [SerializeField] private UnityEvent onSpent;
@@ -80,6 +81,7 @@ namespace ShiftJam
             if (!Dormant) return;
             Dormant = false;
             ApplyLooks();
+            if (!string.IsNullOrEmpty(awakeToast)) Toasts.Show(awakeToast, ToastKind.Core);
             onAwaken?.Invoke();
             GameEvents.RaiseSourceAwakened(this);
         }

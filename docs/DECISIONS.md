@@ -2898,3 +2898,50 @@
     the shadow distance to 35 times the toy's, so every lamp is always in range). Step 2, his call, after the armory
     base: only the lamps of the room the player is in cast shadows (walls hide the rest), with a profile first.
   - Checked: compiled outside (0 errors); the scene diff is the seven lines. Not seen in Unity yet.
+- **D-0167 (23 Nov, 11:0x; the number was set aside at 06:2x, before D-0168 landed) The armory looks bench: at a workbench a toy changes the skin and the charm of the gun in hand, and the look is kept per type of gun.**
+  - Asked, his words: "start with the base but if we can, we move towards working parts and full builds". This is the base
+    (build 1 of the contract that followed `docs/ARMORY_FEASIBILITY.md`): looks only, no stats yet.
+  - What it does: a toy with a gun drawn presses E at the bench. A copy of the gun turns above it and a short list opens:
+    Skin (the pack's ten) and Charm (the pack's 24, or none). W S pick a row, A D change it (hold to run through), Esc or
+    Done closes; in third person the mouse works the arrows too. Each change goes on the gun in the hand and on the copy
+    at once and is saved at once. Every gun of that TYPE taken later comes the same way, also after quitting (kept in
+    PlayerPrefs on this PC, like the body choice).
+  - How, new folder `Scripts/Armory`: `ArmoryCatalog` (the game's own parts list, Resources/ArmoryCatalog: skins, kinds
+    of part, parts, guns), `ArmoryLooks` (the saved text per gun type), `WeaponBuild` (the look on one gun: hangs the
+    part, writes the skin), `BenchScreen` (the rows, with its own keys), `ArmoryBench` (the bench itself). Editor:
+    `Debug/ArmoryPieces` with two menus, Shift Jam > Armory > Bake Parts List and Make Workbench Prefab. Three small
+    edits: `WeaponHolder.Equip` asks for the saved look as a gun comes to hand (one statement), `WorldBend` names the
+    ending of its shift copies (`CopySuffix`) so the skin knows a borrowed material, and `FirstPersonMode` does not
+    leave first person on the frame the bench's screen closed on the same Esc (`BenchScreen.TookEsc`).
+  - Rules kept: the game never names a pack type, a gun, a skin or a part in code: every name comes from the baked list,
+    so the public repo compiles without the pack. A gun nobody changed is not touched at all (no component, no material
+    written). Materials are written in one place, shared materials only, and never while the body fade or the size
+    shift holds them (the skin waits and goes on after, also on a gun dropped while it waits). A part is hung only on
+    the pack's own mount and only what the bench hung is ever taken off; the gun measures its stock before the first
+    part is hung, so a charm cannot change the hold. The bake writes only the kinds of part the game can fit today
+    (charms) and only the guns found inside Prefabs/Weapons, so the other meshes stay out of the build. The bench has
+    one solid collider on its root and no trigger, so it does not take E from the stands beside it. It works in any
+    scene and for any seated player (own camera rig, own devices). Opening switches the player's input off and, in
+    third person, holds the body and the camera facing the copy; closing gives each back, and the bench closes by
+    itself on a hit, a drop or swap, a size or mode change, the console, the pause menu, or the player being moved away.
+  - Found by the review and fixed before landing: in first person Esc closed the bench and also left first person
+    (first person reads the same key press later in the frame); the one-line `FirstPersonMode` edit above stops that.
+    That file was not in the contract's list for build 1. A skin waiting on the body fade was written too early if
+    the gun was dropped meanwhile; `WeaponBuild` now remembers the fade it waits on.
+  - Ready for the next steps: every part row in the list already has Fit (aim, hold) and Stats (recoil, spread,
+    reload, walk speed, magazine) numbers, kept by the bake; nothing reads them yet. Working parts starts with a new
+    row in `BakedTypes`, but a row is not enough (written on `BakedTypes` with the pack's file:line): the slot
+    Buttstock sits on mounts named ..._Gunstock, the ready-made builds' own sight, magazine, muzzle and stock must be
+    hidden before another is hung, a pistol's flashlight goes on BarBottom, and a gun must measure itself again after
+    a swap.
+  - NOT done yet: build 2 (the camera coming round to frame the copy, turning the copy by hand, the workbench keys on
+    the H sheet). Working parts and full builds with stats. Other players do not see your look online (their copy of
+    you is shown as the gun comes). In first person the turning copy is likely above the top of the view from close
+    up (worked out from sizes, not seen); the gun in the hand still changes live. Build 2 decides whether first
+    person gets its own lower display point.
+  - His steps before it shows: run the two menus (Bake Parts List, then Make Workbench Prefab), drag WeaponBench into
+    Greybox at the top level of the Hierarchy near the weapon stands, save.
+  - Checked: compiled outside both ways, as the editor and as a built game (0 errors, no warnings in the new or
+    edited files); the contract's searches over the new text all pass; the three edits are 4 lines, 3 lines and 3
+    lines. NOT run in Unity, not played: the bake, the bench prefab and the screen are seen for the first time when
+    he clicks the menus.

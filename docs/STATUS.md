@@ -2,6 +2,32 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 11:0x — ARMORY LOOKS BENCH, BUILD 1 (D-0167): COMPILED OUTSIDE BOTH WAYS, IN THE PROJECT, NEEDS HIS STEPS, NOT PLAYED
+- His pick: "start with the base but if we can, we move towards working parts and full builds". This is the base.
+- What it is: a workbench where a toy with a gun in hand presses E, a copy of the gun turns above it, and rows change
+  the Skin (10) and the Charm (24 or none), live, saved per TYPE of gun (every one taken later comes the same way, also
+  after quitting). A gun nobody changed is not touched. Six new scripts (`Scripts/Armory`, `Debug/ArmoryPieces`), one
+  statement in `WeaponHolder.Equip`, a constant in `WorldBend`, one condition in `FirstPersonMode` (Esc at the bench
+  no longer also leaves first person: found by the review).
+- HIS STEPS (not in Play):
+  1. Shift Jam > Armory > Bake Parts List. The Console should say "Baked 10 skins, 24 parts (Charms: 24), 3 guns
+     (Pistol1, SMG1, Shotgun1)". Different numbers: tell me the line.
+  2. Shift Jam > Armory > Make Workbench Prefab. Note the three size numbers it logs.
+  3. Open Greybox; search Hub_Armory in the Hierarchy, click it, F over the Scene view; clear the search.
+  4. Drag `Prefabs/Pieces/Weapons/WeaponBench` into the Scene view near the stands, a few steps clear of them.
+  5. Check it sits at the TOP LEVEL of the Hierarchy, not inside Room (the builders wipe what is inside). Ctrl+S.
+  6. Play as a toy: take a gun, E at the bench. W / S pick a row, A / D change it, Esc or Done closes.
+- Look for: is the turning copy easy to see and a good size (in first person from close up it is likely above the top
+  of the view: stand two or three steps back); is the bench a sensible size (it may be small); does WORKBENCH fit on
+  its sign; does a charm poke into the hand or the view; does a fresh gun of the same type come in your look, also
+  after stopping and playing again; first person: Esc closes the bench and you STAY in first person; refusals as a kid,
+  with the gun holstered, with the knife.
+- Not done: build 2 (the camera framing the copy, turning it by hand, the H sheet lines); the stands do not show your
+  look; other players online do not see it. Working parts and stats come after this is played (the parts list
+  already has the empty places for their numbers).
+- The run: contract (designer + skeptic, 15 corrections) at 07:1x; one builder; two reviews; fixer; final check 16 of
+  16. The usage limit paused it from 07:40 to 10:20 (it picked itself up).
+
 ## 23 Nov 2026 06:3x — ROOM LAMPS: THE SHADOW SIZE THEY WERE GETTING (D-0168): COMPILED OUTSIDE, IN THE PROJECT, NOT SEEN IN UNITY
 - Seven room lamps cast shadows as point lights (six shadow pictures each); they asked for more than URP's shadow
   sheet holds, so URP halved them every frame and filled the log. They now ask for Medium (512), which fits.

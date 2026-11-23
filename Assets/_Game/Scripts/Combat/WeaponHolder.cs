@@ -291,6 +291,10 @@ namespace ShiftJam
             weapon.transform.SetParent(transform, false);
             weapon.transform.localScale = looks.BaseScale;   // under the player: toy size at scale 1, grows with a shift
             weapon.SetHolder(this);
+            // The player's own look for this type of gun (D-0167): its skin and charm go on as it comes to hand, before
+            // the shadow pass below so a charm is covered by it. Only a holder with keys (a player's own): another
+            // player's copy is shown as it comes (ShowPuppet never passes here). Nothing saved = the gun is not touched.
+            if (input != null) WeaponBuild.PutSavedLookOn(weapon);
             SetViewModel(weapon, FirstPerson);
             _weapons.Add(weapon);
             _current = _weapons.Count - 1;

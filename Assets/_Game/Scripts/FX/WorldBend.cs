@@ -20,6 +20,8 @@ namespace ShiftJam
         public const string TypeKeyword = "CURVEDWORLD_BEND_TYPE_LITTLEPLANET_Y", IdKeyword = "CURVEDWORLD_BEND_ID_1", NormalKeyword = "CURVEDWORLD_NORMAL_TRANSFORMATION_ON";
         private static readonly int SettingsId = Shader.PropertyToID("_CurvedWorldBendSettings");
         private const string Lit = "Universal Render Pipeline/Lit";
+        /// <summary>What the name of every copy made for a shift ends with. Code that must not write a renderer's materials while the bend has them (WeaponBuild, D-0167) knows a borrowed material by it.</summary>
+        public const string CopySuffix = " (bend)";
 
         [Header("At rest: the garden")]
         [SerializeField, Tooltip("Where the bend is pivoted at rest (the window).")] private Transform restPivot;
@@ -116,7 +118,7 @@ namespace ShiftJam
         private Material CopyOf(Material m)
         {
             if (_copies.TryGetValue(m, out var copy) && copy != null) return copy;
-            copy = new Material(template) { name = m.name + " (bend)" };
+            copy = new Material(template) { name = m.name + CopySuffix };
             copy.CopyPropertiesFromMaterial(m);
             // CopyPropertiesFromMaterial takes values, not the shader's feature switches: without them a copy kept the
             // template's (specular highlights and reflections ON where the toy packs turn them off, no emission, no

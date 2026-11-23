@@ -109,7 +109,9 @@ namespace ShiftJam
                     if (GameMode.Current == GameMode.Mode.FirstPerson) GameMode.Set(GameMode.Mode.Play);
                     else if (CanEnter || GameMode.Current == GameMode.Mode.Build) GameMode.Set(GameMode.Mode.FirstPerson);
                 }
-                else if (_inside && k.escapeKey.wasPressedThisFrame) GameMode.Set(GameMode.Mode.Play);
+                // Not on the frame the armory bench's screen closed on this same Esc (D-0167): that screen runs before
+                // this script and has already used the key, so Esc at the bench only closes the bench.
+                else if (_inside && !BenchScreen.TookEsc && k.escapeKey.wasPressedThisFrame) GameMode.Set(GameMode.Mode.Play);
             }
 
             if (_inside && _holder != null)

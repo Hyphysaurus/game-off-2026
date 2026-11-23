@@ -77,12 +77,12 @@ namespace ShiftJam
                         && GameMode.Current != GameMode.Mode.Build && !PauseMenu.IsOpen && !TitleMenu.IsOpen && !KeyHelp.IsOpen && !DebugConsole.IsOpen;
             _group.alpha = show ? 1f : 0f;
             if (!show) return;
-            int inHand = _inventory.InHand, usable = _inventory.Usable;
+            int usable = _inventory.Usable;
             for (int i = 0; i < _panels.Length; i++)
             {
                 bool has = i < items.Count;
                 bool can = has && _inventory.CanUse(i);
-                _panels[i].color = i == inHand ? Lit : has ? Filled : Empty;
+                _panels[i].color = _inventory.IsInHand(i) ? Lit : has ? Filled : Empty;   // both hands' slots lit (D-0144)
                 _icons[i].texture = has ? items[i].Icon : null;
                 _icons[i].enabled = has && items[i].Icon != null;
                 _names[i].text = has ? items[i].Name : "";

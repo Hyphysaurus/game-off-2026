@@ -30,6 +30,11 @@ namespace ShiftJam
         private Texture2D icon;
         [SerializeField, Tooltip("When put down, lie along the ground: the far end finds its own support, so a ruler laid from a table edge toward a box becomes a ramp. Planks are carried flat in both hands.")]
         private bool plank;
+        /// <summary>Which hand a one-handed tool goes in (D-0144). Auto: a flashlight in the left (Alan Wake 2: the light
+        /// in the left, a gun in the right), anything else in the right.</summary>
+        public enum HandChoice { Auto, Right, Left }
+        [SerializeField, Tooltip("Which hand it is held in. Auto: a flashlight in the left (so a gun can be in the right), anything else in the right. Two-handed things (planks, GripR + GripL) use both whatever this says.")]
+        private HandChoice hand = HandChoice.Auto;
         [SerializeField] private UnityEvent onPickedUp;
         [SerializeField] private UnityEvent onPutDown;
 
@@ -50,6 +55,9 @@ namespace ShiftJam
         /// <summary>Degrees each finger bone bends round the handle: this thing's own number for each part, else the shared one.</summary>
         public Vector3 GripCurl(WeaponHoldSettings shared) => new Vector3(gripCurl.x > 0f ? gripCurl.x : shared.handleCurl.x, gripCurl.y > 0f ? gripCurl.y : shared.handleCurl.y, gripCurl.z > 0f ? gripCurl.z : shared.handleCurl.z);
         public bool Plank => plank;
+        /// <summary>The hand it is held in (Both when two-handed). PlayerHands decides what can be held with it.</summary>
+        public HandUse Hand => TwoHanded ? HandUse.Both
+            : hand == HandChoice.Left || (hand == HandChoice.Auto && GetComponent<Flashlight>() != null) ? HandUse.Left : HandUse.Right;
         [SerializeField, Tooltip("Carried in the hand (Carrier) instead of grabbed (ThirdPersonGrab). Planks and flashlights always are.")]
         private bool keepInHand;
         /// <summary>True for tools held in the hand: the flashlight (Attack uses it) and planks (laid along the ground).

@@ -55,4 +55,5 @@ Level beats are placed parts, not coordinates in builder code.
 | Part | Where | How to use it |
 | --- | --- | --- |
 | **Player** | `Prefabs/Player/Player.prefab` | The one player: every scene's Player is an instance of it (Greybox, Workshop, Raceway, Colour Corner), the online `Resources/Net/NetPlayer` a variant. Something every player needs goes on the prefab, once. A scene's own start or extras (Colour Corner's AmmoBelt, Loadout) stay overrides on its instance. A new scene: drag the prefab in, name it Player. Rebuilt or re-linked by Shift Jam / Player / Make One Player Prefab (safe to run again). |
+| **PlayerHands** | on Player.prefab (`Player/PlayerHands.cs`) | What each hand holds. A new hand-held thing only says its hand: a Carryable's **Hand** (Auto, Right, Left; planks and GripR+GripL are Both), a Weapon is Right (Both when Two Handed). Right + Left are held together; Both puts the left-hand thing away until it goes. Code that takes something into the hands calls `PlayerHands.MakeRoomFor(...)` first. |
 

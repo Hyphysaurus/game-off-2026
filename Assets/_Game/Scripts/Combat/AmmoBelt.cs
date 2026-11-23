@@ -59,13 +59,17 @@ namespace ShiftJam
 
         public void Next() => Select(Index + 1);
 
+        private float _padDownAt = float.NegativeInfinity;
+
         private void Update()
         {
             if (kinds.Length < 2 || Time.timeScale <= 0f) return;                             // paused, or a menu is up
             if (GameMode.Current == GameMode.Mode.Build || DebugConsole.IsOpen) return;   // T is typed or builds there
             var keys = Keyboard.current; var pad = Gamepad.current;
-            bool pressed = (keys != null && nextKey != Key.None && keys[nextKey].wasPressedThisFrame)
-                        || (padUp && pad != null && pad.dpad.up.wasPressedThisFrame);
+            // The pad's D-pad up: a tap (let go quickly) changes the ammo; held, it is the light key (D-0144).
+            if (padUp && pad != null && pad.dpad.up.wasPressedThisFrame) _padDownAt = Time.unscaledTime;
+            bool tapped = padUp && pad != null && pad.dpad.up.wasReleasedThisFrame && Time.unscaledTime - _padDownAt < PlayerInput.PadHoldSeconds;
+            bool pressed = (keys != null && nextKey != Key.None && keys[nextKey].wasPressedThisFrame) || tapped;
             if (pressed) Next();
         }
     }

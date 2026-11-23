@@ -77,9 +77,10 @@ namespace ShiftJam
         // ---------- when a move may start ----------
 
         /// <summary>Both hands on something (a prop in the arms, a tool): no roll, punch, kick or block until it is set down.</summary>
-        public bool HandsFull => (_carrier != null && _carrier.Held != null) || (_grab != null && _grab.Holding);
+        // A left-hand tool (the flashlight) leaves the moves free: roll, block (D-0144).
+        public bool HandsFull => (_carrier != null && _carrier.Held != null && !_carrier.InLeftHand) || (_grab != null && _grab.Holding);
         /// <summary>True with no weapon drawn: left and right mouse punch and kick.</summary>
-        public bool EmptyHanded => _holder == null || !_holder.Armed;
+        public bool EmptyHanded => (_holder == null || !_holder.Armed) && (_carrier == null || _carrier.Held == null);   // a click with the light out is the light's
 
         /// <summary>On foot and in control: the motor runs, in Play, not paused.</summary>
         private bool OnFoot => settings != null && _motor.enabled && _cc != null && _cc.enabled && GameMode.Current == GameMode.Mode.Play && Time.timeScale > 0f;

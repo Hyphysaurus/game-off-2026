@@ -2,12 +2,25 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 22 Nov 2026 16:0x — INDEPENDENT HANDS, THIRD + FIRST PERSON (D-0144, systems plan step 2): IN HIS EDITOR, NOT PLAYED
+- Flashlight in the LEFT hand, gun in the right, at once: click fires, aim (RMB/LT) raises both and focuses the light,
+  L (pad: hold D-pad up) switches the light or takes it out. X holsters the gun first. A two-handed gun or plank puts the
+  light away; it comes back after. Hotbar lights both slots. Rolls and blocks work with the light out.
+- First person: the light stays in hand, held in the view body's left hand (no more lit torch left in the world).
+- Try: pick up the bedroom torch, take the pistol out (both lit in the bar), aim and shoot with the light on; press L;
+  V for first person and look round; take a rifle (light goes away) and put it away (light comes back).
+- Not yet: others online don't see your light; a box grab needs the light put away first.
+- Next: step 3, tools carried between scenes.
+
 ## 22 Nov 2026 15:2x — ONE PLAYER PREFAB (D-0143, systems plan step 1) + BULB GLOW (D-0142): IN HIS EDITOR, NOT PLAYED
 - Prefabs/Player/Player.prefab; Greybox, Workshop, Raceway, Colour Corner's Player each an instance of it, converted in
   place (camera targets hold, 0 broken references in all four scenes); the house's player gained SafeGround; Colour
   Corner keeps AmmoBelt + Loadout as its own. NetPlayer = a variant of it (network id stored 3123185403, in its list).
 - Parts catalog started in docs/ARCHITECTURE.md ("Parts").
-- Next: he plays a scene or two; then step 2, the hands model (independent left and right hands).
+- PLAYED by him after the change: "aside from that, it feels pretty good". Found while playing: in first person the
+  flashlight's slot key takes it out with the Carrier parked, so it lies lit where the hand last was ("LMB Light" shown);
+  and first person has no tool hold at all. Both go into step 2 (the hands, first person included).
+- Next: step 2, the hands model (independent left and right hands); design given, awaits his go.
 
 ## 22 Nov 2026 15:1x — AIM LIKE ALAN WAKE 2 + FLASHLIGHT FOCUS (D-0141): LANDED IN HIS EDITOR, NOT PLAYED, NOT COMMITTED
 - Not aiming: the body no longer turns to the aim; the waist twists toward it (up to 45 across / 50 out) and the arm

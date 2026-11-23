@@ -95,15 +95,29 @@ namespace ShiftJam
         public bool FreeArm => _left.ok;
         /// <summary>A direction or a point in the right hand's own space, from its parts along the hand's own
         /// directions: x along the knuckles (from the wrist), y towards the thumb's side, z the way the palm faces.</summary>
-        public Vector3 InHand(Vector3 knucklesThumbPalm) => _right.fingers * knucklesThumbPalm.x + _right.thumb * knucklesThumbPalm.y + _right.palm * knucklesThumbPalm.z;
+        public Vector3 InHand(Vector3 knucklesThumbPalm) => InHand(knucklesThumbPalm, false);
+        /// <summary>The same in either hand (D-0144): the left hand's knuckles, thumb and palm are its own, so a number
+        /// tuned for the right hand means the same grip in the left.</summary>
+        public Vector3 InHand(Vector3 knucklesThumbPalm, bool left)
+        {
+            Arm a = left ? _left : _right;
+            return a.fingers * knucklesThumbPalm.x + a.thumb * knucklesThumbPalm.y + a.palm * knucklesThumbPalm.z;
+        }
+        /// <summary>True when that arm is humanoid and can be posed.</summary>
+        public bool ReadyFor(bool left) => left ? _left.ok : _right.ok;
+        /// <summary>That hand's bone.</summary>
+        public Transform HandOf(bool left) => left ? _left.hand : _right.hand;
 
         /// <summary>How a gun sits in the right hand (gun rotation = hand rotation x this), from where its barrel and its
         /// top point in the hand's own directions (knuckles, thumb, palm).</summary>
-        public Quaternion Grip(Vector3 barrel, Vector3 top)
+        public Quaternion Grip(Vector3 barrel, Vector3 top) => Grip(barrel, top, false);
+        /// <summary>The same for either hand (D-0144).</summary>
+        public Quaternion Grip(Vector3 barrel, Vector3 top, bool left)
         {
-            Vector3 along = InHand(barrel), up = InHand(top);
-            if (along.sqrMagnitude < 1e-8f) along = _right.fingers;
-            if (up.sqrMagnitude < 1e-8f) up = _right.thumb;
+            Arm a = left ? _left : _right;
+            Vector3 along = InHand(barrel, left), up = InHand(top, left);
+            if (along.sqrMagnitude < 1e-8f) along = a.fingers;
+            if (up.sqrMagnitude < 1e-8f) up = a.thumb;
             return Quaternion.LookRotation(along.normalized, up.normalized);
         }
         public Transform Hand => _right.hand;
@@ -164,28 +178,31 @@ namespace ShiftJam
             arm.ok = true;
         }
 
-        /// <summary>One-handed: bends the right arm so the gun in the hand points at <paramref name="target"/>, as far as
-        /// <paramref name="weight"/> (0 leaves the animation, 1 is the full aim).</summary>
-        public void Aim(Vector3 target, float weight, in Hold hold, WeaponHoldSettings s, float scale)
+        /// <summary>One-handed: bends the right arm (or the left, D-0144: the flashlight in the left hand while a gun is in
+        /// the right) so the thing in the hand points at <paramref name="target"/>, as far as <paramref name="weight"/>
+        /// (0 leaves the animation, 1 is the full aim). The left arm's limits are the right's mirrored.</summary>
+        public void Aim(Vector3 target, float weight, in Hold hold, WeaponHoldSettings s, float scale, bool left = false)
         {
-            if (!Ready || weight <= 0f) { _twist = 0f; return; }
-            _right.Remember();
+            Arm arm = left ? _left : _right;
+            if (!arm.ok || weight <= 0f) { _twist = 0f; return; }
+            arm.Remember();
+            Vector3 elbowWay = left ? Mirror(s.elbowDirection) : s.elbowDirection;
 
-            Vector3 shoulder = _right.upper.position;
-            float length = Vector3.Distance(_right.fore.position, shoulder) + Vector3.Distance(_right.hand.position, _right.fore.position);
+            Vector3 shoulder = arm.upper.position;
+            float length = Vector3.Distance(arm.fore.position, shoulder) + Vector3.Distance(arm.hand.position, arm.fore.position);
             Vector3 direction = Torso * Vector3.forward;
-            if ((target - shoulder).sqrMagnitude > 1e-4f * scale * scale) direction = Limit((target - shoulder).normalized, s, oneHand: true);
+            if ((target - shoulder).sqrMagnitude > 1e-4f * scale * scale) direction = Limit((target - shoulder).normalized, s, oneHand: true, leftArm: left);
             Vector3 wrist = ClearOfBody(shoulder + direction * (length * s.reach), direction, s, scale);
             // The elbow and forearm stay out of the chest, the fist out of the face: the hand goes further forward instead.
-            wrist = ClearOfTorso(_right, wrist, s.elbowDirection, s, scale);
+            wrist = ClearOfTorso(arm, wrist, elbowWay, s, scale);
 
             // The gun: put on the wrist and turned until the barrel itself is on the target.
-            Quaternion gun = BarrelOn(wrist, hold.seat, hold.muzzle, target, direction, s, oneHand: true);
+            Quaternion gun = BarrelOn(wrist, hold.seat, hold.muzzle, target, direction, s, oneHand: true, left: left);
             // The kick: the gun jumps back along its barrel and the barrel flips, the hand with it.
             wrist += gun * hold.kickSlide;
             gun *= hold.kickTurn;
 
-            bool freeHand = hold.reload > 0f && _left.ok;
+            bool freeHand = !left && hold.reload > 0f && _left.ok;   // a reload is the right hand's gun
             if (hold.reload > 0f)
             {
                 // Reloading: the gun goes from wherever the aim has it to its place in front of the chest (both measured
@@ -198,9 +215,9 @@ namespace ShiftJam
                 if (freeHand) { _left.Remember(); HandToMagazine(root, gun, hold, s, scale); }
             }
 
-            if (hold.limitWrist) Bend(_right, wrist, gun * Quaternion.Inverse(hold.grip), s.elbowDirection, s.forearmRoll, s);
-            else Bend(_right, wrist, gun * Quaternion.Inverse(hold.grip), s.elbowDirection);
-            if (weight < 1f) { _right.Blend(weight); if (freeHand) _left.Blend(weight); }
+            if (hold.limitWrist) Bend(arm, wrist, gun * Quaternion.Inverse(hold.grip), elbowWay, s.forearmRoll, s);
+            else Bend(arm, wrist, gun * Quaternion.Inverse(hold.grip), elbowWay);
+            if (weight < 1f) { arm.Blend(weight); if (freeHand) _left.Blend(weight); }
             _twist = 0f;   // the twist is this frame's, for this aim only
         }
 
@@ -577,7 +594,7 @@ namespace ShiftJam
         /// anchor, in the gun's axes; <paramref name="direction"/> is the way from the shoulder to the target. The barrel
         /// runs beside that line, so held parallel to it the gun would point past anything close; closer than a few
         /// times that distance the correction fades out, so something touching the gun cannot swing it round.</summary>
-        private Quaternion BarrelOn(Vector3 anchor, Vector3 seat, Vector3 muzzle, Vector3 target, Vector3 direction, WeaponHoldSettings s, bool oneHand = false)
+        private Quaternion BarrelOn(Vector3 anchor, Vector3 seat, Vector3 muzzle, Vector3 target, Vector3 direction, WeaponHoldSettings s, bool oneHand = false, bool left = false)
         {
             Vector3 beside = seat + muzzle; beside.z = 0f;
             float near = beside.magnitude * s.nearestTrueAim;
@@ -589,7 +606,7 @@ namespace ShiftJam
                 {
                     Vector3 from = anchor + Quaternion.LookRotation(trueWay, Vector3.up) * beside;
                     if ((target - from).sqrMagnitude < 1e-10f) break;
-                    trueWay = Limit((target - from).normalized, s, oneHand);
+                    trueWay = Limit((target - from).normalized, s, oneHand, left);
                 }
                 direction = Vector3.Slerp(direction, trueWay, trust).normalized;
             }
@@ -622,14 +639,17 @@ namespace ShiftJam
 
         /// <summary>Keeps the aim in front of the body and within reach of the shoulder. One-handed (the right arm alone)
         /// it reaches less far across the body than out to its own side (D-0136); a long gun turns the same both ways.</summary>
-        private Vector3 Limit(Vector3 direction, WeaponHoldSettings s, bool oneHand = false)
+        private Vector3 Limit(Vector3 direction, WeaponHoldSettings s, bool oneHand = false, bool leftArm = false)
         {
             Quaternion torso = Torso;
             Vector3 local = Quaternion.Inverse(torso) * direction;
+            if (leftArm) local.x = -local.x;   // the left arm: its own side is the body's left (D-0144)
             float pitch = Mathf.Clamp(Mathf.Asin(Mathf.Clamp(local.y, -1f, 1f)) * Mathf.Rad2Deg, -s.maxPitchDown, s.maxPitchUp) * Mathf.Deg2Rad;
             float left = oneHand ? Across(s, pitch * Mathf.Rad2Deg) : s.maxTurn, right = oneHand ? s.maxTurnOut : s.maxTurn;
             float turn = Mathf.Clamp(Mathf.Atan2(local.x, local.z) * Mathf.Rad2Deg, -left, right) * Mathf.Deg2Rad;
-            return torso * new Vector3(Mathf.Sin(turn) * Mathf.Cos(pitch), Mathf.Sin(pitch), Mathf.Cos(turn) * Mathf.Cos(pitch));
+            var limited = new Vector3(Mathf.Sin(turn) * Mathf.Cos(pitch), Mathf.Sin(pitch), Mathf.Cos(turn) * Mathf.Cos(pitch));
+            if (leftArm) limited.x = -limited.x;
+            return torso * limited;
         }
 
         /// <summary>Keeps the gun hand out of the body. Inside the body's oval (seen from above, round the hips), the
@@ -651,6 +671,9 @@ namespace ShiftJam
             float t = (-b + Mathf.Sqrt(Mathf.Max(b * b - 4f * a * c, 0f))) / (2f * a);
             return point + _body.rotation * new Vector3(along.x, 0f, along.y) * t;
         }
+
+        /// <summary>A direction in the body's own space, seen in a mirror down the middle (right to left).</summary>
+        private static Vector3 Mirror(Vector3 v) => new Vector3(-v.x, v.y, v.z);
 
         /// <summary>A turn with y along a bone and z along the elbow's hinge.</summary>
         private static Quaternion Frame(Vector3 along, Vector3 hinge)

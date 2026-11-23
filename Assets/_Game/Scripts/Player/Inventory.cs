@@ -17,6 +17,8 @@ namespace ShiftJam
     /// - Picking something up puts it in the first free slot and in the hand. A full bar refuses a tool; a weapon
     ///   swaps for the one in hand, as before.
     /// - A shift stows a tool in its slot instead of dropping it (it used to fall out of the hand, D-0041).
+    /// - Two hands (D-0144, PlayerHands): a left-hand tool (the flashlight) and a right-hand weapon are in hand together,
+    ///   both slots lit; what goes with what is PlayerHands' call, not this bar's.
     /// Big things (planks, boxes) are not in the bar: they stay in both hands, as carried. The paper plane is not
     /// either: it is always ready (Jump in the air). Added by the WeaponHolder to a player.
     /// </summary>
@@ -45,6 +47,7 @@ namespace ShiftJam
         private Shifter _shifter;
         private WeaponHolder _holder;
         private Carrier _carrier;
+        private PlayerHands _hands;
 
         /// <summary>Raised whenever what is in the slots, or which is in hand, may have changed.</summary>
         public event Action Changed;
@@ -56,15 +59,43 @@ namespace ShiftJam
         /// <summary>No free slot the size can use.</summary>
         public bool Full => _items.Count >= Usable;
 
-        /// <summary>The slot whose thing is in the hand now, or -1 with empty hands.</summary>
+        /// <summary>The slot of the main thing in hand (the weapon if one is out, else the tool), or -1 with empty hands.
+        /// The wheel steps from it.</summary>
         public int InHand
         {
             get
             {
-                if (_carrier != null && _carrier.Held != null) return _items.FindIndex(i => i.Tool == _carrier.Held);
                 if (_holder != null && _holder.Armed && _holder.Current != null) return _items.FindIndex(i => i.Weapon == _holder.Current);
+                if (_carrier != null && _carrier.Held != null) return _items.FindIndex(i => i.Tool == _carrier.Held);
                 return -1;
             }
+        }
+
+        /// <summary>True when the slot's thing is in a hand now (two can be: a weapon and a left-hand tool, D-0144).</summary>
+        public bool IsInHand(int slot)
+        {
+            if (slot < 0 || slot >= _items.Count) return false;
+            Item item = _items[slot];
+            if (item.Tool != null) return _carrier != null && _carrier.Held == item.Tool;
+            return item.Weapon != null && _holder != null && _holder.Armed && _holder.Current == item.Weapon;
+        }
+
+        /// <summary>True when this tool is in the bar (in hand or stowed).</summary>
+        public bool Holds(Carryable tool) => tool != null && _items.FindIndex(i => i.Tool == tool) >= 0;
+
+        /// <summary>Takes this tool out of its slot, as its key does (PlayerHands brings a waiting left-hand tool back).</summary>
+        public void TakeOut(Carryable tool)
+        {
+            int slot = _items.FindIndex(i => i.Tool == tool);
+            if (slot >= 0) TakeOut(slot);
+        }
+
+        /// <summary>The first flashlight in a slot the size can use, or null (the light key takes it out, D-0144).</summary>
+        public Carryable UsableLight()
+        {
+            for (int i = 0; i < _items.Count; i++)
+                if (_items[i].Tool != null && _items[i].Tool.TryGetComponent(out Flashlight _) && CanUse(i)) return _items[i].Tool;
+            return null;
         }
 
         /// <summary>True when the slot's thing can be taken out at the player's size.</summary>
@@ -82,6 +113,7 @@ namespace ShiftJam
             _shifter = GetComponent<Shifter>();
             _holder = GetComponent<WeaponHolder>();
             _carrier = GetComponent<Carrier>();
+            _hands = PlayerHands.On(gameObject);
         }
 
         private void Start() { if (_input != null) HotbarHud.Create(this); }
@@ -110,7 +142,7 @@ namespace ShiftJam
         }
 
         /// <summary>A tool was picked up into the hand.</summary>
-        public void Added(Carryable t) { if (t != null && _items.FindIndex(i => i.Tool == t) < 0) _items.Add(new Item { Tool = t }); if (_holder != null) _holder.SetDrawn(false); Changed?.Invoke(); }
+        public void Added(Carryable t) { if (t != null && _items.FindIndex(i => i.Tool == t) < 0) _items.Add(new Item { Tool = t }); if (_hands != null) _hands.MakeRoomFor(t); Changed?.Invoke(); }
 
         /// <summary>A weapon left for good (dropped, or carried off by a door between rooms).</summary>
         public void Removed(Weapon w) { _items.RemoveAll(i => i.Weapon == w || i.Gone); Changed?.Invoke(); }
@@ -133,7 +165,7 @@ namespace ShiftJam
         private void OnSlot(int slot)
         {
             if (!KeysAct() || slot < 0 || slot >= _items.Count) return;
-            if (slot == InHand) { EmptyHands(); return; }   // pressed again: put it away
+            if (IsInHand(slot)) { PutAway(slot); return; }   // pressed again: that one goes away, the other hand keeps its own
             if (!CanUse(slot)) { Hint(slot >= Usable ? "In the kid's bag: grow to reach it" : _items[slot].ToyOnly ? "A toy's tool: shrink to use it" : tooBigText); return; }
             TakeOut(slot);
         }
@@ -171,15 +203,24 @@ namespace ShiftJam
             Item item = _items[slot];
             if (item.Tool != null)
             {
-                if (_holder != null) _holder.SetDrawn(false);
+                if (_hands != null) _hands.MakeRoomFor(item.Tool);
                 if (_carrier != null && _carrier.Held != item.Tool) { _carrier.Stow(); _carrier.TakeOut(item.Tool); }
             }
             else if (item.Weapon != null && _holder != null)
             {
-                if (_carrier != null) _carrier.Stow();
+                if (_hands != null) _hands.MakeRoomFor(item.Weapon);
                 _holder.Select(item.Weapon);
                 _holder.SetDrawn(true);
             }
+            Changed?.Invoke();
+        }
+
+        /// <summary>Puts just that slot's thing away (its key pressed again).</summary>
+        private void PutAway(int slot)
+        {
+            Item item = _items[slot];
+            if (item.Tool != null && _carrier != null && _carrier.Held == item.Tool) { if (_hands != null) _hands.Forget(item.Tool); _carrier.Stow(); }
+            else if (item.Weapon != null && _holder != null) _holder.SetDrawn(false);
             Changed?.Invoke();
         }
 
@@ -194,8 +235,8 @@ namespace ShiftJam
         /// <summary>After a shift: what the new size cannot use goes out of the hand.</summary>
         private void OnShifted(ShiftSize _)
         {
-            int inHand = InHand;
-            if (inHand >= 0 && !CanUse(inHand)) EmptyHands();
+            for (int i = 0; i < _items.Count; i++)
+                if (IsInHand(i) && !CanUse(i)) PutAway(i);   // each hand on its own: the other keeps what it can still use
             Changed?.Invoke();
         }
 

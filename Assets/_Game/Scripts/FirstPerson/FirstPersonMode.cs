@@ -158,9 +158,11 @@ namespace ShiftJam
             float yaw = shoulderCamera != null ? shoulderCamera.Yaw : transform.eulerAngles.y;
             float pitch = shoulderCamera != null ? shoulderCamera.Pitch : 0f;
 
-            if (_carrier != null && _carrier.Held != null) { _carrier.Stow(); if (_carrier.Held != null) _carrier.PutDown(); }   // a slot tool goes back in its slot (D-0108); a plank is set down
+            // A tool in one hand stays in it: first person holds it in the view body's hand (D-0144). Only something in both
+            // hands (a plank) is set down: first person's own hands carry props.
+            if (_carrier != null && _carrier.Held != null && _carrier.Held.TwoHanded) _carrier.PutDown();
             _parked.Clear();
-            Park(_motor); Park(_interactor); Park(_carrier); Park(shoulderCamera);
+            Park(_motor); Park(_interactor); Park(shoulderCamera);
             if (_cc.enabled) { _cc.enabled = false; }
 
             _hidden.Clear();

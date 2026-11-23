@@ -2575,4 +2575,26 @@
     by hierarchy), so every reference to it holds and each scene's own values and extras stay as its overrides.
     `PartyBuilder.SaveNetPlayerVariant`: the NetPlayer is a variant of it (same path and id). The course builders only
     move the player or add to it, so their changes land as overrides.
+- **D-0144 (22 Nov, 16:0x) Independent hands, third and first person (systems plan step 2).**
+  - His "i do want independent hands, we should be able to shoot and aim flashlight at once. this opens up for other
+    potential future interactables where we use both hands", then "go"; and his first-person still (a lit flashlight
+    lying on the book with "LMB Light / X Put down" shown: first person parked the Carrier, so a slot key took the
+    light out with nothing holding it) plus "we cant see the flash light extend out in FPS mode".
+  - `HandUse` {Right, Left, Both}: set on the thing (Carryable.Hand: Auto = a flashlight left, else right; a weapon is
+    Right, Both when two-handed). `PlayerHands` (on Prefabs/Player, and added by the Inventory to any player) owns what
+    goes with what: right + left together; a two-handed thing puts the left-hand tool away and it comes back after,
+    unless its slot was chosen again. Inventory: both in-hand slots lit; a slot key again puts just that one away; a shift
+    puts away only what the new size cannot use. WeaponHolder.Equip asks PlayerHands instead of stowing every tool.
+  - `ArmAim.Aim(..., left)`: the one-handed aim for either arm, the left's limits, elbow and chest check mirrored;
+    `InHand` / `Grip` / `HandOf` / `ReadyFor` per hand. The Carrier holds a left-hand tool in the left hand (its own
+    fist), its arm posed after the gun's (WeaponHolder.LateUpdate calls Carrier.PoseHands); the waist twist only with no
+    gun out and not in first person.
+  - Input: click is the gun's when one is out (the light's otherwise); X holsters the gun first, the light stays; L (pad:
+    D-pad up held 0.35 s; a tap still changes ammo) switches the light, or takes it out of its slot and switches it on.
+    A left-hand light no longer blocks a roll or block (PlayerMoves.HandsFull); a click with only the light out is the
+    light's, not a punch.
+  - First person: a one-handed tool stays in hand (only a plank is set down); the view body is drawn under the eye for
+    it too (WeaponHolder.StandForTool) and the Carrier aims it along first person's own eye.
+  - Not yet: online players do not see each other's flashlight; a box grab still needs the light put away by hand.
+  - Compiled outside, landed in his editor; not played; not probed (batch needs Unity closed).
 

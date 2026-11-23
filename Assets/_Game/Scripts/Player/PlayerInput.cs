@@ -22,7 +22,7 @@ namespace ShiftJam
         private InputActionMap _extras;   // the actions made in code below: their own map, so pairing reaches them too
         private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop, _previous, _next, _shift, _crouch, _aim, _dodge, _block;
         // Workshop extras the asset has no actions for: made here so this stays the only script that knows devices.
-        private InputAction _dropWeapon, _scroll, _rotate, _reload, _grenade, _grenadePad, _grenadePadHold;
+        private InputAction _dropWeapon, _scroll, _rotate, _reload, _grenade, _grenadePad, _grenadePadHold, _light;
         private Vector2 _mouseLook;   // pixels moved since the last read
         private readonly InputAction[] _slots = new InputAction[4];   // 1 to 4: the inventory slots
         private Vector2 _stickLook;   // current right-stick value, -1..1
@@ -47,6 +47,9 @@ namespace ShiftJam
         public bool CrouchHeld => _crouch != null && _crouch.IsPressed();
         /// <summary>True while Aim is held (right mouse, pad LT): a drawn weapon aims.</summary>
         public bool AimHeld => _aim != null && _aim.IsPressed();
+        /// <summary>The light key (D-0144): L, or the pad's D-pad up held this long (a tap still changes the ammo).</summary>
+        public event Action LightToggle;
+        public const float PadHoldSeconds = 0.35f;
         /// <summary>Raised once per press of the Aim action: with empty hands it is the kick.</summary>
         public event Action AimPressed;
         /// <summary>True while Block is held (Q, pad LB).</summary>
@@ -102,6 +105,9 @@ namespace ShiftJam
             _reload = _extras.AddAction("Reload", InputActionType.Button, "<Keyboard>/r");
             _reload.AddBinding("<Gamepad>/buttonNorth");
             _grenade = _extras.AddAction("Grenade", InputActionType.Button, "<Keyboard>/g");
+            _light = _extras.AddAction("Light", InputActionType.Button, "<Keyboard>/l");
+            _light.AddBinding("<Gamepad>/dpad/up").WithInteraction("hold(duration=" + PadHoldSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")");
+            _light.performed += _ => LightToggle?.Invoke();
             for (int i = 0; i < _slots.Length; i++)
             {
                 int slot = i;

@@ -115,6 +115,8 @@ namespace ShiftJam
         // Another player's copy: their Shifter does not run here, but the network scales the body with their shift.
         public float Scale => shifter != null && !_puppet ? shifter.Scale : Mathf.Max(0.001f, transform.lossyScale.y);
         public bool FirstPerson => _fpView != null;
+        /// <summary>First person's eye, or null in third person (the Carrier aims a tool along it, D-0144).</summary>
+        public Transform FirstPersonView => _fpView;
         /// <summary>The first-person body standing in for the player, when there is one: never shot by our own shots.</summary>
         public Transform FirstPersonBodyRoot => _fpBody;
         private Transform View => _fpView != null ? _fpView : (aimCamera != null ? aimCamera.transform : OwnView());
@@ -252,7 +254,7 @@ namespace ShiftJam
             if (_weapons.Contains(weapon)) { Select(_weapons.IndexOf(weapon)); return weapon; }
             if (Full && Current == null && _inventory != null) { _inventory.RoomForTool(); return null; }   // every slot holds a tool: nothing to swap
             if (Full && Current != null) Drop(Current);
-            if (carrier != null && _inventory != null) carrier.Stow();   // a tool in the hand goes back in its slot
+            PlayerHands.On(gameObject).MakeRoomFor(weapon);   // a tool that cannot be held with it goes back in its slot (D-0144)
             if (Current != null) { Current.Cancel(); Current.gameObject.SetActive(false); }
 
             var looks = weapon.GetComponent<WeaponLooks>();
@@ -494,7 +496,8 @@ namespace ShiftJam
                 if (_weapons[i] != null) _weapons[i].gameObject.SetActive(i == _current && isActiveAndEnabled && !HandsFull && Drawn);
         }
 
-        private bool HandsFull => (carrier != null && carrier.Held != null) || (_grab != null && _grab.Holding);
+        // A left-hand tool (the flashlight) leaves the right hand free for the gun (D-0144).
+        private bool HandsFull => (carrier != null && carrier.Held != null && !carrier.InLeftHand) || (_grab != null && _grab.Holding);
 
         /// <summary>Attack (a click) belongs to us: on foot, in Play or first person, mouse captured, hands free.</summary>
         private bool CanAct()
@@ -566,7 +569,9 @@ namespace ShiftJam
             // First person: the body is drawn under the eye while a blaster is out, and the gun's sight comes up to the
             // eye while aim is held (the test room's rule).
             bool inView = visible && InView(w);
-            _viewBody.Show(inView);
+            // First person with a tool up and no gun: the body is drawn under the eye too, for the hand holding it (D-0144).
+            bool toolInView = FirstPerson && carrier != null && carrier.ToolUp && _armAim != null && _armAim.Ready && _viewBody.Ready;
+            _viewBody.Show(inView || toolInView);
             bool sighting = inView && AimHeld && w.AimsWithView;   // melee has no sight
             _sight = !inView ? 0f : _hold.sightTime > 0f ? Mathf.MoveTowards(_sight, sighting ? 1f : 0f, Time.deltaTime / _hold.sightTime) : sighting ? 1f : 0f;
             // A long gun: both hands come onto it as it is drawn and stay there; a move (a roll, a hit) takes them off.
@@ -592,13 +597,21 @@ namespace ShiftJam
             }
         }
 
-        private void LateUpdate() => Pose();
+        private void LateUpdate()
+        {
+            Pose();
+            if (carrier != null) carrier.PoseHands();   // the tool's arm after the gun's (D-0144)
+        }
 
         private void Pose()
         {
             var w = Current;
             FoldHand(w != null && w.gameObject.activeSelf && w.Worn && _armAim != null && _armAim.Ready);
-            if (w == null || !w.gameObject.activeSelf) return;
+            if (w == null || !w.gameObject.activeSelf)
+            {
+                if (_fpView != null && _viewBody.Shown) StandForTool(Scale);   // first person, only a tool in hand
+                return;
+            }
             float s = Scale;
             float reload = ReloadPose(w);
             if (_fpView != null)
@@ -874,6 +887,16 @@ namespace ShiftJam
             _viewBody.Slide(_armAim.OutOfReach(root, gun, hold, _hold));
             _armAim.OnGun(root, gun, both, weight, hold, _hold, s);
             CloseFingers(w, both);
+        }
+
+        /// <summary>First person with only a tool in hand (D-0144): the body is stood under the eye, the chest leaning
+        /// with the look, as for a gun; the Carrier then puts the tool's arm on the aim.</summary>
+        private void StandForTool(float s)
+        {
+            Vector3 look = _fpView.forward;
+            float lookUp = Mathf.Max(0f, Mathf.Asin(Mathf.Clamp(look.y, -1f, 1f)) * Mathf.Rad2Deg);
+            _armAim.TurnChest(0f, lookUp * _hold.chestFollowsView);
+            _viewBody.Stand(_fpView.position, transform.forward, -look.y, _hold, s);
         }
 
         /// <summary>The fingers: the gun hand closes round the grip, the other curls under a long gun. How far is the

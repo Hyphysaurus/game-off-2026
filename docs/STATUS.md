@@ -2,6 +2,14 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 22 Nov 2026 17:5x — LIGHT BEATS IN THE BEDROOM + HALLWAY, DAZZLE FX, GRENADE BURST, DOT ONLY WHEN AIMING (D-0152..0155): IN HIS EDITOR, NOT PLAYED
+- Toy box: its grow core starts dark; push the giant lit flashlight round until its beam wakes it (first puzzle).
+- Under the bed: a dark cave with the player's own toy flashlight, darts, grenades and a note only light shows.
+- Hallway dark stretch now really dark (D-0152); beam 20000 / 350 at kid size; soldiers show stun stars + cry when
+  dazzled; grenade burst fills its reach + shockwave ring; the dot only while aiming or firing.
+- Try: New Game -> push the light onto the box's core -> grow -> ... shrink -> under the bed with the light.
+- Open: the toy-box push feel (weight, damping) needs his hands; the note's words are placeholder.
+
 ## 22 Nov 2026 16:0x — INDEPENDENT HANDS, THIRD + FIRST PERSON (D-0144, systems plan step 2): IN HIS EDITOR, NOT PLAYED
 - Flashlight in the LEFT hand, gun in the right, at once: click fires, aim (RMB/LT) raises both and focuses the light,
   L (pad: hold D-pad up) switches the light or takes it out. X holsters the gun first. A two-handed gun or plank puts the

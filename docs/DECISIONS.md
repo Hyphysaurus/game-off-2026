@@ -2739,4 +2739,14 @@
     turntable (E) onto this." Spawn 2 units clear of the rim.
   - `Grabbable` Anchored: turns only about its own pivot as a kinematic body (riders turn with it), never pushed.
   - 0 broken references. Not played.
+- **D-0159 (22 Nov, 20:1x) Close shots land on the dot; the dazed marker smaller, higher, the right way up.**
+  - His "feels good now" (the turntable), then "when I get VERY close to the soldier in TPS, the dart goes offset from
+    the reticle... the dazed marker is a bit large and in a strange rotation above the soldier, make it slightly smaller
+    and lift it higher". (UI and toasts: his, soon.)
+  - Shots already flew from the muzzle to the point under the dot; up close in third person that line, from a gun held
+    off to the side, crossed the target's near edge (or started inside it). `BlasterWeapon` Close Range (4 at scale 1):
+    nearer than that the shot starts on the view's own centre line (`WeaponHolder.CrosshairStart`), blending back to the
+    muzzle out to twice it. First person unchanged.
+  - The stun effect (Polygon Arsenal Stun1) has its own root turn (-90 on X: its ring lies flat); it was spawned upright,
+    on its edge. Now its own turn, Dazzle Size 0.6, Dazzle Lift 0.35 of the soldier's height above its head.
 

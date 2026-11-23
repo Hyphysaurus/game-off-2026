@@ -29,6 +29,8 @@ namespace ShiftJam
         [SerializeField, Tooltip("Shown over its head while blinded (a looping stun effect: Polygon Arsenal's Stun), sized with it.")] private GameObject dazzleEffect;
         [SerializeField, Tooltip("One of these plays as it is blinded (a startled voice, a sparkle).")] private AudioClip[] dazzleSounds;
         [SerializeField, Range(0f, 1f)] private float dazzleVolume = 0.8f;
+        [SerializeField, Min(0.01f), Tooltip("The stun effect's size, as a share of its own (D-0159).")] private float dazzleSize = 0.6f;
+        [SerializeField, Min(0f), Tooltip("How far above its head the stun effect floats, as a share of its height (D-0159).")] private float dazzleLift = 0.35f;
 
         [Header("Sight")]
         [SerializeField] private float sightRange = 18f;
@@ -76,8 +78,10 @@ namespace ShiftJam
             if (dazzleEffect != null && _dazzleFx == null)
             {
                 Bounds b = Drawn();
-                _dazzleFx = Instantiate(dazzleEffect, new Vector3(b.center.x, b.max.y + 0.15f * Scale, b.center.z), Quaternion.identity, transform);
-                _dazzleFx.transform.localScale = dazzleEffect.transform.localScale;   // under the soldier: its size with it
+                // Its own turn kept (the effect's ring lies flat by it; a plain upright turn stood it on its edge), smaller,
+                // higher above the head (D-0159).
+                _dazzleFx = Instantiate(dazzleEffect, new Vector3(b.center.x, b.max.y + dazzleLift * b.size.y, b.center.z), dazzleEffect.transform.rotation, transform);
+                _dazzleFx.transform.localScale = dazzleEffect.transform.localScale * dazzleSize;   // under the soldier: its size with it
             }
             if (dazzleSounds != null && dazzleSounds.Length > 0)
             {

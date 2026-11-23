@@ -28,6 +28,7 @@ namespace ShiftJam
         [SerializeField, Min(0.05f), Tooltip("Multiplies the ammo's own speed (the test room: pistol 1, shotgun 0.9, rifle 1.2, sniper 4). Higher: a faster, flatter shot.")] private float shotSpeed = 1f;
         [SerializeField, Tooltip("How far the aim ray looks for a target, units at scale 1.")] private float range = 120f;
         [SerializeField] private LayerMask aimMask = ~0;
+        [SerializeField, Min(0f), Tooltip("Third person, closer than this (units at scale 1) the shot starts on the view's own centre line, not the muzzle, so it lands on the dot (D-0159: up close the line from a gun held off to the side crossed the target's near edge first). It blends back to the muzzle out to twice this.")] private float closeRange = 4f;
         [Header("Recoil")]
         [SerializeField, Min(0f), Tooltip("How hard the gun kicks back when it fires. 1 is the pistol's kick (the test room: rifle 0.7, shotgun 2.2, sniper 2.6). What a kick of 1 is (degrees up, distance back, how fast it settles) is in Resources/WeaponHold > The kick of a shot.")] private float recoil = 1f;
         [SerializeField, Tooltip("First person: view punch per shot for a gun of recoil 1 (pitch up, yaw jitter), degrees. Multiplied by Recoil.")] private Vector2 viewPunch = new Vector2(1.2f, 0.4f);
@@ -111,6 +112,13 @@ namespace ShiftJam
                     from = chest;
                     break;
                 }
+            }
+
+            // Close up in third person: from the view's centre line, blending back to the muzzle with range (D-0159).
+            if (!Holder.FirstPerson && closeRange > 0f)
+            {
+                float near = closeRange * Scale, reach = Vector3.Distance(Holder.AttackOrigin, target);
+                if (reach < near * 2f) from = Vector3.Lerp(Holder.CrosshairStart, from, Mathf.InverseLerp(near, near * 2f, reach));
             }
 
             Vector3 dir = target - from;

@@ -236,6 +236,10 @@ namespace ShiftJam
 
         private readonly RaycastHit[] _crossHits = new RaycastHit[16];
 
+        /// <summary>Where the crosshair's ray starts (D-0159): the eye in first person; in third person the point on the
+        /// view's centre line level with the holder's chest (nothing between the camera and the player counts).</summary>
+        public Vector3 CrosshairStart => FirstPerson ? AimOrigin : AimOrigin + AimForward * Mathf.Max(0f, Vector3.Dot(AttackOrigin - AimOrigin, AimForward));
+
         /// <summary>Where the crosshair lands (D-0147): the first thing on the view's centre ray, within
         /// <paramref name="reach"/>, that is not us (nor <paramref name="skipAlso"/>, a gun's own body), else the ray's far
         /// end. In third person the ray starts level with the holder, so nothing between the camera and the player is

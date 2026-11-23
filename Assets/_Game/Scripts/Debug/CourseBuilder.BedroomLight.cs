@@ -49,6 +49,7 @@ namespace ShiftJam
             float floorTop = floor != null ? B(floor.gameObject).max.y : 1f;
             Vector3 hub = new Vector3(-1f, floorTop, -21f);
             if (torch != null) torch.SetParent(toyBox.transform, true);   // out of an old turntable before it goes
+            foreach (string name in new[] { "Constructor_01", "Constructor_02" }) { Transform blk = FindDeep(toyBox.transform, name); if (blk != null) blk.SetParent(toyBox.transform, true); }
             Remove(toyBox.transform, "Turntable");
             foreach (var (name, at) in new[] { ("Constructor_01", new Vector3(-12f, 1f, -29f)), ("Constructor_02", new Vector3(-12f, 1f, -25.5f)) })
             {
@@ -90,7 +91,34 @@ namespace ShiftJam
                 var torchLight = torch.GetComponent<Flashlight>();
                 gso.FindProperty("aim").objectReferenceValue = torchLight != null && torchLight.Beam != null ? torchLight.Beam.transform : torch;
                 gso.ApplyModifiedPropertiesWithoutUndo();
-                Log.AppendLine($"turntable at {hub} ({across} across), the giant flashlight riding it at {torch.position}; toy blocks moved to the back-left corner");
+                // The two toy blocks prop its handle up (D-0160, his "the flashlight is situated in a suspended state... put the
+                // two blocks underneath as support on the handle"): under the handle's two points, each as tall as the gap
+                // there, riding the disc.
+                Physics.SyncTransforms();
+                Vector3 axis = torchLight != null && torchLight.Beam != null ? Vector3.ProjectOnPlane(torchLight.Beam.transform.forward, Vector3.up).normalized : torch.forward;
+                Bounds tl = B(torch.gameObject);
+                float halfLen = Mathf.Abs(Vector3.Dot(tl.extents, new Vector3(Mathf.Abs(axis.x), 0f, Mathf.Abs(axis.z))));
+                Vector3 tail = new Vector3(tl.center.x, top, tl.center.z) - axis * halfLen;
+                Collider torchCol = torch.GetComponent<Collider>();
+                int b = 0;
+                foreach (var (name, along) in new[] { ("Constructor_01", 0.18f), ("Constructor_02", 0.45f) })
+                {
+                    Transform block = toyBox.transform.Find(name) ?? FindDeep(table, name);
+                    if (block == null || torchCol == null) continue;
+                    Vector3 at = tail + axis * (halfLen * 2f * along);
+                    if (!torchCol.Raycast(new Ray(at + Vector3.up * 0.01f, Vector3.up), out RaycastHit belly, 20f)) continue;
+                    float gap = belly.point.y - top;
+                    if (gap < 0.05f) continue;   // the light rests on the disc there already
+                    block.SetParent(table, true);
+                    block.rotation = Quaternion.LookRotation(Vector3.Cross(Vector3.up, axis), Vector3.up);   // across the handle
+                    Bounds bb0 = B(block.gameObject);
+                    block.localScale *= gap / Mathf.Max(0.01f, bb0.size.y);
+                    Bounds bb1 = B(block.gameObject);
+                    block.position += new Vector3(at.x - bb1.center.x, top - bb1.min.y, at.z - bb1.center.z);
+                    b++;
+                    Log.AppendLine($"{name}: under the handle at {block.position}, {gap:F2} tall");
+                }
+                Log.AppendLine($"turntable at {hub} ({across} across), the giant flashlight riding it at {torch.position}, {b} block(s) under its handle");
             }
             else Log.AppendLine("NO turntable prefab or NO Flashlight_01");
             if (core != null)

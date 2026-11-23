@@ -28,6 +28,7 @@ namespace ShiftJam
         [SerializeField, Min(0.05f), Tooltip("Multiplies the ammo's own speed (the test room: pistol 1, shotgun 0.9, rifle 1.2, sniper 4). Higher: a faster, flatter shot.")] private float shotSpeed = 1f;
         [SerializeField, Tooltip("How far the aim ray looks for a target, units at scale 1.")] private float range = 120f;
         [SerializeField] private LayerMask aimMask = ~0;
+        [SerializeField, Min(0f), Tooltip("Point blank, closer than this to the chest (units at scale 1), the shot starts just in front of what is under the dot and lands at once (D-0160): there is no room for it to fly.")] private float pointBlank = 1.5f;
         [SerializeField, Min(0f), Tooltip("Third person, closer than this (units at scale 1) the shot starts on the view's own centre line, not the muzzle, so it lands on the dot (D-0159: up close the line from a gun held off to the side crossed the target's near edge first). It blends back to the muzzle out to twice this.")] private float closeRange = 4f;
         [Header("Recoil")]
         [SerializeField, Min(0f), Tooltip("How hard the gun kicks back when it fires. 1 is the pistol's kick (the test room: rifle 0.7, shotgun 2.2, sniper 2.6). What a kick of 1 is (degrees up, distance back, how fast it settles) is in Resources/WeaponHold > The kick of a shot.")] private float recoil = 1f;
@@ -120,6 +121,10 @@ namespace ShiftJam
                 float near = closeRange * Scale, reach = Vector3.Distance(Holder.AttackOrigin, target);
                 if (reach < near * 2f) from = Vector3.Lerp(Holder.CrosshairStart, from, Mathf.InverseLerp(near, near * 2f, reach));
             }
+
+            // Point blank: just in front of the surface under the dot, so it lands there the next step (D-0160).
+            if (Vector3.Distance(Holder.AttackOrigin, target) < pointBlank * Scale)
+                from = target - Holder.AimForward * (0.2f * Scale);
 
             Vector3 dir = target - from;
             if (dir.sqrMagnitude < 1e-6f) dir = look;

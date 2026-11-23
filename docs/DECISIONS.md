@@ -2749,4 +2749,17 @@
     muzzle out to twice it. First person unchanged.
   - The stun effect (Polygon Arsenal Stun1) has its own root turn (-90 on X: its ring lies flat); it was spawned upright,
     on its edge. Now its own turn, Dazzle Size 0.6, Dazzle Lift 0.35 of the soldier's height above its head.
+- **D-0160 (22 Nov, 20:4x) The turntable steers, the giant flashlight rests on two blocks, point-blank shots land.**
+  - His "rotating the turntable with the light moves my character left automatically, i cant rotate in either
+    direction", "the flashlight is situated in a suspended state... put the two blocks underneath as support on the
+    handle", "fix the instant hits on point blank range", "are we not using hit scans?".
+  - Cause of the runaway turn: the camera's follow-behind (D-0124) swung round after the player as the grip walked them
+    round the rim; the view-steered disc followed the camera, so it kept turning. `ShoulderCamera`: no follow-behind
+    while `PlayerMotor.HoldAt` is set.
+  - The toy blocks (Constructor_01/02) go under the flashlight's handle at 18 % and 45 % of its length from the tail,
+    each scaled to the gap there (measured with a ray to the light's underside), across the handle, riding the disc
+    (`LandBedroomLight`, safe to re-run).
+  - `BlasterWeapon` Point Blank (1.5 at scale 1): nearer than that, the shot starts 0.2 in front of the surface under
+    the dot and lands the next step (damage, sticking, marker as usual). Shots stay swept projectiles (seen, with drop,
+    sticking); hitscan offered, not taken.
 

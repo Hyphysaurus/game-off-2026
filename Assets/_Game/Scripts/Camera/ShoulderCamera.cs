@@ -264,7 +264,9 @@ namespace ShiftJam
             bool gunOut = _holder != null && _holder.Armed;
             bool armed = gunOut || (_carrier != null && _carrier.ToolUp);
             bool aiming = (gunOut && _holder.AimHeld) || (_carrier != null && _carrier.AimHeld);
-            if (!armed) FollowBehind(dt);
+            // Not while holding a heavy thing (D-0160): the grip walks the player round it, the camera swung to follow, and a
+            // thing steered by the view turned on by itself.
+            if (!armed && !(_motor != null && _motor.HoldAt.HasValue)) FollowBehind(dt);
             float wantSide = armed ? settings.armedShoulderOffset : settings.shoulderOffset;
             float wantRise = armed ? settings.armedRise : 0f;
             float wantReach = aiming ? settings.aimDistance : armed ? settings.armedDistance : settings.distance;

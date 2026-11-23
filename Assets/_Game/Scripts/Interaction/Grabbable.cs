@@ -39,6 +39,7 @@ namespace ShiftJam
         private PlayerMotor _motor;
         private Shifter _shifter;
         private Vector3 _grip;          // the grabber's place, in this thing's own space
+        private Vector3 _stand;         // Anchored: the grabber's place in the world (they stay put, the hub turns under their hands)
         private Vector3 _far;           // the far end from the grip, in its own space (the Far End pivot)
         private float _turn, _push;     // eased
         private bool _wasKinematic;
@@ -79,6 +80,7 @@ namespace ShiftJam
             _mine = GetComponentsInChildren<Collider>();
             if (_cc != null) foreach (var c in _mine) if (c != null) Physics.IgnoreCollision(_cc, c, true);
             _grip = transform.InverseTransformPoint(_who.transform.position);
+            _stand = _who.transform.position;
             if (aim == null && TryGetComponent(out Flashlight torch) && torch.Beam != null) aim = torch.Beam.transform;
             Vector3 middle = transform.InverseTransformPoint(_body.worldCenterOfMass);
             Vector3 away = middle - _grip; away.y = 0f;
@@ -157,7 +159,9 @@ namespace ShiftJam
         {
             if (_who == null || _motor == null) return;
             // The grabber is held at their grip, facing the thing, and walks round with it.
-            Vector3 target = transform.TransformPoint(_grip);
+            // Anchored (a turntable, D-0161): the grabber stays where they took hold and the thing turns under their hands; they
+            // used to be carried round its rim, the camera with them, which read as it turning by itself.
+            Vector3 target = anchored ? _stand : transform.TransformPoint(_grip);
             Vector3 gap = target - _who.transform.position; gap.y = 0f;
             float scale = GrabberScale;
             if (gap.magnitude > slipAt * 1.8f * scale) { LetGo(); return; }   // pulled off it (a wall, a fall)

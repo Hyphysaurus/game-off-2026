@@ -84,10 +84,11 @@ namespace ShiftJam
                 torch.position += new Vector3(hub.x - lb.center.x, top + 0.02f - lb.min.y, hub.z - lb.center.z);
                 var grab = table.gameObject.AddComponent<Grabbable>();
                 var gso = new SerializedObject(grab);
-                gso.FindProperty("prompt").stringValue = "Turn";
+                gso.FindProperty("prompt").stringValue = "Grab (A / D turn)";
                 gso.FindProperty("anchored").boolValue = true;
                 gso.FindProperty("canPush").boolValue = false;
                 gso.FindProperty("turnSpeed").floatValue = 40f;
+                gso.FindProperty("steer").enumValueIndex = (int)Grabbable.Steer.Stick;   // A / D turn it; nothing turns it by itself (D-0161)
                 var torchLight = torch.GetComponent<Flashlight>();
                 gso.FindProperty("aim").objectReferenceValue = torchLight != null && torchLight.Beam != null ? torchLight.Beam.transform : torch;
                 gso.ApplyModifiedPropertiesWithoutUndo();
@@ -125,7 +126,7 @@ namespace ShiftJam
             {
                 var so = new SerializedObject(core);
                 so.FindProperty("startDormant").boolValue = true;
-                so.FindProperty("dormantPrompt").stringValue = "Dark. Turn the big light on its turntable (E) onto this.";
+                so.FindProperty("dormantPrompt").stringValue = "Dark. Grab the turntable (E), turn the light onto this (A / D).";
                 so.ApplyModifiedPropertiesWithoutUndo();
                 Transform middle = core.transform.Find("LightPoint");
                 if (middle == null) { middle = new GameObject("LightPoint").transform; middle.SetParent(core.transform, false); }

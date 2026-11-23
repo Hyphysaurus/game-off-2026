@@ -2762,4 +2762,13 @@
   - `BlasterWeapon` Point Blank (1.5 at scale 1): nearer than that, the shot starts 0.2 in front of the surface under
     the dot and lands the next step (damage, sticking, marker as usual). Shots stay swept projectiles (seen, with drop,
     sticking); hitscan offered, not taken.
+- **D-0161 (22 Nov, 21:1x) The turntable turns only with A / D; the grabber stands still.**
+  - His "turntable still moves on its own", "it turns according to the MOUSE camera", then "the steady turn with A/D
+    would be nice especially since we can implement it into further puzzles or interactables". Live recording: on
+    grabbing, the view-steered disc swung its beam round to the camera's heading (-150 to -22 degrees over 4 s), and
+    the grip carried the toy about 100 degrees round the rim, the camera with it.
+  - `Grabbable` Anchored: the grabber stays where they took hold (the thing turns under their hands). The turntable:
+    Steer Stick (A / D, 40 degrees a second; nothing turns it by itself), prompt "Grab (A / D turn)", the core's
+    prompt "Dark. Grab the turntable (E), turn the light onto this (A / D)."
+  - The earlier "stick reads 0" came from the recorders (input read from the editor's update shows 0, the mouse too).
 

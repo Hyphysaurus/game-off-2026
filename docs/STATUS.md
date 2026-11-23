@@ -2,6 +2,42 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 12:3x — PLANS WAITING FOR HIS "PROCEED": A ROPE AT THE HALLWAY BOOKS (HIS IDEA) AND THE JUMP ANIMATION. NOTHING BUILT
+- His words: "in the hallway, we need a purpose for climbing up the books at the start of it... perhaps this our
+  chance to polish up or find a better jumping animation?", then "maybe we can set up a rope up there and begin
+  experimenting with those mechanics".
+- **The climb, measured in his editor:** the stairs (12 books, x -22 to 21.4) are 12.7 wide and the box (x 4.4 to 15.9,
+  top 12.2) 15 wide in a 20-wide hallway, so a 2.5 strip of clear floor runs along BOTH walls: a toy-sized sweep passes
+  the box on either side. Nothing is on top. The headroom up there is 1.80, the toy's own height: no jump on the box.
+- **The jump, seen frame by frame** (`docs/stills/jump_today_d0169.png`, `jump_oldbody_d0169.png`, local): in the air
+  the body holds ONE pose for the whole of every jump (knees tucked, arms wide: the pack's Jump_Loop does not move in
+  its first 0.8 s). No push-off, no change up or down; a landing while moving has no landing. That tuck is the
+  "cannonball" D-0007 turned down on 2 Nov; it came back with the new body (D-0064). The old pack's running-jump clips
+  (D-0007's choice) play well on the new body.
+- **Jump plan, after the check** (two read-only checkers, 12:19 to 12:32; results in
+  `%TEMP%\shiftjam-stage\salvage\hallway_plan_check_2026-11-23.json`): ONE jump made from the three old running-jump
+  clips, its frame picked by where the body is on its way up or down (a number the motor sets), the clips' own lift
+  taken out, the landing blend cut short by the next jump (chained hops keep their take-off). Long fall, standing
+  landing, ledges, the zip line, pads, first person: as today. No net code. Squash later, through `FX/Squash.cs`.
+  Three files (`PlayerPortBuilder.cs`, `PlayerPortBuilder.Controller.cs`, `PlayerMotor.cs`) and the two controllers.
+  Two engine behaviours are unproven from the files (a state timed by a number; whether un-baking the height removes
+  the lift): the new narrow menu checks both in the editor before he plays, and each has a fallback.
+- 🔴 **Do NOT run Shift Jam > Player > Build Player Port**: it opens four scenes one after the other with no save
+  prompt, changes the Player and saves them (`PlayerPortBuilder.Scenes.cs`), and still thinks there is no Player
+  prefab. The jump work adds a narrow entry (clips + the two controllers only, refuses in Play).
+- **Rope plan (his idea):** the Goblin game has a full rope (`My project/Assets/Scripts/Traversal/Rope.cs`,
+  `RopeSwinger.cs`: grab with E or by flying into it, a pendulum the stick pushes, climb up / slide down, Jump lets
+  go and flings, the rope bends and whips). Shift Jam has what it plugs into: the Dart Line's "a line moves the body"
+  (`PlayerMotor.SetPull` / `EndPull`), hands on a thing (`CarryPose`), E prompts. First experiment: a Rope part
+  (prefab, any scene), a rider on the player (toy only, third person, one player), one rope from the ceiling just
+  past the box's far edge with its low end out of reach from the floor. It must sit at the TOP LEVEL of the
+  Hierarchy (a hallway rebuild wipes what is inside R3). Limits: no jump on the box top (so E at the edge or step
+  off into it); no hang clip in the pack (hands by IK, legs tucked, the ladder clip for climbing).
+- **Also found by the check:** nothing that exists today works as a prize before the gun (x 89). Other answers kept
+  for later: close the two strips with boxes (30 minutes, no code); armory charms as finds on climbs (one session);
+  cut the stairs to 6 books and a box 6.6 high (an hour; gives 7 of headroom, so a running jump into a rope works).
+- Waiting on: his "proceed" (my order: the jump first, then the rope).
+
 ## 23 Nov 2026 12:1x — ARMORY BENCH: HIS TWO MENUS RAN, THE BENCH IS PLACED IN GREYBOX (D-0167): IN THE SCENE, NOT PLAYED
 - He ran both menus at 12:06 and asked me to place the bench ("can you place them in for me?"). The bake logged what
   was expected: 10 skins, 24 parts (Charms: 24), 3 guns. The bench is the pack's Container_01 at twice its size:

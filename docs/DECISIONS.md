@@ -2597,4 +2597,14 @@
     it too (WeaponHolder.StandForTool) and the Carrier aims it along first person's own eye.
   - Not yet: online players do not see each other's flashlight; a box grab still needs the light put away by hand.
   - Compiled outside, landed in his editor; not played; not probed (batch needs Unity closed).
+- **D-0145 (22 Nov, 16:1x) Tools carried between scenes (systems plan step 3).**
+  - His "looks to be working now! next steps" (step 2 played and working).
+  - HouseCarry (the house's doors) now takes the whole bar in its order: the weapons as before and the hand tools (the
+    flashlight, on or off, at its size), which tool was in hand, and whether the gun was out (it used to arrive always
+    drawn). On arrival: weapons equipped and tools stored in their slots in the order they left (`Carrier.Store`,
+    `Inventory.AddedStowed`), then the gun as it was (out or holstered) and the tool back in its hand.
+  - The flashlight's beam cone and bulb glow are separate objects in the light's scene: made again when missing
+    (`Flashlight.EnsureShaft`), so they come back after a door.
+  - Online doors (NetTravel) carry nothing (each player spawns fresh); unchanged.
+  - Compiled outside, landed in his editor; not played.
 

@@ -144,6 +144,10 @@ namespace ShiftJam
         /// <summary>A tool was picked up into the hand.</summary>
         public void Added(Carryable t) { if (t != null && _items.FindIndex(i => i.Tool == t) < 0) _items.Add(new Item { Tool = t }); if (_hands != null) _hands.MakeRoomFor(t); Changed?.Invoke(); }
 
+        /// <summary>A tool carried in through a door (D-0145): into the bar, not into the hand (the carry puts back what
+        /// was in hand afterwards).</summary>
+        public void AddedStowed(Carryable t) { if (t != null && _items.FindIndex(i => i.Tool == t) < 0) _items.Add(new Item { Tool = t }); Changed?.Invoke(); }
+
         /// <summary>A weapon left for good (dropped, or carried off by a door between rooms).</summary>
         public void Removed(Weapon w) { _items.RemoveAll(i => i.Weapon == w || i.Gone); Changed?.Invoke(); }
 

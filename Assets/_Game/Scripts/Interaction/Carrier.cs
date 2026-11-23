@@ -158,6 +158,22 @@ namespace ShiftJam
             thing.gameObject.SetActive(false);
         }
 
+        /// <summary>A bar tool carried in through a door (D-0145): sized to the hand, out of the physics and straight into its
+        /// slot, put away (not in the hand). False if it is not a bar tool or there is no bar.</summary>
+        public bool Store(Carryable thing)
+        {
+            if (thing == null) return false;
+            if (_inventory == null) _inventory = GetComponent<Inventory>();
+            if (!InBar(thing)) return false;
+            KeepApart.Cancel(thing.gameObject);
+            thing.Resize(HandShare);
+            foreach (var col in thing.GetComponentsInChildren<Collider>(true)) col.enabled = false;
+            thing.SetCarried(true);
+            thing.gameObject.SetActive(false);
+            _inventory.AddedStowed(thing);
+            return true;
+        }
+
         /// <summary>Takes a stowed tool out of its slot into the hand (D-0108).</summary>
         public void TakeOut(Carryable thing)
         {

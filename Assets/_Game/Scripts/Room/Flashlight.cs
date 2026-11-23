@@ -66,13 +66,23 @@ namespace ShiftJam
                 _inner = beam.innerSpotAngle;
             }
             FitBeam();
-            if (showShaft && beam != null) _shaft = BeamShaft.Add(beam, shaftLength, shaftLens, shaftStrength);
-            if (_shaft != null && bulbGlow > 0f) _shaft.AddBulb(bulbBack, bulbRadius, bulbGlow);   // the bulb glows while on (D-0142)
+            EnsureShaft();
             Set(startOn, silent: true);
+        }
+
+        /// <summary>The beam in the air and the bulb's glow (D-0140, D-0142). They are separate objects in the light's scene,
+        /// so a trip through a door between rooms (D-0145) leaves them behind: made again whenever they are missing.</summary>
+        private void EnsureShaft()
+        {
+            if (_shaft != null || !showShaft || beam == null) return;
+            _shaft = BeamShaft.Add(beam, shaftLength, shaftLens, shaftStrength);
+            if (_shaft != null && bulbGlow > 0f) _shaft.AddBulb(bulbBack, bulbRadius, bulbGlow);   // the bulb glows while on (D-0142)
+            _fitFocus = -1f;   // the new cone takes the focus boost on the next fit
         }
 
         private void OnEnable()
         {
+            if (_carryable != null) EnsureShaft();
             _carryable.Used += Toggle;
             FitBeam();
             if (IsOn && !Lit.Contains(this)) Lit.Add(this);

@@ -10,7 +10,10 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
 - Try: pick up the bedroom torch, take the pistol out (both lit in the bar), aim and shoot with the light on; press L;
   V for first person and look round; take a rifle (light goes away) and put it away (light comes back).
 - Not yet: others online don't see your light; a box grab needs the light put away first.
-- Next: step 3, tools carried between scenes.
+- PLAYED by him: "looks to be working now!".
+- D-0145 (16:1x, step 3, not played): tools go through the house's doors with you (bar order, light on/off, size, which
+  hand, gun out or holstered). Try: flashlight in hand, pistol out, through the Colour Corner door and back.
+- Next: step 4, a flashlight prefab with a made-at size.
 
 ## 22 Nov 2026 15:2x — ONE PLAYER PREFAB (D-0143, systems plan step 1) + BULB GLOW (D-0142): IN HIS EDITOR, NOT PLAYED
 - Prefabs/Player/Player.prefab; Greybox, Workshop, Raceway, Colour Corner's Player each an instance of it, converted in

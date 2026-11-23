@@ -1,8 +1,10 @@
 #if UNITY_EDITOR
 using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace ShiftJam
 {
@@ -41,11 +43,52 @@ namespace ShiftJam
         // R6 the window: the garden in sun (the sun 280 from the window: about 0.75 there, more on the garden).
         static readonly Color GardenSun = new Color(1f, 0.93f, 0.78f); const float GardenIntensity = 60000f;
 
+        // A shadowed room lamp's shadow size (D-0168): URP's Medium, 512 a side. A point light draws its shadows six times,
+        // once per direction. Seven such lamps asking for High (1024, what a new light asks for) made 42 shadow pictures
+        // that never fitted URP's one sheet of 4096, so URP halved every shadow on every frame and wrote a line in the log
+        // each time the number of lamps in view changed (hundreds in a short play). Medium is what the lamps were getting:
+        // asking for it stops the halving and the lines, and leaves the full size to a flashlight's single beam.
+        const int RoomShadowTier = 1;   // UniversalAdditionalLightData: 0 Low (256), 1 Medium (512), 2 High (1024)
+
         static Light L(string path) { var g = GameObject.Find(path); return g != null ? g.GetComponent<Light>() : null; }
+
+        /// <summary>Gives a point light that casts shadows the room lamps' shadow size. True if that changed it. Any other
+        /// light is left alone (a spot draws its shadow once, so it keeps the full size).</summary>
+        static bool ShadowSize(Light l)
+        {
+            if (l == null || l.type != LightType.Point || l.shadows == LightShadows.None) return false;
+            // URP keeps this number on its own companion component and only lets code read it: write it as the Inspector does.
+            var so = new SerializedObject(l.GetUniversalAdditionalLightData());
+            var tier = so.FindProperty("m_AdditionalLightsShadowResolutionTier");
+            if (tier == null || tier.intValue == RoomShadowTier) return false;
+            tier.intValue = RoomShadowTier;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return true;
+        }
+
+        /// <summary>Every point light that casts shadows in the open scenes gets the room lamps' shadow size, in place
+        /// (nothing else of a light is touched; running it again changes nothing). The builders set the same size on the
+        /// lamps they make (PointLight, Tune), so a rebuild keeps it.</summary>
+        [MenuItem("Shift Jam/House/Fit Room Shadow Sizes (D-0168)")]
+        public static void FitShadowSizes()
+        {
+            if (EditorApplication.isPlaying) { Debug.LogWarning("[House] Stop Play first: a change made in Play is not kept."); return; }
+            int seen = 0, changed = 0;
+            foreach (Light l in Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (l.type != LightType.Point || l.shadows == LightShadows.None) continue;
+                seen++;
+                if (!ShadowSize(l)) continue;
+                changed++;
+                EditorSceneManager.MarkSceneDirty(l.gameObject.scene);
+            }
+            Debug.Log($"[House] Room shadow sizes: {changed} of {seen} shadowed point lights set to Medium (512 a side). Save the scene (Ctrl+S) to keep it.");
+        }
         static void Tune(Light l, Color c, float intensity, float range = -1f, LightShadows? shadows = null)
         {
             if (l == null) return;
             l.color = c; l.intensity = intensity; if (range > 0f) l.range = range; if (shadows.HasValue) l.shadows = shadows.Value;
+            ShadowSize(l);   // a shadowed lamp asks for the room lamps' shadow size (D-0168)
             EditorUtility.SetDirty(l);
         }
 

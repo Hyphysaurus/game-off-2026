@@ -2878,3 +2878,23 @@
     GUIDs unique; the sight meshes read from the FBX: each reticle is a quad or disc with UV 0..1, centred on the
     lens). NOT yet through Unity: the shader, the five materials and the asset are imported for the first time when
     the editor next opens. A pink sight, or an import error naming `Data/Sights` or `SightLook`, is the thing to report.
+- **D-0168 (23 Nov, 06:3x) The room lamps ask for the shadow size they were getting (Medium), so URP stops halving and logging.**
+  - Seen in his editor log on 23 Nov, not something he reported: URP wrote "Reduced additional punctual light shadows
+    resolution by 2 to make N shadow maps fit in the 4096x4096 shadow atlas" hundreds of times in a four-minute play
+    (N from 18 to 44). He said yes to a look, then yes to this first step.
+  - Why: seven lamps in the house cast soft shadows as POINT lights (the playroom's, the bedroom's, the kitchen's, the
+    living room's, the tall light, the dim lamp, the lantern). A point light draws its shadows six times, once per
+    direction: 42 shadow pictures with all in range, plus one per flashlight beam. Each asked for URP's High size
+    (1024 a side, what a new light asks for); 42 of those need 44 million texels and the sheet holds 16.7 million, so
+    URP halved every shadow on every frame and logged each time the count changed.
+  - Now: every shadowed point light asks for Medium (512). 42 of them fit (11 million), so nothing is halved and the
+    line is gone. The lamps look as they did wherever three or more reached (that is what they were already getting);
+    where only one or two reach, their shadows are a little softer than before; a flashlight's beam (a spot: one
+    picture) keeps the full size and is no longer halved along with the lamps.
+  - How: `CourseBuilder.Light` has the size (`RoomShadowTier`) and `ShadowSize(light)`; the builders call it for the
+    lamps they make (`PointLight`, `Tune`), so a rebuild keeps it; menu Shift Jam > House > Fit Room Shadow Sizes sets it
+    on the open scenes' lamps in place. Greybox's seven lamps were set in the scene file directly (Unity was closed).
+  - NOT done, the real cost: the 42 shadow pictures are still drawn every frame (and at kid size `ShadowReach` takes
+    the shadow distance to 35 times the toy's, so every lamp is always in range). Step 2, his call, after the armory
+    base: only the lamps of the room the player is in cast shadows (walls hide the rest), with a profile first.
+  - Checked: compiled outside (0 errors); the scene diff is the seven lines. Not seen in Unity yet.

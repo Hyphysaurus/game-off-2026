@@ -698,7 +698,9 @@ namespace ShiftJam
         static Light PointLight(string name, Transform parent, Vector3 pos, float range, float intensity, Color colour, bool shadows = false)
         {
             var go = new GameObject(name); go.transform.SetParent(parent, false); go.transform.position = pos;
-            var l = go.AddComponent<Light>(); l.type = LightType.Point; l.range = range; l.intensity = intensity; l.color = colour; l.shadows = shadows ? LightShadows.Soft : LightShadows.None; return l;
+            var l = go.AddComponent<Light>(); l.type = LightType.Point; l.range = range; l.intensity = intensity; l.color = colour; l.shadows = shadows ? LightShadows.Soft : LightShadows.None;
+            ShadowSize(l);   // a shadowed lamp asks for the room lamps' shadow size (D-0168, CourseBuilder.Light)
+            return l;
         }
         static GameObject Core(string name, Transform parent, Vector3 pos, ShiftSource.Mode mode, Material coreMat, bool dormant)
         {

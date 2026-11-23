@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 06:3x — ROOM LAMPS: THE SHADOW SIZE THEY WERE GETTING (D-0168): COMPILED OUTSIDE, IN THE PROJECT, NOT SEEN IN UNITY
+- Seven room lamps cast shadows as point lights (six shadow pictures each); they asked for more than URP's shadow
+  sheet holds, so URP halved them every frame and filled the log. They now ask for Medium (512), which fits.
+- Look for: the Console no longer filling with "Reduced additional punctual light shadows resolution"; lamp shadows
+  looking as before in the playroom and hallway (a little softer where only one or two lamps reach, e.g. downstairs);
+  the flashlight's own shadow a little crisper near the lamps.
+- Another scene showing the same line: open it, Shift Jam > House > Fit Room Shadow Sizes (D-0168), Ctrl+S.
+- Step 2 (the real saving: only the room you are in casts lamp shadows) waits for his word and a profile.
+- HIS PLAY 06:19 (5:49, D-0165 + D-0166 in, 0 errors): no word yet on the left hand or the sights. Unity imported the
+  hand-written shader, materials and SightLook asset with no error.
+- ARMORY BASE (D-0167), his "start with the base ... move towards working parts and full builds": design contract in
+  progress (then one builder, staged outside).
+
 ## 23 Nov 2026 06:0x — SIGHTS YOU CAN SEE THROUGH (D-0166): COMPILED OUTSIDE, IN THE PROJECT, NOT YET OPENED IN UNITY, NOT PLAYED
 - His note: hard to see targets through the guns' reticles and sights. His go: "proceed on all".
 - Now, in Play: every sight has a clear lens and a cyan reticle that is lit by itself (it shows in the dark stretch

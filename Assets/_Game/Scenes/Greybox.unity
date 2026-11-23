@@ -3259,6 +3259,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -3509,6 +3510,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 92171298}
     m_Modifications:
+    - target: {fileID: 6524211961872282997, guid: 43f19b101835d4c45ad59d68605afb98, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
     - target: {fileID: 7344368403577296176, guid: 43f19b101835d4c45ad59d68605afb98, type: 3}
       propertyPath: m_Name
       value: BedGrenades
@@ -15203,6 +15208,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -23984,6 +23990,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -24241,6 +24248,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -25174,6 +25182,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -32723,6 +32732,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -53640,6 +53650,66 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8100010956015737578, guid: 3be1d4c08a5386f449d284ba8ab72258, type: 3}
   m_PrefabInstance: {fileID: 809139036}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &812307321
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4129246477825479655, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 289
+      objectReference: {fileID: 0}
+    - target: {fileID: 4129246477825479655, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4129246477825479655, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -250.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4129246477825479655, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 4129246477825479655, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4129246477825479655, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 4129246477825479655, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4129246477825479655, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4129246477825479655, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4129246477825479655, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8189696645938842023, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      propertyPath: m_Name
+      value: WeaponBench
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8999397400772625434, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+  m_SourcePrefab: {fileID: 100100000, guid: 74a3f827480a0174da1bbf1f8dbf822c, type: 3}
 --- !u!1001 &813051203
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -81344,6 +81414,7 @@ MonoBehaviour:
   gripCurl: {x: 0, y: 0, z: 0}
   displayName: 
   icon: {fileID: 0}
+  howTo: 
   plank: 0
   hand: 0
   onPickedUp:
@@ -84545,6 +84616,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -86072,6 +86144,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -94359,6 +94432,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -115420,6 +115494,10 @@ MonoBehaviour:
   pivot: 0
   ease: 5
   slipAt: 2
+  handsOn: 1
+  handsApart: 0.2
+  handsFade: 0.25
+  blockAt: 0.15
 --- !u!54 &1591382809
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -119536,6 +119614,7 @@ MonoBehaviour:
   gripCurl: {x: 0, y: 0, z: 0}
   displayName: 
   icon: {fileID: 0}
+  howTo: 
   plank: 0
   hand: 0
   onPickedUp:
@@ -134507,6 +134586,7 @@ MonoBehaviour:
   gripCurl: {x: 0, y: 0, z: 0}
   displayName: 
   icon: {fileID: 0}
+  howTo: 
   plank: 1
   hand: 0
   onPickedUp:
@@ -154304,6 +154384,7 @@ MonoBehaviour:
   gripCurl: {x: 0, y: 0, z: 0}
   displayName: 
   icon: {fileID: 0}
+  howTo: 
   plank: 0
   hand: 0
   onPickedUp:
@@ -155905,6 +155986,7 @@ MonoBehaviour:
   gripCurl: {x: 0, y: 0, z: 0}
   displayName: 
   icon: {fileID: 0}
+  howTo: 
   plank: 0
   hand: 0
   onPickedUp:
@@ -160211,3 +160293,4 @@ SceneRoots:
   - {fileID: 187729304}
   - {fileID: 941464752}
   - {fileID: 708042746}
+  - {fileID: 812307321}

@@ -1,0 +1,572 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f273a52eb8cbd8231bc0b0bb6d41205, type: 3}
+  m_Name: ArmoryCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ArmoryCatalog
+  mountPrefix: Place_
+  skinMark: ColorSet
+  skinLabel: Skin
+  noneLabel: None
+  skins:
+  - id: ColorSet_01
+    label: Ash
+    material: {fileID: 2100000, guid: 28d2de2fe6e9c374293110421412340f, type: 2}
+  - id: ColorSet_02
+    label: Neon
+    material: {fileID: 2100000, guid: 107557250aea7d74199e84c5f4a70489, type: 2}
+  - id: ColorSet_03
+    label: Cyber
+    material: {fileID: 2100000, guid: 8c14f08e0c1e3aa47a0655a20a98ae57, type: 2}
+  - id: ColorSet_04
+    label: Sunset
+    material: {fileID: 2100000, guid: 90c2ab00e0c3bfd47a2f8f7d49a86147, type: 2}
+  - id: ColorSet_05
+    label: Acid
+    material: {fileID: 2100000, guid: b506648645fc39645806c0b81a14ede4, type: 2}
+  - id: ColorSet_06
+    label: Mire
+    material: {fileID: 2100000, guid: 5b09408553ecf2546a0cf5c983da3338, type: 2}
+  - id: ColorSet_07
+    label: Sandstorm
+    material: {fileID: 2100000, guid: 748eb19b3d2c85842b3d6d8d1cdc62fa, type: 2}
+  - id: ColorSet_08
+    label: Steel
+    material: {fileID: 2100000, guid: dcb2aa1b3d2adbc4b8285f5c51069556, type: 2}
+  - id: ColorSet_09
+    label: Arctic
+    material: {fileID: 2100000, guid: 4283bd717141a7f419dcd496b66f4e92, type: 2}
+  - id: ColorSet_10
+    label: Gold
+    material: {fileID: 2100000, guid: 5a2cc1ff41760c24683859463506d398, type: 2}
+  types:
+  - id: Charms
+    label: Charm
+    hook: {fileID: 5956382093583973324, guid: 79f1a065ee5d48279cf9d65d78fc9b4b, type: 3}
+    hookMount: Place_Charms
+  parts:
+  - id: Attachment_Common_Charm_01
+    label: Charm 01
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 5650719176648772457, guid: 555c26ff41224e6d85fa2ca2ce799638, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_02
+    label: Charm 02
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 4349137417209524997, guid: 71b6782d424247a38767096c7bf4168b, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_03
+    label: Charm 03
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 8546427360848741946, guid: 1845bb30d8434226b612872472143f7c, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_04
+    label: Charm 04
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 4135092990057682334, guid: d5193ac6b24f4111970bd248b30eda3d, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_05
+    label: Charm 05
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 4804252149197422913, guid: 3accdf69aee64d31878d7f5aa6febeb6, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_06
+    label: Charm 06
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 5107718180348722937, guid: 26a58a56825d4a5fa7ed20cd368971b2, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_07
+    label: Charm 07
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 4346423383849340619, guid: 166df54ae1a241a49467a041ed5b935a, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_08
+    label: Charm 08
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 5769123814469528455, guid: ad99ed8f420248e18684d99904de6b5e, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_09
+    label: Charm 09
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 6193462232175637097, guid: fe914cc1b6fd443e97ffef1025bd4594, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_10
+    label: Charm 10
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 6775567783285885056, guid: 7e61b85b139f4d7fa80797eeb08c94e1, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_11
+    label: Charm 11
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 4929058056610394355, guid: 43350a58190142638b99ad931bf56d7c, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_12
+    label: Charm 12
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 4440734401842883493, guid: 60f123ca2f6a4678aee0e3f2a99c2daa, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_13
+    label: Charm 13
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 8239251309981143005, guid: 363c52a4c0584066b1fd74bd42a65357, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_14
+    label: Charm 14
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 4693564634445607615, guid: cd93c7f5b84349d9bf7f8675a7bdaf8f, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_15
+    label: Charm 15
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 851272945014103879, guid: 0f1b8710e8b240d5b989e6fa2d81052f, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_16
+    label: Charm 16
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 642056156111915916, guid: 7725559b2f2446e3a5e715997e1df288, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_17
+    label: Charm 17
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 6125894577671056839, guid: 1fabaac2e12c48ed9620376efe62397c, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_18
+    label: Charm 18
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 2210480540827416277, guid: b79153d786144a5bb82bb329eac8f5ed, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_19
+    label: Charm 19
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 2578880169428598284, guid: 304440a24cb943c9910714b916603a0b, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_20
+    label: Charm 20
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 4670928517764950098, guid: 147ba8f8c53b435a89aab4c4e9942386, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_21
+    label: Charm 21
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 3174836061803080684, guid: 8b1ded1dbfe84c778321c731de4162e8, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_22
+    label: Charm 22
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 8366689365454910197, guid: 07ea19a51d3742b4bb2ff7b62a2a8ef4, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_23
+    label: Charm 23
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 8411572629431302735, guid: 85b9c90ccb644e7da565528b1570563a, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  - id: Attachment_Common_Charm_24
+    label: Charm 24
+    type: Charms
+    pieces:
+    - slot: Charm
+      prefab: {fileID: 5268258151346299801, guid: 8edf5654b68046f085dc8448c09c5572, type: 3}
+    fit:
+      sightRoll: 0
+      sightFieldOfView: 0
+      sightDistance: 0
+      muzzleLength: 0
+      holdPoint: {x: 0, y: 0, z: 0}
+    stats:
+      recoilPercent: 0
+      spreadPercent: 0
+      reloadPercent: 0
+      walkPercent: 0
+      magazineRounds: 0
+  guns:
+  - id: Pistol1
+    display: {fileID: 3265787461906697658, guid: 1a64cbe4046047f3b3fdd4f89dbdfaa3, type: 3}
+    skin: ColorSet_01
+    parts:
+    - Attachment_Common_Charm_01
+    - Attachment_Common_Charm_02
+    - Attachment_Common_Charm_03
+    - Attachment_Common_Charm_04
+    - Attachment_Common_Charm_05
+    - Attachment_Common_Charm_06
+    - Attachment_Common_Charm_07
+    - Attachment_Common_Charm_08
+    - Attachment_Common_Charm_09
+    - Attachment_Common_Charm_10
+    - Attachment_Common_Charm_11
+    - Attachment_Common_Charm_12
+    - Attachment_Common_Charm_13
+    - Attachment_Common_Charm_14
+    - Attachment_Common_Charm_15
+    - Attachment_Common_Charm_16
+    - Attachment_Common_Charm_17
+    - Attachment_Common_Charm_18
+    - Attachment_Common_Charm_19
+    - Attachment_Common_Charm_20
+    - Attachment_Common_Charm_21
+    - Attachment_Common_Charm_22
+    - Attachment_Common_Charm_23
+    - Attachment_Common_Charm_24
+  - id: SMG1
+    display: {fileID: 4059480239087553165, guid: 748f7b75089e498bbb9389bfd48c4768, type: 3}
+    skin: ColorSet_04
+    parts:
+    - Attachment_Common_Charm_01
+    - Attachment_Common_Charm_02
+    - Attachment_Common_Charm_03
+    - Attachment_Common_Charm_04
+    - Attachment_Common_Charm_05
+    - Attachment_Common_Charm_06
+    - Attachment_Common_Charm_07
+    - Attachment_Common_Charm_08
+    - Attachment_Common_Charm_09
+    - Attachment_Common_Charm_10
+    - Attachment_Common_Charm_11
+    - Attachment_Common_Charm_12
+    - Attachment_Common_Charm_13
+    - Attachment_Common_Charm_14
+    - Attachment_Common_Charm_15
+    - Attachment_Common_Charm_16
+    - Attachment_Common_Charm_17
+    - Attachment_Common_Charm_18
+    - Attachment_Common_Charm_19
+    - Attachment_Common_Charm_20
+    - Attachment_Common_Charm_21
+    - Attachment_Common_Charm_22
+    - Attachment_Common_Charm_23
+    - Attachment_Common_Charm_24
+  - id: Shotgun1
+    display: {fileID: 6730318230705423531, guid: f129dc044de943159f9bb25dcd9831c2, type: 3}
+    skin: ColorSet_07
+    parts:
+    - Attachment_Common_Charm_01
+    - Attachment_Common_Charm_02
+    - Attachment_Common_Charm_03
+    - Attachment_Common_Charm_04
+    - Attachment_Common_Charm_05
+    - Attachment_Common_Charm_06
+    - Attachment_Common_Charm_07
+    - Attachment_Common_Charm_08
+    - Attachment_Common_Charm_09
+    - Attachment_Common_Charm_10
+    - Attachment_Common_Charm_11
+    - Attachment_Common_Charm_12
+    - Attachment_Common_Charm_13
+    - Attachment_Common_Charm_14
+    - Attachment_Common_Charm_15
+    - Attachment_Common_Charm_16
+    - Attachment_Common_Charm_17
+    - Attachment_Common_Charm_18
+    - Attachment_Common_Charm_19
+    - Attachment_Common_Charm_20
+    - Attachment_Common_Charm_21
+    - Attachment_Common_Charm_22
+    - Attachment_Common_Charm_23
+    - Attachment_Common_Charm_24

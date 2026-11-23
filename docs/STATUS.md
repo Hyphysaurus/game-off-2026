@@ -2,6 +2,17 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 12:1x — ARMORY BENCH: HIS TWO MENUS RAN, THE BENCH IS PLACED IN GREYBOX (D-0167): IN THE SCENE, NOT PLAYED
+- He ran both menus at 12:06 and asked me to place the bench ("can you place them in for me?"). The bake logged what
+  was expected: 10 skins, 24 parts (Charms: 24), 3 guns. The bench is the pack's Container_01 at twice its size:
+  1.68 x 0.62 x 0.97 (knee height on the toy); the gun's copy turns 2.00 up, the sign is 2.90 up.
+- Placed through his open editor (not in Play; Greybox had no unsaved changes): `WeaponBench` at the TOP LEVEL of
+  Greybox at (289, 0, -250.5), turned 90, at the north end of the armory row, 7 past the supply crate. It touches
+  only the floor. Scene saved; commit `f914318` (the scene, the prefab, `Resources/ArmoryCatalog`).
+- His Scene view was in 2D mode (that is the "side view only" he saw). Switched off, view pointed at the bench.
+- The 12:01 play (before the menus) ran with the armory code in the project: 0 errors.
+- Look for: as in the entry below (steps 1 to 5 are done; step 6, the play, is his).
+
 ## 23 Nov 2026 11:0x — ARMORY LOOKS BENCH, BUILD 1 (D-0167): COMPILED OUTSIDE BOTH WAYS, IN THE PROJECT, NEEDS HIS STEPS, NOT PLAYED
 - His pick: "start with the base but if we can, we move towards working parts and full builds". This is the base.
 - What it is: a workbench where a toy with a gun in hand presses E, a copy of the gun turns above it, and rows change

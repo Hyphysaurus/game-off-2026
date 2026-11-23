@@ -2647,4 +2647,20 @@
     it), `LightReveal.Show` (hidden marks fade in), `LightGlow.GlowOn` (emission as it fills), a core's Awaken, a door.
   - Not yet: online, each PC runs its own targets; no fill sound.
   - All three compiled outside, landed in his editor 16:44; shaders load clean; not played.
+- **D-0150 (22 Nov, 16:5x) Dark Zone (systems plan step 6).**
+  - `DarkZone`: a box (centre, size; drawn as a gizmo) that, while the view is inside, dims the lights found in it at the
+    start to Lights To (0.08) and the scene's ambient (Trilight sky / horizon / ground, flat, reflections) to Ambient To
+    (0.25) over Fade (0.6 s); overlapping zones: the darkest wins, the ambient comes back with the last. Lights that guide
+    stay lit: checkpoints, cores (their embers), flashlights, anything with `KeepLit`. Also Dim: extra lights outside.
+- **D-0151 (22 Nov, 16:5x) The hallway's dark stretch, made of parts (systems plan step 8).**
+  - His "proceed with step 6 then the hallway beats".
+  - `CourseBuilder.LandHallwayLight` (menu Shift Jam / House / Land Hallway Light Beats): places once, then the scene is the
+    truth. A toy-sized Flashlight prefab (Made At Toy) on the floor at x 98 past the darts checkpoint and a tape sign ("A
+    light! E take it, L on/off, Right click focus: it blinds and wakes things"); DarkStretch (x 112..234, down into the
+    gap's shaft), the lantern KeepLit; the hall soldier a LightTarget at its chest (0.6 s, faster focused, drains 0.5 s,
+    repeatable) On Filled -> Dazzle; the charge core starts dormant ("Dark. Shine your light on it."), a LightTarget
+    (0.5 s, any light, once) On Filled -> Awaken, its sign says so.
+  - The grenade ring (his "the circle looks pretty large, it should scale to the actual explosion size"): the ring is the
+    blast's damage reach (4.5 at toy size, scaled); the visible burst is smaller (bright bits about 3, smoke about 1.5),
+    so the visual is the one that is short. Asked: (a) grow the burst to the reach, or (b) shrink the reach to the burst.
 

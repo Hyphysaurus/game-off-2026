@@ -31,6 +31,13 @@ namespace ShiftJam
         private float _nextLook, _focus;
         private bool _wasLit, _full, _spent;
 
+        /// <summary>The events, for code that wires a target (a builder placing a beat); in a scene, wire them in the Inspector.</summary>
+        public UnityEvent OnLit => onLit;
+        public UnityEvent OnUnlit => onUnlit;
+        public UnityEvent OnFilled => onFilled;
+        public UnityEvent OnEmptied => onEmptied;
+        public UnityEvent<float> OnFill => onFill;
+
         /// <summary>How full, 0 to 1.</summary>
         public float Fill { get; private set; }
         /// <summary>A lit beam is on it now.</summary>

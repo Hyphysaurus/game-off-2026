@@ -17,7 +17,11 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   values); Carryable Made At Toy for toy-sized placed tools. Not played.
 - D-0147..0149 (16:4x, not played): the light aims at the surface under the dot (and the dot shows when aiming it);
   hold G for a grenade arc + blast ring (let go to throw); LightTarget + LightReveal + LightGlow + ToySoldier Dazzle.
-- Next: step 6, Dark Zone volume; then the hallway beats from these parts (LightTarget on the hall soldier -> Dazzle).
+- D-0150 + D-0151 (16:5x, landed and placed, not played): DarkZone part; the hallway's dark stretch from parts: a
+  toy flashlight at x 98 + sign, DarkStretch x 112..234 (lantern kept lit), soldier LightTarget -> Dazzle, charge core
+  dormant until lit. Try: walk the hallway from the start as the toy.
+- Open, his call: the grenade ring is the true damage reach (4.5); the visible burst is smaller: (a) grow the burst, or
+  (b) shrink the reach. Next: step 7 (catalog, mostly done) and whatever the playtest of the dark stretch says.
 
 ## 22 Nov 2026 15:2x — ONE PLAYER PREFAB (D-0143, systems plan step 1) + BULB GLOW (D-0142): IN HIS EDITOR, NOT PLAYED
 - Prefabs/Player/Player.prefab; Greybox, Workshop, Raceway, Colour Corner's Player each an instance of it, converted in

@@ -61,4 +61,5 @@ Level beats are placed parts, not coordinates in builder code.
 | **LightReveal** | `Room/LightReveal.cs` | A mark only the light shows: with a LightTarget on the same object, On Fill -> Show. See-through material. |
 | **LightGlow** | `Room/LightGlow.cs` | A target glows as it charges: On Fill -> GlowOn. Material with Emission on. |
 | **ArcPreview** | `FX/ArcPreview.cs` | Draws any thrown thing's predicted path and landing ring (`ArcPreview.For(owner)`, then Show / Hide). The grenade uses it with `BallFlight.Predict`. |
+| **DarkZone** | `Room/DarkZone.cs` (+ `KeepLit`) | A stretch that goes dark while the player is in it: add to an empty object, size its box (gizmo). It dims the lights inside and the ambient; checkpoints, core embers and flashlights stay lit; add KeepLit to a lantern to keep it. |
 

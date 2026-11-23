@@ -2687,4 +2687,19 @@
     both on the same point; aim not held, the gun hangs at the side (36-148 degrees off) while the dot still showed.
   - WeaponHud: the dot shows while a gun is raised (WeaponHolder.Aiming: aim held, or a shot on its way) or the light is
     aimed; not for a gun hanging at the side (Alan Wake 2). Hip fire still raises the gun to the dot before the shot.
+- **D-0155 (22 Nov, 17:5x) The bedroom teaches the light: the giant flashlight in the toy box, and a cave under the bed.**
+  - His "what else we can intro in the very first bedroom... we have some wasted potential in this room", then "proceed
+    with 1 and 2" (my ideas: 1 aim the giant flashlight, 2 under the bed in the dark; 3 bed bounce + glide and 4 the
+    parent outside not taken).
+  - 1, moved into the toy box (the box's walls stop any beam reaching the bed; the bed's core is the kid's shrink): the
+    box's grow core starts dark ("Dark. Push the big light so it shines on it."), a LightTarget (0.6 s, any light) wakes
+    it; the giant lit flashlight lying beside the toy is a physics body held level (Rigidbody, rotation X/Z frozen,
+    damped) and Pushable (Light), so the toy shoves it round. It starts 73 degrees off the core (the cone's half is 25).
+    `Carryable.SetCarried`: a thing with a body is held kinematic while carried and goes back after (the kid can still
+    pick the flashlight up).
+  - 2, under the bed (8.6 to 9.8 units of room, a toy's cave): a DarkZone (ambient to 0.15); a toy-sized Flashlight
+    prefab (Made At Toy: the player's own light, earlier than the hallway's, which stays as a spare); an AmmoBox and a
+    SupplyCrate; a tape note on the bed head's inside, "Lights out at 8! - Mom" (placeholder wording, his to change),
+    shown only by a light (LightTarget + LightReveal).
+  - Placed by Shift Jam / House / Land Bedroom Light Beats (D-0155). 0 broken references. Not played.
 

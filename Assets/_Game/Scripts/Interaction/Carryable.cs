@@ -194,10 +194,19 @@ namespace ShiftJam
             transform.localScale = _bornScale * (_share / Mathf.Max(1e-4f, BornShare));
         }
 
+        private bool _hadBody, _wasKinematic;
+
         internal void SetCarried(bool carried)
         {
             if (IsCarried == carried) return;
             IsCarried = carried;
+            // A thing with its own physics body (a giant flashlight a toy pushes about, D-0155) is held still in the hand:
+            // its body stops moving it while carried and goes back to what it was when set down.
+            if (TryGetComponent(out Rigidbody body))
+            {
+                if (carried) { _hadBody = true; _wasKinematic = body.isKinematic; body.isKinematic = true; }
+                else if (_hadBody) { body.isKinematic = _wasKinematic; if (!body.isKinematic) { body.linearVelocity = Vector3.zero; body.angularVelocity = Vector3.zero; } }
+            }
             if (carried) onPickedUp?.Invoke(); else onPutDown?.Invoke();
         }
 

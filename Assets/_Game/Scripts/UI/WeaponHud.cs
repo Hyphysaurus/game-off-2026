@@ -129,7 +129,9 @@ namespace ShiftJam
             bool lightAim = free && _carrier != null && _carrier.AimHeld;   // aiming the light shows the dot too (D-0147)
             _group.alpha = show || lightAim ? 1f : 0f;
             if (_box.gameObject.activeSelf != show) _box.gameObject.SetActive(show);   // the ammo read-out is the gun's
-            _dot.SetActive((show || lightAim) && !_holder.FirstPerson);
+            // The dot only while it means something (D-0154, Alan Wake 2): a gun raised (aim held, or a shot on its way) or
+            // the light aimed. A gun hanging at the side does not point at it.
+            _dot.SetActive(((show && _holder.Aiming) || lightAim) && !_holder.FirstPerson);
             if (show && _stale) Refresh();
             // The hit marker: big and solid as the shot lands, back to its size and gone over the flash.
             float flash = (Time.time - _flashAt) / _flashSeconds;

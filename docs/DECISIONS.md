@@ -2681,4 +2681,10 @@
   - Applied by Shift Jam / House / Soldier Dazzle FX + Brighter Beams (D-0153). Not played.
   - His "the reticle is offset for gun and for flashlight, they dont aim at the same thing": in first person the light
     measured 0.1 degrees off the dot; the third-person case with both out is not measured yet.
+- **D-0154 (22 Nov, 17:2x) The dot shows only while it means something.**
+  - His "the reticle is offset for gun and for flashlight, they dont aim at the same thing", then "proceed". Measured
+    live (60 s sampler, both in hand, third person): aim held, gun 1.0-1.6 degrees and light 0.1-0.3 degrees off the dot,
+    both on the same point; aim not held, the gun hangs at the side (36-148 degrees off) while the dot still showed.
+  - WeaponHud: the dot shows while a gun is raised (WeaponHolder.Aiming: aim held, or a shot on its way) or the light is
+    aimed; not for a gun hanging at the side (Alan Wake 2). Hip fire still raises the gun to the dot before the shot.
 

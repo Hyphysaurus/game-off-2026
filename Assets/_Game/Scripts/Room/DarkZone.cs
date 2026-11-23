@@ -7,8 +7,9 @@ namespace ShiftJam
     /// A stretch that goes dark while the player is in it (D-0150, systems plan step 6): the lights inside its box dim to
     /// Lights To and the ambient light (the scene's sky, horizon and ground colours, and its reflections) to Ambient To,
     /// over Fade seconds, and come back as the player leaves. Drop one into any section and size its box (the gizmo); the
-    /// lights it dims are found in the box when it starts, except the ones that guide the player: checkpoint markers,
-    /// cores' embers, flashlights, and anything under a KeepLit. Several zones may overlap: the darkest wins, and the
+    /// lights it dims are found when it starts: every light whose reach touches the box (a room's big lamp lights a lane
+    /// through its wall: the hallway was lit by the living room's and the tall end's, D-0152) and the sun, except the ones
+    /// that guide the player: checkpoint markers, cores' embers, flashlights, and anything under a KeepLit. Several zones may overlap: the darkest wins, and the
     /// ambient comes back only when the last one is left. Measured from the camera, so it is what the player sees.
     /// </summary>
     public sealed class DarkZone : MonoBehaviour
@@ -18,7 +19,9 @@ namespace ShiftJam
         [SerializeField, Range(0f, 1f), Tooltip("The lights inside dim to this share of their own brightness.")] private float lightsTo = 0.08f;
         [SerializeField, Range(0f, 1f), Tooltip("The ambient light (and reflections) dims to this share while inside.")] private float ambientTo = 0.25f;
         [SerializeField, Min(0.01f), Tooltip("Seconds to go dark, or light again.")] private float fade = 0.6f;
-        [SerializeField, Tooltip("Extra lights to dim (outside the box but lighting it). Lights inside the box are found by themselves.")] private Light[] alsoDim;
+        [SerializeField, Tooltip("Dim every light whose reach touches the box, wherever it stands (on), or only the lights inside it (off).")] private bool reachingIn = true;
+        [SerializeField, Tooltip("Dim the sun (directional lights) too.")] private bool dimSun = true;
+        [SerializeField, Tooltip("Extra lights to dim that are not found by themselves.")] private Light[] alsoDim;
 
         private struct Dimmed { public Light light; public float intensity; }
         private readonly List<Dimmed> _lights = new List<Dimmed>();
@@ -48,7 +51,10 @@ namespace ShiftJam
             foreach (var f in FindObjectsByType<Flashlight>(FindObjectsInactive.Include, FindObjectsSortMode.None)) foreach (var l in f.GetComponentsInChildren<Light>(true)) keep.Add(l);
             foreach (Light l in FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
-                if (l.type == LightType.Directional || keep.Contains(l) || Guides(l) || !Contains(l.transform.position)) continue;
+                if (keep.Contains(l) || Guides(l)) continue;
+                bool reaches = l.type == LightType.Directional ? dimSun
+                             : Contains(l.transform.position) || (reachingIn && Gap(l.transform.position) < l.range);
+                if (!reaches) continue;
                 _lights.Add(new Dimmed { light = l, intensity = l.intensity });
             }
             if (alsoDim != null) foreach (Light l in alsoDim) if (l != null && !_lights.Exists(d => d.light == l)) _lights.Add(new Dimmed { light = l, intensity = l.intensity });
@@ -65,6 +71,18 @@ namespace ShiftJam
             Vector3 half = size * 0.5f;
             return Mathf.Abs(local.x) <= half.x && Mathf.Abs(local.y) <= half.y && Mathf.Abs(local.z) <= half.z;
         }
+
+        /// <summary>How far <paramref name="point"/> (the world) is from the box: 0 inside.</summary>
+        public float Gap(Vector3 point)
+        {
+            Vector3 local = transform.InverseTransformPoint(point) - centre;
+            Vector3 half = size * 0.5f;
+            Vector3 outside = new Vector3(Mathf.Max(0f, Mathf.Abs(local.x) - half.x), Mathf.Max(0f, Mathf.Abs(local.y) - half.y), Mathf.Max(0f, Mathf.Abs(local.z) - half.z));
+            return transform.TransformVector(outside).magnitude;
+        }
+
+        /// <summary>How many lights it dims (found at the start).</summary>
+        public int Dims => _lights.Count;
 
         private void LateUpdate()
         {

@@ -2663,4 +2663,10 @@
   - The grenade ring (his "the circle looks pretty large, it should scale to the actual explosion size"): the ring is the
     blast's damage reach (4.5 at toy size, scaled); the visible burst is smaller (bright bits about 3, smoke about 1.5),
     so the visual is the one that is short. Asked: (a) grow the burst to the reach, or (b) shrink the reach to the burst.
+- **D-0152 (22 Nov, 17:0x) A Dark Zone dims every light that reaches it.**
+  - His "it doesnt seem to get dark?". Found: the zone dimmed only lights standing inside its box (one lane light, 45),
+    while the hallway is lit through its walls by the house's big lamps (living room 2600 at 68, under the gap 700, the
+    tall end 6000, the bedroom and playroom ceilings, the garden sun, the sun).
+  - `DarkZone` Reaching In (on): every light whose reach touches the box is dimmed while the view is inside; Dim Sun
+    (on): directional lights too. Now 11 lights in the hallway's case; guides still lit (lantern, markers, embers, torch).
 

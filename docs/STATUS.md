@@ -13,7 +13,9 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
 - PLAYED by him: "looks to be working now!".
 - D-0145 (16:1x, step 3, not played): tools go through the house's doors with you (bar order, light on/off, size, which
   hand, gun out or holstered). Try: flashlight in hand, pistol out, through the Colour Corner door and back.
-- Next: step 4, a flashlight prefab with a made-at size.
+- D-0146 (16:3x, step 4): Prefabs/Tools/Flashlight.prefab; both scene flashlights are copies of it (each kept its own
+  values); Carryable Made At Toy for toy-sized placed tools. Not played.
+- Next: step 5, Light Target (anything reacts to the beam).
 
 ## 22 Nov 2026 15:2x — ONE PLAYER PREFAB (D-0143, systems plan step 1) + BULB GLOW (D-0142): IN HIS EDITOR, NOT PLAYED
 - Prefabs/Player/Player.prefab; Greybox, Workshop, Raceway, Colour Corner's Player each an instance of it, converted in

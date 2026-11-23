@@ -37,8 +37,13 @@ namespace ShiftJam
 
         public float ScaleOf(ShiftSize size) => size == ShiftSize.Kid ? settings.kidScale : settings.toyScale;
 
+        /// <summary>The toy's size as a share of the kid's, from the shift settings (D-0146): a tool made at toy size
+        /// (Carryable Made At) reads it. Set when a Shifter wakes; 1 until then.</summary>
+        public static float ToyShareOfKid { get; private set; } = 1f;
+
         private void Awake()
         {
+            if (settings != null && settings.kidScale > 0f) ToyShareOfKid = settings.toyScale / settings.kidScale;
             // The carried shift (D-0045) rides on every shifting player; TryGetComponent, since ?? cannot see Unity's fake null.
             if (!TryGetComponent(out ShiftCharge charge)) charge = gameObject.AddComponent<ShiftCharge>();
             charge.Init(settings);

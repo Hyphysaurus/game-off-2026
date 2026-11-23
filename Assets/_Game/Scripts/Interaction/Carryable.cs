@@ -168,21 +168,30 @@ namespace ShiftJam
             return s.y <= s.z ? Vector3.up : Vector3.forward;
         }
 
+        /// <summary>The size a placed tool was made at (D-0146): a kid's (as the bedroom's flashlight) or a toy's (one left
+        /// in a toy-only lane, placed at the toy's scale).</summary>
+        public enum MadeAt { Kid, Toy }
+        [SerializeField, Tooltip("The size this one was placed at: Kid (the room's own scale) or Toy (placed at a toy's scale, for a toy-only place). Its beam and grips are still worked out from a kid's.")]
+        private MadeAt madeAt = MadeAt.Kid;
+
         private Vector3 _bornScale;
-        private bool _born;
+        private bool _born, _resized;
+        private float _share;
 
-        /// <summary>Its size now as a share of the size it was made at (the kid's: tools are laid in the room at a kid's
-        /// size). 1 until something resizes it.</summary>
-        public float SizeShare { get; private set; } = 1f;
+        /// <summary>Its size as placed, as a share of a kid's tool: 1, or the toy's share when Made At Toy.</summary>
+        private float BornShare => madeAt == MadeAt.Toy ? Shifter.ToyShareOfKid : 1f;
 
-        /// <summary>Makes it <paramref name="share"/> of the size it was made at (D-0138): a tool in the bar goes with the
-        /// size of the hand holding it, the toy's 1/35 of the kid's. Its grips are in its own space, so they follow.</summary>
+        /// <summary>Its size now as a share of a kid-sized one (D-0138): as placed until something resizes it.</summary>
+        public float SizeShare => _resized ? _share : BornShare;
+
+        /// <summary>Makes it <paramref name="share"/> of a kid-sized one (D-0138): a tool in the bar goes with the size of
+        /// the hand holding it, the toy's 1/35 of the kid's. Its grips are in its own space, so they follow.</summary>
         public void Resize(float share)
         {
             if (!_born) { _bornScale = transform.localScale; _born = true; }
-            share = Mathf.Max(1e-4f, share);
-            SizeShare = share;
-            transform.localScale = _bornScale * share;
+            _share = Mathf.Max(1e-4f, share);
+            _resized = true;
+            transform.localScale = _bornScale * (_share / Mathf.Max(1e-4f, BornShare));
         }
 
         internal void SetCarried(bool carried)

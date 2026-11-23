@@ -2607,4 +2607,19 @@
     (`Flashlight.EnsureShaft`), so they come back after a door.
   - Online doors (NetTravel) carry nothing (each player spawns fresh); unchanged.
   - Compiled outside, landed in his editor; not played.
+- **D-0146 (22 Nov, 16:3x) One Flashlight prefab, with a made-at size (systems plan step 4).**
+  - His "go with step 4".
+  - Prefabs/Tools/Flashlight.prefab: a variant of the Playroom pack's Flashlight_01 carrying our parts (Carryable,
+    Flashlight, Highlight, the Beam light), made from the toy-box flashlight with its scene values reset (off at start, no
+    core). Both scene flashlights switched over in place (`FlashlightPrefabBuilder`, menu Shift Jam / Tools / Make
+    Flashlight Prefab): the toy box's keeps starting on (range 90), the wardrobe's keeps range 120 and its push switch
+    (still pointing at its Flashlight). 0 broken references in Greybox.
+  - Found and fixed in the builder on the way: Unity never pairs a part added by hand to a pack copy with the prefab's own
+    copy of it, so the switch-over left every part doubled; the builder now merges each pair (values onto the prefab's
+    part, every reference moved over, the hand-added one deleted). Its first merge run rewrote a Transform's children list
+    and tripped on the deleted parts; the scene was reloaded from disk (nothing lost) and both fixed before the run that
+    stuck.
+  - `Carryable` Made At (Kid / Toy): a tool placed at a toy's scale for a toy-only place; its size share starts at the
+    toy's (`Shifter.ToyShareOfKid`, from the shift settings, set when a Shifter wakes), so a toy can pick it up and a
+    kid's hand grows it. Beam values stay a kid's, scaled by the share.
 

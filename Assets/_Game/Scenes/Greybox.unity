@@ -2444,9 +2444,25 @@ PrefabInstance:
       value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: wanderRadius
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: TanSoldier_3
@@ -9746,6 +9762,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: Soldier_NW
@@ -15701,6 +15733,8 @@ MonoBehaviour:
   lightsTo: 0.08
   ambientTo: 0.25
   fade: 0.6
+  reachingIn: 1
+  dimSun: 1
   alsoDim: []
 --- !u!1001 &214394458
 PrefabInstance:
@@ -24248,9 +24282,25 @@ PrefabInstance:
       value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: wanderRadius
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: TanSoldier_5
@@ -44835,9 +44885,25 @@ PrefabInstance:
       value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: wanderRadius
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: TanSoldier_7
@@ -47414,6 +47480,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: Soldier_Core
@@ -94660,9 +94742,25 @@ PrefabInstance:
       value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: wanderRadius
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: TanOfficer
@@ -95418,6 +95516,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: Soldier_W
@@ -99034,9 +99148,25 @@ PrefabInstance:
       value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: wanderRadius
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: TanSoldier_1
@@ -100835,9 +100965,25 @@ PrefabInstance:
       value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: wanderRadius
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: TanSoldier_4
@@ -101951,9 +102097,25 @@ PrefabInstance:
       value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: wanderRadius
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: TanSoldier_8
@@ -111264,9 +111426,25 @@ PrefabInstance:
       value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: wanderRadius
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: TanSoldier_9
@@ -112936,9 +113114,25 @@ PrefabInstance:
       value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: wanderRadius
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: TanSoldier_2
@@ -119835,9 +120029,25 @@ PrefabInstance:
       value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: wanderRadius
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: HallSoldier
@@ -120497,6 +120707,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: Soldier_NE
@@ -121406,7 +121632,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5481994995560077992, guid: e7068de23d00c5342aece14e40bcbb6e, type: 3}
       propertyPath: m_Range
-      value: 120
+      value: 350
       objectReference: {fileID: 0}
     - target: {fileID: 5481994995560077992, guid: e7068de23d00c5342aece14e40bcbb6e, type: 3}
       propertyPath: m_Color.b
@@ -158984,9 +159210,25 @@ PrefabInstance:
       value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleEffect
+      value: 
+      objectReference: {fileID: 375242176540227830, guid: 77dfa976b5a9d234c8b135193c9aec2b, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: wanderRadius
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: dazzleSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f77242cc69b7a8d4bb09c5675056021d, type: 3}
+    - target: {fileID: 7613846837478699875, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: 'dazzleSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: be16b349336cda04a9be7b40bb29c728, type: 3}
     - target: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_Name
       value: TanSoldier_6

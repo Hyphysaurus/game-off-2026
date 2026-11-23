@@ -112,6 +112,62 @@ namespace ShiftJam
             Debug.Log("HALLWAY LIGHT BEATS (D-0151)\n" + Log);
         }
 
+        const float BeamIntensityKid = 20000f;   // D-0153 his "it's pretty dark, we need to amplify the beam": was 3000
+        const float BeamRangeKid = 350f;         // was 90 / 120: a toy's light now reaches 10 toy units, a kid's 350
+        const string StunPrefab = "Assets/Polygon Arsenal/Prefabs/Combat/Melee & Sword/Stun/Stun1.prefab";
+        static readonly string[] DazzleClips =
+        {
+            "Assets/_Imports/ithappy/Playroom/Character_Voice_Pack/Male/Vocal_Sounds/Startled_Male_v1.wav",
+            "Assets/_Imports/ithappy/Playroom/Character_Voice_Pack/Male/Vocal_Sounds/Startled_Male_v2.wav",
+        };
+
+        /// <summary>
+        /// D-0153: every toy soldier in the open scene shows a stun effect and cries out when dazzled; every flashlight (the
+        /// prefab and the scene's) has the brighter, longer beam. Safe to run again.
+        /// Menu: Shift Jam / House / Soldier Dazzle FX + Brighter Beams (D-0153).
+        /// </summary>
+        [MenuItem("Shift Jam/House/Soldier Dazzle FX + Brighter Beams (D-0153)")]
+        public static void DazzleAndBeams()
+        {
+            Log.Clear();
+            var stun = AssetDatabase.LoadAssetAtPath<GameObject>(StunPrefab);
+            var clips = new System.Collections.Generic.List<AudioClip>();
+            foreach (string c in DazzleClips) { var a = AssetDatabase.LoadAssetAtPath<AudioClip>(c); if (a != null) clips.Add(a); }
+            int soldiers = 0;
+            foreach (var s in Object.FindObjectsByType<ToySoldier>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                var so = new SerializedObject(s);
+                so.FindProperty("dazzleEffect").objectReferenceValue = stun;
+                var list = so.FindProperty("dazzleSounds"); list.arraySize = clips.Count;
+                for (int i = 0; i < clips.Count; i++) list.GetArrayElementAtIndex(i).objectReferenceValue = clips[i];
+                so.ApplyModifiedPropertiesWithoutUndo();
+                soldiers++;
+            }
+            Log.AppendLine($"{soldiers} soldier(s): stun effect {(stun != null ? stun.name : "NOT FOUND")}, {clips.Count} sound(s)");
+
+            // The prefab, then every flashlight in the scene (their own values are overrides: set them too).
+            GameObject root = PrefabUtility.LoadPrefabContents(FlashlightPrefabBuilder.PrefabPath);
+            Beam(root.GetComponent<Flashlight>());
+            PrefabUtility.SaveAsPrefabAsset(root, FlashlightPrefabBuilder.PrefabPath);
+            PrefabUtility.UnloadPrefabContents(root);
+            int torches = 0;
+            foreach (var f in Object.FindObjectsByType<Flashlight>(FindObjectsInactive.Include, FindObjectsSortMode.None)) { Beam(f); torches++; }
+            Log.AppendLine($"beam {BeamIntensityKid} bright, {BeamRangeKid} reach at kid size: the prefab and {torches} flashlight(s)");
+            var scene = SceneManager.GetActiveScene();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log("DAZZLE + BEAMS (D-0153)\n" + Log);
+        }
+
+        static void Beam(Flashlight f)
+        {
+            if (f == null) return;
+            var so = new SerializedObject(f);
+            so.FindProperty("beamIntensity").floatValue = BeamIntensityKid;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            if (f.Beam != null) { var lo = new SerializedObject(f.Beam); lo.FindProperty("m_Range").floatValue = BeamRangeKid; lo.ApplyModifiedPropertiesWithoutUndo(); }
+        }
+
         /// <summary>A LightTarget on <paramref name="go"/> set up as given, its old wiring cleared (so a re-run does not stack it).</summary>
         static LightTarget Target(GameObject go, Transform point, float fill, LightTarget.FocusRule rule, float drain, bool repeatable)
         {

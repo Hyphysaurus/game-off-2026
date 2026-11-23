@@ -35,6 +35,10 @@ namespace ShiftJam
         [SerializeField, Min(0), Tooltip("Bright bits thrown up from the middle (the test room: 28).")] private int blastBits = 28;
         [SerializeField, Tooltip("The bright bits: the fastest one's speed, a bit's radius, how fast they fall, all at toy size (the test room: 9, 0.09, 6).")] private Vector3 blastSpeedSizeFall = new Vector3(9f, 0.09f, 6f);
         [SerializeField, Min(0.01f), Tooltip("Seconds a bright bit lasts (the test room: 0.5).")] private float blastSeconds = 0.5f;
+        [SerializeField, Range(0f, 1.5f), Tooltip("How far the bright bits fly, as a share of the blast's reach (D-0153: the burst fills what the blast hits; the throw arc's ring). Their speed is raised to reach it.")] private float burstReach = 0.9f;
+        [SerializeField, Tooltip("A shockwave ring grows from the middle to the blast's reach as it goes off (D-0153).")] private bool shockRing = true;
+        [SerializeField, Min(0.01f), Tooltip("Seconds the shockwave ring takes to grow and fade.")] private float ringSeconds = 0.4f;
+        [SerializeField, Min(0f), Tooltip("The shockwave ring's width, units at toy size.")] private float ringWidth = 0.12f;
         [SerializeField, Tooltip("The smoke's colour.")] private Color smokeColour = new Color(0.85f, 0.85f, 0.9f);
         [SerializeField, Min(0), Tooltip("Smoke bits (the test room: 16).")] private int smokeBits = 16;
         [SerializeField, Tooltip("The smoke: the fastest bit's speed, a bit's radius, how fast it falls, at toy size (the test room: 3.5, 0.16, and -1: it rose). Here the fall is 0: every falling bit in the scene shares one pull, so smoke that rose would lift the bright bits with it.")] private Vector3 smokeSpeedSizeFall = new Vector3(3.5f, 0.16f, 0f);
@@ -161,8 +165,12 @@ namespace ShiftJam
 
             // What it shows and sounds like: the bright bits, the smoke, the boom, a short flash of light.
             PaintSplats keeper = PaintSplats.InScene();
-            keeper.Puff(middle, Vector3.up, blastColour, blastBits, blastSpeedSizeFall.x * _size, blastSpeedSizeFall.y * _size, blastSpeedSizeFall.z * _size, blastSeconds);
-            keeper.Puff(middle, Vector3.up, smokeColour, smokeBits, smokeSpeedSizeFall.x * _size, smokeSpeedSizeFall.y * _size, smokeSpeedSizeFall.z * _size, smokeSeconds);
+            // The bright bits fly as far as the blast reaches (Burst Reach), the smoke over half as far (D-0153).
+            float bitSpeed = Mathf.Max(blastSpeedSizeFall.x * _size, reach * burstReach / blastSeconds);
+            float smokeSpeed = Mathf.Max(smokeSpeedSizeFall.x * _size, reach * burstReach * 0.6f / smokeSeconds);
+            keeper.Puff(middle, Vector3.up, blastColour, blastBits, bitSpeed, blastSpeedSizeFall.y * _size, blastSpeedSizeFall.z * _size, blastSeconds);
+            keeper.Puff(middle, Vector3.up, smokeColour, smokeBits, smokeSpeed, smokeSpeedSizeFall.y * _size * 1.6f, smokeSpeedSizeFall.z * _size, smokeSeconds);
+            if (shockRing) BlastRing.Play(middle, reach, blastColour, ringWidth * _size, ringSeconds);
             if (blastClips != null && blastClips.Length > 0)
             {
                 AudioClip clip = blastClips[UnityEngine.Random.Range(0, blastClips.Length)];

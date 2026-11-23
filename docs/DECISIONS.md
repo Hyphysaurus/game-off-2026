@@ -2669,4 +2669,16 @@
     tall end 6000, the bedroom and playroom ceilings, the garden sun, the sun).
   - `DarkZone` Reaching In (on): every light whose reach touches the box is dimmed while the view is inside; Dim Sun
     (on): directional lights too. Now 11 lights in the hallway's case; guides still lit (lantern, markers, embers, torch).
+- **D-0153 (22 Nov, 17:1x) Brighter beam, a dazzled soldier you can see and hear, a grenade burst that fills its ring.**
+  - His "it's pretty dark so we need to amplify the beam light", "we also need some kind of vfx and maybe sfx to show a
+    dazzled soldier besides just an anim", "for grenades, expand it" (option a: the burst grows to the blast's reach).
+  - Beam: 20000 bright, 350 reach at kid size (were 3000 and 90 / 120): a toy's light reaches 10 toy units. On the
+    Flashlight prefab and all 3 scene flashlights. (A LightTarget's reach is the beam's, so dazzling works further too.)
+  - ToySoldier Dazzle Effect (Polygon Arsenal Stun1, over its head while blinded, removed after) and Dazzle Sounds (the
+    Playroom pack's Startled_Male v1/v2): all 15 soldiers in Greybox.
+  - Grenade: the bright bits fly Burst Reach (0.9) of the blast's reach and the smoke 0.6 of it (speeds raised to get
+    there); a shockwave ring (`BlastRing`, FX/) grows to the reach over 0.4 s and fades. Damage unchanged.
+  - Applied by Shift Jam / House / Soldier Dazzle FX + Brighter Beams (D-0153). Not played.
+  - His "the reticle is offset for gun and for flashlight, they dont aim at the same thing": in first person the light
+    measured 0.1 degrees off the dot; the third-person case with both out is not measured yet.
 

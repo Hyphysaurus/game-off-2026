@@ -45,7 +45,7 @@ Light:
   m_Type: 0
   m_Color: {r: 1, g: 0.9019608, b: 0.74509805, a: 1}
   m_Intensity: 5
-  m_Range: 90
+  m_Range: 350
   m_SpotAngle: 50
   m_InnerSpotAngle: 30
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -248,7 +248,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.Flashlight
   beam: {fileID: 5481994995560077992}
   core: {fileID: 0}
-  beamIntensity: 3000
+  beamIntensity: 20000
   showShaft: 1
   shaftLength: 0.45
   shaftLens: 0.06

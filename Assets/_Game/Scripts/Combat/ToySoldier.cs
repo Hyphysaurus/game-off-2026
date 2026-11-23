@@ -26,6 +26,9 @@ namespace ShiftJam
         [SerializeField, Tooltip("Seconds it waits at each point.")] private float pause = 1.2f;
         [Header("Blinded by a focused light (D-0149)")]
         [SerializeField, Min(0f), Tooltip("Seconds it is blinded by Dazzle (a LightTarget's On Filled): it cannot see or shoot, stands still and sways.")] private float blindSeconds = 3f;
+        [SerializeField, Tooltip("Shown over its head while blinded (a looping stun effect: Polygon Arsenal's Stun), sized with it.")] private GameObject dazzleEffect;
+        [SerializeField, Tooltip("One of these plays as it is blinded (a startled voice, a sparkle).")] private AudioClip[] dazzleSounds;
+        [SerializeField, Range(0f, 1f)] private float dazzleVolume = 0.8f;
 
         [Header("Sight")]
         [SerializeField] private float sightRange = 18f;
@@ -65,8 +68,40 @@ namespace ShiftJam
         public void Blind(float seconds)
         {
             if (_state == State.Down) return;
+            bool fresh = Time.time >= _blindUntil;
             _blindUntil = Mathf.Max(_blindUntil, Time.time + seconds);
             _wasBlind = true;
+            if (!fresh) return;
+            // What shows and sounds (D-0153): the stun effect over its head, a startled cry.
+            if (dazzleEffect != null && _dazzleFx == null)
+            {
+                Bounds b = Drawn();
+                _dazzleFx = Instantiate(dazzleEffect, new Vector3(b.center.x, b.max.y + 0.15f * Scale, b.center.z), Quaternion.identity, transform);
+                _dazzleFx.transform.localScale = dazzleEffect.transform.localScale;   // under the soldier: its size with it
+            }
+            if (dazzleSounds != null && dazzleSounds.Length > 0)
+            {
+                AudioClip clip = dazzleSounds[Random.Range(0, dazzleSounds.Length)];
+                if (clip != null) PaintSplats.InScene().Play(clip, transform.position, dazzleVolume);
+            }
+        }
+
+        private GameObject _dazzleFx;
+
+        /// <summary>Its drawn body's box (for where the stun effect sits).</summary>
+        private Bounds Drawn()
+        {
+            var rs = GetComponentsInChildren<Renderer>();
+            Bounds b = new Bounds(transform.position + Vector3.up * Scale, Vector3.zero);
+            bool any = false;
+            foreach (var r in rs) { if (r is ParticleSystemRenderer) continue; if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds); }
+            return b;
+        }
+
+        private void EndDazzle()
+        {
+            if (_dazzleFx != null) Destroy(_dazzleFx);
+            _dazzleFx = null;
         }
 
         /// <summary>Blinds it for its own Blind Seconds: wire a LightTarget's On Filled here (focus, then shoot).</summary>
@@ -136,7 +171,7 @@ namespace ShiftJam
             transform.SetPositionAndRotation(_post, _postRot);
             _cc.enabled = true;
             _health.ResetState();
-            _blindUntil = float.NegativeInfinity; _wasBlind = false;   // a reset clears a blinding (D-0149)
+            _blindUntil = float.NegativeInfinity; _wasBlind = false; EndDazzle();   // a reset clears a blinding (D-0149)
             if (visual != null) visual.localRotation = _visualRest;
             _state = State.Patrol; _routeIndex = 0; _routeStep = 1; _wanderTo = _post;
             _vertical = 0f; _seenFor = 0f; _lastSeen = -100f; _sees = false; _waitUntil = 0f;
@@ -187,7 +222,7 @@ namespace ShiftJam
                 _cc.Move(Vector3.up * _vertical * dt);
                 return;
             }
-            if (_wasBlind) { _wasBlind = false; if (visual != null) visual.localRotation = _visualRest; }
+            if (_wasBlind) { _wasBlind = false; if (visual != null) visual.localRotation = _visualRest; EndDazzle(); }
 
             Perceive(dt);
             Vector3 move = Vector3.zero, face = Vector3.zero;

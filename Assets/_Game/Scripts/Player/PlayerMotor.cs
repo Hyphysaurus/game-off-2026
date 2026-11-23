@@ -78,6 +78,11 @@ namespace ShiftJam
         public float? FaceYaw { get; set; }
         /// <summary>Share of the top speed kept while aiming (D-0141; PlayerMoves sets it). 1 = full speed.</summary>
         public float AimShare { get; set; } = 1f;
+
+        /// <summary>Held at a grip (D-0156, a Grabbable): the body is moved to this point each step and faces Hold Yaw; the
+        /// stick goes to the held thing, not the walk. Before every other rule (a roll's Drive, an aim's facing).</summary>
+        public Vector3? HoldAt { get; set; }
+        public float HoldYaw { get; set; }
         /// <summary>The body's sideways velocity, world units a second.</summary>
         public Vector3 PlanarVelocity => _planar;
         /// <summary>The fastest the body runs, own units a second (the legs' playback is worked out against it).</summary>
@@ -179,11 +184,16 @@ namespace ShiftJam
             if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
             forward.Normalize();
             Vector3 right = Vector3.Cross(Vector3.up, forward);
-            Vector2 move = SteerLocked || Drive.HasValue ? Vector2.zero : input.Move;
+            Vector2 move = SteerLocked || Drive.HasValue || HoldAt.HasValue ? Vector2.zero : input.Move;
             Vector3 wish = forward * move.y + right * move.x;
             bool steering = wish.sqrMagnitude > 0.0001f;
 
-            if (Glide != null && !Drive.HasValue) _planar = GlidePlanar(wish, steering, scale, dt);
+            if (HoldAt.HasValue)
+            {
+                Vector3 gap = HoldAt.Value - transform.position; gap.y = 0f;
+                _planar = Vector3.ClampMagnitude(gap / Mathf.Max(dt, 1e-4f), 30f * scale);   // at the grip, walking round with the thing
+            }
+            else if (Glide != null && !Drive.HasValue) _planar = GlidePlanar(wish, steering, scale, dt);
             else
             {
                 // Horizontal speed eases toward the target instead of snapping: that is the "weight".
@@ -193,7 +203,9 @@ namespace ShiftJam
                 _planar = Drive ?? Vector3.MoveTowards(_planar, wish * topSpeed, rate * dt);
             }
 
-            if (FaceYaw.HasValue)
+            if (HoldAt.HasValue)
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0f, HoldYaw, 0f), settings.turnSpeed * dt);
+            else if (FaceYaw.HasValue)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0f, FaceYaw.Value, 0f), settings.turnSpeed * dt);
             else if (Glide != null && _planar.sqrMagnitude > 1e-6f * scale * scale)   // on the plane: facing the way it flies
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(_planar, Vector3.up), settings.turnSpeed * dt);

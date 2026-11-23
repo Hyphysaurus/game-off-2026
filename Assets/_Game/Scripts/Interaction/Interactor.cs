@@ -63,9 +63,11 @@ namespace ShiftJam
                 if (_hits[i].transform.IsChildOf(transform)) continue;
                 if (carrier != null && carrier.Held != null && _hits[i].transform.IsChildOf(carrier.Held.transform)) continue;
                 if (grab != null && grab.HeldTransform != null && _hits[i].transform.IsChildOf(grab.HeldTransform)) continue;
-                var candidate = _hits[i].GetComponentInParent<IInteractable>();
-                if (candidate == null) continue;
-                if (string.IsNullOrEmpty(candidate.PromptFor(this))) continue;   // nothing to say = not a target
+                // The first part on it with something to say (a toy finds a giant flashlight's Grab past its silent pick-up, D-0156).
+                IInteractable candidate = null;
+                foreach (var part in _hits[i].GetComponentsInParent<IInteractable>())
+                    if (!string.IsNullOrEmpty(part.PromptFor(this))) { candidate = part; break; }
+                if (candidate == null) continue;   // nothing to say = not a target
                 var hit = _hits[i];
                 bool exact = hit is BoxCollider || hit is SphereCollider || hit is CapsuleCollider || (hit is MeshCollider mc && mc.convex);
                 float distance = ((exact ? hit.ClosestPoint(centre) : hit.bounds.ClosestPoint(centre)) - centre).sqrMagnitude;
@@ -88,6 +90,7 @@ namespace ShiftJam
             var moves = GetComponent<PlayerMoves>();   // plain form: Fast Script Reload breaks `TryGetComponent(out ...) &&`
             if (moves != null && !moves.Free) return;
             if (grab != null && grab.isActiveAndEnabled && grab.TryUse()) return;   // set down what is held, or grab what is aimed at
+            if (Grabbable.Release(gameObject)) return;   // holding a heavy thing: E lets go (D-0156)
             Target?.Interact(this);
         }
     }

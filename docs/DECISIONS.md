@@ -2702,4 +2702,17 @@
     SupplyCrate; a tape note on the bed head's inside, "Lights out at 8! - Mom" (placeholder wording, his to change),
     shown only by a light (LightTarget + LightReveal).
   - Placed by Shift Jam / House / Land Bedroom Light Beats (D-0155). 0 broken references. Not played.
+- **D-0156 (22 Nov, 18:5x) Grab and steer a heavy thing (Zelda-like): the giant flashlight.**
+  - His "struggling to manipulate the item... perhaps a Zelda-like grab onto the item and we can rotate it", "turn
+    about it in the logical way", "proceed".
+  - `Grabbable` (Interaction/, needs a Rigidbody): E grabs (who may: toy / kid), left / right turn it (Turn Speed 45 a
+    second), forward / back push and pull (Push Speed 0.8 grabber heights a second), E or Jump lets go, a shift lets go,
+    pulled off the grip lets go. Pivot: Middle (default: a heavy thing on the floor turns about its middle, the grabber
+    walking round with its end) or Far End (swung like a log). Moved by its body's speed, so walls stop it; eased (Ease).
+  - `PlayerMotor.HoldAt / HoldYaw`: held at the grip, facing the thing, before every other rule (PlayerMoves rewrites
+    Drive / FaceYaw / SteerLocked each frame, so the grab has its own slot).
+  - Interactor: E finds the first part with something to say (the toy finds Grab past the flashlight's silent pick-up);
+    while holding, E lets go.
+  - The toy box's giant flashlight: Pushable off, Grabbable on; the core's prompt: "Dark. Grab the big light (E) and
+    turn it onto this." (Land Bedroom Light Beats again.)
 

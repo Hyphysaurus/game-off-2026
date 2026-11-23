@@ -43,15 +43,16 @@ namespace ShiftJam
                 body.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;   // it stays lying level: a push swings it round
                 body.interpolation = RigidbodyInterpolation.Interpolate;
                 body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-                if (!torch.TryGetComponent(out Pushable _)) torch.gameObject.AddComponent<Pushable>();   // Light: a toy can shove it
-                Log.AppendLine($"giant flashlight: pushable by the toy, lying level at {torch.position}");
+                if (torch.TryGetComponent(out Pushable shove)) Object.DestroyImmediate(shove);   // walked into, it was hard to aim (D-0156)
+                if (!torch.TryGetComponent(out Grabbable _)) torch.gameObject.AddComponent<Grabbable>();   // E: grab it, A / D turn it, W / S push it
+                Log.AppendLine($"giant flashlight: grabbable by the toy (turn and push), lying level at {torch.position}");
             }
             else Log.AppendLine("NO Flashlight_01 in the toy box");
             if (core != null)
             {
                 var so = new SerializedObject(core);
                 so.FindProperty("startDormant").boolValue = true;
-                so.FindProperty("dormantPrompt").stringValue = "Dark. Push the big light so it shines on it.";
+                so.FindProperty("dormantPrompt").stringValue = "Dark. Grab the big light (E) and turn it onto this.";
                 so.ApplyModifiedPropertiesWithoutUndo();
                 Transform middle = core.transform.Find("LightPoint");
                 if (middle == null) { middle = new GameObject("LightPoint").transform; middle.SetParent(core.transform, false); }

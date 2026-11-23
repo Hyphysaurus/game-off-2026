@@ -53,6 +53,8 @@ namespace ShiftJam
         private BeamShaft _shaft;
 
         public bool IsOn { get; private set; }
+        /// <summary>How focused the beam is now, 0 wide to 1 focused (aim held, D-0141); LightTargets read it (D-0149).</summary>
+        public float Focus => Mathf.SmoothStep(0f, 1f, _focus);
         public Light Beam => beam;
 
         private void Awake()

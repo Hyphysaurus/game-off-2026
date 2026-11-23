@@ -76,6 +76,9 @@ namespace ShiftJam
         /// <summary>Raised on G: throw a grenade. The pad has no button to spare, so there it is two at once: hold
         /// Crouch (the right stick pressed in) and press Sprint (the left stick in).</summary>
         public event Action Grenade;
+        /// <summary>True while a throw is being lined up (D-0148): G held, or the pad's right stick held in (its half of
+        /// the throw). The arc shows meanwhile; G's throw goes on letting go.</summary>
+        public bool GrenadeHeld => (_grenade != null && _grenade.IsPressed()) || (_grenadePadHold != null && _grenadePadHold.IsPressed());
 
         private void Awake()
         {
@@ -135,7 +138,7 @@ namespace ShiftJam
             _shift.performed += OnShift;
             _dropWeapon.performed += OnDropWeapon;
             _reload.performed += OnReload;
-            _grenade.performed += OnGrenade;
+            _grenade.canceled += OnGrenade;   // G throws on letting go: held, it lines up the arc (D-0148)
             _grenadePad.performed += OnGrenadePad;
             _player.Enable();
             _extras.Enable();
@@ -146,7 +149,7 @@ namespace ShiftJam
             _player.Disable();
             _extras.Disable();
             _reload.performed -= OnReload;
-            _grenade.performed -= OnGrenade;
+            _grenade.canceled -= OnGrenade;
             _grenadePad.performed -= OnGrenadePad;
             _previous.performed -= OnPrevious;
             _next.performed -= OnNext;

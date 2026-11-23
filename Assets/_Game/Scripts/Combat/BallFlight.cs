@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ShiftJam
@@ -72,6 +73,56 @@ namespace ShiftJam
 
         /// <summary>Stops it where it is.</summary>
         public void Halt() { _flying = false; _velocity = Vector3.zero; _spin = Vector3.zero; }
+
+        /// <summary>
+        /// The flight this ball would take from <paramref name="from"/> at <paramref name="velocity"/>, thrown at
+        /// <paramref name="size"/> (D-0148, the throw arc): stepped exactly as FixedUpdate steps it (fall, then drag, then a
+        /// swept move), up to the first thing it touches or <paramref name="seconds"/>. Called on the prefab: its own
+        /// numbers and radius. <paramref name="points"/> gets the path (one point a step); true with where it lands and
+        /// the surface's normal when it touches something.
+        /// </summary>
+        public bool Predict(Vector3 from, Vector3 velocity, float size, Transform pass, Transform passAlt, float seconds,
+            List<Vector3> points, out Vector3 landing, out Vector3 normal)
+        {
+            points.Clear();
+            landing = from; normal = Vector3.up;
+            size = Mathf.Max(0.001f, size);
+            var sphere = GetComponent<SphereCollider>();
+            float radius = (sphere != null ? sphere.radius : 0.1f) * Mathf.Abs(transform.localScale.x) * size;
+            float dt = Time.fixedDeltaTime;
+            Vector3 place = from, v = velocity;
+            points.Add(place);
+            int steps = Mathf.CeilToInt(seconds / Mathf.Max(1e-4f, dt));
+            for (int s = 0; s < steps; s++)
+            {
+                v += Vector3.down * (fall * size * dt);
+                v *= Mathf.Max(0f, 1f - drag * dt);
+                Vector3 step = v * dt;
+                float distance = step.magnitude;
+                if (distance < 1e-7f) continue;
+                Vector3 way = step / distance;
+                int count = Physics.SphereCastNonAlloc(place, radius, way, Hits, distance, Layers.Seen(hitMask), QueryTriggerInteraction.Ignore);
+                int first = -1;
+                for (int h = 0; h < count; h++)
+                {
+                    Collider c = Hits[h].collider;
+                    if (Hits[h].distance <= 0f || c.isTrigger) continue;
+                    if ((pass != null && c.transform.IsChildOf(pass)) || (passAlt != null && c.transform.IsChildOf(passAlt))) continue;
+                    if (first < 0 || Hits[h].distance < Hits[first].distance) first = h;
+                }
+                if (first >= 0)
+                {
+                    place += way * Hits[first].distance;
+                    points.Add(place);
+                    landing = Hits[first].point; normal = Hits[first].normal;
+                    return true;
+                }
+                place += step;
+                points.Add(place);
+            }
+            landing = place;
+            return false;
+        }
 
         private bool Passes(Collider c) =>
             c == _ball || c.transform.IsChildOf(transform) || (_pass != null && c.transform.IsChildOf(_pass)) || (_passAlt != null && c.transform.IsChildOf(_passAlt));

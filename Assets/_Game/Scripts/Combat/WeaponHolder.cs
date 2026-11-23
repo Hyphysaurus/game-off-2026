@@ -234,6 +234,30 @@ namespace ShiftJam
         /// <summary>True for anything that is part of us (never a target).</summary>
         public bool IsSelf(Transform t) => t.IsChildOf(transform) || (_fpBody != null && t.IsChildOf(_fpBody));
 
+        private readonly RaycastHit[] _crossHits = new RaycastHit[16];
+
+        /// <summary>Where the crosshair lands (D-0147): the first thing on the view's centre ray, within
+        /// <paramref name="reach"/>, that is not us (nor <paramref name="skipAlso"/>, a gun's own body), else the ray's far
+        /// end. In third person the ray starts level with the holder, so nothing between the camera and the player is
+        /// picked. A figure's walking capsule is passed for what is drawn. The guns and the hand tools (the flashlight)
+        /// aim at this one point, so the light's pool and a shot land where the dot is, at any distance.</summary>
+        public Vector3 CrosshairPoint(float reach, LayerMask mask, Transform skipAlso = null)
+        {
+            Vector3 eye = AimOrigin, look = AimForward;
+            float skip = FirstPerson ? 0f : Mathf.Clamp(Vector3.Dot(AttackOrigin - eye, look), 0f, reach * 0.5f);
+            Vector3 target = eye + look * reach;
+            int n = Physics.RaycastNonAlloc(eye + look * skip, look, _crossHits, reach - skip, Layers.Seen(mask), QueryTriggerInteraction.Ignore);
+            float nearest = float.MaxValue;
+            for (int i = 0; i < n; i++)
+            {
+                Transform t = _crossHits[i].transform;
+                if (IsSelf(t) || (skipAlso != null && t.IsChildOf(skipAlso))) continue;
+                if (HitShapes.BodyOnly(_crossHits[i].collider)) continue;
+                if (_crossHits[i].distance < nearest) { nearest = _crossHits[i].distance; target = _crossHits[i].point; }
+            }
+            return target;
+        }
+
         /// <summary>A recoil or impact kick for the first-person view; nothing in third person.</summary>
         public void Punch(Vector2 degrees) { if (_fpLook != null) _fpLook.Punch(degrees); }
 

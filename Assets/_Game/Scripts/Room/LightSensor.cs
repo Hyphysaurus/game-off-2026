@@ -17,7 +17,6 @@ namespace ShiftJam
         [SerializeField, Tooltip("Where the beam must land. This object if empty.")] private Transform point;
 
         private ShiftSource _source;
-        private readonly RaycastHit[] _hits = new RaycastHit[16];
         private float _nextCheck, _litFor;
 
         private void Awake()
@@ -32,34 +31,12 @@ namespace ShiftJam
             _nextCheck = Time.time + interval;
             if (!_source.Dormant && !repeatable) { enabled = false; return; }
 
-            bool lit = false;
-            for (int i = 0; i < Flashlight.Lit.Count && !lit; i++) lit = Lights(Flashlight.Lit[i]);
+            bool lit = LightQuery.Lit(point.position, transform, out _);   // the shared light check (D-0149)
             _litFor = lit ? _litFor + interval : 0f;
 
             if (_litFor >= dwell) _source.Awaken();
             else if (repeatable && !lit) _source.Sleep();
         }
 
-        private bool Lights(Flashlight torch)
-        {
-            Light beam = torch != null ? torch.Beam : null;
-            if (beam == null || !beam.enabled) return false;
-            Vector3 origin = beam.transform.position;
-            Vector3 to = point.position - origin;
-            float distance = to.magnitude;
-            if (distance > beam.range) return false;
-            float half = beam.type == LightType.Spot ? beam.spotAngle * 0.5f : 180f;
-            if (Vector3.Angle(beam.transform.forward, to) > half) return false;
-
-            // Nothing solid between the lens and the core, other than the core itself or the torch.
-            int count = Physics.RaycastNonAlloc(origin, to / distance, _hits, distance, ~0, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < count; i++)
-            {
-                Transform t = _hits[i].transform;
-                if (t.IsChildOf(transform) || t.IsChildOf(torch.transform)) continue;
-                return false;
-            }
-            return true;
-        }
     }
 }

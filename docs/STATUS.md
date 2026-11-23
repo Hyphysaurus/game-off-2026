@@ -15,7 +15,9 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   hand, gun out or holstered). Try: flashlight in hand, pistol out, through the Colour Corner door and back.
 - D-0146 (16:3x, step 4): Prefabs/Tools/Flashlight.prefab; both scene flashlights are copies of it (each kept its own
   values); Carryable Made At Toy for toy-sized placed tools. Not played.
-- Next: step 5, Light Target (anything reacts to the beam).
+- D-0147..0149 (16:4x, not played): the light aims at the surface under the dot (and the dot shows when aiming it);
+  hold G for a grenade arc + blast ring (let go to throw); LightTarget + LightReveal + LightGlow + ToySoldier Dazzle.
+- Next: step 6, Dark Zone volume; then the hallway beats from these parts (LightTarget on the hall soldier -> Dazzle).
 
 ## 22 Nov 2026 15:2x — ONE PLAYER PREFAB (D-0143, systems plan step 1) + BULB GLOW (D-0142): IN HIS EDITOR, NOT PLAYED
 - Prefabs/Player/Player.prefab; Greybox, Workshop, Raceway, Colour Corner's Player each an instance of it, converted in

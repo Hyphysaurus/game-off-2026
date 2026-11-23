@@ -397,8 +397,9 @@ namespace ShiftJam
         private Vector3 AimTarget()
         {
             float s = Scale;
-            Transform view = _holder != null && _holder.FirstPersonView != null ? _holder.FirstPersonView : null;
-            if (view == null) { Camera cam = PlayerSlot.ViewFor(this); view = cam != null ? cam.transform : null; }
+            if (_holder != null && _holder.isActiveAndEnabled) return _holder.CrosshairPoint(100f * s, ~0);   // the surface under the dot (D-0147)
+            Transform view = null;
+            { Camera cam = PlayerSlot.ViewFor(this); view = cam != null ? cam.transform : null; }
             return view != null ? view.position + view.forward * (100f * s) : transform.position + transform.forward * (100f * s);
         }
 
@@ -500,6 +501,8 @@ namespace ShiftJam
             if (_armAim != null && _armAim.ReadyFor(InLeftHand))
             {
                 rot = _hand.rotation * FistFrame * ThingInFrame(Held);
+                // Pointed where the aim meant it (D-0147): a wrist at its limit no longer tips the beam off the dot.
+                if (_armAim.AimedTurn(InLeftHand, out Quaternion meant)) rot = Quaternion.Slerp(rot, meant * ThingInFrame(Held), Mathf.SmoothStep(0f, 1f, _armWeight));
                 pos = _hand.TransformPoint(_armAim.InHand(_hold.handleCentre, InLeftHand)) - rot * Vector3.Scale(_gripRight, Held.transform.lossyScale);
                 return;
             }

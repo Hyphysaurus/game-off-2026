@@ -24,6 +24,9 @@ namespace ShiftJam
         [SerializeField, Tooltip("Wander radius around the post when there is no route, units at scale 1.")] private float wanderRadius = 4f;
         [SerializeField] private float moveSpeed = 2.2f;
         [SerializeField, Tooltip("Seconds it waits at each point.")] private float pause = 1.2f;
+        [Header("Blinded by a focused light (D-0149)")]
+        [SerializeField, Min(0f), Tooltip("Seconds it is blinded by Dazzle (a LightTarget's On Filled): it cannot see or shoot, stands still and sways.")] private float blindSeconds = 3f;
+
         [Header("Sight")]
         [SerializeField] private float sightRange = 18f;
         [SerializeField, Tooltip("Half-angle of the view cone, degrees. Once engaged it sees all round.")] private float viewAngle = 70f;
@@ -55,6 +58,22 @@ namespace ShiftJam
         private AudioSource _audio;
         private PlayerMotor _player;
         private State _state;
+        private float _blindUntil = float.NegativeInfinity;
+        private bool _wasBlind;
+
+        /// <summary>Blinds it for <paramref name="seconds"/> (D-0149): no sight, no shots, it stands and sways.</summary>
+        public void Blind(float seconds)
+        {
+            if (_state == State.Down) return;
+            _blindUntil = Mathf.Max(_blindUntil, Time.time + seconds);
+            _wasBlind = true;
+        }
+
+        /// <summary>Blinds it for its own Blind Seconds: wire a LightTarget's On Filled here (focus, then shoot).</summary>
+        public void Dazzle() => Blind(blindSeconds);
+
+        /// <summary>True while blinded.</summary>
+        public bool Blinded => Time.time < _blindUntil;
         private Vector3 _post, _wanderTo;
         private Quaternion _postRot, _visualRest;
         private int _routeIndex, _routeStep = 1;
@@ -117,6 +136,7 @@ namespace ShiftJam
             transform.SetPositionAndRotation(_post, _postRot);
             _cc.enabled = true;
             _health.ResetState();
+            _blindUntil = float.NegativeInfinity; _wasBlind = false;   // a reset clears a blinding (D-0149)
             if (visual != null) visual.localRotation = _visualRest;
             _state = State.Patrol; _routeIndex = 0; _routeStep = 1; _wanderTo = _post;
             _vertical = 0f; _seenFor = 0f; _lastSeen = -100f; _sees = false; _waitUntil = 0f;
@@ -152,6 +172,22 @@ namespace ShiftJam
                 if (Time.time - _downAt >= downTime) { ResetState(); GameEvents.RaiseSoldierUp(this); CoopWorld.SoldierUp(this); }
                 return;
             }
+
+            if (Time.time < _blindUntil)
+            {
+                // Blinded (D-0149): it cannot see or shoot; it sways where it stands, hands to its eyes in spirit.
+                _sees = false; _seenFor = 0f; _state = State.Patrol;
+                if (visual != null)
+                {
+                    float t = Time.time * 9f;
+                    visual.localRotation = _visualRest * Quaternion.Euler(Mathf.Sin(t) * 7f, 0f, Mathf.Sin(t * 1.3f) * 7f);
+                }
+                if (_cc.isGrounded && _vertical < 0f) _vertical = -1f * Scale;
+                _vertical -= gravity * Scale * dt;
+                _cc.Move(Vector3.up * _vertical * dt);
+                return;
+            }
+            if (_wasBlind) { _wasBlind = false; if (visual != null) visual.localRotation = _visualRest; }
 
             Perceive(dt);
             Vector3 move = Vector3.zero, face = Vector3.zero;

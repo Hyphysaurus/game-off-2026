@@ -28,6 +28,7 @@ namespace ShiftJam
         private AmmoBelt _belt;
         private WeaponAmmoSettings _s;
         private CanvasGroup _group;
+        private Carrier _carrier;
         private RectTransform _box;
         private TextMeshProUGUI _count, _name;
         private GameObject _dot;
@@ -122,10 +123,13 @@ namespace ShiftJam
         private void Update()
         {
             if (_holder == null) { Destroy(gameObject); return; }   // the player is gone with its scene
-            bool show = _holder.isActiveAndEnabled && _holder.Armed && _holder.Current is BlasterWeapon
-                        && GameMode.Current != GameMode.Mode.Build && !PauseMenu.IsOpen && !TitleMenu.IsOpen && !KeyHelp.IsOpen && !DebugConsole.IsOpen;
-            _group.alpha = show ? 1f : 0f;
-            _dot.SetActive(show && !_holder.FirstPerson);
+            bool free = GameMode.Current != GameMode.Mode.Build && !PauseMenu.IsOpen && !TitleMenu.IsOpen && !KeyHelp.IsOpen && !DebugConsole.IsOpen;
+            bool show = _holder.isActiveAndEnabled && _holder.Armed && _holder.Current is BlasterWeapon && free;
+            if (_carrier == null) _carrier = _holder.GetComponent<Carrier>();
+            bool lightAim = free && _carrier != null && _carrier.AimHeld;   // aiming the light shows the dot too (D-0147)
+            _group.alpha = show || lightAim ? 1f : 0f;
+            if (_box.gameObject.activeSelf != show) _box.gameObject.SetActive(show);   // the ammo read-out is the gun's
+            _dot.SetActive((show || lightAim) && !_holder.FirstPerson);
             if (show && _stale) Refresh();
             // The hit marker: big and solid as the shot lands, back to its size and gone over the flash.
             float flash = (Time.time - _flashAt) / _flashSeconds;

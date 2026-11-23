@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ShiftJam
@@ -153,13 +154,59 @@ namespace ShiftJam
             if (_swingLeft <= 0f) _pose.Rest();
         }
 
-        private void LateUpdate() => _pose.Apply(_s, Scale);
+        private void LateUpdate()
+        {
+            _pose.Apply(_s, Scale);
+            ShowArc();
+        }
+
+        private ArcPreview _arc;
+        private readonly List<Vector3> _path = new List<Vector3>();
+
+        /// <summary>The throw arc (D-0148): while a throw is lined up (G held, or the pad's right stick in) and one could
+        /// be thrown now, the path it would take from this frame's release point and speed (worked out exactly as the
+        /// throw does, Release) to where it first lands, and a ring there as wide as the blast, red when the thrower
+        /// stands inside it.</summary>
+        private void ShowArc()
+        {
+            bool lining = _s.showArc && !_look && _input != null && _input.GrenadeHeld && Carried > 0 && _swingLeft <= 0f
+                          && _s.grenade != null && (_holder == null || _holder.FreeToAct) && Time.timeScale > 0f;
+            if (!lining) { if (_arc != null) _arc.Hide(); return; }
+            if (_arc == null) _arc = ArcPreview.For(transform);
+            if (_arc == null) return;
+            Release(out Vector3 from, out Vector3 velocity, out Transform alt);
+            float size = _s.grenade.SizeFor(Scale);
+            var flight = _s.grenade.GetComponent<BallFlight>();
+            if (flight == null) { _arc.Hide(); return; }
+            bool lands = flight.Predict(from, velocity, size, transform, alt, _s.grenade.Fuse, _path, out Vector3 landing, out Vector3 normal);
+            float blast = _s.grenade.BlastRadiusAt(size);
+            Transform feet = alt != null ? alt : transform;
+            bool danger = Vector3.Distance(feet.position, landing) < blast;
+            _arc.Show(_path, _s.arcWidth * size, _s.arcColour, _s.arcDashes, landing, normal, lands ? blast : 0f, danger ? _s.dangerColour : _s.ringColour);
+        }
+
+        private void OnDestroy() { if (_arc != null) Destroy(_arc.gameObject); }
 
         private void LetGo()
         {
+            Release(out Vector3 from, out Vector3 velocity, out Transform alt);
+            Vector3 spin = new Vector3(Random.Range(-_s.spin, _s.spin), Random.Range(-_s.spin, _s.spin), Random.Range(-_s.spin, _s.spin));
+            Grenade thrown = Instantiate(_s.grenade, from, Quaternion.identity);
+            thrown.Throw(transform, alt, Scale, velocity, spin);
+            Released?.Invoke(this, from, velocity, spin, Scale);   // online: NetCombat flies a copy on the other PCs (D-0117)
+            thrown.WentOff += OnWentOff;
+            Last = thrown;
+            if (_s.throwClip != null) PaintSplats.InScene().Play(_s.throwClip, from);
+            AfterLetGo();
+        }
+
+        /// <summary>Where a throw leaves from and how fast, now (the throw and its arc both use it, D-0148): just in front
+        /// of the chest, tilted up a little above the look, taking the thrower's own speed with it.</summary>
+        private void Release(out Vector3 from, out Vector3 velocity, out Transform alt)
+        {
             Vector3 look = _holder != null ? _holder.AimForward : transform.forward;
             Vector3 way = (look + Vector3.up * _s.loft).normalized;
-            Transform alt = _holder != null ? _holder.FirstPersonBodyRoot : null;
+            alt = _holder != null ? _holder.FirstPersonBodyRoot : null;
             FirstPersonBody view = alt != null ? alt.GetComponent<FirstPersonBody>() : null;
             Transform feet = alt != null ? alt : transform;   // in first person the body under the eye is where we stand
             Vector3 flat = Vector3.ProjectOnPlane(look, Vector3.up);
@@ -168,8 +215,8 @@ namespace ShiftJam
             // The grenade learns how big its thrower is as it leaves, as a shot does: a kid's leaves from the kid's
             // chest and is as many times faster as the kid is bigger.
             float size = _s.grenade.SizeFor(Scale);
-            Vector3 from = feet.position + (left * _s.releasePoint.x + Vector3.up * _s.releasePoint.y + flat * _s.releasePoint.z) * size;
-            Vector3 velocity = way * (_s.throwSpeed * size);
+            from = feet.position + (left * _s.releasePoint.x + Vector3.up * _s.releasePoint.y + flat * _s.releasePoint.z) * size;
+            velocity = way * (_s.throwSpeed * size);
             // It takes the thrower's own speed with it. A body standing on the floor is held to it by a small
             // downward speed of its own: that is not the thrower moving, and it is left out.
             Vector3 own = Vector3.zero; bool grounded = false;
@@ -177,15 +224,9 @@ namespace ShiftJam
             else if (_motor != null && _motor.isActiveAndEnabled) { own = _motor.Velocity; grounded = _motor.Grounded; }
             if (grounded && own.y < 0f) own.y = 0f;
             velocity += own;
-            Vector3 spin = new Vector3(Random.Range(-_s.spin, _s.spin), Random.Range(-_s.spin, _s.spin), Random.Range(-_s.spin, _s.spin));
-            Grenade thrown = Instantiate(_s.grenade, from, Quaternion.identity);
-            thrown.Throw(transform, alt, Scale, velocity, spin);
-            Released?.Invoke(this, from, velocity, spin, Scale);   // online: NetCombat flies a copy on the other PCs (D-0117)
-            thrown.WentOff += OnWentOff;
-            Last = thrown;
-            if (_s.throwClip != null) PaintSplats.InScene().Play(_s.throwClip, from);
-            GameEvents.RaiseGrenadeThrown(this);
         }
+
+        private void AfterLetGo() => GameEvents.RaiseGrenadeThrown(this);
 
         private void OnWentOff(int hits, bool finished) { if (this != null) GameEvents.RaiseGrenadeWentOff(this, hits, finished); }   // gone with its scene: nothing to tell
     }

@@ -80,6 +80,17 @@ namespace ShiftJam
         private readonly Transform _body, _hips, _chest, _neck, _head;
         private readonly Arm _right = new Arm(), _left = new Arm();
         private readonly Transform[] _spine;   // spine, chest, upper chest: the waist twist is shared over them (D-0141)
+        private Quaternion _aimedR = Quaternion.identity, _aimedL = Quaternion.identity;
+        private int _aimedFrameR = -1, _aimedFrameL = -1;
+
+        /// <summary>The turn the one-handed aim meant for the thing in that hand this frame (its barrel on the target),
+        /// before the wrist's limits (D-0147): a tool posed by it points truly even when the wrist could not bend all the
+        /// way. False when that arm was not aimed this frame.</summary>
+        public bool AimedTurn(bool left, out Quaternion turn)
+        {
+            turn = left ? _aimedL : _aimedR;
+            return (left ? _aimedFrameL : _aimedFrameR) == Time.frameCount;
+        }
         private float _twistNow;   // the waist twist, eased, degrees (+ to the right)
         private float _twist;      // the twist the next Aim measures its limits from (set by TwistTorso, cleared by Aim)
 
@@ -215,6 +226,7 @@ namespace ShiftJam
                 if (freeHand) { _left.Remember(); HandToMagazine(root, gun, hold, s, scale); }
             }
 
+            if (left) { _aimedL = gun; _aimedFrameL = Time.frameCount; } else { _aimedR = gun; _aimedFrameR = Time.frameCount; }
             if (hold.limitWrist) Bend(arm, wrist, gun * Quaternion.Inverse(hold.grip), elbowWay, s.forearmRoll, s);
             else Bend(arm, wrist, gun * Quaternion.Inverse(hold.grip), elbowWay);
             if (weight < 1f) { arm.Blend(weight); if (freeHand) _left.Blend(weight); }

@@ -2622,4 +2622,29 @@
   - `Carryable` Made At (Kid / Toy): a tool placed at a toy's scale for a toy-only place; its size share starts at the
     toy's (`Shifter.ToyShareOfKid`, from the shift settings, set when a Shifter wakes), so a toy can pick it up and a
     kid's hand grows it. Beam values stay a kid's, scaled by the share.
+- **D-0147 (22 Nov, 16:4x) The light aims where the dot is.**
+  - His "hard to read WHERE the light is focused or aimed at, it seems slightly askew upwards rather than parallel to
+    the aim of the gun and its reticle". Not measured live (the light was never out during two samples); from the code:
+    (1) the tool sits cocked in the fist and the wrist's bend limit stopped the hand short, the tool posed from the hand
+    pointing high; (2) the light aimed at a point 100 units down the camera line, not the surface under the dot, so with
+    the light in the left hand and the camera over the right shoulder its pool landed off the dot near walls.
+  - `WeaponHolder.CrosshairPoint`: one crosshair ray (the blaster's, moved here) for guns and tools; the Carrier aims at
+    it. `ArmAim.AimedTurn`: the turn the aim meant before the wrist limit; the tool is pointed by it. The dot crosshair
+    shows while the light is aimed (the ammo read-out stays the gun's).
+- **D-0148 (22 Nov, 16:4x) Grenade throw arc.**
+  - His "we should also add a trajectory indicator for grenades", then "go for all".
+  - Hold G (pad: the right stick held in) to line up: a dashed arc to where it first lands and a ring as wide as the
+    blast there, red when the thrower stands inside it; let go of G to throw (a tap still throws). Exact: the release
+    point and speed come from the same `GrenadeThrower.Release` the throw uses, and `BallFlight.Predict` steps the
+    grenade's own fall, drag and swept radius to the first touch. `ArcPreview` (FX/, any thrower can use it), drawn by
+    `ShiftJam/AimArc` (Resources/FX). Tune: Resources/Grenades > The throw arc.
+- **D-0149 (22 Nov, 16:4x) Light Target: anything reacts to the light (systems plan step 5).**
+  - `LightQuery.Lit`: the one light check (beam lit, within its reach and cone as they are now, nothing in between;
+    the most focused beam on it). `LightSensor` (cores) now uses it (same behaviour).
+  - `LightTarget`: fills while lit (Fill Seconds; Focus rule Any / Faster Focused x Focus Speed / Needs Focus), drains
+    (Drain Seconds, 0 = stays full), Repeatable; events On Lit, On Unlit, On Filled, On Emptied, On Fill (0-1).
+    Reactions wired to them: `ToySoldier.Dazzle` (Blind Seconds 3: no sight, no shots, stands and sways; a reset clears
+    it), `LightReveal.Show` (hidden marks fade in), `LightGlow.GlowOn` (emission as it fills), a core's Awaken, a door.
+  - Not yet: online, each PC runs its own targets; no fill sound.
+  - All three compiled outside, landed in his editor 16:44; shaders load clean; not played.
 

@@ -64,23 +64,7 @@ namespace ShiftJam
 
         /// <summary>Where the crosshair lands: the first thing on the camera's centre ray that is not us. In third person
         /// the ray starts level with the holder, so nothing between the camera and the player gets picked.</summary>
-        public override Vector3 AimPoint()
-        {
-            if (Holder == null) return base.AimPoint();
-            float reach = range * Scale;
-            Vector3 eye = Holder.AimOrigin, look = Holder.AimForward;
-            float skip = Holder.FirstPerson ? 0f : Mathf.Clamp(Vector3.Dot(Holder.AttackOrigin - eye, look), 0f, reach * 0.5f);
-            Vector3 target = eye + look * reach;
-            int n = Physics.RaycastNonAlloc(eye + look * skip, look, _hits, reach - skip, Layers.Seen(aimMask), QueryTriggerInteraction.Ignore);
-            float nearest = float.MaxValue;
-            for (int i = 0; i < n; i++)
-            {
-                if (Holder.IsSelf(_hits[i].transform) || _hits[i].transform.IsChildOf(transform)) continue;
-                if (HitShapes.BodyOnly(_hits[i].collider)) continue;   // the shot will pass a figure's walking capsule: aim at what is drawn
-                if (_hits[i].distance < nearest) { nearest = _hits[i].distance; target = _hits[i].point; }
-            }
-            return target;
-        }
+        public override Vector3 AimPoint() => Holder == null ? base.AimPoint() : Holder.CrosshairPoint(range * Scale, aimMask, transform);   // the holder's one crosshair ray (D-0147)
 
         public override void TriggerPressed() => TryFire(true);
         public override void TriggerHeld() { if (automatic) TryFire(false); }

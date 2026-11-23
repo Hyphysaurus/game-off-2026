@@ -68,6 +68,10 @@ namespace ShiftJam
         public bool Gone => _gone;
         /// <summary>The size a grenade thrown by someone of this scale has: the scale, or 1 with Size To Thrower off.</summary>
         public float SizeFor(float throwerScale) => sizeToThrower ? Mathf.Max(0.001f, throwerScale) : 1f;
+        /// <summary>How far its blast reaches thrown at <paramref name="size"/> (the throw arc's ring, D-0148).</summary>
+        public float BlastRadiusAt(float size) => blastRadius * size;
+        /// <summary>Seconds from the throw until it goes off.</summary>
+        public float Fuse => fuse;
 
         private void Awake()
         {

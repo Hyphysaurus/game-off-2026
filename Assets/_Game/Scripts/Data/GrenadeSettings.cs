@@ -53,6 +53,19 @@ namespace ShiftJam
         [Range(0f, 0.99f), Tooltip("The arm starts back to the animation from this share of the swing (the test room: 0.7).")]
         public float armOutFrom = 0.7f;
 
+        [Header("The throw arc while G is held (D-0148)")]
+        [Tooltip("Hold G (pad: the right stick held in) to see where the throw goes; let go to throw.")]
+        public bool showArc = true;
+        [Min(0f), Tooltip("The arc line's width, units at toy size (grows with the thrower).")]
+        public float arcWidth = 0.08f;
+        [Min(0f), Tooltip("Dashes along the arc, per line width (0 = a solid line).")]
+        public float arcDashes = 0.35f;
+        public Color arcColour = new Color(1f, 1f, 1f, 0.85f);
+        [Tooltip("The landing ring when the blast would not reach the thrower.")]
+        public Color ringColour = new Color(1f, 0.85f, 0.3f, 0.9f);
+        [Tooltip("The landing ring when the thrower stands inside the blast.")]
+        public Color dangerColour = new Color(1f, 0.25f, 0.2f, 0.95f);
+
         [Header("The count on screen (a line on the weapon read-out)")]
         [Tooltip("What the line says; {0} is the number carried.")]
         public string countText = "Grenades  {0}";

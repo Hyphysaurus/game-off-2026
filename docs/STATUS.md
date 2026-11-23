@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 04:0x — GRENADE BURST GROWN TO THE TRUE REACH (D-0163, his pick "a"): COMPILED, NOT PLAYED
+- The visible burst read as about half the 4.5 reach (bits up a 60 degree cone at 40-100% speed, shrinking, falling).
+- Now: a flat ground skirt of 36 bright bits reaches the full reach with the shockwave ring, a smoke skirt rolls to
+  0.85 of it, and the spray is thrown further (Burst Reach 0.9 -> 1.3). Damage reach unchanged. Tune on the Grenade
+  prefab: Burst Reach, Ground Bits, Ground Smoke, Ground Smoke Reach. Commit f0fc29f.
+- Editor opened 04:07 on `Assets/_Recovery/0 (1).unity` (Unity's copy of an unsaved scene from 22:03 on 22 Nov: the
+  editor was closed without saving). Greybox itself was not touched; his call whether the recovery copy holds wanted edits.
+- PLAYED 22 Nov 21:52 (play log, 11 min on D-0162): the toasts and turntable have been played; no verdict heard.
+
 ## 22 Nov 2026 21:4x — TOASTS (D-0162, HUD step 1 of 3) + A / D TURNTABLE (D-0161): IN HIS EDITOR, NOT PLAYED
 - HUD mockups (7 directions + toast board): https://claude.ai/artifact/4gN4jHdwr4EJutcfVhmPrT. His pick: A+B, diegetic where possible.
 - One toast system (Toy Box stickers, top middle, kinds + sounds, merged repeats, once-per-save tips); all old hint lines moved onto it; new: first pickups with keys, ammo box, core woke, first dazzle. Look over: Shift Jam/UI/Show Sample Toasts (Play).

@@ -2,6 +2,20 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 05:5x — FIRST PERSON: THE LEFT HAND STAYS PUT ON THE GUN (D-0165): COMPILED OUTSIDE, IN THE PROJECT, NOT PLAYED
+- His note: in first person the left (grip) hand moved a little on the SMG while walking.
+- Why: at the hip the hold was at the very end of the left arm, so it slid along the barrel with every shoulder
+  movement (1 cm per cm). Now the body comes towards the gun until the left arm reaches (as it already did for the gun
+  hand), so the hold has no reason to slide. One new number: WeaponHold > Support Reach (0.97).
+- Try (first person, SMG then shotgun): walk and strafe at the hip; aim and walk; look up and down while walking. The
+  left hand should hold its place on the gun. Look for: anything of the body coming into view when looking up (the new
+  slide eases off between 40 and 60 degrees up: WeaponHold > Support Reach Look Up), how the arms look when the SMG is
+  aimed (the body moves about 7 cm towards the gun there), the shotgun's hand against its pump.
+- Still there, on purpose for now: a small wobble (under 1 cm) looking down past 30 degrees and with the shotgun aimed
+  (the wrist's turn limits, a different change); the elbows move a few cm a step.
+- Checked without Unity: outside compile 0 errors, a numeric copy of the arm code, one independent review (its catch,
+  the body rising into view when looking steeply up, is in). The kept probes were not run (Unity closed, he is away).
+
 ## 23 Nov 2026 05:3x — CHECKPOINT: THE 04:55 WORKFLOW WAS CUT BY THE USAGE LIMIT AT 05:22 (NOTHING OF IT LANDED)
 - His words since: "its not the trigger hand but the grip hand, the left hand"; the armory idea (adjust builds at the armory,
   in game); "proceed on all, keep the work light as ill be AFK in AOE4"; after the cut: "proceed, fable limit was reset".

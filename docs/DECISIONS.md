@@ -2812,3 +2812,32 @@
   - Hands are freed for it: a tool in hand goes to its slot on the grab (`Carrier.Stow`); the gun hides while held
     (`WeaponHolder.HandsFull` also asks `Grabbable.Holds`), as for a carried box.
   - Left out: a forward lean into the push (no body-bend hook exists; new pose code if the push reads light).
+- **D-0165 (23 Nov, 05:5x) First person: the body comes to the gun for the support hand too, so its hold stops sliding.**
+  - His playtest: "hand movement on the SMG while i move, the model moves their hand on ever slightly on the grip in FPS
+    mode"; asked which hand: "its not the trigger hand but the grip hand, the left hand."
+  - Cause (a numeric copy of the arm code, which reproduces four 19 Nov probe readings): standing at the hip the SMG's
+    support hold asks 99.9% of the left arm (shotgun 101.3%, the aimed SMG 110.9%) and `SupportHand` allows 98.5%, so
+    `SlideToReach` moved the hold back along the barrel on EVERY frame by whatever the shoulder had moved: 1 cm per cm.
+    The shoulders move because the walk clip plays on the first-person body and only the head is pinned to the eye;
+    looking up adds about 0.5 cm per degree. The SMG has no foregrip: the hand sits on the bare handguard.
+  - Fix: reach is made sure of, the way D-0074 already does it for the gun hand. `ArmAim.SupportOutOfReach` gives the
+    left arm's shortfall against the new `WeaponHold > Support Reach` (0.97 of the arm), measured exactly as
+    `SupportHand` measures; `WeaponHolder.HandsInView` slides the body by it after the gun hand's slide. The hold then
+    never has to slide. Nothing is kept between frames; nothing changes in `SupportHand`, third person or the reload's
+    own magazine rule (the slide fades out with `hold.reload`).
+  - Looking steeply up the slide eases off (`Support Reach Look Up`, 40 to 60 degrees above level): past about 50 the
+    body would rise into the view (neck and collar); from there the hold slides as it used to. Found by the review.
+  - Model, 2 cm of walk sway: SMG hip hold slide 3.3 cm -> 0 (palm on the gun 2.40 cm -> 0.00, body moves 1.5 cm);
+    SMG aimed 8.4 cm -> 0 (body 7.2 cm); looking up 30 at the hip 14 cm -> 0 (body 13 cm); shotgun hip 2.39 -> 0.15 cm.
+    Why 0.97 and not the study's 0.96: the SMG's wrist bend is 52.7 at 0.97 and 54.8 at 0.96 against a limit of 55.
+  - NOT fixed by this (same before and after): a wobble under 1 cm where the arm already reached and the wrist's turn
+    limits clamp the hand (looking down past 30 degrees; the shotgun aimed: 0.9 cm, 6.7 degrees). And while walking the
+    elbows shift up to about 3.5 cm a step as the body follows the shoulder; the hand itself stays on its point.
+  - Checked: compiled outside (0 errors); one independent review (same measure as `SupportHand`, one pass leaves the
+    wrist at 97.0% at worst against the 98.5% gate, the gun hand never further than today, both sizes, scope =
+    `HandsInView` only). Not run: the kept probes (Unity closed). Expected when they are: FpArmsProbe "toy DartSMG:
+    aimed, the support hand is under the barrel (0.073)" passes; HandsProbe SMG walk and look-up rows drop sharply;
+    the shotgun's hip row may go from 1.1 to about 1.6 cm in the bolt (the forward hold touches it): his eyes.
+  - Open, his calls after he has seen it: Support Reach (0.96 to 0.975 all work); the wrist bend limit 55 -> 65 (shared
+    with third person) or per-gun palm rolls for the wobble that is left; the SMG's sight distance 0.46 -> 0.40 (the
+    body then moves 2 cm, not 7, when it is aimed).

@@ -40,6 +40,8 @@ MonoBehaviour:
   carryChestTurn: 12
   longestSupportReach: 0.297
   closestSupport: 0.099
+  supportReach: 0.97
+  supportReachLookUp: {x: 40, y: 60}
   palmDepth: 0.03
   palmRollDegrees: 35
   fingersAlongBarrel: 0.8

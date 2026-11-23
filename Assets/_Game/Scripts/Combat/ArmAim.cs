@@ -402,6 +402,25 @@ namespace ShiftJam
             return over > 0f ? line.normalized * over : Vector3.zero;
         }
 
+        /// <summary>First person: how far a long gun's support hold is beyond the LEFT arm's reach (kept a little
+        /// bent, WeaponHoldSettings.supportReach) with the gun at <paramref name="root"/> turned <paramref name="gun"/>:
+        /// the way from the shoulder to where the wrist goes, as long as the shortfall. Zero when the arm reaches and
+        /// without both hands; it fades out through a reload (the free hand goes to the magazine by its own rule).
+        /// The body is slid by this, as it is for the gun hand (D-0165, his "the model moves their hand ever slightly
+        /// on the grip"): at the hip the hold sat at the very end of the arm, so SupportHand slid it back along the
+        /// barrel by whatever the shoulder moved on each step and look. With the body brought in, the hold never has
+        /// to slide and the hand keeps its place on the gun. Measured the way SupportHand measures, so the two agree.</summary>
+        public Vector3 SupportOutOfReach(Vector3 root, Quaternion gun, in Hold hold, WeaponHoldSettings s, float scale)
+        {
+            float share = 1f - Mathf.Clamp01(hold.reload);
+            if (!BothHands || share <= 0f) return Vector3.zero;
+            Vector3 shoulder = _left.upper.position;
+            Vector3 palm = root + gun * hold.support;
+            Vector3 line = LeftWrist(palm, (palm - shoulder).normalized, gun, s, scale, hold.palmRoll, out _, out _) - shoulder;
+            float over = line.magnitude - LeftArmLength * Mathf.Clamp(s.supportReach, 0.9f, MostStretch);
+            return over > 0f ? line.normalized * (over * share) : Vector3.zero;
+        }
+
         /// <summary>First person: the gun is where the view has it (<paramref name="root"/>, <paramref name="gun"/>, its
         /// kick already in) and the arms are bent to it. The right hand goes on the grip; the left under a long gun's
         /// barrel (<paramref name="bothHands"/>), and to the magazine during a reload, a pistol's too.

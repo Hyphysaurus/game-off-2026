@@ -902,8 +902,8 @@ namespace ShiftJam
         }
 
         /// <summary>First person: the gun is where the view has it (<paramref name="root"/>, <paramref name="gun"/>).
-        /// The chest turns and leans with the look, the body is stood under the eye, slid towards the gun if the arm
-        /// cannot reach it, and the hands are put on the gun.</summary>
+        /// The chest turns and leans with the look, the body is stood under the eye, slid towards the gun if either
+        /// arm cannot reach it (the gun hand's, then a long gun's support hand's), and the hands are put on the gun.</summary>
         private void HandsInView(Weapon w, Vector3 root, Quaternion gun, float reload, float s)
         {
             float weight = Mathf.SmoothStep(0f, 1f, _hands);
@@ -914,6 +914,11 @@ namespace ShiftJam
             _viewBody.Stand(_fpView.position, transform.forward, -look.y, _hold, s);
             ArmAim.Hold hold = Grasp(w, HoldTurn(w), _armAim.InHand(HoldCentre(w)), reload, both, s);
             _viewBody.Slide(_armAim.OutOfReach(root, gun, hold, _hold));
+            // The support hand's arm too (D-0165): the body comes on towards the gun until the left arm reaches its
+            // hold, so the hold never slides back along the barrel with a step or a look. Looking steeply up it eases
+            // off (Support Reach Look Up): there the body would rise into the view, and the hold slides as it used to.
+            float support = weight * (1f - Mathf.InverseLerp(_hold.supportReachLookUp.x, _hold.supportReachLookUp.y, lookUp));
+            if (both && support > 0f) _viewBody.Slide(_armAim.SupportOutOfReach(root, gun, hold, _hold, s) * support);
             _armAim.OnGun(root, gun, both, weight, hold, _hold, s);
             CloseFingers(w, both);
         }

@@ -110,6 +110,10 @@ namespace ShiftJam
         public float longestSupportReach = 0.297f;
         [Tooltip("Out of reach, the hold slides back along the barrel towards the grip, but never closer to it than this.")]
         public float closestSupport = 0.099f;
+        [Range(0.9f, 0.98f), Tooltip("First person: the body moves towards the gun until the support hand's wrist is within this share of the left arm's length, so the hold never has to slide back along the barrel as you step or look (D-0165). Higher: the body moves less and the arm is straighter. Lower: the wrist bends more (under 0.96 the SMG's passes its limit and the hand starts to rock).")]
+        public float supportReach = 0.97f;
+        [Tooltip("First person: looking up, the body stops coming towards the gun for the support hand between these two angles above level (degrees): at the first it still comes all the way, past the second not at all, and the hold slides back along the barrel as it used to. Looking steeply up, the body would otherwise rise into the view (the neck and the collar).")]
+        public Vector2 supportReachLookUp = new Vector2(40f, 60f);
         [Tooltip("How far the palm's middle sits from the gun.")]
         public float palmDepth = 0.03f;
         [Tooltip("Degrees the palm rolls round the barrel towards the support side, so the hand cups the gun from below and beside it. 0 puts the hand flat underneath.")]

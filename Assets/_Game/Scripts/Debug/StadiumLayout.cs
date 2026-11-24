@@ -217,25 +217,55 @@ namespace ShiftJam
             CheckFloor(body);
 
             // ---------------------------------------------------------------- practice: toy soldiers to fight alone (D-0114)
-            // Each PC runs its own (they aim at that PC's player). Out of the team modes when those come.
+            // Online the host runs them for everyone (CoopWorld). In a team match they are the bots (D-0182, TeamMatch):
+            // each on the team of its half, walking its match route toward the middle while it plays.
             var soldierAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Prefabs/Pieces/Interactables/ToySoldier.prefab");
             if (soldierAsset != null)
             {
                 var practice = new GameObject("Practice").transform; practice.SetParent(root);
                 // Out at the far edges, two by each base, so nobody spawns in their sight (his "a bunch of army soldiers
                 // instantly shooting at me", 21 Nov): you go to them. Shorter sight, slower to fire, softer darts.
-                foreach (var plan in new[] { new Vector2(-13.5f, -18.5f), new Vector2(13.5f, -18.5f), new Vector2(13.5f, 18.5f), new Vector2(-13.5f, 18.5f) })
+                // The south half's two first, then the same two turned half round for the north (the soldiers' order
+                // here is the order CoopWorld numbers them by: keep it).
+                var made = new List<(ToySoldier soldier, Vector2[] route)>();
+                foreach (bool north in new[] { false, true })
+                    foreach (var guard in Guards)
+                    {
+                        Vector2 by = Spread(guard.Plan, true, new Vector2(0f, Mathf.Sign(guard.Plan.y) * 17f));   // beside their base, as the plan had them
+                        if (north) by = -by;
+                        var at = new Vector3(by.x, 0f, by.y);
+                        var soldier = (GameObject)PrefabUtility.InstantiatePrefab(soldierAsset, practice);
+                        soldier.transform.SetPositionAndRotation(at, Quaternion.LookRotation(-at.normalized, Vector3.up));
+                        var so = new SerializedObject(soldier.GetComponent<ToySoldier>());
+                        so.FindProperty("sightRange").floatValue = 12f;
+                        so.FindProperty("fireRange").floatValue = 10f;
+                        so.FindProperty("reactionTime").floatValue = 1.2f;
+                        so.FindProperty("damage").floatValue = 6f;
+                        so.FindProperty("wanderRadius").floatValue = 2.5f;   // they stay at their corner
+                        so.FindProperty("matchOrder").intValue = guard.Order;
+                        so.ApplyModifiedPropertiesWithoutUndo();
+                        // The route starts at the post; the north's is the south's turned half round, as every piece is.
+                        var route = new Vector2[guard.Route.Length + 1];
+                        route[0] = by;
+                        for (int i = 0; i < guard.Route.Length; i++) route[i + 1] = north ? -guard.Route[i] : guard.Route[i];
+                        made.Add((soldier.GetComponent<ToySoldier>(), route));
+                    }
+                // The routes' points: plain markers in the Practice group after the soldiers (under a soldier they would
+                // walk with it), one group a soldier.
+                foreach (var (soldier, route) in made)
                 {
-                    Vector2 by = Spread(plan, true, new Vector2(0f, Mathf.Sign(plan.y) * 17f));   // beside their base, as the plan had them
-                    var at = new Vector3(by.x, 0f, by.y);
-                    var soldier = (GameObject)PrefabUtility.InstantiatePrefab(soldierAsset, practice);
-                    soldier.transform.SetPositionAndRotation(at, Quaternion.LookRotation(-at.normalized, Vector3.up));
-                    var so = new SerializedObject(soldier.GetComponent<ToySoldier>());
-                    so.FindProperty("sightRange").floatValue = 12f;
-                    so.FindProperty("fireRange").floatValue = 10f;
-                    so.FindProperty("reactionTime").floatValue = 1.2f;
-                    so.FindProperty("damage").floatValue = 6f;
-                    so.FindProperty("wanderRadius").floatValue = 2.5f;   // they stay at their corner
+                    var holder = new GameObject("MatchRoute_" + soldier.transform.GetSiblingIndex()).transform;
+                    holder.SetParent(practice);
+                    var so = new SerializedObject(soldier);
+                    SerializedProperty points = so.FindProperty("matchRoute");
+                    points.arraySize = route.Length;
+                    for (int i = 0; i < route.Length; i++)
+                    {
+                        var point = new GameObject("Point" + i).transform;
+                        point.SetParent(holder);
+                        point.position = new Vector3(route[i].x, 0f, route[i].y);
+                        points.GetArrayElementAtIndex(i).objectReferenceValue = point;
+                    }
                     so.ApplyModifiedPropertiesWithoutUndo();
                 }
             }
@@ -267,6 +297,32 @@ namespace ShiftJam
             Spawn(spawns, new Vector3(land.x, 0f, land.y), 0f).SetTeam(TeamMatch.Blue, true);
             Spawn(spawns, new Vector3(-land.x, 0f, -land.y), 180f).SetTeam(TeamMatch.Orange, true);
         }
+
+        /// <summary>A practice soldier of the south half (its north twin is it turned half round): its post in the plan's
+        /// units (held by its base's arch, as the plan had it), which of its team plays first in a team match (0 first),
+        /// and its match route from the post toward the middle, in the BUILT field's units (D-0182). Every leg was
+        /// checked against the rebuilt scene's pieces (the smallest gap 0.98; a soldier is about 0.3 in radius).</summary>
+        private readonly struct Guard
+        {
+            public readonly Vector2 Plan; public readonly int Order; public readonly Vector2[] Route;
+            public Guard(Vector2 plan, int order, Vector2[] route) { Plan = plan; Order = order; Route = route; }
+        }
+
+        private static readonly Guard[] Guards =
+        {
+            // the west soldier: first to play, up the centre lane past the stage's west side
+            new Guard(new Vector2(-13.5f, -18.5f), 0, new[]
+            {
+                new Vector2(-9.5f, -21.5f), new Vector2(-4.6f, -16.5f), new Vector2(-4.3f, -8f), new Vector2(-8.3f, -2.5f),
+                new Vector2(-8.3f, 3f), new Vector2(-4.3f, 8f), new Vector2(-4.3f, 16.5f),
+            }),
+            // the east soldier: second, along the east flank
+            new Guard(new Vector2(13.5f, -18.5f), 1, new[]
+            {
+                new Vector2(15f, -24f), new Vector2(22.2f, -20.5f), new Vector2(22.2f, -10.5f), new Vector2(24f, -6f),
+                new Vector2(24f, 6f), new Vector2(22.2f, 10.5f), new Vector2(22.2f, 20.5f),
+            }),
+        };
 
         /// <summary>The south team's landing in the plan's units, and the base's arch it belongs with (it keeps its
         /// distance from the arch as the field is spread): built at (0, -21.6), 5.6 in front of the arch, on ground left

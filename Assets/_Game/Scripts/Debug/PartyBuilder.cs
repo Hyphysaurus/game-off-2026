@@ -184,8 +184,11 @@ namespace ShiftJam
             // Versus shots are decided at the click here (D-0172, D-0176). The rule is made with the scene: this scene is
             // made afresh on every ship, and a rule placed in it by hand (as it first was) would be gone from the build.
             new GameObject("ShotRules").AddComponent<ShotRules>();   // the part's own default is Instant
-            // Team deathmatch (D-0182): the host's M starts a match here. Made with the scene for the same reason.
-            new GameObject("TeamMatch").AddComponent<TeamMatch>().gameObject.AddComponent<MatchHud>();   // and its screen: the scores, the countdown, the card
+            // Team deathmatch (D-0182): the host's M starts a match here. Put in from its prefab, so what is tuned on
+            // the prefab (the score to win, the minutes, the bots' numbers, the wording) is still there after the next
+            // ship remakes this scene.
+            var matchPart = MatchPrefab();
+            if (matchPart != null) PrefabUtility.InstantiatePrefab(matchPart, scene);
             Vector3 centre = Vector3.zero;
 
             var hudAsset = AssetDatabase.LoadAssetAtPath<GameObject>(HudPath);
@@ -204,6 +207,37 @@ namespace ShiftJam
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddToBuild(ScenePath);
+        }
+
+        private const string MatchPrefabPath = "Assets/_Game/Prefabs/Pieces/Online/TeamMatch.prefab";
+
+        /// <summary>
+        /// The team match as a drop-in piece (D-0182): one object with TeamMatch (the match) and MatchHud (its screen).
+        /// Made here once, with the parts' own defaults; after that it is never written again, so its numbers, names,
+        /// colours and wording are his to tune ON THE PREFAB. Drag it into any party scene whose spawn points have teams
+        /// and that scene has matches. A prefab that lost a part gets it back; nothing else of it is touched.
+        /// </summary>
+        private static GameObject MatchPrefab()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(MatchPrefabPath);
+            if (prefab != null)
+            {
+                if (prefab.GetComponent<TeamMatch>() != null && prefab.GetComponent<MatchHud>() != null) return prefab;
+                GameObject open = PrefabUtility.LoadPrefabContents(MatchPrefabPath);
+                if (!open.TryGetComponent(out TeamMatch _)) open.AddComponent<TeamMatch>();
+                if (!open.TryGetComponent(out MatchHud _)) open.AddComponent<MatchHud>();
+                PrefabUtility.SaveAsPrefabAsset(open, MatchPrefabPath);
+                PrefabUtility.UnloadPrefabContents(open);
+                return AssetDatabase.LoadAssetAtPath<GameObject>(MatchPrefabPath);
+            }
+            Ensure(Path.GetDirectoryName(MatchPrefabPath).Replace('\\', '/'));
+            var made = new GameObject("TeamMatch");
+            made.AddComponent<TeamMatch>();
+            made.AddComponent<MatchHud>();
+            prefab = PrefabUtility.SaveAsPrefabAsset(made, MatchPrefabPath);
+            Object.DestroyImmediate(made);
+            Debug.Log("PartyBuilder: made " + MatchPrefabPath + " (the team match and its screen). Tune it there.");
+            return prefab;
         }
 
         private const string RacewayPath = "Assets/_Game/Scenes/Raceway.unity";

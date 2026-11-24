@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ShiftJam
@@ -13,6 +14,11 @@ namespace ShiftJam
     /// Online (D-0131, CoopWorld) the host's soldiers are the real ones: they aim at the nearest player they can see,
     /// turn on whoever shoots them, and tell every other PC their place, shots, falls and getting up. On those PCs each
     /// soldier is a copy (UseMirror) that only shows the host's, and a hit on it goes to the host.
+    /// In a team match (D-0182) the scene's match part (TeamMatch) puts it on the team of the half its post stands in and
+    /// says whether it plays (JoinMatch, PutAway). In play it is a bot: it walks its Match Route instead of its own, goes
+    /// after the nearest enemy it can see (the other team's people and bots in play, never its own team), sees and shoots
+    /// with the match's numbers and wears its team's colour. Out of a match (warm-up, the house, single player) none of
+    /// that applies and it is the practice soldier it always was.
     /// </summary>
     [RequireComponent(typeof(CharacterController), typeof(Damageable))]
     public sealed class ToySoldier : MonoBehaviour, IResettable, IBuildMoved
@@ -58,6 +64,9 @@ namespace ShiftJam
         [SerializeField, Min(0f), Tooltip("Seconds it stops walking after a hit. It still turns to face whoever it is after. 0 = it keeps walking.")] private float flinchStopSeconds = 0.25f;
         [SerializeField, Min(0f), Tooltip("How far its body leans back, away from the shot, degrees. 0 = no lean.")] private float flinchDegrees = 10f;
         [SerializeField, Min(0f), Tooltip("Seconds the lean takes to ease back upright (it goes over in a twentieth of a second). 0 = no lean.")] private float flinchSeconds = 0.3f;
+        [Header("As a bot in a team match (D-0182)")]
+        [SerializeField, Min(0), Tooltip("Which of its team's soldiers plays first when a team needs bots: 0 first, then 1, and so on. Set by the scene's layout.")] private int matchOrder;
+        [SerializeField, Tooltip("Points it walks between, there and back, while it plays in a team match (from its post toward the middle). Empty = its own Route or wander, as in practice. Not used outside a match.")] private Transform[] matchRoute;
 
         private const float PerceiveEvery = 0.15f;
         private const float AlertSeconds = 6f;   // a hit keeps it looking this long past its usual sight
@@ -181,6 +190,161 @@ namespace ShiftJam
             _cc.enabled = !_away;
         }
 
+        // ---------------------------------------------------------------- a bot in a team match (D-0182)
+
+        /// <summary>Raised wherever a soldier is knocked down by a hit it takes (the host's soldiers online; copies never
+        /// take hits): the team match counts a bot's fall on the host.</summary>
+        public static event System.Action<ToySoldier> KnockedDown;
+
+        // Run-time team copies of the soldiers' materials, one per material and team, made once and shared by every
+        // soldier (the assets themselves are never changed). Forgotten with the other statics on a new play.
+        private static readonly Dictionary<(Material own, int team), Material> TeamCopies = new Dictionary<(Material own, int team), Material>();
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor"), ColorId = Shader.PropertyToID("_Color");
+        private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap"), MainTexId = Shader.PropertyToID("_MainTex");
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ForgetAll() { KnockedDown = null; TeamCopies.Clear(); }   // the editor may enter Play without reloading scripts
+
+        private int _team;                                              // 0 outside a match
+        private float _matchSight, _matchFire, _matchReaction, _matchDamage;   // the match's numbers while it plays
+        private ToySoldier _otherBot, _shotByBot;                       // in play on the host: an enemy bot it is after / that shot it last
+        // What it wore before it put its team's colour on: each renderer dressed, how many materials it has, and those
+        // materials in turn. Plain fields, so a script reload in Play keeps them and the match's end still undresses it
+        // (an array that was empty may come back empty rather than null: every use tests the lengths).
+        private Renderer[] _dressed;
+        private int[] _dressCounts;
+        private Material[] _ownMaterials;
+        private int _dressedTeam;
+
+        /// <summary>Its team in a team match (TeamMatch.Blue, TeamMatch.Orange), from the countdown until warm-up returns;
+        /// 0 at any other time.</summary>
+        public int Team => _team;
+        /// <summary>True while it plays as a bot: on a team, not put away, and play is on. (The phase is asked too, so
+        /// a soldier the match has not reached again, after a script reload, say, is never a bot outside play.)</summary>
+        public bool InPlay => Fielded && TeamMatch.Phase == MatchPhase.Playing;
+        /// <summary>On a team and not put away: what the match last told it.</summary>
+        private bool Fielded => _team != TeamMatch.NoTeam && !_away;
+        /// <summary>Which of its team's soldiers plays first (0 first), as the layout set it.</summary>
+        public int MatchOrder => matchOrder;
+        /// <summary>Where it stands guard and gets up again: the same on every PC (a copy's post is the scene's).</summary>
+        public Vector3 Post => _post;
+
+        private float SightRange => InPlay ? _matchSight : sightRange;
+        private float FireRange => InPlay ? _matchFire : fireRange;
+        private float ReactionTime => InPlay ? _matchReaction : reactionTime;
+        private float Damage => InPlay ? _matchDamage : damage;
+        private Transform[] Path => InPlay && matchRoute != null && matchRoute.Length > 0 ? matchRoute : route;
+
+        /// <summary>
+        /// On <paramref name="team"/> for a team match (D-0182), with the match's numbers for while it plays: how far it
+        /// sees and fires (units at scale 1), how long it waits before it reacts (seconds) and its darts' damage. It
+        /// wears its team's colour from now on (unseen while it is put away). Whether it plays is PutAway's to say.
+        /// </summary>
+        public void JoinMatch(int team, float sight, float fire, float reaction, float hurt)
+        {
+            if (team == TeamMatch.NoTeam) { LeaveMatch(); return; }
+            _matchSight = sight; _matchFire = fire; _matchReaction = reaction; _matchDamage = hurt;
+            if (_team == team) return;
+            _team = team;
+            _otherBot = _shotByBot = null;
+            Dress(team);
+        }
+
+        /// <summary>Out of the match: back to its own colour and numbers. One that was playing stands at its post, whole
+        /// (a copy: up, its place from the host's next word), so it is exactly the practice soldier it was.</summary>
+        public void LeaveMatch()
+        {
+            bool playing = Fielded;
+            _team = TeamMatch.NoTeam;
+            _otherBot = _shotByBot = null;
+            Undress();
+            if (!playing || _cc == null) return;
+            if (_mirror) StandAsCopy(); else ResetState();
+        }
+
+        /// <summary>Its drawn parts put on the team's colour: plain plastic in it (the colour, no texture), on run-time
+        /// copies of their materials. A hit still flashes over it (Damageable's flash overrides the colour a moment and
+        /// lets go), and Undress puts the soldier's own materials back.</summary>
+        private void Dress(int team)
+        {
+            if (_dressedTeam == team) return;
+            Undress();
+            var dressed = new List<Renderer>();
+            var counts = new List<int>();
+            var own = new List<Material>();
+            foreach (Renderer r in GetComponentsInChildren<Renderer>(true))
+            {
+                if (!(r is MeshRenderer) && !(r is SkinnedMeshRenderer)) continue;   // its body only: no stun effect, no streak
+                Material[] mats = r.sharedMaterials;
+                if (mats.Length == 0) continue;
+                var worn = new Material[mats.Length];
+                for (int i = 0; i < mats.Length; i++) worn[i] = TeamCopy(mats[i], team);
+                dressed.Add(r); counts.Add(mats.Length); own.AddRange(mats);
+                r.sharedMaterials = worn;
+            }
+            _dressed = dressed.ToArray(); _dressCounts = counts.ToArray(); _ownMaterials = own.ToArray();
+            _dressedTeam = team;
+        }
+
+        /// <summary>Back in its own materials, if it wore a team's.</summary>
+        private void Undress()
+        {
+            if (_dressed != null && _dressCounts != null && _ownMaterials != null)
+            {
+                int k = 0;
+                for (int i = 0; i < _dressed.Length && i < _dressCounts.Length; i++)
+                {
+                    int n = _dressCounts[i];
+                    if (_dressed[i] != null && n > 0 && k + n <= _ownMaterials.Length)
+                    {
+                        var mats = new Material[n];
+                        System.Array.Copy(_ownMaterials, k, mats, 0, n);
+                        _dressed[i].sharedMaterials = mats;
+                    }
+                    k += n;
+                }
+            }
+            _dressed = null; _dressCounts = null; _ownMaterials = null;
+            _dressedTeam = TeamMatch.NoTeam;
+        }
+
+        /// <summary>The team's copy of <paramref name="own"/>, made once and kept (null stays null).</summary>
+        private static Material TeamCopy(Material own, int team)
+        {
+            if (own == null) return null;
+            if (TeamCopies.TryGetValue((own, team), out Material copy) && copy != null) return copy;
+            copy = new Material(own) { name = own.name + " (" + TeamMatch.Name(team) + ")" };
+            Color colour = TeamMatch.Colour(team);
+            if (copy.HasProperty(BaseColorId)) copy.SetColor(BaseColorId, colour);
+            if (copy.HasProperty(ColorId)) copy.SetColor(ColorId, colour);
+            if (copy.HasProperty(BaseMapId)) copy.SetTexture(BaseMapId, null);
+            if (copy.HasProperty(MainTexId)) copy.SetTexture(MainTexId, null);
+            TeamCopies[(own, team)] = copy;
+            return copy;
+        }
+
+        /// <summary>True when <paramref name="other"/> is an enemy bot to go after: in play, standing, on the other team.</summary>
+        private bool IsFoe(ToySoldier other) =>
+            other != null && other != this && other.InPlay && !other.Down && other._team != _team;
+
+        /// <summary>True when <paramref name="player"/> is on the other team (whether they can be hit is AimAt's to say).</summary>
+        private bool IsFoe(NetPlayer player)
+        {
+            if (player == null) return false;
+            int theirs = TeamMatch.TeamOf(player.OwnerClientId);
+            return theirs != TeamMatch.NoTeam && theirs != _team;
+        }
+
+        /// <summary>True when this PC's own player is on the other team and not knocked out.</summary>
+        private bool OwnIsFoe()
+        {
+            int mine = TeamMatch.Mine;
+            if (mine == TeamMatch.NoTeam || mine == _team) return false;
+            foreach (NetPlayer p in NetPlayer.Spawned)
+                if (p != null && p.IsSpawned && p.IsOwner) return !p.Down;
+            return false;
+        }
+
         private void Awake()
         {
             _cc = GetComponent<CharacterController>();
@@ -199,18 +363,22 @@ namespace ShiftJam
         private void OnHit(DamageInfo hit)
         {
             if (_state == State.Down || hit.Source == null || hit.Source.IsChildOf(transform)) return;
-            if (hit.Source.GetComponentInParent<ToySoldier>() != null) return;   // a friend's stray dart is not a call to arms
+            // A friend's stray dart is not a call to arms; in a team match an enemy bot's is (D-0182: a teammate's never
+            // gets here, Damageable.Spares turns it away).
+            ToySoldier bot = hit.Source.GetComponentInParent<ToySoldier>();
+            if (bot != null && !(InPlay && IsFoe(bot))) return;
             if (CoopWorld.IsHost)
             {
                 // Online host: it turns on whoever shot it, another player too (their hit came here from their PC).
                 var shooter = hit.Source.GetComponentInParent<NetPlayer>();
                 _other = _shotBy = shooter != null && !shooter.IsOwner ? shooter : null;
             }
+            _otherBot = _shotByBot = bot;   // null but in a match, shot by an enemy bot
             float reach = Vector3.Distance(hit.Source.position, transform.position) + 2f * Scale;
             _alertReach = Alerted ? Mathf.Max(_alertReach, reach) : reach;
             _alertUntil = Time.time + AlertSeconds;
             _state = State.Engage;
-            _sees = true; _lastSeen = Time.time; _seenFor = reactionTime;
+            _sees = true; _lastSeen = Time.time; _seenFor = ReactionTime;
             _nextLook = Time.time + PerceiveEvery;
             if (!_health.Dead) Flinched(hit);   // the last hit knocks it down instead
         }
@@ -245,8 +413,8 @@ namespace ShiftJam
         }
 
         private bool Alerted => Time.time < _alertUntil;
-        private float SightReach => Alerted ? Mathf.Max(sightRange * Scale, _alertReach) : sightRange * Scale;
-        private float FireReach => Alerted ? Mathf.Max(fireRange * Scale, _alertReach) : fireRange * Scale;
+        private float SightReach => Alerted ? Mathf.Max(SightRange * Scale, _alertReach) : SightRange * Scale;
+        private float FireReach => Alerted ? Mathf.Max(FireRange * Scale, _alertReach) : FireRange * Scale;
 
         public void ResetState()
         {
@@ -261,6 +429,7 @@ namespace ShiftJam
             _vertical = 0f; _seenFor = 0f; _lastSeen = -100f; _sees = false; _waitUntil = 0f;
             _alertUntil = -100f; _alertReach = 0f;
             _other = _shotBy = null;
+            _otherBot = _shotByBot = null;
         }
 
         /// <summary>Build Mode placed, moved, copied or re-posed us: stand guard here from now on (F9 and getting up after a
@@ -279,6 +448,7 @@ namespace ShiftJam
             EndFlinch();   // it tips over from its own pose, not from a lean
             KnockDown.Show(transform, hit, visual, true);   // a burst of bits, a bigger squash and the thud
             CoopWorld.SoldierDown(this, hit.Point);         // online host: it falls on every PC (D-0131)
+            KnockedDown?.Invoke(this);                      // a bot's fall is a point in a team match (D-0182, TeamMatch)
         }
 
         private void Update()
@@ -346,7 +516,7 @@ namespace ShiftJam
                 if (_sees) _lastSeen = Time.time;
             }
             if (_sees) _seenFor += dt; else if (_state != State.Engage) _seenFor = 0f;
-            if (_state == State.Patrol && _seenFor >= reactionTime) _state = State.Engage;
+            if (_state == State.Patrol && _seenFor >= ReactionTime) _state = State.Engage;
             else if (_state == State.Engage && Time.time - _lastSeen >= loseSightTime) { _state = State.Patrol; _seenFor = 0f; }
         }
 
@@ -354,12 +524,30 @@ namespace ShiftJam
         /// CanSee chose one (_other), else this PC's own (TryOwnTarget).</summary>
         private bool TryTarget(out Vector3 aim, out Transform root)
         {
+            if (_otherBot != null)
+            {
+                // In play (D-0182): an enemy bot CanSee chose, while it stands and plays.
+                if (InPlay && IsFoe(_otherBot) && AimAtBot(_otherBot, out aim, out root)) return true;
+                _otherBot = null;
+            }
             if (_other != null)
             {
-                if (CoopWorld.IsHost && AimAt(_other, out aim, out root)) return true;
+                if (CoopWorld.IsHost && (!InPlay || IsFoe(_other)) && AimAt(_other, out aim, out root)) return true;
                 _other = null;   // gone, knocked out, or the party is over: back to this PC's own player
             }
+            if (InPlay && !OwnIsFoe()) { aim = Vector3.zero; root = null; return false; }   // a teammate, or down: never a target
             return TryOwnTarget(out aim, out root);
+        }
+
+        /// <summary>In play (D-0182): the point to aim at on an enemy bot, as AimAt aims at a player: between its legs and
+        /// its chest, nearest our own chest height.</summary>
+        private bool AimAtBot(ToySoldier bot, out Vector3 aim, out Transform root)
+        {
+            root = bot.transform;
+            float chest = bot.chestHeight * bot.Scale;
+            float ours = transform.position.y + chestHeight * Scale - root.position.y;
+            aim = root.position + Vector3.up * Mathf.Clamp(ours, Mathf.Min(0.5f * Scale, chest), chest);
+            return true;
         }
 
         /// <summary>This PC's own player's stand-in and the point to aim at: first-person body, the car being driven, or the player.
@@ -424,6 +612,7 @@ namespace ShiftJam
         /// after the nearest one it sees. Seeing nobody, it stays after the last.</summary>
         private bool CanSee()
         {
+            if (InPlay) return CanSeeInPlay();
             if (!CoopWorld.IsHost)
             {
                 _other = null;
@@ -443,6 +632,40 @@ namespace ShiftJam
                 any = true; best = player; nearest = d;
             }
             if (any) _other = best;
+            return any;
+        }
+
+        /// <summary>CanSee for a bot in play (D-0182): only enemies count, people (this PC's own player and, on the host,
+        /// the others) and the other team's bots in play, never its own team or a put-away soldier. Shot at lately,
+        /// whoever did it comes first while it can see them; otherwise the nearest enemy it sees. Seeing nobody, it
+        /// stays after the last.</summary>
+        private bool CanSeeInPlay()
+        {
+            Vector3 a; Transform r; float d;
+            if (Alerted)
+            {
+                bool seen;
+                if (_shotByBot != null) seen = IsFoe(_shotByBot) && AimAtBot(_shotByBot, out a, out r) && Sees(a, r, out _);
+                else if (_shotBy != null) seen = CoopWorld.IsHost && IsFoe(_shotBy) && AimAt(_shotBy, out a, out r) && Sees(a, r, out _);
+                else seen = OwnIsFoe() && TryOwnTarget(out a, out r) && Sees(a, r, out _);
+                if (seen) { _other = _shotBy; _otherBot = _shotByBot; return true; }
+            }
+            bool any = false; NetPlayer best = null; ToySoldier bestBot = null; float nearest = float.MaxValue;
+            if (OwnIsFoe() && TryOwnTarget(out a, out r) && Sees(a, r, out d)) { any = true; nearest = d; }
+            if (CoopWorld.IsHost)
+                foreach (NetPlayer player in NetPlayer.Spawned)
+                {
+                    if (player == null || player.IsOwner || !IsFoe(player) || !AimAt(player, out a, out r) || !Sees(a, r, out d) || d >= nearest) continue;
+                    any = true; best = player; nearest = d;
+                }
+            IReadOnlyList<ToySoldier> bots = TeamMatch.Soldiers;
+            for (int i = 0; i < bots.Count; i++)
+            {
+                ToySoldier bot = bots[i];
+                if (!IsFoe(bot) || !AimAtBot(bot, out a, out r) || !Sees(a, r, out d) || d >= nearest) continue;
+                any = true; best = null; bestBot = bot; nearest = d;
+            }
+            if (any) { _other = best; _otherBot = bestBot; }
             return any;
         }
 
@@ -484,7 +707,7 @@ namespace ShiftJam
                 axis = Quaternion.AngleAxis(Random.Range(0f, 360f), dir) * axis;
                 dir = Quaternion.AngleAxis(spread * Mathf.Sqrt(Random.value), axis) * dir;
             }
-            Projectile.Fire(projectile, from, dir, damage, knockback, Scale, transform);
+            Projectile.Fire(projectile, from, dir, Damage, knockback, Scale, transform);
             CoopWorld.SoldierShot(this, from, dir);   // online host: a harmless copy of the dart on every other PC (D-0131)
             PlayFire();
         }
@@ -499,17 +722,19 @@ namespace ShiftJam
         private Vector3 PatrolVelocity()
         {
             if (Time.time < _waitUntil) return Vector3.zero;
+            Transform[] way = Path;   // its own route; its Match Route while it plays in a team match (D-0182)
+            if (way != null && way.Length > 0 && _routeIndex >= way.Length) { _routeIndex = 0; _routeStep = 1; }   // a route of another length than the last
             Vector3 goal;
-            if (route != null && route.Length > 0 && route[_routeIndex] != null) goal = route[_routeIndex].position;
+            if (way != null && way.Length > 0 && way[_routeIndex] != null) goal = way[_routeIndex].position;
             else goal = _wanderTo;
             Vector3 offset = goal - transform.position; offset.y = 0f;
             if (offset.magnitude <= 0.3f * Scale)
             {
                 _waitUntil = Time.time + pause;
-                if (route != null && route.Length > 1)
+                if (way != null && way.Length > 1)
                 {
                     int next = _routeIndex + _routeStep;
-                    if (next < 0 || next >= route.Length) { _routeStep = -_routeStep; next = _routeIndex + _routeStep; }
+                    if (next < 0 || next >= way.Length) { _routeStep = -_routeStep; next = _routeIndex + _routeStep; }
                     _routeIndex = next;
                 }
                 else
@@ -527,7 +752,7 @@ namespace ShiftJam
                 _stuckFor = 0f;
                 Vector2 r = Random.insideUnitCircle * (wanderRadius * Scale);
                 _wanderTo = _post + new Vector3(r.x, 0f, r.y);
-                if (route != null && route.Length > 1) { _routeStep = -_routeStep; _routeIndex = Mathf.Clamp(_routeIndex + _routeStep, 0, route.Length - 1); }
+                if (way != null && way.Length > 1) { _routeStep = -_routeStep; _routeIndex = Mathf.Clamp(_routeIndex + _routeStep, 0, way.Length - 1); }
             }
             return offset.normalized * (moveSpeed * Scale);
         }

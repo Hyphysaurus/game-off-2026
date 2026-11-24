@@ -9,7 +9,8 @@ namespace ShiftJam
     /// shot that lands on another player's copy here is handed to that player's PC (Damageable.Relay ->
     /// TakeHitRpc), which takes it as in single player (block, roll, shield, knock-out, respawn). The owner writes
     /// health and shield into network variables, so every copy can show them; a knock-out tells everyone who did it
-    /// (KnockedOut: victim, by; by = NoOne for a fall or a soldier), for the scores to come.
+    /// (KnockedOut: victim, by; by = NoOne for a fall or a practice soldier, BotOf(team) for a team match's bot), for the
+    /// scores.
     /// </summary>
     public sealed class NetHealth : NetworkBehaviour
     {
@@ -29,7 +30,8 @@ namespace ShiftJam
         }
         private const ulong MostTeams = 8;   // room for more teams than the two there are
 
-        /// <summary>Raised on every PC when a player is knocked out: (victim's client id, the client id of whoever did it, or NoOne).</summary>
+        /// <summary>Raised on every PC when a player is knocked out: (victim's client id, the client id of whoever did it,
+        /// BotOf(team) for a team match's bot, or NoOne).</summary>
         public static event Action<ulong, ulong> KnockedOut;
 
         private readonly NetworkVariable<float> _health = new NetworkVariable<float>(100f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -116,12 +118,16 @@ namespace ShiftJam
         [Rpc(SendTo.Everyone)]
         private void KnockedOutRpc(ulong victim, ulong by) => KnockedOut?.Invoke(victim, by);
 
-        /// <summary>The client id of the player a hit's source belongs to, or NoOne (a soldier, a fall, a prop).</summary>
+        /// <summary>The client id of the player a hit's source belongs to; in a team match (D-0182) BotOf(its team) for
+        /// a toy soldier on a team, so a bot's knock-out counts for its team and the ten-second credit carries it;
+        /// otherwise NoOne (a practice soldier, a fall, a prop).</summary>
         private static ulong ById(Transform source)
         {
             if (source == null) return NoOne;
             var player = source.GetComponentInParent<NetPlayer>();
-            return player != null && player.IsSpawned ? player.OwnerClientId : NoOne;
+            if (player != null) return player.IsSpawned ? player.OwnerClientId : NoOne;
+            int team = TeamMatch.TeamOf(source);   // a soldier's team (0 for anything else, or with no match on)
+            return team != TeamMatch.NoTeam ? BotOf(team) : NoOne;
         }
     }
 }

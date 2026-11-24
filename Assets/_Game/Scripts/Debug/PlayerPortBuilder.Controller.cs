@@ -12,7 +12,7 @@ namespace ShiftJam
     /// Locomotion and Crouch are blend trees over the way the body moves against its facing (MoveX, MoveZ, in own units a
     /// second, each clip placed at the speed it covers ground at); the air (the jump, the fall, the landing); the
     /// one-shot moves the scripts start and end (Roll, Punch, Kick, Block, HitLight, HitHeavy, Death, Fidget), the hang
-    /// on a rope (RopeHang, D-0170: the rope rider starts and ends it) and the
+    /// on a rope (RopeHang, D-0170: the rope rider starts and ends it; its clip Rope_Hang is made in RopeHangClip) and the
     /// wake-up (the death played backwards). On top, as on the old body: the Arms layer (one arm holding) and the Carry
     /// layer (two arms, IK pass), with the same masks and pose clips.
     /// The jump (D-0169): the state Air does not play by the clock. It shows the Jump_Arc clip at the point the AirPhase
@@ -85,7 +85,7 @@ namespace ShiftJam
             low.AddChild(clips["Crouch_Walk_Right"], new Vector2(body.crouchSide, 0f));
 
             // Air shows the jump's arc at the time AirPhase names (D-0169). It used to hold the pack's Jump_Loop, one
-            // frozen tuck for the whole of every jump; that clip is the rope's hang now (RopeHang, below).
+            // frozen tuck for the whole of every jump; the rope's hang takes its legs from that clip (RopeHang, below).
             AnimatorState air = State(sm, "Air", clips["Jump_Arc"], 1f);
             air.timeParameter = AirPhaseParam;
             air.timeParameterActive = true;
@@ -127,10 +127,12 @@ namespace ShiftJam
             }
             // The wake-up: the death backwards from where the body lies still, in WakeUp's own time.
             State(sm, "Wake", clips["Death_Forward"], -(WakeFrom * body.death / WakeSeconds));
-            // The rope (D-0170): the tuck held on its first frame (speed 0). RopeRider starts and ends it through
-            // PlayerAnimation (Play, ResumeInto), so it has no transitions; the arms are the Carry layer's (both hands
-            // on the rope).
-            State(sm, "RopeHang", clips["Jump_Loop"], 0f);
+            // The rope (D-0170): a still pose of its own (Rope_Hang: the body upright and square to where it faces,
+            // the legs tucked), held (speed 0). RopeRider starts and ends it through PlayerAnimation (Play,
+            // ResumeInto), so it has no transitions; the arms are the Carry layer's (both hands on the rope). It was
+            // the pack's Jump_Loop held on its first frame until his first play: that frame turns the body 37 degrees
+            // off its facing and sets it back and to one side, which took the right shoulder out of reach of the rope.
+            State(sm, "RopeHang", clips["Rope_Hang"], 0f);
 
             Layer(c, "Arms", ArmMask, HoldPose, "Hold", ik: false);
             Layer(c, "Carry", CarryMask, CarryPoseClip, "Carry", ik: true);

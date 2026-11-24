@@ -76,6 +76,14 @@ namespace ShiftJam
         private const float SamePose = 0.02f;           // hands and feet all within this between two phases: the same pose, nothing follows the jump
         private const float YawLimit = 30f;             // degrees the pelvis may be turned off the body's facing
 
+        // The hang on a rope (D-0170): a still clip of its own, Rope_Hang, and its check on the bones.
+        private const float HangSeconds = 1f;           // the clip's length; every curve is one value, so any length shows the same pose
+        private const float HangForward = 0.07f;        // the root is set this far forward, in the clip's own units (about the body's own): the tucked legs carry the body's centre forward, and with the centre held over the feet the trunk would sit that much further back from the rope
+        private const float HangYawLimit = 8f;          // degrees the shoulders may be turned off the body's facing in the hang (the first hang was 37 off)
+        private const float HangReachMost = 0.97f;      // the furthest a wrist's mark on the rope may be from its shoulder, as a share of the arm: past this the hand comes off the rope
+        private const float CarryPalmHalf = 0.5f;       // CarryPose's own: the palm's mark is this share of the way from the wrist to the middle knuckle...
+        private const float CarryPalmThickness = 0.25f; // ...and this share of that length off the bone on the palm's side (its Palm Thickness default)
+
         private static readonly string[] Scenes =
         {
             "Assets/_Game/Scenes/Greybox.unity", "Assets/_Game/Scenes/Workshop.unity",
@@ -114,8 +122,8 @@ namespace ShiftJam
             new ClipSpec("Run_Left", true, true), new ClipSpec("Run_Right", true, true),
             new ClipSpec("Crouch_Walk_Forward", true, true), new ClipSpec("Crouch_Walk_Backward", true, true),
             new ClipSpec("Crouch_Walk_Left", true, true), new ClipSpec("Crouch_Walk_Right", true, true),
-            // Jump_Loop: the hang on a rope (the state RopeHang, D-0170) holds its first frame. Air has not used it since
-            // D-0169: Air shows Jump_Arc, made in JumpArc below.
+            // Jump_Loop: no state plays it. The hang on a rope (Rope_Hang, made in RopeHangClip below) takes the tuck of
+            // its legs from this clip's first frame. Air has not used it since D-0169: Air shows Jump_Arc.
             new ClipSpec("Jump_Loop", true, false, true), new ClipSpec("Jump_End", false, false), new ClipSpec("Fall", true, false),
             new ClipSpec("Attack_Punch", false, false), new ClipSpec("Attack_Kick", false, false),
             new ClipSpec("Block_With_Hands", false, false), new ClipSpec("Dodge_Roll", false, true),
@@ -247,6 +255,7 @@ namespace ShiftJam
             bool[] unsaved = UnsavedScenes();
 
             var jumps = new List<string>();
+            var hangs = new List<string>();
             try
             {
                 for (int i = 0; i < Bodies.Length && _failed == 0; i++)
@@ -257,6 +266,8 @@ namespace ShiftJam
                     if (_failed > 0 || controller == null) break;
                     string jump = CheckJump(Bodies[i], controller);
                     if (jump != null) jumps.Add(jump);
+                    string hang = CheckHang(Bodies[i], controller, numbers[i].fit);
+                    if (hang != null) hangs.Add(hang);
                 }
                 AssetDatabase.SaveAssets();   // the clips (each controller was saved as it was built)
 
@@ -271,15 +282,16 @@ namespace ShiftJam
             }
 
             string who = string.Join(" and ", Array.ConvertAll(Bodies, b => b.name));
-            string read = jumps.Count > 0 ? " The jump on the bones: " + string.Join(" ", jumps) : "";
+            string read = (jumps.Count > 0 ? " The jump on the bones: " + string.Join(" ", jumps) : "")
+                          + (hangs.Count > 0 ? " The rope's hang on the bones: " + string.Join(" ", hangs) : "");
             if (_failed == 0)
             {
-                Say($"DONE (D-0169): clips copied, Jump_Arc made and controllers rebuilt in place for {who}; every check passed; no scene opened or saved, the body numbers read and not written.{read}");
+                Say($"DONE (D-0169): clips copied, Jump_Arc and Rope_Hang made and controllers rebuilt in place for {who}; every check passed; no scene opened or saved, the body numbers read and not written.{read}");
                 return;
             }
             string files = string.Join(" and ", Array.ConvertAll(Bodies, b => b.controller));
             Debug.LogError(PutBack(kept)
-                ? $"{Tag} FAILED (D-0169) with {_failed} failed check(s), see the FAIL lines above: BOTH CONTROLLERS WERE PUT BACK as they were before this run ({files}). The clip copies were written again and Jump_Arc.anim stays in the clip folders; nothing uses it.{read}"
+                ? $"{Tag} FAILED (D-0169) with {_failed} failed check(s), see the FAIL lines above: BOTH CONTROLLERS WERE PUT BACK as they were before this run ({files}). The clip copies were written again and Jump_Arc.anim and Rope_Hang.anim stay in the clip folders; a controller put back uses a clip only if it did before this run.{read}"
                 : $"{Tag} FAILED (D-0169) with {_failed} failed check(s), see the FAIL lines above, and the controllers could NOT be put back ({files}): restore the two files from git before playing.{read}");
             if (Application.isBatchMode) EditorApplication.Exit(1);
         }
@@ -378,6 +390,9 @@ namespace ShiftJam
             AnimationClip arc = JumpArc(spec.name, folder + "/Jump_Arc.anim");
             if (arc == null) return null;
             made["Jump_Arc"] = arc;
+            AnimationClip hang = RopeHangClip(spec.name, made["Idle_Breathing"], made["Jump_Loop"], folder + "/Rope_Hang.anim");
+            if (hang == null) return null;
+            made["Rope_Hang"] = hang;
             return made;
         }
 
@@ -416,6 +431,63 @@ namespace ShiftJam
             Settle(idle, loop: true, travel: false, feet: false);
             return idle;
         }
+
+        /// <summary>
+        /// The hang on a rope (D-0170): one still pose. The trunk, head and arms are the standing idle's first frame;
+        /// the legs are the pack's jump tuck (Jump_Loop's first frame); the root is upright, square to where the body
+        /// faces, at standing height, over the body's own middle line and HangForward ahead.
+        /// WHY not Jump_Loop held on its first frame, as the first build had it: that frame's root turns the body 37
+        /// degrees to the right of where it faces and tips it 11 (RootQ), and sets its centre 0.14 to the right and
+        /// 0.11 back (RootT), and the copy keeps all of that in the pose; its height is taken from the tucked feet,
+        /// which lowers the shoulders. On a rope held in front of the capsule the right shoulder ended about 0.8 from
+        /// its hand's place, and the arm is 0.52 long: in his first play only the left hand held the rope.
+        /// Standing height keeps the shoulders where the walk has them and lifts the tucked feet off the capsule's
+        /// bottom. The arms are placed by the Carry layer (CarryPose) while a rope is held; the idle's own show only
+        /// in the fifth of a second the hands take to go on and come off. Null (with a failed check) if the tuck
+        /// does not have the leg curves.
+        /// </summary>
+        private static AnimationClip RopeHangClip(string who, AnimationClip stand, AnimationClip tuck, string path)
+        {
+            var hang = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+            if (hang == null) { hang = new AnimationClip(); AssetDatabase.CreateAsset(hang, path); }
+            hang.ClearCurves();
+            hang.name = "Rope_Hang";
+            int curves = 0, legs = 0, bends = 0;
+            foreach (EditorCurveBinding binding in AnimationUtility.GetCurveBindings(stand))
+            {
+                string name = binding.propertyName;
+                float value = AnimationUtility.GetEditorCurve(stand, binding).Evaluate(0f);
+                if (IsLegCurve(name))
+                {
+                    // The legs, and the feet's own marks with them: the tuck's. One the tuck lacks keeps the idle's.
+                    AnimationCurve tucked = AnimationUtility.GetEditorCurve(tuck, binding);
+                    if (tucked != null)
+                    {
+                        value = tucked.Evaluate(0f);
+                        legs++;
+                        if (name.EndsWith("Upper Leg Front-Back", StringComparison.Ordinal) || name.EndsWith("Lower Leg Stretch", StringComparison.Ordinal)) bends++;
+                    }
+                }
+                else if (name == "RootQ.x" || name == "RootQ.y" || name == "RootQ.z") value = 0f;   // upright, and square to where the body faces
+                else if (name == "RootQ.w") value = 1f;
+                else if (name == "RootT.x") value = 0f;                                              // on the body's middle line
+                else if (name == "RootT.z") value = HangForward;
+                AnimationUtility.SetEditorCurve(hang, binding, AnimationCurve.Constant(0f, HangSeconds, value));
+                curves++;
+            }
+            // A loop (it is held as long as the rope is). Nothing of the clip moves or turns the body; the height stays
+            // as written (the idle's standing height), not taken from the feet.
+            Settle(hang, loop: true, travel: false, feet: false);
+            const int BendCurves = 4;   // both hips and both knees: without them it is not a tuck
+            return Check(bends == BendCurves && AnimationUtility.GetCurveBindings(hang).Length == curves,
+                $"{who}: Rope_Hang is one still pose of {curves} curves: the idle's trunk, head and arms, {legs} leg curves from Jump_Loop's first frame (both hips and both knees among them: {bends} of {BendCurves}), the root upright and square, {HangForward} forward")
+                ? hang : null;
+        }
+
+        /// <summary>True for a curve that poses a leg: the leg, foot and toe muscles of either side, and the feet's own marks.</summary>
+        private static bool IsLegCurve(string name) =>
+            name.Contains(" Leg ") || name.Contains(" Foot ") || name.Contains(" Toes ")
+            || name.StartsWith("LeftFoot", StringComparison.Ordinal) || name.StartsWith("RightFoot", StringComparison.Ordinal);
 
         /// <summary>
         /// The jump's arc (D-0169): one clip, one second long, that IS the jump from push-off to touch-down. The state Air
@@ -658,6 +730,81 @@ namespace ShiftJam
                 Check(wrap >= SamePose, $"{spec.name}: phase 1 is not phase 0 again (hands and feet {wrap:F2} apart): the clip does not wrap");
                 Check(facing, $"{spec.name}: the pelvis stays within {YawLimit} degrees of the body's facing: {Row(yaw, "F0")}");
                 return $"{spec.name} at AirPhase {phases}: lowest foot {Row(foot, "F2")}, hips {Row(hip, "F2")}, pelvis yaw {Row(yaw, "F0")}.";
+            }
+            finally { EditorSceneManager.ClosePreviewScene(preview); }
+        }
+
+        /// <summary>
+        /// Poses a body in the rope's hang and reads it on the bones (D-0170, after his first play): the pack's own
+        /// prefab with the new controller, the state RopeHang played, in a preview scene as the jump's check does.
+        /// A failed check here means the hands would not hold the rope in play: the shoulders turned away from where
+        /// the body faces (the first hang was 37 degrees off), or a wrist's mark on the rope further from its
+        /// shoulder than the arm is long. The marks are the rope rider's own (RopeRider.HandMarks, with the numbers
+        /// Resources/Rope holds right now), carried back from the palm to the wrist as CarryPose does it; the rope's
+        /// numbers are in the player's own units and the body here stands at the pack's size, so they are divided by
+        /// the body's fit. The arms themselves are not read: the Carry layer places them in play. Returns the numbers
+        /// for the summary; null if the body could not be posed at all (with a failed check).
+        /// </summary>
+        private static string CheckHang(BodySpec spec, RuntimeAnimatorController controller, float fit)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(spec.prefab);
+            if (!Check(prefab != null, $"{spec.name}: the pack has {spec.prefab} (for the hang)")) return null;
+            Scene preview = EditorSceneManager.NewPreviewScene();
+            try
+            {
+                var go = PrefabUtility.InstantiatePrefab(prefab, preview) as GameObject;
+                Animator animator = go != null ? go.GetComponentInChildren<Animator>(true) : null;
+                if (!Check(animator != null && animator.avatar != null && animator.avatar.isHuman, $"{spec.name}: the body stands in a preview scene with its humanoid Animator (for the hang)")) return null;
+                Transform root = animator.transform;
+                Transform[] shoulders = { Bone(animator, HumanBodyBones.RightUpperArm), Bone(animator, HumanBodyBones.LeftUpperArm) };
+                Transform[] elbows = { Bone(animator, HumanBodyBones.RightLowerArm), Bone(animator, HumanBodyBones.LeftLowerArm) };
+                Transform[] wrists = { Bone(animator, HumanBodyBones.RightHand), Bone(animator, HumanBodyBones.LeftHand) };
+                Transform[] knuckles = { Bone(animator, HumanBodyBones.RightMiddleProximal), Bone(animator, HumanBodyBones.LeftMiddleProximal) };
+                Transform[] feet = { Bone(animator, HumanBodyBones.LeftFoot), Bone(animator, HumanBodyBones.RightFoot) };
+                bool bones = Array.TrueForAll(shoulders, b => b != null) && Array.TrueForAll(elbows, b => b != null) && Array.TrueForAll(wrists, b => b != null)
+                             && Array.TrueForAll(knuckles, b => b != null) && Array.TrueForAll(feet, b => b != null);
+                if (!Check(bones, $"{spec.name}: upper arms, forearms, hands, middle knuckles and feet found on the body")) return null;
+
+                animator.runtimeAnimatorController = controller;
+                animator.applyRootMotion = false;
+                animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;   // nothing draws a preview scene: a culled Animator would move no bone
+                animator.enabled = true;
+                animator.Rebind();
+                animator.Play("RopeHang", 0, 0f);
+                animator.Update(0f);
+                animator.Update(CheckNudge);
+                bool hanging = animator.GetCurrentAnimatorStateInfo(0).IsName("RopeHang") && !animator.IsInTransition(0);
+                if (!Check(hanging, $"{spec.name}: played by name, the controller is in RopeHang")) return null;
+
+                // Where the shoulders are, and which way their line points, against the body's own facing.
+                Vector3 right = root.InverseTransformPoint(shoulders[0].position), left = root.InverseTransformPoint(shoulders[1].position);
+                Vector3 across = right - left;
+                across.y = 0f;
+                float yaw = Vector3.SignedAngle(Vector3.right, across, Vector3.up);
+                float lowestFoot = Mathf.Min(root.InverseTransformPoint(feet[0].position).y, root.InverseTransformPoint(feet[1].position).y);
+
+                // The wrists' marks on a rope hanging straight down in front of the body, as the rider and CarryPose put them.
+                RopeSettings rope = RopeSettings.Load();
+                float size = 1f / Mathf.Max(0.01f, fit);   // the player's own units to the pack's
+                RopeRider.HandMarks(rope.handOffset * size, Vector3.up, Vector3.right, Vector3.forward, rope.handsApart * 0.5f * size, rope.thickness * size, out HandGoal markRight, out HandGoal markLeft);
+                HandGoal[] marks = { markRight, markLeft };
+                Vector3[] from = { right, left };
+                var share = new float[2];
+                for (int a = 0; a < 2; a++)
+                {
+                    // Every length in the body's own space, as the shoulders and the marks are.
+                    Vector3 elbow = root.InverseTransformPoint(elbows[a].position), hand = root.InverseTransformPoint(wrists[a].position);
+                    float arm = Vector3.Distance(from[a], elbow) + Vector3.Distance(elbow, hand);
+                    float palm = Vector3.Distance(hand, root.InverseTransformPoint(knuckles[a].position));
+                    Vector3 wrist = marks[a].palm - marks[a].fingers * (CarryPalmHalf * palm) - marks[a].normal * (CarryPalmThickness * palm);
+                    share[a] = Vector3.Distance(from[a], wrist) / Mathf.Max(0.001f, arm);
+                }
+
+                Check(Mathf.Abs(yaw) <= HangYawLimit, $"{spec.name}: in the hang the shoulders are square to the body's facing within {HangYawLimit} degrees: {yaw:F1}");
+                Check(share[0] <= HangReachMost && share[1] <= HangReachMost,
+                    $"{spec.name}: both arms reach the rope: the right wrist's mark is {share[0]:F2} of the arm from its shoulder, the left {share[1]:F2} (limit {HangReachMost}; hands at {rope.handOffset} from the feet, {rope.handsApart} apart, as Resources/Rope has them now)");
+                Check(lowestFoot >= FootLowest, $"{spec.name}: in the hang the lowest foot bone is {lowestFoot:F2} over the body's origin (not under {FootLowest}: the feet stay inside the capsule)");
+                return $"{spec.name}: shoulders at ({right.x:F2}, {right.y:F2}, {right.z:F2}) and ({left.x:F2}, {left.y:F2}, {left.z:F2}), turned {yaw:F1} degrees, reach right {share[0]:F2} left {share[1]:F2} of the arm, lowest foot {lowestFoot:F2}.";
             }
             finally { EditorSceneManager.ClosePreviewScene(preview); }
         }

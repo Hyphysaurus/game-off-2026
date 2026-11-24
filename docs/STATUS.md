@@ -2,6 +2,29 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 18:2x — ROPE ROUND 2 IS IN: BOTH HANDS ON THE ROPE, A CATCH BY WALKING OFF THE END, A LET-DOWN TO A SWINGING LENGTH, FOUR ROPES IN A ROW. NOT PLAYED, NOT REVIEWED
+- From his play (entry below). One fixer, compiled outside both ways, landed through his open editor (not in Play):
+  0 errors; the number update, the controller rebuild (every check passed) and the placement all logged OK.
+- **The hands:** the cause was the hanging pose, not the hand code. The hang held the pack's tuck, whose body is
+  turned 37 degrees to the right and set off to one side, so the right shoulder was turned away from a rope held in
+  front of the capsule and the short arm could not reach. Now a hanging pose of its own (`Rope_Hang`, made by the
+  controller builder: the idle's trunk and arms, the tuck's legs, square and upright), the hands a little lower
+  (Hand Offset y 1.42), both hands' fingers closed round the rope. The rebuild checks the pose on both bodies.
+- **Starting a swing:** walking or running off the end of the last book catches the rope in the air (Catch Reach
+  1.0); a grab higher than Hang Hold (5) lets the toy down to it by itself, keeping its swing; Shift pressed on the
+  rope still climbs. E in the air is the catch and keeps the speed. Also fixed on the way: the wait before the same
+  rope can catch again restarted on every landing.
+- **Four ropes** at the top level of Greybox, tied at the ceiling, z -150: `Rope_HallBooks` x 24.98 (3.6 past the
+  book's end, was 1.0), `Rope_Hall2` 30.18, `Rope_Hall3` 35.38 (each 8 long), `Rope_Hall4` 40.58 (5 long: its
+  let-go is short and lands before the checkpoint ahead of the sprint pit). 5.2 apart: one number in `RopePieces`.
+- HIS PLAYTEST: 1. climb the books and walk or run off the far end toward the rope: it catches by itself. 2. wait a
+  second: it lets itself down; then stick forward, back, forward. 3. Space on the way up with the stick forward:
+  fly to the next rope; four in a row. 4. the hands: both on, right over left, fingers closed, the rope in front of
+  the chest. 5. Shift climbs, C slides.
+- Known: E no longer reaches the first rope from the top (it is 3.6 out): walking off is the way on. Pumping
+  forward and back turns the body round the rope at each reversal (his call if it reads badly). The light key on a
+  rope toggles the stowed flashlight's light. Nothing here was played or reviewed; the rope's review is still owed.
+
 ## 23 Nov 2026 17:5x — HIS PLAY OF THE ROPE AND THE ROLL (17:40, 7:14): THE ROLL IS GOOD; THE ROPE NEEDS A ROUND; THE TOY BOX IS DARKER
 - His words: "roll looks and feels good btw, same as the new jump". And on the rope: "its too close to the books and
   too high up so its a bit hard to start swings.. perhaps we set a series of ropes so we can jump between them,

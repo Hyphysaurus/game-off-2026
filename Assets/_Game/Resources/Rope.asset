@@ -12,13 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e4c43ad0ce0b424cbc69cb3062e78a4, type: 3}
   m_Name: Rope
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.RopeSettings
-  catchReach: 0.7
-  minHold: 1.2
+  catchReach: 1
+  minHold: 1.7
+  hangHold: 5
   settleSeconds: 0.2
   catchAirSeconds: 0.12
   regrabSeconds: 0.55
-  leaveReach: 1.05
-  handOffset: {x: 0, y: 1.5, z: 0.36}
+  leaveReach: 1.4
+  handOffset: {x: 0, y: 1.42, z: 0.36}
   gravityShare: 0.75
   push: 7.6
   damping: 0.28
@@ -35,6 +36,7 @@ MonoBehaviour:
   flingDrag: 0.15
   handsApart: 0.16
   handsFade: 0.2
+  gripCurl: {x: 70, y: 70, z: 35}
   linkLength: 0.25
   ropeGravity: 18.75
   ropeDrag: 0.68

@@ -14,7 +14,10 @@ namespace ShiftJam
     /// meets, the swing kicks off. The let-go goes through PlayerMotor.Fling, so the flight after it is the motor's
     /// own free fall and its landing is judged like any other (the fall rule, the roll out of a landing).
     /// The body hangs upright under its hands and faces where the stick pushes; both hands go on the rope through
-    /// CarryPose, a tool in hand is put away, and the gun hides (WeaponHolder asks Holds).
+    /// CarryPose and their fingers close round it (FingerCurl), a tool in hand is put away, and the gun hides
+    /// (WeaponHolder asks Holds).
+    /// A grab high on the rope settles: the toy lets itself down to Hang Hold by itself, keeping its swing (held just
+    /// under the ceiling the rope is a tiny pendulum that cannot be swung). Sprint pressed on the rope climbs instead.
     /// What a ride takes it gives back however it ends: the motor's pull, the standing capsule, the Animator's state,
     /// the hands, the rope.
     /// </summary>
@@ -67,6 +70,10 @@ namespace ShiftJam
         private float _handsOffAt = Never;     // when the hands came off (their fade runs from here)
         private Vector3 _handsUp = Vector3.up; // the rope's line through the hands, kept for that fade
         private float _handsSide;              // half the rope's width, world units, kept for that fade
+        private bool _letDown;                 // grabbed higher than Hang Hold: the toy is letting itself down to it
+        private bool _sprintStale;             // Sprint was already held at the grab (the run-up): no climb until it is let go once
+        private bool _awaitLanding;            // no landing since the last let-go: the next one restarts the regrab wait
+        private FingerCurl _fistRight, _fistLeft;   // the fingers of each hand, closed round the rope
 
         /// <summary>True while <paramref name="who"/> swings on a rope (both hands are on it: the gun is hidden).</summary>
         public static bool Holds(GameObject who) => who != null && Riders.Contains(who);
@@ -102,6 +109,14 @@ namespace ShiftJam
             TryGetComponent(out _shifter); TryGetComponent(out _moves); TryGetComponent(out _stance);
             TryGetComponent(out _animation); TryGetComponent(out _body); TryGetComponent(out _carrier);
             if (settings == null) settings = RopeSettings.Load();
+            // The fingers, read here, before the Animator has posed the hands: the open hand is what they close from.
+            // (The body in use is chosen before anything else wakes, PlayerBody at -300, and holds for the scene.)
+            Animator body = _body != null && _body.Animator != null ? _body.Animator : GetComponentInChildren<Animator>();
+            if (body != null && body.isHuman)
+            {
+                _fistRight = new FingerCurl(body, right: true);
+                _fistLeft = new FingerCurl(body, right: false);
+            }
         }
 
         private void Start() => TryGetComponent(out _glider);   // the Shifter adds it in its Awake
@@ -132,10 +147,14 @@ namespace ShiftJam
         private void OnJump() { if (Riding && Time.timeScale > 0f) _jumpPressed = true; }
 
         /// <summary>The feet are down: the rope just let go of may catch again, but not at once (it swings back past
-        /// the landing spot).</summary>
+        /// the landing spot). Only the FIRST landing after a let-go starts that wait again. WHY: every later landing
+        /// used to start it too (a step down from one book to the next, a ground blink on a joint), so walking off a
+        /// ledge within half a second of one fell straight past the rope ridden last, on every second try.</summary>
         private void OnLanded(float speed)
         {
             _mustLeave = false;
+            if (!_awaitLanding) return;
+            _awaitLanding = false;
             _releasedAt = Time.time;
         }
 
@@ -162,11 +181,19 @@ namespace ShiftJam
         /// <summary>True if this player could take hold of <paramref name="rope"/> right now (its E prompt asks).</summary>
         public bool CanGrab(Rope rope) => rope != null && rope.isActiveAndEnabled && !rope.Held && Ready();
 
-        /// <summary>E on a rope: takes it where it hangs at rest, at the hands' own height. False if it may not be taken.</summary>
+        /// <summary>E on a rope. On the ground: takes it where it hangs at rest, at the hands' own height, from a
+        /// standstill. In the air E is the catch itself, from as far as E reaches: the rope is taken where it is nearest
+        /// the hands and the speed across it is kept (a jump at a rope with E pressed swings on, it does not stop dead).
+        /// False if it may not be taken.</summary>
         public bool TryGrab(Rope rope)
         {
             if (!CanGrab(rope)) return false;
-            Grab(rope, inAir: false, 0f);
+            if (_motor.Grounded) Grab(rope, inAir: false, 0f);
+            else
+            {
+                rope.ClosestPoint(HandPoint, settings.minHold * Scale, out float along);
+                Grab(rope, inAir: true, along);
+            }
             return true;
         }
 
@@ -234,6 +261,10 @@ namespace ShiftJam
                 _radius = Mathf.Clamp(anchor.y - hands.y, least, length);
                 _velocity = Vector3.zero;
             }
+            // Held higher than where a grab settles: the toy lets itself down to there (Ride does it). Sprint held
+            // from the run-up is not a climb: it would take the toy straight back up under the ceiling.
+            _letDown = _radius < HangHold(length, least, s);
+            _sprintStale = _input.Sprint;
             _yaw = transform.eulerAngles.y;
             _grabFrom = _expected = transform.position;
             _jumpPressed = false;
@@ -311,6 +342,9 @@ namespace ShiftJam
                     float far = to.magnitude;
                     if (far > 1e-4f * s) _dir = to / far;
                     _radius = Mathf.Clamp(far, least, length);
+                    // Stopped from below (it ended higher than it was sent): the feet are on something. The toy does
+                    // not go on letting itself down into it.
+                    if (miss.y < -slack) _letDown = false;
                     // The speed into what it met is lost, and a fast one comes back out: the toy kicks off it.
                     Vector3 n = miss.normalized;
                     float into = Vector3.Dot(_velocity, n);
@@ -323,10 +357,18 @@ namespace ShiftJam
                 }
             }
 
-            // 4. Up and down the rope: higher = a shorter, quicker swing; lower = a longer, wider one.
-            if (_input.Sprint) _radius -= settings.climbSpeed * s * dt;
+            // 4. Up and down the rope: higher = a shorter, quicker swing; lower = a longer, wider one. After a grab
+            // high on the rope the toy lets itself down to where a grab settles, at the slide's speed, and the swing
+            // keeps its speed meanwhile (a longer rope carries the same speed over more ground). Sprint pressed on
+            // the rope climbs and ends that; Sprint still held from the run-up does not count until it has been let
+            // go once.
+            if (!_input.Sprint) _sprintStale = false;
+            float hang = HangHold(length, least, s);
+            if (_input.Sprint && !_sprintStale) { _radius -= settings.climbSpeed * s * dt; _letDown = false; }
             else if (_input.CrouchHeld) _radius += settings.slideSpeed * s * dt;
+            else if (_letDown) _radius = Mathf.MoveTowards(_radius, hang, settings.slideSpeed * s * dt);
             _radius = Mathf.Clamp(_radius, least, length);
+            if (_radius >= hang) _letDown = false;
 
             // 5. Facing: where the stick pushes, held when it is let go. Not the travel (the body would spin at each end
             // of the swing) and not the camera (looking round would swing the body round the rope).
@@ -373,6 +415,10 @@ namespace ShiftJam
             _velocity = Vector3.ProjectOnPlane(_velocity, next);
             _dir = next;
         }
+
+        /// <summary>Where a grab settles on a rope <paramref name="length"/> long, world units along it from where it
+        /// is tied: Hang Hold, never past the rope's end and never above the highest hold (<paramref name="least"/>).</summary>
+        private float HangHold(float length, float least, float s) => Mathf.Clamp(settings.hangHold * s, least, length);
 
         /// <summary>Where the stick points on the ground, by the camera the motor steers by (as the walk reads it).</summary>
         private Vector3 StickWorld()
@@ -424,6 +470,8 @@ namespace ShiftJam
             _lastRope = rope;
             _releasedAt = Time.time;
             _mustLeave = true;
+            _awaitLanding = true;
+            _letDown = false;
             _airFor = 0f;
             // The hands fade off along the line the rope had; the rope itself has left them.
             _handsOffAt = Time.time;
@@ -452,20 +500,42 @@ namespace ShiftJam
             }
         }
 
-        /// <summary>One hand above the other on the rope in front of the face: the right palm a little above the hand
-        /// point and to the right of the rope, the left below and to its left, each palm facing the rope and the fingers
-        /// pointing the way the body faces. False when not on a rope and the fade off it is over.</summary>
+        /// <summary>One hand above the other on the rope in front of the chest (HandMarks). False when not on a rope
+        /// and the fade off it is over.</summary>
         public bool CarryGoals(out HandGoal right, out HandGoal left)
         {
             right = left = default;
             if (!Riding && Time.time - _handsOffAt >= settings.handsFade) return false;
             Vector3 up = Riding ? -_dir : _handsUp;
             float side = Riding && Current != null ? Current.Thickness : _handsSide;
-            Vector3 at = HandPoint, across = transform.right, ahead = transform.forward;
-            float half = settings.handsApart * 0.5f * Scale;
+            HandMarks(HandPoint, up, transform.right, transform.forward, settings.handsApart * 0.5f * Scale, side, out right, out left);
+            return true;
+        }
+
+        /// <summary>Where the two palms go on a rope that runs along <paramref name="up"/> through <paramref name="at"/>:
+        /// the right palm <paramref name="half"/> above that point on the rope's right side, the left as far below it
+        /// on its left side (<paramref name="side"/> = the rope's radius), each palm facing the rope and the fingers
+        /// pointing <paramref name="ahead"/>, so closed they go round its far side. One rule for the game and for the
+        /// controller builder's check that both arms can reach it (PlayerPortBuilder.CheckHang).</summary>
+        public static void HandMarks(Vector3 at, Vector3 up, Vector3 across, Vector3 ahead, float half, float side, out HandGoal right, out HandGoal left)
+        {
             right = new HandGoal { palm = at + up * half + across * side, fingers = ahead, normal = -across };
             left = new HandGoal { palm = at - up * half - across * side, fingers = ahead, normal = across };
-            return true;
+        }
+
+        /// <summary>After the Animator has posed the body: the fingers of both hands close round the rope, as far as
+        /// the hands are on it (the same fade as the carry pose's). WHY here and not in a clip: the carry pose's hand
+        /// is open, to lie flat on a box; a rope is gripped, and FingerCurl closes a hand over any clip. The weapon
+        /// holder and the carrier pose their own fingers later in the frame (LateUpdate at 100) and only with a gun
+        /// or a tool in hand, which a ride has put away.</summary>
+        private void LateUpdate()
+        {
+            if (_fistRight == null || _fistLeft == null) return;
+            float weight = CarryWeight;
+            if (weight <= 0f) return;
+            Vector3 curl = settings.gripCurl;
+            _fistRight.Close(weight, curl.x, curl.y, curl.z);
+            _fistLeft.Close(weight, curl.x, curl.y, curl.z);
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

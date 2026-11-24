@@ -37,6 +37,17 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
 - **To know before saying yes:** each PC decides its own knock-outs, so this is for friends, not cheat-proof; the
   match ends if the host leaves; it needs two players to test (two copies of the game on one PC work); about two
   build sessions, one builder at a time, then his two-window test and a v19 for friends.
+- **03:0x, his answer to the defaults: "lets get bots in".** So bots are in the first slice (they were under "not
+  in the first slice"). Read for it: a toy soldier today only ever targets players (this PC's own, or on the host
+  the one it can see), stands still to fire, walks a set route or wanders near its post, has no team and no path
+  finding; the host already runs the Stadium's four and every PC already sees them move, fire and fall.
+  Revised plan put to him (waits for "proceed"): **bots = the Stadium's toy soldiers on teams**, two a half as they
+  already stand. Each team is topped up to its size (2) with them and one stands down when a person joins that
+  team; they target the other team's players and soldiers and never their own; knocking one down scores, and one
+  knocking a player out scores for its team; they get up at their own base; team colour on them. With bots a match
+  can be played ALONE (one person, one bot against two), which is how he can test it and how a jam player without
+  friends online can play it. Not in it: bots that are the toy character itself with the player's guns, jumps and
+  pick-ups (several sessions: after the jam). Cost: about one more build session, three in all.
 
 ## 24 Nov 2026 02:2x — THE FIRST SHIFT'S FREEZE, CORNERS THAT TURN WITH THE STICK, A SOLDIER'S FLINCH (D-0178 to D-0180): IN THE PROJECT, NOT PLAYED
 - His "proceed with all then begin second feel batch" to the next-steps list. Pushed first (`48d35e4`). Then

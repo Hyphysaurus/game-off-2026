@@ -2,6 +2,20 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 16:4x — CHECKPOINT: THE USAGE LIMIT WAS REACHED MID-TURN (resets about 20:20). PICK UP HERE
+- **Roll out of a landing (D-0171, his "proceed"):** written and compiled outside both ways, NOT in the project.
+  Staged at `%TEMP%\shiftjam-stage\landroll` (PlayerMoves, PlayerMoveSettings, PlayerAnimation + `.orig.cs`,
+  `manifest.tsv`, `README.txt` with the facts). One reviewer was running (`wf_d978cd4a-24d`); read its result in
+  that run's `journal.jsonl`, fix what it found, `cmp` the `.orig.cs` files with the project, land when he is not in
+  Play (no menu to run), then docs + commit.
+- **Push (his "start with 1"):** NOT pushed. Remote `Hyphysaurus/game-off-2026`, main is 267 ahead, last push
+  2 Nov. Checked so far: no keys or tokens in the unpushed text changes; pack folders are ignored; the tracked
+  binaries are his art, OFL fonts and TextMesh Pro's own files. STILL TO CHECK before pushing to a public repo:
+  the 3 tracked `.fbx` for an embedded Windows path, the largest files in the range (GitHub refuses over 100 MB),
+  and one docs line that spells out a Windows user folder (the butler key's location, not the key). Then push with
+  the one-shot `gh` token helper (memory `reference_git_push_credentials`), and check `origin/main..HEAD` is 0.
+- **Rope (D-0170):** contract + check ready, build not started.
+
 ## 23 Nov 2026 16:1x — THE JUMP'S POSE FOLLOWS THE JUMP (D-0169): IN THE PROJECT, PLAYED 16:2x, HIS "the jump looks good"
 - His word after playing (16:2x, the play I launched for him at his "launch the playtest"): "the jump looks good". Then:
   "are there any more animations we can include? perhaps a seamless jump from the top of the booksteps into a

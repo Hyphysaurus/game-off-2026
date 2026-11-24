@@ -14,6 +14,15 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   the 3 tracked `.fbx` for an embedded Windows path, the largest files in the range (GitHub refuses over 100 MB),
   and one docs line that spells out a Windows user folder (the butler key's location, not the key). Then push with
   the one-shot `gh` token helper (memory `reference_git_push_credentials`), and check `origin/main..HEAD` is 0.
+- **16:5x, the roll's review is back** (saved: `%TEMP%\shiftjam-stage\salvage\landroll_review_2026-11-23.json`):
+  no must, both compiles clean, SIX shoulds to fix before landing, each with its code in that file: (1) carry only
+  the speed that goes the roll's way (dot of the old velocity with the roll's direction); (2) a jump pressed just
+  before touching down beats the automatic roll (needs `PlayerMotor.JumpWaiting`, a fourth file); (3) end a roll
+  that is thrown upward (a pad or trampoline); (4) no automatic roll while aiming or reloading; (5) hear
+  `PlayerMotor.Warped`: clear the remembered press and end a roll on a respawn; (6) a press on a one-frame ground
+  blink plays as a plain roll, not a landing roll. Notes worth doing: the `landRollMost` tooltip's numbers (no slide
+  is about 0.7; 1.6 is about twice the clip's ground), exit never at or under enter. The limit was reached again
+  before any of this was applied.
 - **Rope (D-0170):** contract + check ready, build not started.
 
 ## 23 Nov 2026 16:1x — THE JUMP'S POSE FOLLOWS THE JUMP (D-0169): IN THE PROJECT, PLAYED 16:2x, HIS "the jump looks good"

@@ -19,6 +19,12 @@ namespace ShiftJam
     /// after the nearest enemy it can see (the other team's people and bots in play, never its own team), sees and shoots
     /// with the match's numbers and wears its team's colour. Out of a match (warm-up, the house, single player) none of
     /// that applies and it is the practice soldier it always was.
+    /// What happens to it is told as plain events (D-0187), on the host's soldier and on every copy alike: Hurt (hit and
+    /// still standing), Fell (knocked down), Rose (up again at its post), Fired (a shot left), TeamChanged and
+    /// AwayChanged. A living body beside it (SoldierBody) listens to them and sets two switches as it wakes: BodyFalls
+    /// (the soldier no longer tips its Visual over: the body plays its own fall) and BodyDresses (the soldier no longer
+    /// paints its renderers in its team's colour: the body wears its team's kit). Neither switch is set on a soldier
+    /// without a body, so the plastic soldiers behave exactly as before.
     /// </summary>
     [RequireComponent(typeof(CharacterController), typeof(Damageable))]
     public sealed class ToySoldier : MonoBehaviour, IResettable, IBuildMoved
@@ -107,9 +113,15 @@ namespace ShiftJam
 
         private GameObject _dazzleFx;
 
-        /// <summary>Its drawn body's box (for where the stun effect sits).</summary>
+        /// <summary>Its drawn body's box (for where the stun effect sits). A living body tells its height instead
+        /// (ShownHeight, D-0187): its renderers' boxes are its culling boxes, far bigger than the body.</summary>
         private Bounds Drawn()
         {
+            if (ShownHeight > 0f)
+            {
+                float tall = ShownHeight * Scale;
+                return new Bounds(transform.position + Vector3.up * (0.5f * tall), new Vector3(0f, tall, 0f));
+            }
             var rs = GetComponentsInChildren<Renderer>();
             Bounds b = new Bounds(transform.position + Vector3.up * Scale, Vector3.zero);
             bool any = false;
@@ -155,6 +167,41 @@ namespace ShiftJam
 
         private bool _away;
 
+        // ---------------------------------------------------------------- what a living body hears (D-0187)
+
+        /// <summary>Hit and still standing: the moment it flinches (on a copy, the moment the shooter's hit is sent to the
+        /// host). The hit as it was dealt. Not raised for the hit that knocks it down (Fell is), nor while it lies down.</summary>
+        public event System.Action<DamageInfo> Hurt;
+        /// <summary>Knocked down: it lies there until Rose. True = it already lay there when this PC arrived (a copy told
+        /// so by the host), so the fall is not shown, only the lying.</summary>
+        public event System.Action<bool> Fell;
+        /// <summary>Standing again at its post, whole. True = after lying its Down Time (the get-up is worth showing);
+        /// false = put back at once (a reset, put away or back, the match's end, a copy told to stand), even when it was
+        /// not down.</summary>
+        public event System.Action<bool> Rose;
+        /// <summary>A shot left: where from and which way (world). On a copy, the host's shot as it is shown here.</summary>
+        public event System.Action<Vector3, Vector3> Fired;
+        /// <summary>Its team changed (TeamMatch.Blue, TeamMatch.Orange, or TeamMatch.NoTeam when it left the match).</summary>
+        public event System.Action<int> TeamChanged;
+        /// <summary>Put away (true) or back (false), after it has been stood at its post and its renderers and colliders
+        /// switched.</summary>
+        public event System.Action<bool> AwayChanged;
+
+        /// <summary>Set by a living body as it wakes (D-0187): true = the soldier never tips its Visual over to fall (the
+        /// body plays its own fall and get-up). The blinded sway, the flinch lean and the squash still move the Visual.
+        /// False on every soldier without a body: it falls as it always did.</summary>
+        public bool BodyFalls { get; set; }
+        /// <summary>Set by a living body as it wakes (D-0187): true = the soldier never swaps its renderers' materials for
+        /// its team's colour (the body wears its team's kit). False on every soldier without a body.</summary>
+        public bool BodyDresses { get; set; }
+        /// <summary>Set by a living body as it wakes (D-0187): how tall it stands, in the soldier's units at scale 1 (the
+        /// stun effect floats over it). 0 = measured from what it draws, as always.</summary>
+        public float ShownHeight { get; set; }
+        /// <summary>Set by a living body as it wakes (D-0187): seconds its get-up takes to show. After lying its Down
+        /// Time the soldier neither walks nor fires for that long, so its feet do not slide under a body still getting
+        /// up. 0 on every soldier without a body: it is on its way at once, as always.</summary>
+        public float GetUpSeconds { get; set; }
+
         /// <summary>
         /// Put away for a team match, or back (D-0182). Put away it stays an active object (CoopWorld numbers only the
         /// active soldiers, on every PC, and a friend arriving numbers whatever is active then), but it is unseen (its
@@ -178,16 +225,18 @@ namespace ShiftJam
             foreach (Renderer r in GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = away;
             if (!away) { if (_mirror) { StandAsCopy(); _netPose = false; } else ResetState(); }   // a copy: the host's next word puts it there at once
             else _cc.enabled = false;
+            AwayChanged?.Invoke(away);   // D-0187
         }
 
         /// <summary>A copy standing as the host's does: up, not leaning, its capsule on unless it is put away (its place
-        /// comes with the host's next word).</summary>
-        private void StandAsCopy()
+        /// comes with the host's next word). <paramref name="getUp"/>: it got up after lying down (Rose, D-0187).</summary>
+        private void StandAsCopy(bool getUp = false)
         {
             _state = State.Patrol;
             EndFlinch();
             if (visual != null) visual.localRotation = _visualRest;
             _cc.enabled = !_away;
+            Rose?.Invoke(getUp);   // D-0187
         }
 
         // ---------------------------------------------------------------- a bot in a team match (D-0182)
@@ -248,6 +297,7 @@ namespace ShiftJam
             _team = team;
             _otherBot = _shotByBot = null;
             Dress(team);
+            TeamChanged?.Invoke(team);   // D-0187
         }
 
         /// <summary>Out of the match: back to its own colour and numbers. One that was playing stands at its post, whole
@@ -255,18 +305,22 @@ namespace ShiftJam
         public void LeaveMatch()
         {
             bool playing = Fielded;
+            bool had = _team != TeamMatch.NoTeam;
             _team = TeamMatch.NoTeam;
             _otherBot = _shotByBot = null;
             Undress();
+            if (had) TeamChanged?.Invoke(TeamMatch.NoTeam);   // D-0187
             if (!playing || _cc == null) return;
             if (_mirror) StandAsCopy(); else ResetState();
         }
 
         /// <summary>Its drawn parts put on the team's colour: plain plastic in it (the colour, no texture), on run-time
         /// copies of their materials. A hit still flashes over it (Damageable's flash overrides the colour a moment and
-        /// lets go), and Undress puts the soldier's own materials back.</summary>
+        /// lets go), and Undress puts the soldier's own materials back. Not with a living body (BodyDresses, D-0187): it
+        /// wears its team's kit itself.</summary>
         private void Dress(int team)
         {
+            if (BodyDresses) return;
             if (_dressedTeam == team) return;
             Undress();
             var dressed = new List<Renderer>();
@@ -392,9 +446,11 @@ namespace ShiftJam
             Jolt(hit);
         }
 
-        /// <summary>Only the lean: its body tips back, away from where the hit came from.</summary>
+        /// <summary>Only the lean: its body tips back, away from where the hit came from. A living body hears of it
+        /// first (Hurt, D-0187), whether or not there is a lean to show.</summary>
         private void Jolt(in DamageInfo hit)
         {
+            Hurt?.Invoke(hit);
             if (visual == null || flinchDegrees <= 0f || flinchSeconds <= 0f) return;
             // The shot's shove says which way it travelled; with no shove (a gun without knockback, a grenade), away
             // from whoever dealt it; with neither, straight back.
@@ -416,7 +472,11 @@ namespace ShiftJam
         private float SightReach => Alerted ? Mathf.Max(SightRange * Scale, _alertReach) : SightRange * Scale;
         private float FireReach => Alerted ? Mathf.Max(FireRange * Scale, _alertReach) : FireRange * Scale;
 
-        public void ResetState()
+        public void ResetState() => StandAtPost(false);
+
+        /// <summary>Whole and standing at its post. <paramref name="getUp"/>: it got up after lying its Down Time (Rose,
+        /// D-0187).</summary>
+        private void StandAtPost(bool getUp)
         {
             _cc.enabled = false;
             transform.SetPositionAndRotation(_post, _postRot);
@@ -430,6 +490,9 @@ namespace ShiftJam
             _alertUntil = -100f; _alertReach = 0f;
             _other = _shotBy = null;
             _otherBot = _shotByBot = null;
+            // A living body's get-up plays from now (D-0187): it holds its feet and its fire until it is up.
+            if (getUp && GetUpSeconds > 0f) _standUntil = _holdFireUntil = Time.time + GetUpSeconds;
+            Rose?.Invoke(getUp);   // D-0187
         }
 
         /// <summary>Build Mode placed, moved, copied or re-posed us: stand guard here from now on (F9 and getting up after a
@@ -449,6 +512,7 @@ namespace ShiftJam
             KnockDown.Show(transform, hit, visual, true);   // a burst of bits, a bigger squash and the thud
             CoopWorld.SoldierDown(this, hit.Point);         // online host: it falls on every PC (D-0131)
             KnockedDown?.Invoke(this);                      // a bot's fall is a point in a team match (D-0182, TeamMatch)
+            Fell?.Invoke(false);                            // a living body plays its fall (D-0187)
         }
 
         private void Update()
@@ -460,7 +524,7 @@ namespace ShiftJam
             if (_state == State.Down)
             {
                 Topple();
-                if (Time.time - _downAt >= downTime) { ResetState(); GameEvents.RaiseSoldierUp(this); CoopWorld.SoldierUp(this); }
+                if (Time.time - _downAt >= downTime) { StandAtPost(true); GameEvents.RaiseSoldierUp(this); CoopWorld.SoldierUp(this); }
                 return;
             }
 
@@ -502,7 +566,7 @@ namespace ShiftJam
 
         private void Topple()
         {
-            if (visual == null) return;
+            if (visual == null || BodyFalls) return;   // a living body falls by its own clip (D-0187)
             float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((Time.time - _downAt) / 0.3f));
             visual.localRotation = Quaternion.Slerp(_visualRest, Quaternion.Euler(-90f, 0f, 0f) * _visualRest, t);
         }
@@ -710,6 +774,7 @@ namespace ShiftJam
             Projectile.Fire(projectile, from, dir, Damage, knockback, Scale, transform);
             CoopWorld.SoldierShot(this, from, dir);   // online host: a harmless copy of the dart on every other PC (D-0131)
             PlayFire();
+            Fired?.Invoke(from, dir);                 // D-0187
         }
 
         /// <summary>Its own clip, else its dart's (the player's dart pistol sound): the course's soldiers were built with none and fired silently.</summary>
@@ -806,13 +871,14 @@ namespace ShiftJam
             _cc.enabled = false;   // darts pass over it, as over the host's
             EndFlinch();
             if (!quiet) KnockDown.Show(transform, new DamageInfo(0f, Vector3.zero, point, null), visual, true);
+            Fell?.Invoke(quiet);   // D-0187
         }
 
         /// <summary>The host's soldier got up (its place at its post comes with the next MirrorPose).</summary>
         public void MirrorUp()
         {
             if (!_mirror) return;
-            StandAsCopy();
+            StandAsCopy(_state == State.Down);   // a get-up worth showing only if it lay here (D-0187)
         }
 
         /// <summary>The host's soldier fired: a harmless copy of its dart flies here, with its sound. The real dart is the
@@ -822,6 +888,7 @@ namespace ShiftJam
             if (!_mirror || _away || projectile == null) return;
             Projectile.Fire(projectile, from, direction, 0f, 0f, Scale, transform);
             PlayFire();
+            Fired?.Invoke(from, direction);   // D-0187
         }
 
         private void MirrorUpdate(float dt)

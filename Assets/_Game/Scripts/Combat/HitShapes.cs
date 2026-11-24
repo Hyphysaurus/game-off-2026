@@ -19,7 +19,9 @@ namespace ShiftJam
     ///   room's are: a shot passes over a figure lying on the floor, as it did before.
     /// With no fitted collider that can be used (a project without the model's pack) it does nothing at all: shots
     /// land on the body's own colliders, as they did before there were hit shapes.
-    /// Made by Shift Jam > Workshop > Fit Hit Shapes (Debug/HitShapePieces).
+    /// Made by Shift Jam > Workshop > Fit Hit Shapes (Debug/HitShapePieces). A body that only exists at run time (a
+    /// toy soldier's living body, D-0187) hands its shapes over with Add, before or after this wakes; they are then
+    /// treated exactly like the listed ones.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class HitShapes : MonoBehaviour
@@ -34,6 +36,8 @@ namespace ShiftJam
         private readonly List<Collider> _fitted = new List<Collider>(), _bodies = new List<Collider>();
         private Damageable _health;
         private bool _started;
+        private bool _woke;   // a plain field: a script reload in Play keeps it (Awake does not run again)
+        [System.NonSerialized] private List<Collider> _early;   // shapes handed over (Add) before Awake: taken as it wakes (D-0187)
 
         /// <summary>True for a collider that only stands for a body being walked or bumped (the capsule of a figure
         /// that has hit shapes): a shot passes through it.</summary>
@@ -49,18 +53,65 @@ namespace ShiftJam
 
         private void Awake()
         {
+            _woke = true;
             TryGetComponent(out _health);
-            foreach (Collider shape in shapes)
+            foreach (Collider shape in shapes) Take(shape);
+            if (_early != null)
             {
-                if (shape == null || _fitted.Contains(shape)) continue;
-                if (shape is MeshCollider mesh && mesh.sharedMesh == null) continue;   // nothing to land on
-                shape.excludeLayers = ~0;   // it touches nothing: only casts find it
-                _fitted.Add(shape);
+                foreach (Collider shape in _early) Take(shape);
+                _early = null;
             }
             if (_fitted.Count == 0) return;
+            FindBodies();
+        }
+
+        /// <summary>Makes <paramref name="shape"/> one of the fitted shapes. False when it cannot be used or already is.</summary>
+        private bool Take(Collider shape)
+        {
+            if (shape == null || _fitted.Contains(shape)) return false;
+            if (shape is MeshCollider mesh && mesh.sharedMesh == null) return false;   // nothing to land on
+            shape.excludeLayers = ~0;   // it touches nothing: only casts find it
+            _fitted.Add(shape);
+            return true;
+        }
+
+        /// <summary>Every other solid collider under it is "body only": shots pass through it.</summary>
+        private void FindBodies()
+        {
             GetComponentsInChildren(true, Scratch);
-            foreach (Collider c in Scratch) if (!c.isTrigger && !_fitted.Contains(c)) _bodies.Add(c);
+            foreach (Collider c in Scratch) if (!c.isTrigger && !_fitted.Contains(c) && !_bodies.Contains(c)) _bodies.Add(c);
             Scratch.Clear();
+        }
+
+        /// <summary>
+        /// A hit shape made at run time (D-0187: a living body's shapes on its bones), treated from now on exactly as the
+        /// listed ones: it touches nothing, shots land on it, it is off while the thing is down. Safe to call before this
+        /// part has woken (it is taken as it wakes), again for the same shape (nothing happens), and on a thing that had
+        /// no usable shape until now (its walking capsule becomes "body only" from then on).
+        /// </summary>
+        public void Add(Collider shape)
+        {
+            if (shape == null) return;
+            if (!_woke)
+            {
+                if (_early == null) _early = new List<Collider>();
+                if (!_early.Contains(shape)) _early.Add(shape);
+                return;
+            }
+            bool first = _fitted.Count == 0;
+            if (!Take(shape)) return;
+            if (_bodies.Remove(shape)) Bodies.Remove(shape);   // it was counted as a body before
+            if (first) FindBodies();
+            if (!isActiveAndEnabled) return;   // OnEnable registers it with the rest
+            Fitted.Add(shape);
+            if (first)
+            {
+                // OnEnable found nothing to do, so this is the first registration: the bodies and the health's word.
+                foreach (Collider c in _bodies) Bodies.Add(c);
+                Listen();
+                Live = !(_started && offWhileDown && _health != null && _health.Dead);
+            }
+            shape.enabled = Live;
         }
 
         private void Start() => _started = true;
@@ -70,7 +121,7 @@ namespace ShiftJam
             if (_fitted.Count == 0) return;
             foreach (Collider c in _fitted) Fitted.Add(c);
             foreach (Collider c in _bodies) Bodies.Add(c);
-            if (_health != null) { _health.Died += OnDied; _health.Restored += OnRestored; }
+            Listen();
             // Health is only known once everything has woken: until then it stands.
             SetLive(!(_started && offWhileDown && _health != null && _health.Dead));
         }
@@ -80,6 +131,18 @@ namespace ShiftJam
             foreach (Collider c in _fitted) Fitted.Remove(c);
             foreach (Collider c in _bodies) Bodies.Remove(c);
             if (_health != null) { _health.Died -= OnDied; _health.Restored -= OnRestored; }
+            _listening = false;
+        }
+
+        // Whether it hears its health's death and restore, so a shape added (Add) before OnEnable, as a script reload in
+        // Play can order them, never signs it up twice.
+        [System.NonSerialized] private bool _listening;
+
+        private void Listen()
+        {
+            if (_listening || _health == null) return;
+            _health.Died += OnDied; _health.Restored += OnRestored;
+            _listening = true;
         }
 
         private void OnDied(DamageInfo _) { if (offWhileDown) SetLive(false); }

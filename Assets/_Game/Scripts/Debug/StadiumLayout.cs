@@ -33,6 +33,7 @@ namespace ShiftJam
         private const float Grow = 1.6f;
         private const float FirstBack = 0.2f;   // the backdrop's scale in the first layout; a play piece sized by it keeps that size
         private const float Back = FirstBack * Grow, Prop = 0.4f;
+        private const string SoldierName = "ToySoldier";   // every practice soldier's object name (D-0187 keeps it for the funny ones)
         /// <summary>The field's radius: the shell's inner edge at Back scale (127 pack units). 40.6 since D-0181; 25.4 before.</summary>
         public const float FieldRadius = 127f * Back;
 
@@ -219,7 +220,11 @@ namespace ShiftJam
             // ---------------------------------------------------------------- practice: toy soldiers to fight alone (D-0114)
             // Online the host runs them for everyone (CoopWorld). In a team match they are the bots (D-0182, TeamMatch):
             // each on the team of its half, walking its match route toward the middle while it plays.
-            var soldierAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Prefabs/Pieces/Interactables/ToySoldier.prefab");
+            // D-0187: they are funny soldiers (a living body) once SoldierBodyPieces has made the prefab; a project
+            // without it (or without the pack) gets the plastic ones as before. Either way each copy keeps the name
+            // ToySoldier, so the paths CoopWorld numbers them by are the same as ever.
+            var soldierAsset = AssetDatabase.LoadAssetAtPath<GameObject>(SoldierBodyPieces.PrefabPath);
+            if (soldierAsset == null) soldierAsset = AssetDatabase.LoadAssetAtPath<GameObject>(SoldierBodyPieces.SoldierPath);
             if (soldierAsset != null)
             {
                 var practice = new GameObject("Practice").transform; practice.SetParent(root);
@@ -235,6 +240,7 @@ namespace ShiftJam
                         if (north) by = -by;
                         var at = new Vector3(by.x, 0f, by.y);
                         var soldier = (GameObject)PrefabUtility.InstantiatePrefab(soldierAsset, practice);
+                        soldier.name = SoldierName;   // the plastic prefab's name, whichever prefab it is (CoopWorld's paths)
                         soldier.transform.SetPositionAndRotation(at, Quaternion.LookRotation(-at.normalized, Vector3.up));
                         var so = new SerializedObject(soldier.GetComponent<ToySoldier>());
                         so.FindProperty("sightRange").floatValue = 12f;

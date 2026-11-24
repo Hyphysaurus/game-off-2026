@@ -2,6 +2,33 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 02:2x — THE FIRST SHIFT'S FREEZE, CORNERS THAT TURN WITH THE STICK, A SOLDIER'S FLINCH (D-0178 to D-0180): IN THE PROJECT, NOT PLAYED
+- His "proceed with all then begin second feel batch" to the next-steps list. Pushed first (`48d35e4`). Then
+  built: the freeze fix and the corners by me, the flinch by one builder whose changes I read before landing. All
+  compiled outside both ways and in his open editor (not in Play, 0 errors). No reviewer.
+- **The first shift of a play (D-0178).** It used to freeze for a second or two while the bend made its copies of
+  the house's materials and swept the house in a wasteful way. The copies are now made as the scene starts and the
+  sweep does each thing once. Not measured: he should see whether the freeze is gone.
+- **Corners (D-0179).** On the ground the toy now turns with the stick and keeps its speed: a square corner at a
+  sprint takes 0.13 s at full speed, where it took 0.27 s and dropped to 71 %. A turn-about still brakes and comes
+  back; the air and first person are unchanged.
+- **Soldiers flinch (D-0180).** Each hit jolts a toy soldier back, stops its walk a moment and holds its fire for
+  0.45 s, so under steady fire it does not shoot back. The fourth pistol dart still knocks it down.
+- HIS PLAYTEST (Greybox):
+  1. Early in a play: grow at a core, then shift back to toy. No long freeze on that first shift back.
+  2. Sprint and take square corners, weave, turn with the mouse while holding W: arcs that keep their speed, no
+     sideways legs. W then S: still a stop and back. Stop on a narrow book.
+  3. Shoot the hallway's soldier: it jolts back on each hit and does not fire while he keeps hitting it; stop, and
+     its next dart comes about half a second later.
+- Numbers (0 = as before): `Data/MovementSettings` > Steer Turn Speed 720 / Steer Reverse Angle 135; on a soldier's
+  `ToySoldier` > Flinch Fire Delay 0.45 / Flinch Stop Seconds 0.25 / Flinch Degrees 10 / Flinch Seconds 0.3; on
+  `WorldBend` > Make Copies At Start.
+- Look for: corners too twitchy (Steer Turn Speed down); soldiers too easy to pin (Flinch Fire Delay down); a lean
+  that pivots oddly; the scene taking longer to come up.
+- **v18:** not built. The ship command refuses while Unity has the project open: it goes when he closes the
+  editor (or says to). His F9 try of the hit scan dart (D-0176) is still open, and with it step 2 of one kind of shot.
+- Local commit, not pushed.
+
 ## 24 Nov 2026 02:0x — A MORE BUTTERY FEEL, FIRST BATCH (D-0177): IN THE PROJECT, PLAYED 02:03, HIS "feels good"
 - **His verdict after the 02:03 play (3:04, on `f7b4726`): "feels good".** The play: 0 errors, four ropes in a row
   again, first person twice, the pistol out (8 shots landed, 47 darts stuck). No F9 in it (the flip is logged now),

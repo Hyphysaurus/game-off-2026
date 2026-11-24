@@ -114,6 +114,28 @@ namespace ShiftJam
         /// <summary>The camera the stick is read against.</summary>
         public Transform View => cameraTransform;
 
+        private const float SteerLeastSpeed = 0.5f;   // own units a second: slower than this the body is starting, not turning
+
+        /// <summary>The sideways speed after this step, on the ground with the stick pushed (D-0179): the way the body
+        /// travels turns toward the stick at Steer Turn Speed and how fast it goes moves toward the stick's speed, each
+        /// on its own, so a corner is an arc that keeps its speed. Before, the speed cut straight across to the new
+        /// direction: a square corner at a sprint took 0.27 s, sagged to 71 % of the speed on the way and showed the
+        /// legs running sideways; now it takes 0.13 s at full speed. Unchanged: a start from rest (straight off, at
+        /// once), a turn-about sharper than Steer Reverse Angle (it brakes through a stop and comes back), letting go
+        /// of the stick, and everything in the air. Steer Turn Speed 0 = the old rule everywhere.</summary>
+        private Vector3 Steered(Vector3 wish, float topSpeed, float rate, float scale, float dt)
+        {
+            Vector3 straight = Vector3.MoveTowards(_planar, wish * topSpeed, rate * dt);
+            float speed = _planar.magnitude, push = wish.magnitude;
+            if (settings.steerTurnSpeed <= 0f || speed < SteerLeastSpeed * scale || push < 1e-4f) return straight;
+            Vector3 heading = _planar / speed, wanted = wish / push;
+            if (Vector3.Angle(heading, wanted) > settings.steerReverseAngle) return straight;
+            Vector3 turned = Vector3.RotateTowards(heading, wanted, settings.steerTurnSpeed * Mathf.Deg2Rad * dt, 0f);
+            turned.y = 0f;
+            if (turned.sqrMagnitude < 1e-8f) return straight;
+            return turned.normalized * Mathf.MoveTowards(speed, push * topSpeed, rate * dt);
+        }
+
         /// <summary>Steer by this camera from now on (D-0111: the online player meets its camera after Awake).</summary>
         public void UseCamera(Transform view) => cameraTransform = view;
         /// <summary>A line pulls the body (D-0109, the Dart Line: reeled up to a target, or riding a zip line): its whole
@@ -265,7 +287,9 @@ namespace ShiftJam
                 float topSpeed = Mathf.Min(input.Sprint && !SprintLocked ? settings.sprintSpeed : settings.walkSpeed, SpeedCap) * SpeedShare * AimShare * scale;
                 float rate = (steering ? settings.acceleration : settings.deceleration) * scale;
                 if (!Grounded) rate *= settings.airControl;
-                _planar = Drive ?? Vector3.MoveTowards(_planar, wish * topSpeed, rate * dt);
+                if (Drive.HasValue) _planar = Drive.Value;
+                else if (Grounded && steering) _planar = Steered(wish, topSpeed, rate, scale, dt);
+                else _planar = Vector3.MoveTowards(_planar, wish * topSpeed, rate * dt);
             }
 
             if (HoldAt.HasValue)

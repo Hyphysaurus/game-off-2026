@@ -3226,3 +3226,51 @@
   null, so `_points != null` was true with nothing in it. Now `_points` and `_previous` are not kept through a
   reload (`[NonSerialized]`) and every test asks for a made chain (`Chained`: at least its two ends). Play was not
   affected (the chain is made when the rope wakes). Compiled in his editor; no errors since.
+- **D-0178 (24 Nov, 02:1x) The shift's bend: its copies are made as the scene starts, and a shift's sweep no longer does the same work over and over.**
+  His "proceed with all" to my list (the freeze on a play's first shift fixed before the next build).
+  - **What was wrong** (the frame reader's finding, checked in the code): on every shift `WorldBend.SwapIn` asked the
+    physics for every collider in reach (kid to toy: 840 units, the whole house), took every renderer under each one
+    again and again (a room's root collider leads to every renderer in the room, and so does every collider under
+    it), searched the whole list of those already taken for each of them, read each one's materials into a new
+    array, asked each material's shader for its name (a new string every time), and on the first shift made a Curved
+    World copy of every Lit material it met. Logged: 2.10 s and 54.7 MB of garbage on the first kid-to-toy shift of
+    a play (23 Nov 17:41), 1.41 s on a first toy-to-kid (22 Nov); later shifts under 0.1 s, but not free.
+  - **Now:** the copies for everything in the scene that can bend are made in `Start` (Make Copies At Start, on),
+    in the frame the scene is already loading in. What the bend knows of a renderer is kept (its materials as last
+    seen and their copies) and worked out again only if its materials changed. A sweep takes each renderer once,
+    fills lists it keeps instead of making new ones, and asks a shader's name once per shader. The reach, the rule
+    for what bends and the look are the same.
+  - **Not measured** (no Play by me): what a shift costs now, and what making the copies adds to the scene's
+    start. In a built game the first draw of each copy may still cost a moment (its shader variant): if a build
+    still freezes on the first shift, warming those is the next step.
+  - Made by the orchestrator, compiled outside both ways and in his open editor (0 errors). NOT PLAYED.
+- **D-0179 (24 Nov, 02:1x) Corners: on the ground the body's travel turns with the stick and keeps its speed.**
+  Second feel batch, his "then begin second feel batch"; the body reader's highest-rated finding.
+  - Before, the speed cut straight across to the new direction (`Vector3.MoveTowards` on the whole velocity): a
+    square corner at a sprint took 0.27 s, sagged to 71 % of the speed and carried the body 1.38 on in the old
+    direction while the legs ran sideways. Now (`PlayerMotor.Steered`) the way it travels turns toward the stick at
+    `MovementSettings` > Steer Turn Speed 720 degrees a second and how fast it goes moves toward the stick's speed
+    on its own: the same corner takes 0.13 s at full speed and carries 0.83 on (stepped in a copy of the maths; at
+    a walk 0.17 s -> 0.13 s, the sag to 71 % gone).
+  - Unchanged: a start from rest, a turn-about sharper than Steer Reverse Angle 135 (it brakes through a stop and
+    comes back), letting go of the stick, everything in the air, first person (its own body). Steer Turn Speed 0 =
+    the old rule.
+  - Made by the orchestrator, compiled outside both ways and in his open editor (0 errors). NOT PLAYED.
+- **D-0180 (24 Nov, 02:1x) A toy soldier flinches when a shot hits it.**
+  Second feel batch (combat feel): a soldier took four pistol darts with only a small squash and went on aiming.
+  - On every hit that counts while it stands (the same hits that call it to arms): its next shot waits Flinch Fire
+    Delay 0.45 s (each hit starts the wait over and never brings a shot forward, so under steady fire it does not
+    shoot back); it takes no patrol step for Flinch Stop Seconds 0.25 s; and its body leans back Flinch Degrees 10,
+    away from the shot, over in 0.05 s and upright again in Flinch Seconds 0.3 s. Settings on `ToySoldier`, 0 = off.
+  - The lean is a part of its own, `FX/Flinch.cs` (`Flinch.Hit(part, shot, degrees, seconds)`, `Flinch.Stop`), made
+    like `FX/Squash.cs`: it adds itself, sleeps between hits, only turns the part (Squash only sizes it), leans
+    on top of whatever pose the part has that frame (the blinded sway) and leaves the part exactly as it was. A
+    knock-down, a reset, getting up, Build Mode and the online copy's events end a flinch first.
+  - Online: the fire delay and the stop are the host's soldier's. A copy leans at once on the PC of the player who
+    hit it (the relay is wrapped; no new message). Not shown: the lean on a third PC, and a host's own hit on the
+    clients (that needs a new message, written up in the stage's NOTES.md).
+  - Not sure (the builder's list): the lean pivots where the knock-down's tip-over does (not checked on the
+    prefab); a grenade leans it away from the thrower, not from the blast; the Colour Corner's `MischiefSoldier`
+    does not flinch.
+  - Made by one builder (staged in `%TEMP%\shiftjam-stage\flinch`, 5 minutes), its changes read by me before landing,
+    compiled outside both ways and in his open editor (0 errors). No reviewer. NOT PLAYED.

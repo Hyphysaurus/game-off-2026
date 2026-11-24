@@ -15,6 +15,10 @@ namespace ShiftJam
         public float deceleration = 50f;
         [Tooltip("Degrees per second the body turns to face the way it travels.")]
         public float turnSpeed = 720f;
+        [Min(0f), Tooltip("On the ground with the stick pushed, the way the body travels turns toward the stick this many degrees a second and keeps its speed, so a corner is an arc (D-0179): at 720 a square corner takes 0.13 s. Lower: wider, heavier corners. 0 = the old rule: the speed cuts straight across to the new direction, and a square corner loses about a third of it on the way.")]
+        public float steerTurnSpeed = 720f;
+        [Range(0f, 180f), Tooltip("A change of direction sharper than this many degrees is a turn-about, not a corner: the body brakes through a stop and comes back, as it always did (D-0179).")]
+        public float steerReverseAngle = 135f;
 
         [Header("Air")]
         public float jumpHeight = 1.2f;

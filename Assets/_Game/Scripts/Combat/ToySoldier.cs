@@ -53,6 +53,11 @@ namespace ShiftJam
         [SerializeField] private float gravity = 25f;
         [SerializeField, Tooltip("Seconds lying down before it is back at its post.")] private float downTime = 4f;
         [SerializeField, Tooltip("Chest height, units at scale 1.")] private float chestHeight = 1.0f;
+        [Header("A hit makes it flinch (D-0180)")]
+        [SerializeField, Min(0f), Tooltip("Seconds after a hit before it may fire again. Each new hit starts the wait over, so under steady fire it never gets a shot off. 0 = hits do not hold its fire.")] private float flinchFireDelay = 0.45f;
+        [SerializeField, Min(0f), Tooltip("Seconds it stops walking after a hit. It still turns to face whoever it is after. 0 = it keeps walking.")] private float flinchStopSeconds = 0.25f;
+        [SerializeField, Min(0f), Tooltip("How far its body leans back, away from the shot, degrees. 0 = no lean.")] private float flinchDegrees = 10f;
+        [SerializeField, Min(0f), Tooltip("Seconds the lean takes to ease back upright (it goes over in a twentieth of a second). 0 = no lean.")] private float flinchSeconds = 0.3f;
 
         private const float PerceiveEvery = 0.15f;
         private const float AlertSeconds = 6f;   // a hit keeps it looking this long past its usual sight
@@ -65,6 +70,7 @@ namespace ShiftJam
         private State _state;
         private float _blindUntil = float.NegativeInfinity;
         private bool _wasBlind;
+        private float _holdFireUntil = float.NegativeInfinity, _standUntil = float.NegativeInfinity;   // a flinch (D-0180)
 
         /// <summary>Blinds it for <paramref name="seconds"/> (D-0149): no sight, no shots, it stands and sways.</summary>
         public void Blind(float seconds)
@@ -167,6 +173,36 @@ namespace ShiftJam
             _state = State.Engage;
             _sees = true; _lastSeen = Time.time; _seenFor = reactionTime;
             _nextLook = Time.time + PerceiveEvery;
+            if (!_health.Dead) Flinched(hit);   // the last hit knocks it down instead
+        }
+
+        /// <summary>A hit makes it flinch (D-0180): its next shot waits (each hit starts the wait over, a shot is never
+        /// brought forward), it stops walking a moment and its body jolts back, away from the shot.</summary>
+        private void Flinched(in DamageInfo hit)
+        {
+            if (flinchFireDelay > 0f) _holdFireUntil = Mathf.Max(_holdFireUntil, Time.time + flinchFireDelay);
+            if (flinchStopSeconds > 0f) _standUntil = Mathf.Max(_standUntil, Time.time + flinchStopSeconds);
+            Jolt(hit);
+        }
+
+        /// <summary>Only the lean: its body tips back, away from where the hit came from.</summary>
+        private void Jolt(in DamageInfo hit)
+        {
+            if (visual == null || flinchDegrees <= 0f || flinchSeconds <= 0f) return;
+            // The shot's shove says which way it travelled; with no shove (a gun without knockback, a grenade), away
+            // from whoever dealt it; with neither, straight back.
+            Vector3 away = hit.Knock;
+            away.y = 0f;
+            if (away.sqrMagnitude < 1e-6f && hit.Source != null) { away = transform.position - hit.Source.position; away.y = 0f; }
+            if (away.sqrMagnitude < 1e-6f) away = -transform.forward;
+            Flinch.Hit(visual, away, flinchDegrees, flinchSeconds);
+        }
+
+        /// <summary>No flinch left: it may fire and walk, its body back in its own pose (a fall, a reset, Build Mode).</summary>
+        private void EndFlinch()
+        {
+            _holdFireUntil = _standUntil = float.NegativeInfinity;
+            if (visual != null) Flinch.Stop(visual);
         }
 
         private bool Alerted => Time.time < _alertUntil;
@@ -180,6 +216,7 @@ namespace ShiftJam
             _cc.enabled = true;
             _health.ResetState();
             _blindUntil = float.NegativeInfinity; _wasBlind = false; EndDazzle();   // a reset clears a blinding (D-0149)
+            EndFlinch();
             if (visual != null) visual.localRotation = _visualRest;
             _state = State.Patrol; _routeIndex = 0; _routeStep = 1; _wanderTo = _post;
             _vertical = 0f; _seenFor = 0f; _lastSeen = -100f; _sees = false; _waitUntil = 0f;
@@ -193,12 +230,14 @@ namespace ShiftJam
         {
             _post = transform.position; _postRot = transform.rotation; _wanderTo = _post;
             _routeIndex = 0; _routeStep = 1; _waitUntil = 0f; _stuckFor = 0f; _vertical = 0f;
+            EndFlinch();
         }
 
         private void OnDied(DamageInfo hit)
         {
             _state = State.Down; _downAt = Time.time; _sees = false; _seenFor = 0f;
             _cc.enabled = false;
+            EndFlinch();   // it tips over from its own pose, not from a lean
             KnockDown.Show(transform, hit, visual, true);   // a burst of bits, a bigger squash and the thud
             CoopWorld.SoldierDown(this, hit.Point);         // online host: it falls on every PC (D-0131)
         }
@@ -208,7 +247,7 @@ namespace ShiftJam
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
             if (_mirror) { MirrorUpdate(dt); return; }   // online, not the host: it only shows the host's soldier
-            if (GameMode.Current == GameMode.Mode.Build) return;   // held still while the room is edited, or a drag jitters
+            if (GameMode.Current == GameMode.Mode.Build) { EndFlinch(); return; }   // held still while the room is edited, or a drag jitters
             if (_state == State.Down)
             {
                 Topple();
@@ -240,7 +279,7 @@ namespace ShiftJam
             }
             else
             {
-                move = PatrolVelocity();
+                move = Time.time < _standUntil ? Vector3.zero : PatrolVelocity();   // a flinch stops it a moment (D-0180)
                 face = move;
             }
 
@@ -390,7 +429,7 @@ namespace ShiftJam
 
         private void TryFire(Vector3 aim)
         {
-            if (!_sees || projectile == null || Time.time < _nextFire) return;
+            if (!_sees || projectile == null || Time.time < _nextFire || Time.time < _holdFireUntil) return;   // a flinch holds its fire (D-0180)
             Vector3 from = Eye;
             Vector3 to = aim - from;
             if (to.magnitude > FireReach) return;
@@ -458,13 +497,20 @@ namespace ShiftJam
 
         /// <summary>Online, on every PC but the host's: from now on this soldier only shows the host's. It thinks and fires
         /// nothing of its own; it stands where the host's stands (MirrorPose), falls and gets up when it does, and a hit
-        /// on it goes to the host (<paramref name="relay"/>: the copy only flashes).</summary>
+        /// on it goes to the host (<paramref name="relay"/>: the copy only flashes, and jolts back at once so the shooter
+        /// sees the hit land: D-0180; holding its fire and its feet is the host's soldier's to do).</summary>
         public void UseMirror(System.Func<DamageInfo, bool> relay)
         {
             _mirror = true;
             _netPose = false;
             _sees = false; _seenFor = 0f; _other = null;
-            _health.Relay = relay;
+            EndFlinch();
+            _health.Relay = relay == null ? null : hit =>
+            {
+                if (!relay(hit)) return false;
+                if (_mirror && _state != State.Down) Jolt(hit);
+                return true;
+            };
         }
 
         /// <summary>Back to a soldier of this PC's own (the host's world turned out not to match ours): at its post, whole.</summary>
@@ -494,6 +540,7 @@ namespace ShiftJam
             _state = State.Down;
             _downAt = quiet ? Time.time - 1f : Time.time;
             _cc.enabled = false;   // darts pass over it, as over the host's
+            EndFlinch();
             if (!quiet) KnockDown.Show(transform, new DamageInfo(0f, Vector3.zero, point, null), visual, true);
         }
 
@@ -502,6 +549,7 @@ namespace ShiftJam
         {
             if (!_mirror) return;
             _state = State.Patrol;
+            EndFlinch();
             if (visual != null) visual.localRotation = _visualRest;
             _cc.enabled = true;
         }

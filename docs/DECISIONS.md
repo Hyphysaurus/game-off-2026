@@ -3280,3 +3280,23 @@
   with foam darts there. `MakeStadium` now adds the `ShotRules` object itself (the part's default is Instant).
   Checked in the scene v18's build wrote: one `ShotRules`, kind 1. Anything else placed by hand in the Stadium is
   lost the same way: it has to go through `StadiumLayout` or `MakeStadium`.
+- **D-0181 (24 Nov, 04:1x) The Stadium is 1.6 times wider: the field 81 across (51 before), the play pieces kept toy-sized, more cover.**
+  His "that stadium was feeling a bit small and cramped last i had played it, lets expand it". (The toy is also
+  faster than when the field was laid out on 21 Nov.) The layout is his to leave to me (D-0111: "optimize based on
+  the assets").
+  - `StadiumLayout`: one number, `Grow` 1.6. The plan stays written in the first layout's units and is spread from
+    the middle as it is built. The shell, the stands, the towers and what floats round the field grow with it
+    (`Back` 0.2 -> 0.32), so the field's radius is still the shell's inner edge: `FieldRadius` = 127 x Back = 40.6
+    (25.4 before; public now). The play pieces keep their size (Prop 0.4: a wall about one toy tall).
+  - Things that belong together keep their distances (`.By(x, z)`): each base's blocks, flags and palms with its
+    arch, each slide and trampoline with its platform, the stage's walls, the pistol and the supply crate with the
+    base, the knife, the foam finger and the shield with the stage, the practice soldiers beside their base.
+  - Eleven more cover pieces a half for the wider ground (`.AsBuilt()`, given in the built field's own units): a
+    wall across the middle lane, boxes on the approach to the base, walls between the cover lines and the flank
+    platforms, walls and boxes by the rim, boxes by the cross tunnels. Shots land at once in this scene, so open
+    ground is dangerous ground. PROVISIONAL places: not yet checked against the pieces' real footprints.
+  - `PartyBuilder`: the house door and the race gate stand on the rim by the field's radius, not at fixed numbers.
+  - The ring spawns follow by themselves (radius - 4).
+  - NOT DONE YET: `Scenes/Stadium.unity` is not rebuilt (it needs a Unity run: the menu Shift Jam > Party > Build Net
+    Player + Stadium, or the next ship, which remakes the scene anyway), so nothing of this shows until then, and
+    the new cover has not been looked at from above. Compiled outside; landed with Unity closed. NOT PLAYED.

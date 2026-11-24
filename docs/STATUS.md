@@ -16,9 +16,14 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   cover pieces a half for the wider ground (given in the built field's units, `AsBuilt`): PROVISIONAL places, to be
   checked against a top-down still once the scene is rebuilt. `PartyBuilder`: the house door and the race gate sit
   on the rim by the field's radius, not at fixed numbers.
-- TO DO when he is out of Play: land the two scripts, measure the pieces' footprints, rebuild the Stadium (menu
-  Shift Jam > Party > Build Net Player + Stadium, Greybox open and clean), look at a top-down still, move what
-  overlaps or leaves a hole. Then TDM: a contract first, then one builder at a time.
+- 04:1x: the two scripts are LANDED (Unity was closed) and committed (D-0181). The scene is NOT rebuilt: he is in
+  another game, so no Unity run until he says so or is off it. Still to do with one hidden Unity run: rebuild the
+  Stadium, measure the pieces, look at it from above, move what overlaps or leaves a hole.
+- His 03:14 play (33 min, about 2.5 at the keys): the FIRST SHIFT OF THE PLAY TOOK 0.11 s (it was 1.4 to 2.1 s
+  before D-0178): the freeze is gone. Two rope rides, a grenade knock-down. No word from him on the corners or the
+  soldier's flinch.
+- TDM: the contract is written (`%TEMP%\shiftjam-stage\tdm\TDM_CONTRACT.md`, D-0182): the match for people first
+  (builder A1), then the screen (B), then the bots (A2), one builder at a time.
 
 ## 24 Nov 2026 02:5x — TEAM DEATHMATCH IN THE STADIUM: READ ONLY, A PLAN THAT WAITS FOR HIS "PROCEED". NOTHING BUILT
 - His "begin the TDM plan". Read by three readers (the online code, the Stadium and its builders, the match flow

@@ -179,7 +179,7 @@ namespace ShiftJam
 
             StadiumLayout.Build(scene, body);   // the stadium, the field, the play pieces and the spawns (D-0113)
             AddRaceway(scene, body);            // the race track beside it, its cars online (D-0116)
-            HouseDoor(scene, new Vector3(-23.2f, 0f, -5f), Quaternion.Euler(0f, 90f, 0f), body);   // the arena's door to the house (D-0134): the race gate's twin across the middle
+            HouseDoor(scene, new Vector3(-(StadiumLayout.FieldRadius - 2.2f), 0f, -5f), Quaternion.Euler(0f, 90f, 0f), body);   // the arena's door to the house (D-0134): the race gate's twin across the middle
             // Versus shots are decided at the click here (D-0172, D-0176). The rule is made with the scene: this scene is
             // made afresh on every ship, and a rule placed in it by hand (as it first was) would be gone from the build.
             new GameObject("ShotRules").AddComponent<ShotRules>();   // the part's own default is Instant
@@ -263,7 +263,7 @@ namespace ShiftJam
             }
 
             // The gates: an inflatable checkpoint arch on the arena's east edge, and one at the raceway's start.
-            var toTrack = Gate(scene, "ToRaceway", new Vector3(23.2f, 0f, 5f), Quaternion.Euler(0f, -90f, 0f), body);
+            var toTrack = Gate(scene, "ToRaceway", new Vector3(StadiumLayout.FieldRadius - 2.2f, 0f, 5f), Quaternion.Euler(0f, -90f, 0f), body);   // on the rim, wherever the field's size puts it
             var outPoint = new GameObject("RacewayArrive").transform;
             SceneManager.MoveGameObjectToScene(outPoint.gameObject, scene);
             outPoint.SetPositionAndRotation(arrive + Vector3.up * 0.3f, arriveFacing);

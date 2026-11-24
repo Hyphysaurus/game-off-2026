@@ -44,6 +44,22 @@ namespace ShiftJam
         [Range(0f, 1f), Tooltip("Damage is ignored from this share of the roll...")] public float rollSafeFrom = 0.2f;
         [Range(0f, 1f), Tooltip("...to this share. Equal numbers switch the protection off.")] public float rollSafeTo = 0.8f;
 
+        [Header("Roll out of a landing (D-0171)")]
+        [Tooltip("Landing this fast or faster (own units a second) while the stick is pushed turns into a roll by itself. 14 is a drop of about twice a jump's height; a jump on the flat lands at 10. 0 = never by itself.")]
+        public float landRollFrom = 14f;
+        [Range(0f, 1f), Tooltip("How far the stick must be pushed at the landing for that roll to start. A landing with the stick at rest keeps its crouch.")]
+        public float landRollStick = 0.3f;
+        [Range(0f, 0.6f), Tooltip("Where a landing joins the roll clip, as a share of the clip: past the standing start, at the dive (seen on the frame sheet: the hands reach the floor at about 0.18).")]
+        public float landRollEnter = 0.16f;
+        [Range(0.5f, 1f), Tooltip("With the stick still pushed, a landing roll hands back to the run at this share of the clip, instead of standing all the way up first.")]
+        public float landRollExit = 0.86f;
+        [Range(0.5f, 3f), Tooltip("The fastest a landing roll starts, as a multiple of a plain roll's own starting speed. About 0.7 covers just the ground the clip rolls over (no sliding, a hard brake at the landing); 1.6 covers about twice that (roughly 6 units from a sprint): more of the landing's speed is kept, and the hands and feet slip more on the floor.")]
+        public float landRollMost = 1.6f;
+        [Range(0f, 1f), Tooltip("Speed left at the end of a landing roll, as a share of the speed it started with: the slide eases down to this, so the toy comes up moving.")]
+        public float landRollKeep = 0.5f;
+        [Min(0f), Tooltip("Seconds a roll press in the air is remembered: landing inside this time rolls, from any height. 0 = a press in the air is dropped, as before D-0171.")]
+        public float rollBuffer = 0.25f;
+
         [Header("Block")]
         [Range(0f, 1f), Tooltip("Share of incoming damage taken while the block is up. 1 = no protection, 0 = none gets through.")]
         public float blockDamage = 0.5f;

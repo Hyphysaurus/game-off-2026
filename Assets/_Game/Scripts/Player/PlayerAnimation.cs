@@ -79,12 +79,15 @@ namespace ShiftJam
             foreach (AnimatorControllerParameter p in _animator.parameters) if (p.nameHash == Pace) _ours = true;
         }
 
-        /// <summary>Plays a one-shot state (Roll, Punch...) from its start at <paramref name="playback"/> times its own speed.</summary>
-        public void Play(int state, float playback)
+        /// <summary>Plays a one-shot state (Roll, Punch...) at <paramref name="playback"/> times its own speed, from its start
+        /// or from <paramref name="fromSeconds"/> into it (a roll out of a landing joins the clip at its dive, D-0171). WHY
+        /// seconds as played and not clip seconds: measured in the editor, the Animator counts this offset in the state's
+        /// own played time (the clip's length over the playback).</summary>
+        public void Play(int state, float playback, float fromSeconds = 0f)
         {
             if (!_ours) return;
             _animator.SetFloat(MoveSpeed, Mathf.Max(0.01f, playback));
-            _animator.CrossFadeInFixedTime(state, settings != null ? settings.blend : 0.1f, 0, 0f);
+            _animator.CrossFadeInFixedTime(state, settings != null ? settings.blend : 0.1f, 0, Mathf.Max(0f, fromSeconds));
             _playing = true;
             _fidgeting = false;
             _idle = 0f;

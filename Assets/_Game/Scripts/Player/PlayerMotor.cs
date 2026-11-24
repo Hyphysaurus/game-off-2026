@@ -78,6 +78,9 @@ namespace ShiftJam
         public float SpeedShare { get; set; } = 1f;
         /// <summary>No jump: no headroom over a crouch, or a move is under way. A press meanwhile is dropped.</summary>
         public bool JumpLocked { get; set; }
+        /// <summary>True while a Jump press is still remembered and waiting for the ground (the jump buffer). A roll that
+        /// starts by itself out of a landing gives way to it, so that press hops as it always did (D-0171).</summary>
+        public bool JumpWaiting => Time.time - _jumpPressedTime <= settings.jumpBuffer;
         /// <summary>The stick is ignored: the body stands its ground (a block, a strike, a hit, dead).</summary>
         public bool SteerLocked { get; set; }
         /// <summary>Sprint is ignored (aim is held).</summary>

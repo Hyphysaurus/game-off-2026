@@ -2986,3 +2986,29 @@
     reads badly, the next step is to let the pose see the ground coming (time to landing instead of speed alone).
     Squash and stretch: later, through `FX/Squash.cs`.
   - **Played 23 Nov 16:2x, his words: "the jump looks good".**
+- **D-0171 (23 Nov, 17:0x) A roll out of a landing, and a roll press remembered from the air.**
+  His words after playing the new jump: "are there any more animations we can include? perhaps a seamless jump from
+  the top of the booksteps into a roll? otherwise, the jump looks good", then "proceed" on the plan. The Goblin game
+  has the same idea (`LandingRoll`, its D-0060); this is written for Shift Jam's own moves.
+  - **By itself:** landing at 14 own units a second or faster (a drop of about twice a jump's height; a jump on the
+    flat lands at 10, the hallway's box top at 24.7) with the stick pushed starts the roll. A landing with the stick
+    at rest keeps its crouch. A landing fast enough for the fall rule (26.46) never rolls: Respawn has that one.
+  - **By key:** a roll press in the air is remembered for 0.25 s and rolls on landing, from any height. Before, a
+    press in the air was dropped. A press on a one-frame ground blink (steps, slopes) plays as the plain roll.
+  - **The roll itself:** it joins the clip at the dive (share 0.16; the frame sheet shows the hands reach the floor
+    at 0.18), not at the standing start, and with the stick still pushed it hands back to the run at share 0.86.
+    Its slide starts at the speed that already goes the roll's way, never under a plain roll's average and never
+    over 1.6 times a plain roll's start (4.95), and eases to half. The clip only covers about 2.6 units between those
+    shares, so at 1.6 the body covers about twice the clip's ground (5.3 from a walk, 6.0 from a sprint): the hands
+    and feet slip some. About 0.7 would be no slip and a hard brake. His to tune (PlayerMoves > Land Roll Most).
+  - **It gives way** to what the player is doing: a Jump pressed just before touching down hops as before
+    (`PlayerMotor.JumpWaiting`); no roll by itself while aiming or reloading; a pad or knock that throws a landing
+    roll upward ends it; a respawn or portal ends a roll and clears the remembered press.
+  - Measured on the way: `Animator.CrossFadeInFixedTime`'s time offset is counted in the state's PLAYED seconds
+    (clip length over playback), so `PlayerAnimation.Play(state, playback, fromSeconds)` takes played seconds.
+  - Files: `PlayerMoves.cs`, `PlayerMoveSettings.cs` (seven numbers, defaults from the code), `PlayerAnimation.cs`,
+    `PlayerMotor.cs` (one read-only property). No new clip, no controller rebuild, third person only.
+  - Made: written by the orchestrator, compiled outside both ways, one reviewer (no must; six shoulds, all applied:
+    the six "gives way" and speed rules above), landed with his editor open and not in Play; it compiled there with
+    0 errors and the settings show their defaults. NOT PLAYED. For his eyes: the landing frame (straight into the
+    dive, or a flash of the run first), the slip at 1.6, a drop onto something narrow.

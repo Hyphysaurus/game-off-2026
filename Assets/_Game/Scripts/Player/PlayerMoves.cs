@@ -32,6 +32,15 @@ namespace ShiftJam
         private bool _landed;                // this strike has landed
         private Vector3 _rollDirection; private float _rollSpeed;
         private float _rollReadyAt;
+        private Respawn _respawn;            // its fatal landing speed: that landing goes back to the checkpoint, it does not roll
+        private const float Never = -10f;
+        private float _rollPressedAt = Never;   // when roll was last pressed in the air (D-0171: remembered for the landing)
+        private bool _landRoll;              // this roll came out of a landing: it joined the clip part-way and keeps some of the landing's speed
+        private float _rollEnter;            // the share of the clip that roll joined at
+        private float _rollFrom, _rollTo;    // its slide, world units a second: from the landing's speed down to the share kept
+        private float _groundedAt;           // when the feet were last on the ground (a press on a one-frame ground blink is not a jump)
+        private const float BlinkSeconds = 0.1f;   // off the ground for less than this is a blink on a step or slope, not a fall (the motor's own grace for the Animator)
+        private const float LeastRollLeft = 0.2f;  // a landing roll runs at least this share of the clip before it may hand back to the run
 
         /// <summary>The move under way; Free in normal control.</summary>
         public Move Current { get; private set; }
@@ -53,6 +62,7 @@ namespace ShiftJam
             _holder = GetComponent<WeaponHolder>();
             _carrier = GetComponent<Carrier>();
             _cc = GetComponent<CharacterController>();
+            _respawn = GetComponent<Respawn>();
             if (settings == null) settings = PlayerMoveSettings.Load();
         }
 
@@ -63,6 +73,8 @@ namespace ShiftJam
             _input.Dodge += OnDodge;
             _input.UseHeld += OnAttack;
             _input.AimPressed += OnAim;
+            _motor.Landed += OnLanded;
+            _motor.Warped += OnWarped;
         }
 
         private void OnDisable()
@@ -70,6 +82,9 @@ namespace ShiftJam
             _input.Dodge -= OnDodge;
             _input.UseHeld -= OnAttack;
             _input.AimPressed -= OnAim;
+            _motor.Landed -= OnLanded;
+            _motor.Warped -= OnWarped;
+            _rollPressedAt = Never;
             End();
             Orders();
         }
@@ -88,16 +103,60 @@ namespace ShiftJam
         /// <summary>A click belongs to the game only while the mouse is captured (the click that captures it is not a punch).</summary>
         private static bool Captured => Cursor.lockState == CursorLockMode.Locked;
 
-        private void OnDodge() => TryRoll();
+        /// <summary>Roll now; in the air the press is remembered for the landing (D-0171), so a jump runs straight into a
+        /// roll. Only a press that failed for being in the air is kept: full hands or a move under way still drop it.</summary>
+        private void OnDodge()
+        {
+            if (TryRoll()) return;
+            if (Free && OnFoot && !_motor.Grounded && !HandsFull) _rollPressedAt = Time.time;
+        }
+
+        /// <summary>The motor says the feet are down, with the speed they came down at (own units a second). A real drop
+        /// with the stick pushed rolls out of the landing by itself, as a roll press remembered from the air does from
+        /// any height (D-0171, his "a seamless jump from the top of the booksteps into a roll"). WHY not every landing: a
+        /// jump on the flat must stay a jump, and a landing with the stick at rest keeps its crouch. A landing fast enough
+        /// to send the toy back to the checkpoint never rolls: Respawn has that one.</summary>
+        private void OnLanded(float speed)
+        {
+            if (settings == null) return;
+            bool pressed = settings.rollBuffer > 0f && Time.time - _rollPressedAt <= settings.rollBuffer;
+            _rollPressedAt = Never;
+            // The roll that starts by itself gives way to what the player is doing: a Jump pressed just before touching down
+            // hops as it always did, and an aim or a reload under way is not dropped by a roll nobody pressed.
+            bool drop = settings.landRollFrom > 0f && speed >= settings.landRollFrom && _input.Move.magnitude >= settings.landRollStick
+                && !_motor.JumpWaiting
+                && !(_holder != null && (_holder.Aiming || _holder.Reloading));
+            if (!pressed && !drop) return;
+            if (_respawn != null && _respawn.FatalLandingSpeed > 0f && speed >= _respawn.FatalLandingSpeed) return;
+            if (_motor.Glide != null) return;   // set down on the plane: the glider's own landing (PlayerMoves hears Landed before the Glider folds)
+            // A press on a one-frame ground blink (steps, slopes) was never in the air: it plays as the plain roll it was meant as.
+            bool fromAir = Time.time - _groundedAt > BlinkSeconds;
+            TryRoll(drop || fromAir);
+        }
+
+        /// <summary>A respawn or a portal moved the body: a roll under way would slide on from the new spot with no steering,
+        /// and a press remembered from before would roll there. Both end here (PlayerHurt ends a death the same way).</summary>
+        private void OnWarped(Vector3 position, Quaternion rotation)
+        {
+            _rollPressedAt = Never;
+            if (Rolling) { End(); Orders(); }
+        }
         private void OnAttack() { if (Captured && EmptyHanded && !(_grab != null && _grab.BusyThisFrame)) TryPunch(); }
         private void OnAim() { if (Captured && EmptyHanded) TryKick(); }
 
         /// <summary>Starts a dodge roll the way the stick points (the way the body faces with the stick at rest). False if it may not start.</summary>
-        public bool TryRoll()
+        public bool TryRoll() => TryRoll(false);
+
+        /// <summary>The roll itself. <paramref name="landing"/>: it comes out of a landing (D-0171): it joins the clip at
+        /// the dive instead of the standing start, and its slide starts at the speed the body landed with and eases down
+        /// to a share of it, so the toy comes up running instead of stopping dead.</summary>
+        private bool TryRoll(bool landing)
         {
             var profile = _body != null ? _body.Profile : null;
             if (!MayStart || profile == null || Time.time < _rollReadyAt) return false;
-            Vector3 direction = transform.forward;
+            Vector3 travel = Vector3.ProjectOnPlane(_motor.PlanarVelocity, Vector3.up);
+            // With the stick at rest a landing rolls the way it was travelling; a roll from standing the way the body faces.
+            Vector3 direction = landing && travel.sqrMagnitude > 0.0001f ? travel.normalized : transform.forward;
             Vector2 stick = _input.Move;
             if (stick.sqrMagnitude > 0.0001f && _motor.View != null)
             {
@@ -107,10 +166,22 @@ namespace ShiftJam
             }
             direction = Vector3.ProjectOnPlane(direction, Vector3.up).normalized;
             transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
-            Begin(Move.Roll, PlayerAnimation.Roll, profile.roll, settings.rollPlayback);
+            _rollEnter = landing ? Mathf.Clamp(settings.landRollEnter, 0f, 0.6f) : 0f;
+            Begin(Move.Roll, PlayerAnimation.Roll, profile.roll, settings.rollPlayback, _rollEnter);
             // The slide starts fast and fades evenly to nothing, so it covers the distance in the clip's time.
             _rollDirection = direction;
             _rollSpeed = 2f * settings.rollDistance * BodyHeight / Mathf.Max(0.01f, _length);
+            _landRoll = landing;
+            if (landing)
+            {
+                // Never slower than a plain roll's average (a remembered press from a slow hop still rolls somewhere) and never
+                // faster than the settings allow (past that the body skates over the clip).
+                // Only the speed that already goes the roll's way: the stick picks the direction, and a stick pulled back must
+                // not turn a fast fall forward into a fast roll backwards.
+                float carried = Mathf.Max(0f, Vector3.Dot(travel, direction));
+                _rollFrom = Mathf.Clamp(carried, 0.5f * _rollSpeed, Mathf.Max(0.5f, settings.landRollMost) * _rollSpeed);
+                _rollTo = _rollFrom * Mathf.Clamp01(settings.landRollKeep);
+            }
             return true;
         }
 
@@ -155,13 +226,15 @@ namespace ShiftJam
 
         private float BodyHeight => _stance != null ? _stance.BodyHeight : _cc.height * transform.lossyScale.y;
 
-        private void Begin(Move move, int state, float clipSeconds, float playback)
+        /// <summary><paramref name="from"/>: the share of the clip the move joins at (0 = its start).</summary>
+        private void Begin(Move move, int state, float clipSeconds, float playback, float from = 0f)
         {
             Current = move;
-            _time = 0f;
             _length = clipSeconds / Mathf.Max(0.01f, playback);
+            _time = Mathf.Clamp01(from) * _length;
             _landed = false;
-            if (_animation != null) _animation.Play(state, playback);
+            _landRoll = false;
+            if (_animation != null) _animation.Play(state, playback, _time);
         }
 
         private void End()
@@ -170,6 +243,7 @@ namespace ShiftJam
             if (Current == Move.Roll) _rollReadyAt = Time.time + (settings != null ? settings.rollCooldown : 0f);
             Current = Move.Free;
             _time = _length = 0f;
+            _landRoll = false;
             if (_animation != null) _animation.Resume();
         }
 
@@ -177,6 +251,7 @@ namespace ShiftJam
         {
             if (!_motor.enabled || settings == null) { if (!Free && Current != Move.Dead) End(); Orders(); return; }
             float dt = Time.deltaTime;
+            if (_motor.Grounded) _groundedAt = Time.time;
             switch (Current)
             {
                 case Move.Free:
@@ -204,7 +279,11 @@ namespace ShiftJam
                     break;
                 case Move.Roll:
                     _time += dt;
-                    if (_time >= _length) End();
+                    // A landing roll with the stick still pushed hands back to the run before the clip has stood all the way up.
+                    // A pad or a knock that throws a landing roll into the air ends it: its slide ignores the stick and locks the jump.
+                    if (_time >= _length
+                        || (_landRoll && Share >= Mathf.Max(settings.landRollExit, _rollEnter + LeastRollLeft) && _input.Move.sqrMagnitude > 0.01f)
+                        || (_landRoll && !_motor.Grounded && _motor.Velocity.y > 0f)) End();
                     break;
                 case Move.Dead:
                     _time += dt;
@@ -225,6 +304,12 @@ namespace ShiftJam
             if (hits > 0) StrikeLanded?.Invoke(Current, hits);
         }
 
+        /// <summary>The roll's slide right now, world units a second. A plain roll starts fast and fades evenly to nothing; a
+        /// roll out of a landing eases from the landing's speed down to the share it keeps.</summary>
+        private float RollSpeed => _landRoll
+            ? Mathf.Lerp(_rollFrom, _rollTo, Mathf.InverseLerp(_rollEnter, 1f, Share))
+            : _rollSpeed * (1f - Share);
+
         /// <summary>What everyone else must do while this move is on.</summary>
         private void Orders()
         {
@@ -238,7 +323,7 @@ namespace ShiftJam
             // The body faces the aim while aim is held and while the arm is still up after a shot (the test room's rule).
             bool facing = aiming || (free && _holder != null && _holder.Aiming && _motor.View != null);
             _motor.FaceYaw = facing ? _motor.View.eulerAngles.y : (float?)null;
-            _motor.Drive = Current == Move.Roll ? _rollDirection * (_rollSpeed * (1f - Share)) : (Vector3?)null;
+            _motor.Drive = Current == Move.Roll ? _rollDirection * RollSpeed : (Vector3?)null;
             if (_stance != null) _stance.Frozen = !free;   // a move keeps whichever capsule the player has
             if (_holder != null) _holder.Locked = !free;   // weapons only fire in normal control
             if (!free && _animation != null) _animation.Busy();

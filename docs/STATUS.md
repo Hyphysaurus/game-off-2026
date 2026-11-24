@@ -2,28 +2,24 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 23 Nov 2026 16:4x — CHECKPOINT: THE USAGE LIMIT WAS REACHED MID-TURN (resets about 20:20). PICK UP HERE
-- **Roll out of a landing (D-0171, his "proceed"):** written and compiled outside both ways, NOT in the project.
-  Staged at `%TEMP%\shiftjam-stage\landroll` (PlayerMoves, PlayerMoveSettings, PlayerAnimation + `.orig.cs`,
-  `manifest.tsv`, `README.txt` with the facts). One reviewer was running (`wf_d978cd4a-24d`); read its result in
-  that run's `journal.jsonl`, fix what it found, `cmp` the `.orig.cs` files with the project, land when he is not in
-  Play (no menu to run), then docs + commit.
-- **Push (his "start with 1"):** NOT pushed. Remote `Hyphysaurus/game-off-2026`, main is 267 ahead, last push
-  2 Nov. Checked so far: no keys or tokens in the unpushed text changes; pack folders are ignored; the tracked
-  binaries are his art, OFL fonts and TextMesh Pro's own files. STILL TO CHECK before pushing to a public repo:
-  the 3 tracked `.fbx` for an embedded Windows path, the largest files in the range (GitHub refuses over 100 MB),
-  and one docs line that spells out a Windows user folder (the butler key's location, not the key). Then push with
-  the one-shot `gh` token helper (memory `reference_git_push_credentials`), and check `origin/main..HEAD` is 0.
-- **16:5x, the roll's review is back** (saved: `%TEMP%\shiftjam-stage\salvage\landroll_review_2026-11-23.json`):
-  no must, both compiles clean, SIX shoulds to fix before landing, each with its code in that file: (1) carry only
-  the speed that goes the roll's way (dot of the old velocity with the roll's direction); (2) a jump pressed just
-  before touching down beats the automatic roll (needs `PlayerMotor.JumpWaiting`, a fourth file); (3) end a roll
-  that is thrown upward (a pad or trampoline); (4) no automatic roll while aiming or reloading; (5) hear
-  `PlayerMotor.Warped`: clear the remembered press and end a roll on a respawn; (6) a press on a one-frame ground
-  blink plays as a plain roll, not a landing roll. Notes worth doing: the `landRollMost` tooltip's numbers (no slide
-  is about 0.7; 1.6 is about twice the clip's ground), exit never at or under enter. The limit was reached again
-  before any of this was applied.
-- **Rope (D-0170):** contract + check ready, build not started.
+## 23 Nov 2026 17:0x — PUSHED TO GITHUB (269 COMMITS, THE FIRST PUSH SINCE 2 NOV) + A ROLL OUT OF A LANDING (D-0171): IN THE PROJECT, NOT PLAYED
+- **Push (his "start with 1"):** `origin/main` = `bce8236`, 0 unpushed at that moment. Checked first: no keys or
+  tokens in the unpushed text; pack folders ignored; tracked binaries are his art, OFL fonts, TextMesh Pro's own
+  files; the 3 tracked FBX carry no user path; the largest file is the Greybox scene (5.3 MB). Two older versions
+  spell out his Windows user folder name in a path (the decision log, the title tool): removed from the current
+  files (`bce8236`); his call on the history: "Push as it is". Pushed from WSL with the one-shot `gh` token helper.
+  The try-out before it (`push --dry-run`) had already uploaded the 88 large-file objects (8.8 MB, his art and fonts):
+  a dry run does not stop git-lfs.
+- **The roll (his "proceed"):** come off something high with the stick pushed and the toy rolls out of the landing
+  and comes up running; a roll press in the air is remembered for the landing. Details and numbers: DECISIONS
+  D-0171. Landed with his editor open and not in Play; compiled there with 0 errors.
+- HIS PLAYTEST: off the top of the book steps with the stick pushed (lands at 24.7); a smaller drop (about 4 to 6
+  high); jump then Left Ctrl in the air on the flat; a jump pressed just before landing from a height (should hop,
+  not roll); a drop while aiming or reloading (should not roll by itself).
+- Look for: straight into the dive, or a flash of the run first; hands and feet slipping (PlayerMoves > Land Roll
+  Most, 1.6 now: lower = less slip, more brake); rolling off something narrow; the body coming up running.
+- NEXT: the rope build (contract + check ready at `%TEMP%\shiftjam-stage\rope`), early in a usage window. Then a
+  v18 build mid-week.
 
 ## 23 Nov 2026 16:1x — THE JUMP'S POSE FOLLOWS THE JUMP (D-0169): IN THE PROJECT, PLAYED 16:2x, HIS "the jump looks good"
 - His word after playing (16:2x, the play I launched for him at his "launch the playtest"): "the jump looks good". Then:

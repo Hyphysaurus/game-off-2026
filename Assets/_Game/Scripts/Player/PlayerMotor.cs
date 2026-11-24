@@ -44,6 +44,9 @@ namespace ShiftJam
         private bool _toldGrounded = true;  // what the Animator was last told of the ground (the controller's Grounded starts true)
         private Animator _airPhaseFor;      // the Animator the answer below was worked out for (the body can be swapped)
         private bool _hasAirPhase;          // that Animator lists AirPhase (a controller built before D-0169 does not)
+        private bool _flung;                // flung off a line (Fling) and not landed yet: the sideways speed is its own, not the walk's
+        private float _flingSteer;          // own units a second per second the stick may bend that flight by
+        private float _flingDrag;           // per second: how fast that flight's sideways speed wears off
 
         public bool Grounded { get; private set; }
         public Vector3 Velocity => _planar + Vector3.up * _vertical;
@@ -107,16 +110,39 @@ namespace ShiftJam
         public void UseCamera(Transform view) => cameraTransform = view;
         /// <summary>A line pulls the body (D-0109, the Dart Line: reeled up to a target, or riding a zip line): its whole
         /// velocity is this, world units a second, in place of the stick, gravity and jumping. Null = not pulled. Its
-        /// landings are not falls. End it with EndPull, which sets the velocity it lets go with.</summary>
+        /// landings are not falls. End it with EndPull, which sets the velocity it lets go with, or with Fling (a rope).</summary>
         public Vector3? Pull { get; private set; }
-        public void SetPull(Vector3 velocity) { Pull = velocity; }
+        /// <summary>While pulled the body faces this heading instead of the way it travels (D-0170, a rope: a swing goes
+        /// back and forth, and a body that turned to its travel would spin round at each end). Null = face the travel
+        /// (the Dart Line). Cleared when the pull ends.</summary>
+        public float? PullYaw { get; set; }
+        /// <summary>While pulled, a Jump press belongs to whoever pulls (a rope lets go on it): it is no jump, it is not
+        /// remembered, and the glider is not asked, so the press that lets go does not also open the plane. Cleared
+        /// when the pull ends.</summary>
+        public bool PullOwnsJump { get; set; }
+        public void SetPull(Vector3 velocity) { Pull = velocity; _flung = false; }
         /// <summary>The line lets go: the body moves on at <paramref name="velocity"/> (world units a second).</summary>
         public void EndPull(Vector3 velocity)
         {
             Pull = null;
+            PullYaw = null; PullOwnsJump = false; _flung = false;
             _planar = new Vector3(velocity.x, 0f, velocity.z);
             _vertical = velocity.y;
             _jumping = false; _jumpCut = true; _lastGroundedTime = -10f; _jumpPressedTime = -10f;
+        }
+        /// <summary>The line lets go as a fling (D-0170, a rope let go on a swing): EndPull, and until the next landing the
+        /// sideways speed it left with is its own. WHY: the walk's air rule moves the sideways speed toward stick x walk
+        /// speed at 25 to 30 a second per second, so a fling of 12 would be at walking speed in a fifth of a second.
+        /// <paramref name="steer"/>: own units a second per second the stick may bend the flight by (never faster than
+        /// it left, or than a sprint); <paramref name="drag"/>: per second, how fast the speed wears off. The fall is
+        /// the motor's own, so the landing is judged like any other (the fall rule, the roll out of a landing). It ends
+        /// on landing, and when something else takes the speed over: the glider, a grip, a pad, a warp, another line.</summary>
+        public void Fling(Vector3 velocity, float steer, float drag)
+        {
+            EndPull(velocity);
+            _flung = true;
+            _flingSteer = Mathf.Max(0f, steer);
+            _flingDrag = Mathf.Max(0f, drag);
         }
 
         private void Awake()
@@ -147,10 +173,12 @@ namespace ShiftJam
         }
 
         private void OnEnable() { input.Jump += OnJumpPressed; }
-        private void OnDisable() { input.Jump -= OnJumpPressed; }
+        private void OnDisable() { input.Jump -= OnJumpPressed; _flung = false; }   // parked (a car seat, first person): whatever comes after is not that fling
 
         private void OnJumpPressed()
         {
+            // On a line whose owner takes Jump (a rope lets go on it, D-0170): no jump is remembered and the glider is not asked.
+            if (Pull.HasValue && PullOwnsJump) { _jumpPressedTime = -10f; return; }
             // In the air past the coyote time, or while gliding, the press may be the glider's (it opens or folds it): no jump then.
             bool inAir = !Grounded && Time.time - _lastGroundedTime > settings.coyoteTime;
             if ((inAir || Glide != null) && AirJump != null && AirJump()) { _jumpPressedTime = -10f; return; }
@@ -181,10 +209,12 @@ namespace ShiftJam
 
             if (Pull.HasValue)
             {
-                // On the line: it moves the body, nothing else does. Facing the way it travels, across the ground.
+                // On the line: it moves the body, nothing else does. Facing the heading its owner asks for (a rope), or
+                // the way it travels, across the ground.
                 Vector3 v = Pull.Value;
                 _planar = new Vector3(v.x, 0f, v.z); _vertical = v.y;
-                if (_planar.sqrMagnitude > 1e-4f * scale * scale) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(_planar, Vector3.up), settings.turnSpeed * dt);
+                if (PullYaw.HasValue) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0f, PullYaw.Value, 0f), settings.turnSpeed * dt);
+                else if (_planar.sqrMagnitude > 1e-4f * scale * scale) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(_planar, Vector3.up), settings.turnSpeed * dt);
                 _controller.Move(v * dt + Vector3.up * pivot);
                 Grounded = false;
                 _jumping = false; _jumpCut = true; _lastGroundedTime = -10f; _jumpPressedTime = -10f;
@@ -205,12 +235,22 @@ namespace ShiftJam
             Vector3 wish = forward * move.y + right * move.x;
             bool steering = wish.sqrMagnitude > 0.0001f;
 
+            // A fling is over once the plane or a grip has the sideways speed: after them the walk's rule is back.
+            if (_flung && (Glide != null || HoldAt.HasValue)) _flung = false;
             if (HoldAt.HasValue)
             {
                 Vector3 gap = HoldAt.Value - transform.position; gap.y = 0f;
                 _planar = Vector3.ClampMagnitude(gap / Mathf.Max(dt, 1e-4f), 30f * scale);   // at the grip, walking round with the thing
             }
             else if (Glide != null && !Drive.HasValue) _planar = GlidePlanar(wish, steering, scale, dt);
+            else if (_flung && !Grounded && !Drive.HasValue)
+            {
+                // Flung off a line (D-0170): the speed it left with is kept. The stick bends the path but never makes it
+                // faster than it already is (or than a sprint), and the speed wears off slowly. With the stick locked
+                // (a hit) wish is zero, and the body flies on its arc.
+                float most = Mathf.Max(_planar.magnitude, settings.sprintSpeed * scale);
+                _planar = Vector3.ClampMagnitude(_planar + wish * (_flingSteer * scale * dt), most) / (1f + _flingDrag * dt);
+            }
             else
             {
                 // Horizontal speed eases toward the target instead of snapping: that is the "weight".
@@ -266,6 +306,13 @@ namespace ShiftJam
 
             CollisionFlags flags = _controller.Move((_planar + Vector3.up * _vertical) * dt + Vector3.up * pivot);
             if ((flags & CollisionFlags.Above) != 0 && _vertical > 0f) _vertical = 0f;
+            // A fling that meets a wall keeps only what the wall let through (the walk re-aims its speed every frame; a
+            // fling does not, and would push into the wall all the way down).
+            if (_flung && (flags & CollisionFlags.Sides) != 0)
+            {
+                Vector3 went = _controller.velocity;
+                _planar = Vector3.ClampMagnitude(new Vector3(went.x, 0f, went.z), _planar.magnitude);
+            }
 
             bool wasGrounded = Grounded;
             Grounded = _controller.isGrounded;
@@ -273,6 +320,7 @@ namespace ShiftJam
             {
                 _lastGroundedTime = Time.time;
                 _jumping = false;
+                _flung = false;   // a fling ends where it lands (before Landed is raised: a roll out of the landing takes the speed from here)
                 if (!wasGrounded)
                 {
                     // The speed it came down at, in its own units (D-0096). A free fall gathers speed all the way down, so this
@@ -391,6 +439,7 @@ namespace ShiftJam
             _vertical = Mathf.Sqrt(2f * gravity * Mathf.Max(0.01f, height) * Scale);
             _jumping = false;
             _jumpCut = true;
+            _flung = false;             // a pad's throw is steered as it always was, not as a fling
             Grounded = false;
             _lastGroundedTime = -10f;   // no coyote jump on top of a launch
         }
@@ -428,6 +477,7 @@ namespace ShiftJam
             _vertical = 0f;
             _jumpPressedTime = -10f;
             _jumping = false;
+            _flung = false;
             Warped?.Invoke(position, rotation);
         }
     }

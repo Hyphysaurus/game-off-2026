@@ -2,6 +2,28 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 17:3x — THE FIRST ROPE (D-0170): IN THE PROJECT AND PLACED AT THE TOP OF THE HALLWAY'S BOOK STEPS. NOT PLAYED, NOT REVIEWED (his call: review after his play)
+- What it is: a rope hangs from the hallway ceiling just past the end of the last book at the top of the book
+  steps. Toy only, third person. E at the edge grabs it; the stick pushes the swing; Shift climbs, C slides; Space
+  lets go and flings you down the hall. The gun hides while you hold on.
+- In the project: 4 new scripts (`Room/Rope.cs`, `Player/RopeRider.cs`, `Data/RopeSettings.cs`,
+  `Debug/RopePieces.cs`), edits to the motor, the animation driver, the weapon holder, the events, the controller
+  builder; made by menus: `Resources/Rope.asset`, `Data/Rope.mat`, `Prefabs/Pieces/Traversal/Rope.prefab`; the
+  rider on Player.prefab; both controllers rebuilt (a hanging pose state); `Rope_HallBooks` at the top level of
+  Greybox at (22.376, 14, -150), length 8. All done through his open editor, not in Play; 0 errors.
+- HIS PLAYTEST: 1. climb the books, walk to the far end of the last book facing down the hall: "E Grab rope";
+  press E. 2. hold C to slide down, Shift to climb back; push the stick out, let it swing back, push again.
+  3. swing back into the books: the toy should kick off them; does the swing build or die? 4. Space on the way up
+  and out: where does it land, does the flight keep its speed (with the stick pushed it will likely roll out of
+  the landing, D-0171)? 5. the hang: hands on the rope, the tuck, the rope's whip after the let-go, the camera
+  under the ceiling.
+- Known before playing: from the top, E is the way on (a run off the edge usually misses this rope); the head may
+  brush the ceiling at the highest hold; the hands lie flat on the rope (no finger curl); the swing from rest only
+  reaches about 39 degrees on the first push and builds with more pushes; the rope's chain may clip the book's
+  end; no sounds. The rope's numbers are on `Resources/Rope.asset`.
+- NEXT: his play, then the review he put off (a reviewer on `RopeRider`, the motor's fling, every way a ride
+  ends), aimed at what he saw. Then a v18 build mid-week.
+
 ## 23 Nov 2026 17:0x — PUSHED TO GITHUB (269 COMMITS, THE FIRST PUSH SINCE 2 NOV) + A ROLL OUT OF A LANDING (D-0171): IN THE PROJECT, NOT PLAYED
 - **Push (his "start with 1"):** `origin/main` = `bce8236`, 0 unpushed at that moment. Checked first: no keys or
   tokens in the unpushed text; pack folders ignored; tracked binaries are his art, OFL fonts, TextMesh Pro's own
@@ -18,14 +40,7 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   not roll); a drop while aiming or reloading (should not roll by itself).
 - Look for: straight into the dive, or a flash of the run first; hands and feet slipping (PlayerMoves > Land Roll
   Most, 1.6 now: lower = less slip, more brake); rolling off something narrow; the body coming up running.
-- **17:0x his go: "lets start the rope build, it should be at the top of the book steps in the hallway first".**
-  CHECKPOINT (if this run dies, pick up here): run `wf_c3874653-139` (script in the session's `workflows/scripts/
-  rope-build-*.js`): one builder -> one reviewer -> one fixer, building from `ROPE_CONTRACT.md` as corrected by
-  `ROPE_CONTRACT_CHECK.md`, staged in `%TEMP%\shiftjam-stage\rope\build` (`.orig.cs` + edits + new files +
-  `manifest.tsv` + `README.txt` with the orchestrator's steps). NOTHING is in the project yet. To land: editor not in
-  Play; `cmp` each `.orig.cs` with the project; copy; let Unity compile; run the menus the README names (the rope
-  piece, the rider onto Player.prefab, Rebuild Clips + Controllers again for the hang state, the placement of
-  `Rope_HallBooks` at the top of the book steps); save Greybox; docs (D-0170); commit; push.
+- 17:3x: the rope is in (entry above).
 - Then a v18 build mid-week.
 
 ## 23 Nov 2026 16:1x — THE JUMP'S POSE FOLLOWS THE JUMP (D-0169): IN THE PROJECT, PLAYED 16:2x, HIS "the jump looks good"

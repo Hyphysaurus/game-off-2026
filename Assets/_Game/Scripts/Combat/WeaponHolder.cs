@@ -529,8 +529,8 @@ namespace ShiftJam
         }
 
         // A left-hand tool (the flashlight) leaves the right hand free for the gun (D-0144).
-        // Holding a heavy thing (a turntable, D-0164) fills both hands too.
-        private bool HandsFull => (carrier != null && carrier.Held != null && !carrier.InLeftHand) || (_grab != null && _grab.Holding) || Grabbable.Holds(gameObject);
+        // Holding a heavy thing (a turntable, D-0164) fills both hands too. On a rope both hands are on it (D-0170).
+        private bool HandsFull => (carrier != null && carrier.Held != null && !carrier.InLeftHand) || (_grab != null && _grab.Holding) || Grabbable.Holds(gameObject) || RopeRider.Holds(gameObject);
 
         /// <summary>Attack (a click) belongs to us: on foot, in Play or first person, mouse captured, hands free.</summary>
         private bool CanAct()

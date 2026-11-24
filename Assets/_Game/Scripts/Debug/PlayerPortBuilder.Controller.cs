@@ -11,7 +11,8 @@ namespace ShiftJam
     /// The Animator controller of one player body, made with the AnimatorController API (never by hand). Base layer:
     /// Locomotion and Crouch are blend trees over the way the body moves against its facing (MoveX, MoveZ, in own units a
     /// second, each clip placed at the speed it covers ground at); the air (the jump, the fall, the landing); the
-    /// one-shot moves the scripts start and end (Roll, Punch, Kick, Block, HitLight, HitHeavy, Death, Fidget) and the
+    /// one-shot moves the scripts start and end (Roll, Punch, Kick, Block, HitLight, HitHeavy, Death, Fidget), the hang
+    /// on a rope (RopeHang, D-0170: the rope rider starts and ends it) and the
     /// wake-up (the death played backwards). On top, as on the old body: the Arms layer (one arm holding) and the Carry
     /// layer (two arms, IK pass), with the same masks and pose clips.
     /// The jump (D-0169): the state Air does not play by the clock. It shows the Jump_Arc clip at the point the AirPhase
@@ -40,6 +41,8 @@ namespace ShiftJam
         private const float WakeStartAt = 1f - WakeFrom;
         private const float WakeSeconds = 1.7f;        // WakeUp.duration: the get-up plays the death backwards in this time
         private const string AirPhaseParam = "AirPhase";   // where the jump is in its arc; PlayerMotor writes it by the same name
+        // Locomotion, Crouch; Air, Fall, Land; the eight moves; Wake; RopeHang (D-0170). The build is checked against it.
+        private const int BaseStates = 15;
 
         private static RuntimeAnimatorController BuildController(BodySpec spec, Dictionary<string, AnimationClip> clips, PlayerBodySettings.Body body)
         {
@@ -82,7 +85,7 @@ namespace ShiftJam
             low.AddChild(clips["Crouch_Walk_Right"], new Vector2(body.crouchSide, 0f));
 
             // Air shows the jump's arc at the time AirPhase names (D-0169). It used to hold the pack's Jump_Loop, one
-            // frozen tuck for the whole of every jump; that clip is still copied but no state uses it now.
+            // frozen tuck for the whole of every jump; that clip is the rope's hang now (RopeHang, below).
             AnimatorState air = State(sm, "Air", clips["Jump_Arc"], 1f);
             air.timeParameter = AirPhaseParam;
             air.timeParameterActive = true;
@@ -124,6 +127,10 @@ namespace ShiftJam
             }
             // The wake-up: the death backwards from where the body lies still, in WakeUp's own time.
             State(sm, "Wake", clips["Death_Forward"], -(WakeFrom * body.death / WakeSeconds));
+            // The rope (D-0170): the tuck held on its first frame (speed 0). RopeRider starts and ends it through
+            // PlayerAnimation (Play, ResumeInto), so it has no transitions; the arms are the Carry layer's (both hands
+            // on the rope).
+            State(sm, "RopeHang", clips["Jump_Loop"], 0f);
 
             Layer(c, "Arms", ArmMask, HoldPose, "Hold", ik: false);
             Layer(c, "Carry", CarryMask, CarryPoseClip, "Carry", ik: true);
@@ -143,8 +150,8 @@ namespace ShiftJam
 
             var built = AssetDatabase.LoadAssetAtPath<AnimatorController>(spec.controller);
             bool whole = built != null && built.layers.Length == 3 && built.layers[1].name == "Arms" && built.layers[2].name == "Carry" && built.layers[2].iKPass
-                         && built.layers[0].stateMachine.states.Length == 14;
-            Check(whole, $"{spec.name}: {spec.controller} has Base (14 states), Arms and Carry (IK pass)" + (built != null ? $" [{built.layers.Length} layers, {built.layers[0].stateMachine.states.Length} states]" : " [missing]"));
+                         && built.layers[0].stateMachine.states.Length == BaseStates;
+            Check(whole, $"{spec.name}: {spec.controller} has Base ({BaseStates} states), Arms and Carry (IK pass)" + (built != null ? $" [{built.layers.Length} layers, {built.layers[0].stateMachine.states.Length} states]" : " [missing]"));
             Check(whole && JumpFollows(built, clips["Jump_Arc"]), $"{spec.name}: Air shows Jump_Arc at the time {AirPhaseParam} names, and the next jump can cut its blend into Locomotion short");
             return built;
         }

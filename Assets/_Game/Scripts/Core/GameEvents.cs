@@ -76,6 +76,8 @@ namespace ShiftJam
         public static event Action<Glider> GliderTaken;
         /// <summary>The glider opened (true) or folded (false); Glider.LastFold says why it folded.</summary>
         public static event Action<Glider, bool> GlideChanged;
+        /// <summary>The player took hold of a rope (true) or left it (false); RopeRider.LastLetGo says why it left (D-0170).</summary>
+        public static event Action<RopeRider, bool> RopeChanged;
         /// <summary>A breakable prop broke into its pieces on this PC (D-0101; the hitch catcher notes it, D-0133).</summary>
         public static event Action<Breakable> PropBroke;
 
@@ -110,6 +112,7 @@ namespace ShiftJam
         internal static void RaiseOpeningEnded(bool skipped) => OpeningEnded?.Invoke(skipped);
         internal static void RaiseGliderTaken(Glider glider) => GliderTaken?.Invoke(glider);
         internal static void RaiseGlideChanged(Glider glider, bool open) => GlideChanged?.Invoke(glider, open);
+        internal static void RaiseRopeChanged(RopeRider rider, bool on) => RopeChanged?.Invoke(rider, on);
         internal static void RaisePropBroke(Breakable prop) => PropBroke?.Invoke(prop);
     }
 }

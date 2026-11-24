@@ -775,6 +775,7 @@ GameObject:
   - component: {fileID: 3693906495370818653}
   - component: {fileID: 1861612735649202043}
   - component: {fileID: 872094728762570513}
+  - component: {fileID: 1056022693480177307}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1198,6 +1199,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 516b3701bc057744383d3645654f4a75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.PlayerHands
+--- !u!114 &1056022693480177307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1885169121394319975}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bdbeeab08743854c997d5c7ddb048c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.RopeRider
+  settings: {fileID: 0}
 --- !u!1 &1929003922624196557
 GameObject:
   m_ObjectHideFlags: 0

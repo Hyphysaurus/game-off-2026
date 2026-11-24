@@ -114,7 +114,8 @@ namespace ShiftJam
             new ClipSpec("Run_Left", true, true), new ClipSpec("Run_Right", true, true),
             new ClipSpec("Crouch_Walk_Forward", true, true), new ClipSpec("Crouch_Walk_Backward", true, true),
             new ClipSpec("Crouch_Walk_Left", true, true), new ClipSpec("Crouch_Walk_Right", true, true),
-            // Jump_Loop: still copied (harmless), but no state uses it since D-0169: Air shows Jump_Arc, made in JumpArc below.
+            // Jump_Loop: the hang on a rope (the state RopeHang, D-0170) holds its first frame. Air has not used it since
+            // D-0169: Air shows Jump_Arc, made in JumpArc below.
             new ClipSpec("Jump_Loop", true, false, true), new ClipSpec("Jump_End", false, false), new ClipSpec("Fall", true, false),
             new ClipSpec("Attack_Punch", false, false), new ClipSpec("Attack_Kick", false, false),
             new ClipSpec("Block_With_Hands", false, false), new ClipSpec("Dodge_Roll", false, true),

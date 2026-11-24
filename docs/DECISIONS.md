@@ -3012,3 +3012,40 @@
     the six "gives way" and speed rules above), landed with his editor open and not in Play; it compiled there with
     0 errors and the settings show their defaults. NOT PLAYED. For his eyes: the landing frame (straight into the
     dive, or a flash of the run first), the slip at 1.6, a drop onto something narrow.
+- **D-0170 (23 Nov, 17:3x) Ropes a toy swings on: a Rope part, a rider on the player, the first rope at the top of the hallway's book steps.**
+  His words: "we need a purpose for climbing up the books at the start of it", "maybe we can set up a rope up there
+  and begin experimenting with those mechanics", "lets start the rope build, it should be at the top of the book
+  steps in the hallway first", and, during the build, "lets keep the slim build, skip the reviewer and fixer since
+  we can do that after i playtest". Ported in idea from the Goblin game's `Traversal/Rope.cs` + `RopeSwinger.cs`
+  (its D-0051, D-0052, D-0055); written for Shift Jam's own motor.
+  - **The part** (`Prefabs/Pieces/Traversal/Rope.prefab`, `Room/Rope.cs`): tied where its pivot is, **Length** long.
+    A chain of points for looks only (it bends, whips, sleeps when still), drawn as a tube in our own material
+    (`Data/Rope.mat`); a thin trigger handle for E. Out of Play it is a gizmo only.
+  - **The rider** (`Player/RopeRider.cs`, on Player.prefab; NetPlayer inherits it): toy only, third person. E beside
+    a rope or flying into one grabs it; the stick pushes the swing; Sprint climbs, Crouch slides; Jump lets go and
+    flings with the swing's speed and a little lift; what the capsule meets it kicks off. The gun hides while on
+    the rope. A hit, a shift, a respawn, first person, a prop in the arms each let go and give back what was taken.
+    Input switched off (the console, a pause online) does not drop the toy.
+  - **The motor** gains three things only a rope uses: `PullYaw` (the body faces where the stick pushes, not the
+    travel, or it would spin at each end of a swing), `PullOwnsJump` (the press that lets go is no jump and does
+    not open the glider), and `Fling` (after the let-go the sideways speed is the flight's own until it lands;
+    the walk's air rule would have braked it to walking speed in a fifth of a second). The fall is the motor's,
+    so the fall rule and the roll out of a landing (D-0171) judge a fling like any landing. A player who never
+    touches a rope runs the same code as before.
+  - **The pose:** a new state `RopeHang` (the pack's tuck, held), hands on the rope by `CarryPose`. The controllers
+    were rebuilt by the D-0169 menu (15 base states now).
+  - **Numbers** live in `Resources/Rope.asset` (`RopeSettings`), in the toy's own units, converted from the Goblin
+    game by the ratio of the two fall gravities (25 / 19.62).
+  - **The first rope:** `Rope_HallBooks`, top level of Greybox, at (22.376, 14, -150), length 8 (low end at y 6: out
+    of reach from the floor). Measured in his editor at the placing: the top's east edge is the landing BOOK (x
+    21.376, top y 12.017), which sticks about 5.5 out of the box with open air under it; the rope hangs 1.0 past
+    it from the ceiling (y 14); the rest line is free. Behind the rope: the book at y 11, the next book at y 9,
+    the box at y 7, nothing lower. On the top the headroom is the toy's own height: E at the edge is the way on.
+  - **How it was made:** contract by a designer, 12 corrections by a skeptic (3 essential: the edge is the book,
+    not the box; Jump on a still rope must not be caught again half a second later; input off must not end a
+    ride), one builder, compiled outside both ways. At his word NO reviewer and NO fixer this time: the review
+    comes after his play. I read the motor's change myself (every new branch hangs on a flag only a rope sets).
+    Landed with his editor open and not in Play: 0 compile errors; the three menus and the placement logged OK;
+    the controller rebuild passed every check; Greybox saved with the rope.
+  - **Not in this build:** the springy rope under load, the body leaning along the rope, a climb clip, sounds,
+    first person, online (others do not see the rope held), a kid's rope. NOT PLAYED, NOT REVIEWED.

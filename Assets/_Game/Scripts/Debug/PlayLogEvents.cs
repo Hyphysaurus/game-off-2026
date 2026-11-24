@@ -40,6 +40,7 @@ namespace ShiftJam
             GameEvents.DartStuck += OnDartStuck;
             GameEvents.GrenadeThrown += OnGrenadeThrown; GameEvents.GrenadeWentOff += OnGrenadeWentOff;
             GameEvents.GliderTaken += OnGliderTaken; GameEvents.GlideChanged += OnGlideChanged;
+            GameEvents.RopeChanged += OnRopeChanged;
             GameMode.Changed += OnModeChanged;
             RaceState.Started += OnRaceStarted; RaceState.LapDone += OnLapDone; RaceState.Finished += OnRaceFinished; RaceState.Stopped += OnRaceStopped;
         }
@@ -54,6 +55,7 @@ namespace ShiftJam
             GameEvents.DartStuck -= OnDartStuck;
             GameEvents.GrenadeThrown -= OnGrenadeThrown; GameEvents.GrenadeWentOff -= OnGrenadeWentOff;
             GameEvents.GliderTaken -= OnGliderTaken; GameEvents.GlideChanged -= OnGlideChanged;
+            GameEvents.RopeChanged -= OnRopeChanged;
             GameMode.Changed -= OnModeChanged;
             if (_belt != null) _belt.Changed -= OnBeltChanged;
             _belt = null;
@@ -119,6 +121,14 @@ namespace ShiftJam
             Vector3 from = glider.OpenedAt, to = glider.transform.position;
             float far = new Vector2(to.x - from.x, to.z - from.z).magnitude;
             PlayLog.Tell("glide folded (" + glider.LastFold + ") after " + (Time.time - glider.OpenedTime).ToString("0.0", inv) + " s, " + far.ToString("0", inv) + " far, " + (from.y - to.y).ToString("0.0", inv) + " down");
+        }
+
+        private void OnRopeChanged(RopeRider rider, bool on)
+        {
+            if (!Mine(rider)) return;
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            if (on) { PlayLog.Tell("rope grabbed " + rider.HandPoint.y.ToString("0.0", inv) + " up"); PlayLog.Count("rope rides"); return; }
+            PlayLog.Tell("rope let go (" + rider.LastLetGo + ") after " + (Time.time - rider.GrabbedTime).ToString("0.0", inv) + " s, speed " + rider.Velocity.magnitude.ToString("0.0", inv));
         }
 
         private void OnAmmoChanged(WeaponHolder holder) { if (Mine(holder)) _gunChanged = true; }

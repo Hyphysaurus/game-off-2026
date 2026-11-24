@@ -8,7 +8,8 @@ namespace ShiftJam
     /// the ground as far as the cap in PlayerBodySettings allows. It also plays the one-shot clips the moves ask for,
     /// goes back to walking afterwards, and plays the look-around after standing still a while. In first person the
     /// motor is parked and the first-person body moves instead: the legs follow that body, so they walk and crouch
-    /// under the eye when the body is in view. The controller it talks
+    /// under the eye when the body is in view. On a rope (D-0170) the RopeRider starts the hang (RopeHang) through Play
+    /// and ends it through ResumeInto, straight into the air pose. The controller it talks
     /// to is made by Shift Jam / Player / Build Player Port; the names below are that controller's.
     /// </summary>
     [DefaultExecutionOrder(10)]   // after the motor has moved this frame
@@ -24,6 +25,8 @@ namespace ShiftJam
         public static readonly int HitHeavy = Animator.StringToHash("HitHeavy");
         public static readonly int Death = Animator.StringToHash("Death");
         public static readonly int Fidget = Animator.StringToHash("Fidget");
+        public static readonly int RopeHang = Animator.StringToHash("RopeHang");
+        public static readonly int Air = Animator.StringToHash("Air");
         private static readonly int MoveX = Animator.StringToHash("MoveX");
         private static readonly int MoveZ = Animator.StringToHash("MoveZ");
         private static readonly int Pace = Animator.StringToHash("Pace");
@@ -91,6 +94,26 @@ namespace ShiftJam
             _playing = true;
             _fidgeting = false;
             _idle = 0f;
+        }
+
+        /// <summary>True when the body's controller has this base state. One built before the state was added does not,
+        /// and asking the Animator to play a missing state logs a warning every time. Also false while the body is
+        /// switched off: an Animator that is not running cannot be asked.</summary>
+        public bool Has(int state) => _ours && _animator != null && _animator.isActiveAndEnabled && _animator.HasState(0, state);
+
+        /// <summary>Ends a held state in the air (a rope let go): straight to <paramref name="state"/> (the air pose),
+        /// which finds the fall or the landing by its own transitions, instead of standing for a moment in mid-air as
+        /// Resume would. With the body switched off (the player parked away, the scene closing) only the marks are
+        /// cleared: an Animator that is not running complains when asked to cross-fade, and starts again from its
+        /// default state anyway.</summary>
+        public void ResumeInto(int state)
+        {
+            if (!_ours || !_playing) return;
+            _playing = false;
+            _fidgeting = false;
+            _idle = 0f;
+            if (_animator != null && _animator.isActiveAndEnabled)
+                _animator.CrossFadeInFixedTime(state, settings != null ? settings.blend : 0.1f, 0);
         }
 
         /// <summary>Back to walking (or crouching: the controller follows the crouch by itself).</summary>

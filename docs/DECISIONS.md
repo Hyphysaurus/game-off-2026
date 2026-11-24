@@ -3372,6 +3372,12 @@
     screen, 4 ring spawns + 1 landing a team, each soldier's order and route, NetMatch on the player); the screen
     photographed in each state from a hidden run, no text overflow. NOT PLAYED: no match has run on any PC, and
     nothing online has been tried on two PCs since v11.
+  - **Addendum, 05:2x, stills staged without playing** (his "Im afk now, send me some stills"): a hidden run dressed
+    the soldiers by their own `JoinMatch`, stood them at points of their routes and put the match's screen over the
+    view with sample numbers (`%TEMP%\shiftjam-stage\tdm3\stills`, plus a map of the spawns and the bots' routes
+    drawn on the top-down still). They showed one real fault: Blue's score was all but lost against the blue sky.
+    The scores and the countdown now stand on a dark backing sized to their words (`MatchHud` > **Backing**,
+    **Backing Pad**). The stills are staged, not play: no player is in them and nothing in them moved.
   - **Known and left:** the host's own player gets no ten-second credit from a bot's hit (a bot's finishing dart
     counts; "hit by a bot, then finished by your own grenade" gives nobody a point); a bot put away mid-fight
     still has its darts in flight; the editor's T dev key can still grow you in a match; per-player knock-out

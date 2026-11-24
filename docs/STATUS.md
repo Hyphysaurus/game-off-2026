@@ -2,6 +2,26 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 12:2x — HIS FIRST LOOK AT THE STADIUM (11:27); SINCE THEN: THE TITLE, THE GRENADE'S CHARGE, CHARACTERS STAGES 1 AND 2, A LEAK FIXED. NOTHING OF IT PLAYED
+- **His play 11:27 (9:00; Stadium 1:36): NO MATCH WAS STARTED.** No match line in the Unity log, he was never moved to
+  a base; the six knock-downs were the practice soldiers at their posts. His words after: "tdm is working", then
+  "bot behavior definitely needs npolish, as well as our grenade throw, we should be able to increase distance of it
+  thrown or reduce based on how long we hold iot", then (told the above) "proceed, and yes, their behaviour is
+  pretty much non-existent". So M has still not been pressed by him: the match and its bots are UNSEEN.
+- **Done since, each compiled clean in his open editor (out of Play), all local commits, not pushed:**
+  - His updated title drawing is in (`Resources/Titles/title_shift_wide.png`, cut with `docs/tools/title_cut.py`).
+  - Arriving in the Stadium now shows a toast, "Press M to start a team match"; the match's lines go to the play log.
+  - **D-0184** the grenade is thrown as hard as G was held (tap = short lob, 0.9 s = further than before).
+  - **D-0183** characters stage 1, the look system (`Scripts/Characters/`, FunnyBody prefab, the baked catalogue).
+  - **D-0185** characters stage 2, house characters: Gap (by the gap), Pit (Raceway door), Dab (Colour Corner door)
+    stand in Greybox; E talks to them. Placeholder names and lines.
+  - **D-0186** stopping Play while online no longer leaves a NetworkManager and a NetSession in the open scene.
+- **WAITING FOR HIS "proceed": THE BOT BEHAVIOUR PLAN** (given 12:0x): a bot brain for soldiers in a match: find their
+  way (Unity's navigation, baked with the Stadium), go somewhere on purpose, fight on the move (strafe, bursts),
+  chase and search, look after themselves when hurt, one difficulty setting; then the animated funny bodies (the
+  characters' stage 3). I proposed doing it next, ahead of the players' body-sync fixes (stage 4).
+- **HIS TO TRY:** hold G; the title; M in the Stadium (now with the toast); E on the three house characters.
+
 ## 24 Nov 2026 11:2x — CHECKPOINT: HIS "proceed with the funny characters plan" (11:1x). STAGE 1 (THE LOOK SYSTEM) IS BEING BUILT, NOTHING OF IT IN THE PROJECT YET
 - His words: "these will be for bots, multiplayer characters, and for character npcs around th4e house", then
   "proceed with the funny characters plan". (Before it, away from the PC: "Im afk now, send me some stills": sent.)

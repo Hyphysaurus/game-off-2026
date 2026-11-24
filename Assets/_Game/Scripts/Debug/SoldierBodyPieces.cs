@@ -20,7 +20,7 @@ namespace ShiftJam
     ///  - SoldierBody on the root, linked to the body.
     /// The first time it is put together in a scene of its own (the open scene never holds it) and the SoldierBody's
     /// numbers that depend on the rig are started: its height from the soldier's walking capsule, its blaster
-    /// (Prefabs/Weapons/DartPistol) and its grip read from the player's (SoldierBody.HoldAsPlayer). The body is dressed
+    /// (Prefabs/Weapons/DartPistol) at the part's own grip (seated on the funny body's hand). The body is dressed
     /// in the practice colour for the prefab's own look, and fitted to the height.
     /// Later runs open the prefab and bring only what this tool owns up to date (the body there, the plastic model off,
     /// the controller, root motion and culling, the link, the body fitted to the height set on it). Numbers tuned on
@@ -179,8 +179,9 @@ namespace ShiftJam
 
             if (newPart)
             {
-                bool grip = part.HoldAsPlayer();
-                log.Append(grip ? ", the player's grip read on its right hand" : ", NO grip read (no humanoid right hand): Grip Position and Grip Turn stay 0");
+                // The grip is the part's own (seated by eye on the funny body's hand). The player's own grip, read on this
+                // hand (SoldierBody.HoldAsPlayer, its ⋮ menu), leaves the handle in front of the chunkier fist.
+                log.Append(", the blaster in its fist at the part's own grip");
             }
             log.Append(", blaster " + (new SerializedObject(part).FindProperty("blaster").objectReferenceValue is Weapon w ? w.name : "none"));
             return log.ToString();

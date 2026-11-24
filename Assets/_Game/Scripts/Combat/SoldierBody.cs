@@ -106,16 +106,30 @@ namespace ShiftJam
         [Header("The toy blaster in its hand")]
         [SerializeField, Tooltip("The weapon whose model it holds: only the look, nothing of it runs (its darts leave from the soldier's Muzzle, as before). Empty = empty-handed.")]
         private Weapon blaster;
-        [SerializeField, Tooltip("Where the blaster's root sits in the right hand bone's own space (rig units). Started from the player's grip (Resources/WeaponHold) by the builder or the ⋮ menu \"Hold the gun as the player does\".")]
-        private Vector3 gripPosition;
+        [SerializeField, Tooltip("Where the blaster's root sits in the right hand bone's own space (rig units). As it stands, its handle is in the funny body's fist (set by eye from stills). The ⋮ menu \"Hold the gun as the player does\" reads the player's own grip instead, which suits the player's slimmer hand.")]
+        private Vector3 gripPosition = new Vector3(0.0563f, 0.1331f, -0.014f);   // seated by eye on the funny body's hand (stills, 24 Nov)
         [SerializeField, Tooltip("How the blaster is turned in the right hand bone's own space, degrees. Started with Grip Position.")]
-        private Vector3 gripTurn;
+        private Vector3 gripTurn = new Vector3(298.9f, 46.94f, 89.05f);   // the player's own turn, read on the funny body's hand
         [SerializeField, Min(0.01f), Tooltip("The blaster's size: 1 = as big against this body as the player's blaster is against the player.")]
         private float gripSize = 1f;
         [SerializeField, Min(0f), Tooltip("Degrees the blaster flips up in the hand on each shot. 0 = no kick.")]
         private float kickDegrees = 8f;
         [SerializeField, Min(0f), Tooltip("Seconds the kick takes to settle. 0 = no kick.")]
         private float kickSeconds = 0.15f;
+
+        [Header("Aiming it (the player's own arm aim)")]
+        [SerializeField, Range(0f, 1f), Tooltip("How far the right arm is bent so the barrel points where it aims, by the player's own arm aim (ArmAim): 1 = fully. 0 = the arm stays in the holding pose (on this body the blaster then points across its chest).")]
+        private float aimWeight = 1f;
+        [SerializeField, Min(0f), Tooltip("Seconds its arm keeps pointing along its last shot before it eases back to straight ahead.")]
+        private float aimHoldSeconds = 1.5f;
+        [SerializeField, Min(0.1f), Tooltip("How quickly the arm follows a new direction: higher is snappier.")]
+        private float aimRate = 8f;
+        [SerializeField, Range(0f, 1f), Tooltip("How far the fingers close round the grip, by the player's own finger curl: 1 = as the player's.")]
+        private float fingerWeight = 1f;
+
+        [Header("Its posture")]
+        [SerializeField, Range(-45f, 45f), Tooltip("Degrees its head is tipped down, shared between the neck and the head. The player's standing clip leaves this body's face turned up; 0 = as the clip has it.")]
+        private float headDown = 16f;
 
         [Header("Hit shapes on its bones (the body's own units)")]
         [SerializeField, Min(0.01f), Tooltip("The ball round the head: its radius.")]
@@ -124,6 +138,8 @@ namespace ShiftJam
         private float headLift = 0.2f;
         [SerializeField, Min(0.01f), Tooltip("The capsule from the hips to the neck: its radius.")]
         private float chestRadius = 0.2f;
+        [SerializeField, Tooltip("How far the chest's capsule sits in front of the spine (this body's belly stands out in front of it).")]
+        private float chestForward = 0.06f;
         [SerializeField, Min(0.01f), Tooltip("The capsule down each leg, from the hip to the sole: its radius.")]
         private float legRadius = 0.11f;
 
@@ -153,6 +169,20 @@ namespace ShiftJam
         [NonSerialized] private Vector3 _velocity;
         [NonSerialized] private bool _listening;
         [NonSerialized] private bool _searched;
+        // The player's own arm aim and finger curl on this body (made as it wakes: both measure the rest pose).
+        [NonSerialized] private ArmAim _armAim;
+        [NonSerialized] private FingerCurl _fist;
+        [NonSerialized] private WeaponHoldSettings _holdSettings;
+        [NonSerialized] private Weapon _gunPart;
+        [NonSerialized] private Vector3 _aimWay;
+        [NonSerialized] private bool _aimSet;
+        [NonSerialized] private Transform _neck, _head;
+        [NonSerialized] private bool _headFound;
+        [NonSerialized] private Quaternion _neckSet, _headSet;
+        private Vector3 _shotWay;
+        private float _shotAt = float.NegativeInfinity;
+
+        private const float AimFar = 12f;   // how far ahead the point it aims at is, in the soldier's units: far enough that the barrel is level
 
         /// <summary>The number its look is rolled from: from where it stood guard when the scene loaded, plus Seed Shift.
         /// The same on every PC.</summary>
@@ -200,6 +230,7 @@ namespace ShiftJam
             Fit();
             MakeShapes();
             MakeGun();
+            MakeAim();
             _arm = armWeight;
             _pose = Pose.Standing;
         }
@@ -350,7 +381,8 @@ namespace ShiftJam
             Transform spine = b.Bone(HumanBodyBones.Spine);
             if (spine == null) spine = hips;
             if (head != null) made.Add(Ball(head, "HitHead", head.position + up * (headLift * unit), headRadius * unit));
-            if (neck != null) made.Add(Rod(spine, "HitChest", hips.position, neck.position, chestRadius * unit));
+            Vector3 belly = transform.forward * (chestForward * unit);
+            if (neck != null) made.Add(Rod(spine, "HitChest", hips.position + belly, neck.position + belly, chestRadius * unit));
             float soles = b.transform.position.y;
             Leg(b, HumanBodyBones.LeftUpperLeg, HumanBodyBones.LeftFoot, "HitLegL", soles, unit, made);
             Leg(b, HumanBodyBones.RightUpperLeg, HumanBodyBones.RightFoot, "HitLegR", soles, unit, made);
@@ -437,6 +469,7 @@ namespace ShiftJam
             foreach (Collider c in copy.GetComponentsInChildren<Collider>(true)) { c.enabled = false; Destroy(c); }
             foreach (Rigidbody rb in copy.GetComponentsInChildren<Rigidbody>(true)) rb.isKinematic = true;
             _gun = copy.transform;
+            _gunPart = copy;
             float handScale = Mathf.Max(1e-4f, Mathf.Abs(hand.lossyScale.y));
             _gun.localScale = blaster.transform.localScale * (BodySize * gripSize / handScale);
             PoseGun();
@@ -564,6 +597,7 @@ namespace ShiftJam
         private void OnFired(Vector3 from, Vector3 direction)
         {
             if (_pose == Pose.Standing || _pose == Pose.Hurt) _kickAt = Time.time;
+            if (direction.sqrMagnitude > 1e-6f) { _shotWay = direction.normalized; _shotAt = Time.time; }   // the arm points along it for a while
         }
 
         private void OnTeam(int team) => Dress(team);
@@ -621,7 +655,78 @@ namespace ShiftJam
 
         private void LateUpdate()
         {
-            if (_gun != null && !_away) PoseGun();
+            if (_away || Body == null) return;
+            Posture();
+            AimArm();
+            if (_gun != null) PoseGun();
+        }
+
+        /// <summary>The player's own arm aim and finger curl on this body's right arm, made as it wakes, before the
+        /// Animator has posed it: both measure the rest pose. A script reload in Play does not make them again (the arm
+        /// is posed by then): until the next play it holds the blaster in the plain holding pose.</summary>
+        private void MakeAim()
+        {
+            Animator a = FindAnimator();
+            if (a == null || !a.isHuman) return;
+            _armAim = new ArmAim(a, transform);
+            _fist = new FingerCurl(a, right: true);
+            _holdSettings = WeaponHoldSettings.Load();
+        }
+
+        /// <summary>Tips the head down over the Animator's pose (Head Down). Only on a frame the Animator wrote the bones
+        /// (a bone still as this left it is not tipped again), so a paused game never adds it up.</summary>
+        private void Posture()
+        {
+            if (Mathf.Approximately(headDown, 0f) || _pose == Pose.Down || _pose == Pose.Rising || !CanAnimate()) return;
+            if (!_headFound)
+            {
+                _headFound = true;
+                CharacterBody b = Body;
+                _neck = b.Bone(HumanBodyBones.Neck);
+                _head = b.Bone(HumanBodyBones.Head);
+            }
+            Vector3 across = transform.right;   // a turn about the soldier's right: positive tips the face down
+            if (_neck != null && _neck.localRotation != _neckSet)
+            {
+                _neck.rotation = Quaternion.AngleAxis(headDown * 0.4f, across) * _neck.rotation;
+                _neckSet = _neck.localRotation;
+            }
+            if (_head != null && _head.localRotation != _headSet)
+            {
+                _head.rotation = Quaternion.AngleAxis(headDown * (_neck != null ? 0.6f : 1f), across) * _head.rotation;
+                _headSet = _head.localRotation;
+            }
+        }
+
+        /// <summary>Bends the right arm so the barrel points where it aims (ArmAim, as the player's arm is bent) and
+        /// closes the fingers on the grip. It aims straight ahead, and along its last shot for Aim Hold Seconds after it.</summary>
+        private void AimArm()
+        {
+            if (_armAim == null || !_armAim.Ready || _gun == null || _holdSettings == null || aimWeight <= 0f) return;
+            if ((_pose != Pose.Standing && _pose != Pose.Hurt) || !CanAnimate()) { _aimSet = false; return; }
+            if (_gunPart == null) _gun.TryGetComponent(out _gunPart);
+            float dt = Time.deltaTime;
+            Vector3 want = Time.time - _shotAt < aimHoldSeconds && _shotWay.sqrMagnitude > 0.5f ? _shotWay : transform.forward;
+            _aimWay = _aimSet && dt > 0f ? Vector3.Slerp(_aimWay, want, 1f - Mathf.Exp(-aimRate * dt)) : want;
+            _aimSet = true;
+            float share = Mathf.Clamp01(_arm);   // with the holding pose: off while it lies down and gets up
+            Quaternion fist = Quaternion.Euler(gripTurn);
+            float size = BodySize;
+            var hold = new ArmAim.Hold
+            {
+                grip = fist,
+                seat = Quaternion.Inverse(fist) * (gripPosition * Mathf.Abs(_armAim.Hand.lossyScale.y)),
+                muzzle = _gunPart != null ? _gunPart.MuzzleOffset : Vector3.zero,
+                kickTurn = Quaternion.identity,
+                frame = _holdSettings.gripFromHolder * size,
+            };
+            _armAim.Aim(_armAim.Shoulder.position + _aimWay * (AimFar * Scale), aimWeight * share, hold, _holdSettings, size);
+            if (_fist != null && _fist.Ready && fingerWeight > 0f)
+            {
+                Vector3 curl = _gunPart != null ? _gunPart.GripCurl(_holdSettings)
+                    : new Vector3(_holdSettings.fingerCurl, _holdSettings.triggerCurl, _holdSettings.thumbCurl);
+                _fist.Close(fingerWeight * share, curl.x, curl.y, curl.z);
+            }
         }
 
         /// <summary>How the soldier's root moved since the last frame, smoothed, in its own facing (x right, z forward),

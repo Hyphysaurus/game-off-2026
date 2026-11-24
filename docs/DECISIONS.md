@@ -3474,3 +3474,37 @@
   `DontDestroyOnLoad` throws and leaves them behind (the Unity log of 11:36 has both errors). Now nothing online is
   made outside Play (`Get`, `EnsureNetworkManager`), and the reconnect stops quietly at its next step once Play
   has stopped. A built game is not affected (there is no edit mode).
+- **D-0187 (24 Nov, 13:1x) Funny characters, stage 3: the Stadium's soldiers get living bodies. Seen in stills on a test stand; NOT PLAYED; the Stadium scene is remade with the bot brain (D-0188).**
+  The first of his three uses ("bots"). One builder staged it and I read it; then I changed how the arm, the hand and
+  the head are posed, from stills.
+  - `Combat/SoldierBody.cs` (a part beside `ToySoldier`): a funny character under the soldier's Visual, animated with
+    the PLAYER's own controller from how the soldier's root moved each frame (forward, backward, sideways; the same
+    on the host and on a copy on another PC). It asks the soldier nothing, so whatever moves the soldier, it follows.
+  - It answers what happens to the soldier through new plain events on `ToySoldier`, raised on the host's soldier and
+    on copies alike: `Hurt` (the light hit reaction), `Fell` (the fall, and it stays down), `Rose` (the get-up, then
+    standing), `Fired` (the blaster kicks and the arm points along the shot), `TeamChanged` (its team's kit),
+    `AwayChanged` (quiet while put away). A body sets `BodyFalls` and `BodyDresses` on its soldier as it wakes (the
+    soldier then neither tips its Visual over nor paints its materials), and `ShownHeight`.
+  - **A soldier with a body waits out its get-up** (`GetUpSeconds`, 1.7 s; mine): after lying down it neither walks
+    nor fires until the body is up, or its feet slid under it.
+  - Its look is rolled from where the soldier stands guard (the same on every PC): the practice colour outside a
+    match, its team's colour word in one (Blue, Orange: skin and clothes; a table on the part). The same face and
+    hair either way.
+  - A toy blaster (a look-only copy of DartPistol) in its right hand; hit shapes on its bones (a ball on the head, a
+    capsule on the chest, one down each leg) handed to `HitShapes` (new `HitShapes.Add`).
+  - **From the stills (mine).** With only the player's holding pose the blaster pointed across the chest and its
+    handle sat in front of the fist; the player's standing clip left this body's face turned up; the chest's hit
+    shape stood behind the belly. So: the right arm is bent by the player's own `ArmAim` (the barrel points where it
+    faces, and along its last shot for 1.5 s), the fingers are closed by the player's `FingerCurl`, the grip is
+    seated by eye for this body's chunkier hand (the part's defaults; its ⋮ menu reads the player's grip instead),
+    the head is tipped down 16 degrees (Head Down) and the chest capsule sits 0.06 forward (Chest Forward).
+  - `Prefabs/Pieces/Interactables/FunnySoldier.prefab`: a VARIANT of ToySoldier.prefab made by
+    `Debug/SoldierBodyPieces.cs` (menu Shift Jam > Characters > Build Funny Soldier): the plastic model switched
+    off, a FunnyBody under Visual, the player's controller on it. `StadiumLayout` uses it when it exists (each copy
+    keeps the name ToySoldier, so the paths the online world numbers them by are unchanged), else the plastic one.
+  - A soldier with no body (every soldier in the house) behaves exactly as before: every new branch is guarded.
+  - Checked: compiled in Unity; the prefab built; stills of it posed by its own controller out of Play (practice,
+    Blue and Orange kits; the hand from four sides; the hit shapes drawn). NOT seen: the legs walking and strafing,
+    the hit reaction, the fall and the get-up, the kick, anything in the Stadium.
+  - Known: a script reload in Play leaves the arm in the plain holding pose until the next play (the aim measures
+    the rest pose as it wakes).

@@ -101,14 +101,20 @@ MonoBehaviour:
   wakeSeconds: 1.7
   wakeBlend: 0.3
   blaster: {fileID: 6055822732525381150, guid: cb0ee6f4ec5e5fd44b8526faf3e48ec6, type: 3}
-  gripPosition: {x: 0.03495447, y: 0.07783384, z: 0.025606338}
-  gripTurn: {x: 298.89902, y: 46.943768, z: 89.05217}
+  gripPosition: {x: 0.0563, y: 0.1331, z: -0.014}
+  gripTurn: {x: 298.9, y: 46.94, z: 89.05}
   gripSize: 1
   kickDegrees: 8
   kickSeconds: 0.15
+  aimWeight: 1
+  aimHoldSeconds: 1.5
+  aimRate: 8
+  fingerWeight: 1
+  headDown: 16
   headRadius: 0.24
   headLift: 0.2
   chestRadius: 0.2
+  chestForward: 0.06
   legRadius: 0.11
 --- !u!4 &9194387123901694889 stripped
 Transform:

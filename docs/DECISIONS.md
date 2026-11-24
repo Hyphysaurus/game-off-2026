@@ -3050,3 +3050,25 @@
     the controller rebuild passed every check; Greybox saved with the rope.
   - **Not in this build:** the springy rope under load, the body leaning along the rope, a climb clip, sounds,
     first person, online (others do not see the rope held), a kid's rope. NOT PLAYED, NOT REVIEWED.
+- **D-0172 (23 Nov, 18:3x) Two kinds of shot: foam darts in the house, instant shots where a scene says so (the Stadium, for TDM).**
+  His words: "still feeling like the aim is slightly off.. what can we do to optimize this?", then "do we have bullets
+  as projectiles? we might make foam darts specific for something else so that we can maintain a more accurate gun
+  feel for TDM modes", then "lets try the instant, TDM will go into the stadium scene weve been building". (On 22 Nov,
+  D-0160, hitscan was offered and not taken; this takes it for versus scenes only.)
+  - **Read first (one reader, no Play):** every shot is a real dart (pistol 34 a second, drop 3): 0.13 under the dot
+    at 10 units, 0.52 at 20, 2.08 at 40, and 0.3 s to cross 10 (a walking soldier moves more than its width in that).
+    Nothing allows for the drop. The mouse turns the same angle a pixel while the view narrows on aim (75 to 55: 1.5
+    times faster on screen). And `PlayerInput.OnLook` adds up the mouse's per-event values, which the Input System
+    (1.18, `Pointer.OnStateEvent`) already adds up within a frame: a frame with a button event between two moves
+    counts the first move twice (read from the package's source, not measured).
+  - **Built now:** `Combat/ShotRules.cs`, a part for a scene: Foam Dart or Instant. No part = foam darts. With
+    Instant, `BlasterWeapon` puts each pellet 0.2 in front of the first thing on its line (the point-blank rule of
+    D-0160, at any range), so it lands the next step with everything a landing does (damage, shove, the stuck dart,
+    the marker); `FX/ShotStreak.cs` draws the line from the gun in the dart's own streak look. A pellet that meets
+    nothing flies as a dart. The same guns either way: the kind is the scene's.
+  - **Where:** the Stadium has the part, set to Instant. Anywhere else F9 (console: `shots`) flips the kind by hand
+    until a scene with its own rule loads.
+  - **Not built (his word is still out on these):** the mouse read once a frame (the click nudge), the faster mouse
+    while aiming, foam darts aimed to allow for their drop. A faint dot from the hip and a smaller dot were offered.
+  - Made by the orchestrator, compiled outside both ways, landed with his editor open and not in Play (0 errors).
+    No reviewer. NOT PLAYED. Online: other players' copies are not yet shown the line (they see the dart land).

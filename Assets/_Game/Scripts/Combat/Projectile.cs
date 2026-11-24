@@ -55,6 +55,11 @@ namespace ShiftJam
         [SerializeField, Tooltip("How thick the streak is, units at scale 1 (the test room's dart: 0.045 m).")] private float streakWidth = 0.0446f;
         [SerializeField, Tooltip("The streak's colour, the same from the shot to its tail; its alpha is how solid it is (the test room's dart: pale blue at 0.75).")] private Color streakColour = new Color(0.9f, 0.97f, 1f, 0.75f);
 
+        /// <summary>The streak's look, for a shot that lands at once and draws its own line from the gun (D-0172).</summary>
+        public Material StreakMaterial => streak != null ? streak.sharedMaterial : null;
+        public Color StreakColour => streakColour;
+        public float StreakWidth => streakWidth;
+
         private static readonly Dictionary<Projectile, Stack<Projectile>> Pools = new Dictionary<Projectile, Stack<Projectile>>();
         private static readonly List<Projectile> Live = new List<Projectile>();
         private static Transform _poolRoot;

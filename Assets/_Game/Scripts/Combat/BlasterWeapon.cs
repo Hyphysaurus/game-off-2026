@@ -132,8 +132,21 @@ namespace ShiftJam
             Vector3 dir = target - from;
             if (dir.sqrMagnitude < 1e-6f) dir = look;
             dir.Normalize();
+            // Where the scene's rule says shots land at once (D-0172, ShotRules): each pellet is put just in front of the
+            // first thing on its line, so it lands there the next step with everything a landing does (damage, the shove,
+            // the stuck dart, the marker), and the gun draws the line it took. A pellet that meets nothing flies as a dart.
+            bool instant = ShotRules.Instant;
+            Vector3 gunEnd = muzzle != null ? muzzle.position : transform.position;
             for (int p = 0; p < pellets; p++)
-                Projectile.Fire(shot, from, Spread(dir), damage, knockback, scale, Holder.transform, Holder.FirstPersonBodyRoot, shotSpeed);
+            {
+                Vector3 way = Spread(dir), start = from;
+                if (instant && Meets(from, way, range * scale, out Vector3 mark, out float far))
+                {
+                    start = mark - way * Mathf.Min(InstantGap * scale, far * 0.5f);
+                    ShotStreak.Show(shot, gunEnd, mark, scale);
+                }
+                Projectile.Fire(shot, start, way, damage, knockback, scale, Holder.transform, Holder.FirstPersonBodyRoot, shotSpeed);
+            }
             Magazine.Spend();   // one round a shot, however many pellets
 
             _kick = 1f;
@@ -149,6 +162,25 @@ namespace ShiftJam
                 PaintSplats.InScene().Puff(from + dir * (0.03f * scale), dir, _shared.puffColour, _shared.puffAmount, _shared.puffSpeed * scale, _shared.puffSize * scale, 0f, _shared.puffSeconds);
             Holder.AmmoChanged();
             return true;
+        }
+
+        private const float InstantGap = 0.2f;   // an instant shot starts this far in front of its mark (units at scale 1), as a point-blank shot does
+
+        /// <summary>The first thing a shot from <paramref name="from"/> along <paramref name="way"/> would land on, within
+        /// <paramref name="reach"/>: what the shot itself is stopped by (not the shooter, not this gun, not a figure's
+        /// walking capsule, no triggers). <paramref name="far"/> is how far along the line it is.</summary>
+        private bool Meets(Vector3 from, Vector3 way, float reach, out Vector3 mark, out float far)
+        {
+            mark = default; far = float.MaxValue;
+            int n = Physics.RaycastNonAlloc(from, way, _hits, reach, Layers.Seen(aimMask), QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < n; i++)
+            {
+                if (_hits[i].distance >= far) continue;
+                if (Holder.IsSelf(_hits[i].transform) || _hits[i].transform.IsChildOf(transform)) continue;
+                if (HitShapes.BodyOnly(_hits[i].collider)) continue;
+                far = _hits[i].distance; mark = _hits[i].point;
+            }
+            return far < float.MaxValue;
         }
 
         private Vector3 Spread(Vector3 dir)

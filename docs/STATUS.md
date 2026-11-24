@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 18:3x — INSTANT SHOTS TO TRY (D-0172): IN THE PROJECT, THE STADIUM USES THEM, F9 FLIPS THEM ANYWHERE. NOT PLAYED
+- His "lets try the instant, TDM will go into the stadium scene weve been building". A scene part `ShotRules`
+  (Foam Dart / Instant); the Stadium has one set to Instant; everywhere else shots are foam darts as before.
+  F9 flips the kind by hand in any scene (a toast says which).
+- HIS PLAYTEST: in the armory range (Greybox) take a gun, shoot the targets with foam darts, press F9, shoot again:
+  the shot should land on the dot at once, with a thin line from the gun and the dart stuck at the mark. Try the
+  SMG held down and the shotgun's spread. Then the same from first person through the sights.
+- Look for: does it land exactly under the dot at every range; is the line easy to see or too much; cover: a shot
+  with a box edge in front of the gun should hit the box, not what is behind it.
+- The aim's other three faults (the click nudge, the faster mouse while aiming, darts landing low) are NOT fixed:
+  they wait for his "proceed". The click nudge affects instant shots too.
+- Next for TDM in the Stadium: the mode itself (teams, score, spawns) is not built.
+
 ## 23 Nov 2026 18:2x — ROPE ROUND 2 IS IN: BOTH HANDS ON THE ROPE, A CATCH BY WALKING OFF THE END, A LET-DOWN TO A SWINGING LENGTH, FOUR ROPES IN A ROW. NOT PLAYED, NOT REVIEWED
 - From his play (entry below). One fixer, compiled outside both ways, landed through his open editor (not in Play):
   0 errors; the number update, the controller rebuild (every check passed) and the placement all logged OK.

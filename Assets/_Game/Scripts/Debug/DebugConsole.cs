@@ -82,6 +82,7 @@ namespace ShiftJam
             if (k.f6Key.wasPressedThisFrame) Run("fly");
             if (k.f7Key.wasPressedThisFrame) Run("god");
             if (k.f8Key.wasPressedThisFrame) Run("shift");
+            if (k.f9Key.wasPressedThisFrame) Run("shots");
             if (k.pageDownKey.wasPressedThisFrame) Run("next");
             if (k.pageUpKey.wasPressedThisFrame) Run("prev");
             if (k.f12Key.wasPressedThisFrame) Run("mark");
@@ -126,6 +127,7 @@ namespace ShiftJam
                     case "help":
                         Say("tp list | tp <n> | tp <name> | tp <x> <y> <z>   next / prev (PgDn/PgUp): checkpoints in order");
                         Say("toy | kid | shift (F8)   fly (F6, WASD + Space/Ctrl, Shift fast)   god (F7: no fall rule)   respawn (F5)   reload");
+                        Say("shots (F9): flips between foam darts (fly, fall, stick) and instant shots (land at once on what is under the dot)");
                         Say("time <scale>   tune <MovementSettings field> [value] (no value = read; edits the ASSET in the editor)");
                         Say("set <object> <Component> <field> <value>   get <object> <Component> <field>   (live, any serialized field)");
                         Say("reveal (replays the playroom reveal from wherever you stand)");
@@ -155,6 +157,14 @@ namespace ShiftJam
                         var f = typeof(Respawn).GetField("fatalFallHeight", BindingFlags.NonPublic | BindingFlags.Instance);
                         if (_god) { _godKeep = (float)f.GetValue(_respawn); f.SetValue(_respawn, 0f); } else f.SetValue(_respawn, _godKeep);
                         Say("god " + (_god ? "ON (no fall rule)" : "off")); break;
+                    case "shots":
+                    {
+                        // D-0172: try both kinds of shot anywhere (a scene's own ShotRules sets it again when it loads).
+                        bool now = ShotRules.Flip();
+                        string what = now ? "Shots: INSTANT (land at once on what is under the dot)" : "Shots: FOAM DARTS (fly, fall and stick)";
+                        Say(what); Toasts.Show(what);
+                        break;
+                    }
                     case "next": case "prev": StepCheckpoint(cmd == "next" ? 1 : -1); break;
                     case "tp": Teleport(a); break;
                     case "tune": Tune(a); break;
@@ -339,7 +349,7 @@ namespace ShiftJam
                 $"checkpoints {claimed}/{cps.Count}";
             GUI.Box(new Rect(10, 10, 470, 186), GUIContent.none, _box);
             GUI.Label(new Rect(18, 14, 460, 182), text, _mono);
-            GUI.Label(new Rect(18, Screen.height - 26, 900, 22), "F1 hud   ` console   F5 respawn   F6 fly   F7 god   F8 toy/kid   PgUp/PgDn checkpoints   F12 mark", _monoSmall);
+            GUI.Label(new Rect(18, Screen.height - 26, 900, 22), "F1 hud   ` console   F5 respawn   F6 fly   F7 god   F8 toy/kid   F9 shots   PgUp/PgDn checkpoints   F12 mark", _monoSmall);
         }
 
         private void DrawConsole()

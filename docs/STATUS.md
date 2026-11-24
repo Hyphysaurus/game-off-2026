@@ -2,6 +2,27 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 11:2x — CHECKPOINT: HIS "proceed with the funny characters plan" (11:1x). STAGE 1 (THE LOOK SYSTEM) IS BEING BUILT, NOTHING OF IT IN THE PROJECT YET
+- His words: "these will be for bots, multiplayer characters, and for character npcs around th4e house", then
+  "proceed with the funny characters plan". (Before it, away from the PC: "Im afk now, send me some stills": sent.)
+- A hidden survey run settled what the file-only read could not (`%TEMP%\shiftjam-stage\chars\out`): all 543 parts
+  swap cleanly onto the pack's one skeleton (bones and bind poses match after import); colour is a word in each
+  part's name (Body has Blue and Orange: the two teams read at a glance); the game's own player clips sit well on
+  these bodies; a swapped slot keeps the old part's culling box (must be set).
+- THE PLAN, four stages, ONE builder at a time, each landed after my read and checked with stills from a hidden run
+  (contract: `%TEMP%\shiftjam-stage\chars\CHARS_CONTRACT.md`):
+  1. **The look system (D-0183; stage `chars1`; builder RUNNING since 11:1x, workflow `wf_69cc63a8-17e`):**
+     `Scripts/Characters/` (catalogue of every part, a look = a part a slot rolled from a seed the same on every PC,
+     rules, the body that wears it) + the editor builder `Debug/CharacterPieces.cs` (bakes
+     `Resources/CharacterCatalog.asset`, makes `Prefabs/Characters/FunnyBody.prefab`).
+  2. House characters: stand, idle, look at you, E = wave and say a line; the bare figure by the gap replaced.
+  3. Bots wear them: a body under the toy soldier driven by the player's own animation controller, team colour by
+     outfit (blue body and clothes, orange likewise), the same on every PC.
+  4. Players: first the two faults the read found (a friend sees you in THEIR body choice; the network animator is
+     bound to the Male body only). Funny bodies ON players wait for his call.
+- IF A RUN DIES: its stage folder (`chars1`...) has `NOTES.md` and the staged files; nothing is in the project
+  until I land it. Team deathmatch (D-0182) and the wider Stadium (D-0181) below are unchanged and still unplayed.
+
 ## 24 Nov 2026 05:0x — TEAM DEATHMATCH WITH BOTS IS BUILT AND IN THE SCENE (D-0182); THE STADIUM IS WIDER (D-0181). NOTHING OF IT PLAYED
 - His words: "that stadium was feeling a bit small and cramped last i had played it, lets expand it then proceed
   with the TDM plan", and before it "lets get bots in". Both done; all local commits, NOT PUSHED (origin is still

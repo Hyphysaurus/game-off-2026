@@ -26,7 +26,7 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
 - Look for: corners too twitchy (Steer Turn Speed down); soldiers too easy to pin (Flinch Fire Delay down); a lean
   that pivots oddly; the scene taking longer to come up.
 - **v18: BUILT AND CHECKED 02:29** at his "close it and run the build" (I closed his editor: Greybox had nothing
-  unsaved): 5 scenes played headless, 0 errors, 3.3 min. NOT UPLOADED: the upload is his (`ship.ps1 -Existing`).
+  unsaved): 5 scenes played headless, 0 errors, 3.3 min. **LIVE ON ITCH 02:36 at his "ship" (build #2486172).**
   Caught before building: the ship remakes the Stadium scene from code, and its hit scan rule had been placed by
   hand (D-0172), so v18 would have had foam darts there; the rule is made by `PartyBuilder.MakeStadium` now. His F9 try of the hit scan dart (D-0176) is still open, and with it step 2 of one kind of shot.
 - Local commit, not pushed.
@@ -3106,7 +3106,7 @@ tutorial room in Greybox.unity, Feel hooks on ShiftSource/Switch/Door, a Core sc
 → STEP 3 room greybox + shift beat → feel pass → commit → v1.
 
 ## Versions
-- v18 — 24 Nov 2026: BUILT AND CHECKED 02:29 (ship.ps1 -NoUpload: 5 scenes, 0 errors, 3.3 min), NOT UPLOADED YET (the upload is his: `ship.ps1 -Existing`). Everything since v17, D-0136 to D-0180: the one-hand arm reach, the flashlight with its light targets and dark zones, grabbing heavy things and the turntable, the sights, the armory bench, the jump's pose, the roll out of a landing, the ropes, the hit scan shot seen as a flying dart (the Stadium), the three aim fixes, first person at third person's speeds, the camera's give and the rest of the first feel batch, the first shift's freeze, corners that turn with the stick, the soldier's flinch. `Builds/Windows/ShiftJam_v18` (local).
+- v18 — 24 Nov 2026: ON ITCH 02:36 as build #2486172 (his "ship"; an 18 MB patch on v17). Built and checked 02:29 (5 scenes, 0 errors). Everything since v17, D-0136 to D-0180: the one-hand arm reach, the flashlight with its light targets and dark zones, grabbing heavy things and the turntable, the sights, the armory bench, the jump's pose, the roll out of a landing, the ropes, the hit scan shot seen as a flying dart (the Stadium), the three aim fixes, first person at third person's speeds, the camera's give and the rest of the first feel batch, the first shift's freeze, corners that turn with the stick, the soldier's flinch. `Builds/Windows/ShiftJam_v18` (local).
 - v17 — 21 Nov 2026: on itch 23:13 as build #2464944 (ship.ps1): D-0132 to D-0135 (the flashlight held at its handle, the smaller hotbar, the hitch catcher, doors take the group, the jam page).
 - v16 — 21 Nov 2026: on itch 20:55 as build #2464190: D-0131 (co-op step 2: the host runs soldiers, props and pickups).
 - v15 — 21 Nov 2026: on itch 20:45 as build #2464033: D-0129 and D-0130 (other players' reloads, swings and throwing arm).

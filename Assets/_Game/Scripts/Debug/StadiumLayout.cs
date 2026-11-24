@@ -17,7 +17,8 @@ namespace ShiftJam
     ///  - Play pieces at Prop scale (0.4), so an inflatable wall is about one toy tall: cover lines, big blocks, arch
     ///    tunnels, flank platforms with trampolines (the game's LaunchPad) and a low stage in the middle. Laid for the
     ///    south half and turned half round for the north: the two teams' sides match.
-    ///  - Spawns: the First point on the stage, eight more round the field for comebacks (NetSpawnPoint.Safest).
+    ///  - Spawns: the First point on the stage, eight more round the field for comebacks (NetSpawnPoint.Safest), each
+    ///    belonging to the half it stands in for team matches, and a landing point at each base (D-0182).
     ///  - D-0181: the whole plan 1.6 times wider (the field 81 across, 51 before) with the play pieces kept toy-sized
     ///    and more cover added, after his "feeling a bit small and cramped".
     /// </summary>
@@ -257,9 +258,20 @@ namespace ShiftJam
                 foreach (float slide in SpawnSlides)
                     if (OpenGround(way * (r + slide))) { pos = way * (r + slide); free = true; break; }
                 if (!free) Debug.LogWarning($"StadiumLayout: no open ground for the spawn at {a:0.#} degrees; it stands at ({pos.x:0.#}, {pos.z:0.#}) all the same.");
-                Spawn(spawns, pos, Facing(pos, a + 180f));
+                // In a team match (D-0182) a ring spawn is a comeback point of the half it stands in: Blue the south, Orange the north.
+                Spawn(spawns, pos, Facing(pos, a + 180f)).SetTeam(pos.z < 0f ? TeamMatch.Blue : TeamMatch.Orange, false);
             }
+            // Each team's landing (D-0182): where the whole team stands at GO, just outside its base's arch mouth, facing
+            // up the field. Laid for the south (Blue) and turned half round for the north (Orange), as the play pieces are.
+            Vector2 land = Spread(TeamLanding, true, TeamLandingBy);
+            Spawn(spawns, new Vector3(land.x, 0f, land.y), 0f).SetTeam(TeamMatch.Blue, true);
+            Spawn(spawns, new Vector3(-land.x, 0f, -land.y), 180f).SetTeam(TeamMatch.Orange, true);
         }
+
+        /// <summary>The south team's landing in the plan's units, and the base's arch it belongs with (it keeps its
+        /// distance from the arch as the field is spread): built at (0, -21.6), 5.6 in front of the arch, on ground left
+        /// open 2.5 each way for the team to stand round it (NetPlayer spreads players 1.2 body heights round it).</summary>
+        private static readonly Vector2 TeamLanding = new Vector2(0f, -11.4f), TeamLandingBy = new Vector2(0f, -17f);
 
         /// <summary>How far a ring spawn may slide along its own line from the middle to find open ground: out toward
         /// the rim first (further from the fight), then in.</summary>

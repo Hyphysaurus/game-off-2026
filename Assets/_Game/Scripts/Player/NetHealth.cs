@@ -16,6 +16,19 @@ namespace ShiftJam
         /// <summary>"By" for a knock-out no player dealt.</summary>
         public const ulong NoOne = ulong.MaxValue;
 
+        /// <summary>"By" for a knock-out dealt by one of a team's bots in a team match (D-0182): a number no player can
+        /// have, one a team (team 1: the one below NoOne, team 2: the one below that). The score counts it for the bot's
+        /// team; the kill feed names the team's bot.</summary>
+        public static ulong BotOf(int team) => team > 0 ? NoOne - (ulong)team : NoOne;
+
+        /// <summary>True when <paramref name="by"/> is a team's bot (BotOf), with its team.</summary>
+        public static bool IsBot(ulong by, out int team)
+        {
+            team = by < NoOne && NoOne - by <= MostTeams ? (int)(NoOne - by) : 0;
+            return team != 0;
+        }
+        private const ulong MostTeams = 8;   // room for more teams than the two there are
+
         /// <summary>Raised on every PC when a player is knocked out: (victim's client id, the client id of whoever did it, or NoOne).</summary>
         public static event Action<ulong, ulong> KnockedOut;
 
@@ -91,7 +104,10 @@ namespace ShiftJam
         private void OnDied(DamageInfo hit)
         {
             ulong by = hit.Source != null ? ById(hit.Source) : NoOne;
-            if (by == NoOne && Time.time - _lastByAt <= CreditSeconds) by = _lastBy;
+            // In a team match (D-0182) a player finished by their own grenade after another player's hit is that
+            // player's knock-out, as one nobody dealt is: the score counts it. Outside a match it stays their own.
+            bool ownInMatch = by == OwnerClientId && TeamMatch.Running;
+            if ((by == NoOne || ownInMatch) && Time.time - _lastByAt <= CreditSeconds) by = _lastBy;
             if (by == OwnerClientId) by = NoOne;   // our own grenade
             _lastBy = NoOne;
             KnockedOutRpc(OwnerClientId, by);

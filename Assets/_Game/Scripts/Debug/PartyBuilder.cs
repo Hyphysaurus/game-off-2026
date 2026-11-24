@@ -126,6 +126,7 @@ namespace ShiftJam
             cso.ApplyModifiedPropertiesWithoutUndo();
             copy.AddComponent<NetNameTag>();   // D-0117: name, colour and health over other players' heads
             copy.AddComponent<NetWorld>();     // D-0131: the host runs the soldiers, props and pickups; their messages ride here
+            copy.AddComponent<NetMatch>();     // D-0182: the player's team, and on the host's player the team match's state
             Debug.Log($"PartyBuilder: NetCombat knows {shots.Length} shots, {weapons.Length} weapons ({string.Join(", ", weapons.Select(w => w.name))}).");
             if (copy.TryGetComponent(out Respawn respawn))
             {
@@ -183,6 +184,8 @@ namespace ShiftJam
             // Versus shots are decided at the click here (D-0172, D-0176). The rule is made with the scene: this scene is
             // made afresh on every ship, and a rule placed in it by hand (as it first was) would be gone from the build.
             new GameObject("ShotRules").AddComponent<ShotRules>();   // the part's own default is Instant
+            // Team deathmatch (D-0182): the host's M starts a match here. Made with the scene for the same reason.
+            new GameObject("TeamMatch").AddComponent<TeamMatch>();
             Vector3 centre = Vector3.zero;
 
             var hudAsset = AssetDatabase.LoadAssetAtPath<GameObject>(HudPath);

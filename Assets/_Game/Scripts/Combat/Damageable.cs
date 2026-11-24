@@ -67,6 +67,13 @@ namespace ShiftJam
         public Func<DamageInfo, bool> Relay { get; set; }
         /// <summary>The Inspector's death event, for editor tools that wire it.</summary>
         public UnityEvent OnDiedEvent => onDied;
+        /// <summary>A team match's friendly-fire rule (D-0182), set by TeamMatch while it is in the scene: given who dealt a
+        /// hit and who it landed on, true turns the hit away before anything happens (no damage, no flash, no hand-over
+        /// to another PC, no hit marker, no credit). Null: every hit counts, as everywhere outside a match scene.</summary>
+        public static Func<Transform, Damageable, bool> Spares;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ForgetSpares() => Spares = null;   // the editor may enter Play without reloading scripts
         /// <summary>Raised after a hit is taken.</summary>
         public event Action<DamageInfo> Damaged;
         /// <summary>Raised once when health reaches zero.</summary>
@@ -98,6 +105,7 @@ namespace ShiftJam
         /// <summary>Takes the hit. False when it was ignored (dead, protected or nothing to take).</summary>
         public bool Hit(in DamageInfo dealt)
         {
+            if (Spares != null && Spares(dealt.Source, this)) return false;   // a teammate's hit in a match (D-0182)
             if (Relay != null)
             {
                 if (dealt.Amount <= 0f || !Relay(dealt)) return false;

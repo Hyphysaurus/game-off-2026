@@ -105,6 +105,14 @@ namespace ShiftJam
             if (_respawnAt >= 0f && Time.time >= _skipFrom) PutBack();
         }
 
+        /// <summary>The start of a team match (D-0182): whole and back at the Respawn's point now, as after a knock-out
+        /// (it ends one still lying there), and always restocked, whatever Restock says.</summary>
+        public void BackWhole()
+        {
+            PutBack();
+            if (!_s.restock && TryGetComponent(out WeaponHolder holder)) holder.Restock();
+        }
+
         private void PutBack()
         {
             _respawnAt = -1f;

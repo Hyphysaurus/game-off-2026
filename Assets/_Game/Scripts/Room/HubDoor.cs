@@ -39,6 +39,7 @@ namespace ShiftJam
         public string PromptFor(Interactor who)
         {
             if (_going || who == null || who.Shifter == null || who.Shifter.Shifting) return "";
+            if (NetSession.InParty && TeamMatch.Running) return TeamMatch.DoorShut;   // a team match is on: nobody leaves (D-0182)
             if (NetSession.InParty) return NetTravel.Going ? "" : prompt + " (everyone goes)";   // the group travels together (D-0134)
             return prompt;
         }
@@ -46,6 +47,7 @@ namespace ShiftJam
         public void Interact(Interactor who)
         {
             if (_going || who == null || who.Shifter == null || who.Shifter.Shifting || string.IsNullOrEmpty(scene)) return;
+            if (NetSession.InParty && TeamMatch.Running) return;   // shut while a team match is on (D-0182)
             if (NetSession.InParty) { NetTravel.Ask(scene, arriveAt); return; }   // online: the host takes the whole party (D-0134)
             _going = true;
             GameObject player = who.gameObject;

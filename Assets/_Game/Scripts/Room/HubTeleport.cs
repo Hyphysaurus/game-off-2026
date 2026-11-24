@@ -24,6 +24,7 @@ namespace ShiftJam
             Shifter who = PlayerTouch.Find(other, out _);
             if (who == null || !who.TryGetComponent(out PlayerMotor motor)) return;
             if (who.TryGetComponent(out NetPlayer net) && net.IsSpawned && !net.IsOwner) return;   // another player's copy
+            if (TeamMatch.Running) return;   // shut while a team match is on (D-0182)
             _busyUntil = Time.unscaledTime + cutOut + cutIn + 0.3f;
             Vector3 at = target.position; Quaternion facing = Quaternion.Euler(0f, target.eulerAngles.y, 0f);
             var fade = ScreenFade.Find();

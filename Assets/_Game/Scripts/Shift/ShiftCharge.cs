@@ -120,7 +120,8 @@ namespace ShiftJam
             // the body changes round its middle (D-0094).
             bool inAir = Time.time - _lastGrounded > GroundGrace;
             string refused =
-                Charges <= 0 && !Free ? Empty
+                to == ShiftSize.Kid && TeamMatch.Running ? TeamMatch.NoGrowing   // toy size only in a team match (D-0182)
+                : Charges <= 0 && !Free ? Empty
                 : NoShiftZone.Covering(transform.position) is { } zone ? zone.Message
                 : to == ShiftSize.Kid && !(inAir ? RoomToGrowInAir() : RoomToGrow()) ? NoRoom
                 : null;

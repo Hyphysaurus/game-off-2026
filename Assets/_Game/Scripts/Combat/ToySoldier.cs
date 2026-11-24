@@ -75,7 +75,7 @@ namespace ShiftJam
         /// <summary>Blinds it for <paramref name="seconds"/> (D-0149): no sight, no shots, it stands and sways.</summary>
         public void Blind(float seconds)
         {
-            if (_state == State.Down) return;
+            if (_state == State.Down || _away) return;
             bool fresh = Time.time >= _blindUntil;
             _blindUntil = Mathf.Max(_blindUntil, Time.time + seconds);
             _wasBlind = true;
@@ -141,6 +141,45 @@ namespace ShiftJam
         public int NetId { get; set; } = -1;
         /// <summary>True while it lies knocked down.</summary>
         public bool Down => _state == State.Down;
+        /// <summary>True while it is put away for a team match (D-0182, PutAway).</summary>
+        public bool Away => _away;
+
+        private bool _away;
+
+        /// <summary>
+        /// Put away for a team match, or back (D-0182). Put away it stays an active object (CoopWorld numbers only the
+        /// active soldiers, on every PC, and a friend arriving numbers whatever is active then), but it is unseen (its
+        /// renderers off), untouchable (its colliders off, and on the host it takes no damage) and does nothing: no sight,
+        /// no shots, no walking, no falls or shots shown from the host. It first stands up at its post, whole. Back, it is
+        /// at its post, whole, seen and solid again (a copy on another PC goes to wherever the host's next word puts it).
+        /// Each PC puts its own soldiers away (TeamMatch reads the match's phase); the host's word on them is not needed.
+        /// </summary>
+        public void PutAway(bool away)
+        {
+            if (_away == away || _cc == null) return;   // not awake yet: the match asks again as it changes
+            _away = away;
+            if (away)
+            {
+                if (_mirror) StandAsCopy(); else ResetState();   // whole at its post (its capsule stays off: ResetState reads Away)
+                _health.DamageScale = 0f;   // a hit that still reaches the host's (a copy shot before its PC heard) does nothing
+            }
+            else _health.DamageScale = 1f;
+            foreach (Collider c in GetComponentsInChildren<Collider>(true))
+                if (c != _cc) c.enabled = !away;   // its walking capsule follows its state below (and ResetState); the hit shapes come back with it
+            foreach (Renderer r in GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = away;
+            if (!away) { if (_mirror) { StandAsCopy(); _netPose = false; } else ResetState(); }   // a copy: the host's next word puts it there at once
+            else _cc.enabled = false;
+        }
+
+        /// <summary>A copy standing as the host's does: up, not leaning, its capsule on unless it is put away (its place
+        /// comes with the host's next word).</summary>
+        private void StandAsCopy()
+        {
+            _state = State.Patrol;
+            EndFlinch();
+            if (visual != null) visual.localRotation = _visualRest;
+            _cc.enabled = !_away;
+        }
 
         private void Awake()
         {
@@ -213,7 +252,7 @@ namespace ShiftJam
         {
             _cc.enabled = false;
             transform.SetPositionAndRotation(_post, _postRot);
-            _cc.enabled = true;
+            _cc.enabled = !_away;   // put away for a match (D-0182): it stays untouchable
             _health.ResetState();
             _blindUntil = float.NegativeInfinity; _wasBlind = false; EndDazzle();   // a reset clears a blinding (D-0149)
             EndFlinch();
@@ -245,7 +284,7 @@ namespace ShiftJam
         private void Update()
         {
             float dt = Time.deltaTime;
-            if (dt <= 0f) return;
+            if (dt <= 0f || _away) return;   // put away for a team match (D-0182): it does nothing
             if (_mirror) { MirrorUpdate(dt); return; }   // online, not the host: it only shows the host's soldier
             if (GameMode.Current == GameMode.Mode.Build) { EndFlinch(); return; }   // held still while the room is edited, or a drag jitters
             if (_state == State.Down)
@@ -536,7 +575,7 @@ namespace ShiftJam
         /// (<paramref name="quiet"/>: it already lay there when we arrived, so it simply lies there).</summary>
         public void MirrorDown(Vector3 point, bool quiet)
         {
-            if (!_mirror || _state == State.Down) return;
+            if (!_mirror || _away || _state == State.Down) return;   // put away (D-0182): nothing shown
             _state = State.Down;
             _downAt = quiet ? Time.time - 1f : Time.time;
             _cc.enabled = false;   // darts pass over it, as over the host's
@@ -548,17 +587,14 @@ namespace ShiftJam
         public void MirrorUp()
         {
             if (!_mirror) return;
-            _state = State.Patrol;
-            EndFlinch();
-            if (visual != null) visual.localRotation = _visualRest;
-            _cc.enabled = true;
+            StandAsCopy();
         }
 
         /// <summary>The host's soldier fired: a harmless copy of its dart flies here, with its sound. The real dart is the
         /// host's: if it hits this PC's player, the hit comes from the host.</summary>
         public void MirrorShot(Vector3 from, Vector3 direction)
         {
-            if (!_mirror || projectile == null) return;
+            if (!_mirror || _away || projectile == null) return;
             Projectile.Fire(projectile, from, direction, 0f, 0f, Scale, transform);
             PlayFire();
         }

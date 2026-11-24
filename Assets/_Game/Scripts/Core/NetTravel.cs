@@ -53,11 +53,13 @@ namespace ShiftJam
             if (scene == "Raceway") { scene = NetSession.PartyScene; arriveAt = TrackArrival; }
         }
 
-        /// <summary>On the host: start the countdown for everyone, unless one runs or the room is not in the build.</summary>
+        /// <summary>On the host: start the countdown for everyone, unless one runs, the room is not in the build, or a team
+        /// match is on (D-0182: the doors are shut; a friend's ask sent just before the match started stops here).</summary>
         public static void Begin(string scene, string arriveAt)
         {
             var nm = NetworkManager.Singleton;
             if (nm == null || !nm.IsServer || _going || NetWorld.Host == null || !Application.CanStreamedLevelBeLoaded(scene)) return;
+            if (TeamMatch.Running) return;
             NetWorld.Host.GoingRpc(scene, arriveAt ?? "", CountdownSeconds);
         }
 
@@ -112,8 +114,9 @@ namespace ShiftJam
             return scene;
         }
 
-        /// <summary>Out of whatever this PC's player drives: a car's seat, or a toy car.</summary>
-        private static void LeaveVehicle()
+        /// <summary>Out of whatever this PC's player drives: a car's seat, or a toy car. Also the start of a team match
+        /// (D-0182: NetPlayer.ToBase).</summary>
+        public static void LeaveVehicle()
         {
             Transform vehicle = Driving.Vehicle;
             if (vehicle == null) return;

@@ -40,6 +40,10 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   second: it lets itself down; then stick forward, back, forward. 3. Space on the way up with the stick forward:
   fly to the next rope; four in a row. 4. the hands: both on, right over left, fingers closed, the rope in front of
   the chest. 5. Shift climbs, C slides.
+- PLAYED 18:27 (6:12), no word from him yet. The play log: 7 rope rides; caught in the air at 12.5 up after walking
+  off the books, let go at speeds of 9 and 10, caught the NEXT rope 0.2 s later (rope to rope works), one let-go the
+  instant it was caught (0.0 s), one let-go by switching to first person. The 2.49 s freeze at 4:07 of that play was
+  MINE: an editor command sent while he was in Play (the first-person numbers).
 - Known: E no longer reaches the first rope from the top (it is 3.6 out): walking off is the way on. Pumping
   forward and back turns the body round the rope at each reversal (his call if it reads badly). The light key on a
   rope toggles the stowed flashlight's light. Nothing here was played or reviewed; the rope's review is still owed.

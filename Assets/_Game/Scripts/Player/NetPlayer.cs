@@ -29,6 +29,7 @@ namespace ShiftJam
         private Renderer[] _bodies;
         private NetHealth _health;
         [System.NonSerialized] private bool _turnViewOnWarp;   // the next warp also turns the camera to the way the player faces (ToBase)
+        [System.NonSerialized] private bool _toBaseWaiting;    // ToBase is waiting for a reset's cut to finish before it asks again
 
         /// <summary>Every online player spawned on this PC, its own and the others' (D-0131: the host's soldiers aim at
         /// them all, a prop comes back only once all are clear of it).</summary>
@@ -169,9 +170,24 @@ namespace ShiftJam
             if (!BaseSpot(team, out Vector3 at, out Quaternion facing)) return;   // measured at toy size
             if (!TryGetComponent(out Respawn respawn)) { Put(at, facing); TurnView(facing); return; }
             respawn.SetPoint(at, facing);
+            if (respawn.Busy)
+            {
+                // A reset's cut is already under way (a fall, a comeback that just landed): Respawn takes one put at a time
+                // and would skip this one, and nothing would ask again. So ask again once it is over.
+                if (!_toBaseWaiting) StartCoroutine(ToBaseWhenFree(respawn));
+                return;
+            }
             _turnViewOnWarp = true;
             if (TryGetComponent(out PlayerHurt hurt)) hurt.BackWhole();
             else respawn.Reset();
+        }
+
+        private IEnumerator ToBaseWhenFree(Respawn respawn)
+        {
+            _toBaseWaiting = true;
+            while (respawn != null && respawn.Busy) yield return null;
+            _toBaseWaiting = false;
+            if (IsSpawned && IsOwner && TeamMatch.Running) ToBase();
         }
 
         /// <summary>Where this player stands at the team's base: its landing point (or, in a scene without one, the team's

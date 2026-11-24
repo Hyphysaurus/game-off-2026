@@ -99,6 +99,10 @@ namespace ShiftJam
         /// <summary>Back to the checkpoint right now: hazards call this.</summary>
         public void Reset() => Put();
 
+        /// <summary>True while a reset's black cut is under way: another Reset asked for now is not done (one put at a
+        /// time). Who must not be skipped waits for this to pass (the start of a team match, D-0182).</summary>
+        public bool Busy => Time.unscaledTime < _busyUntil;
+
         /// <summary>Where the next respawn lands. Checkpoints call this.</summary>
         public void SetPoint(Vector3 position, Quaternion rotation)
         {

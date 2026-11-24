@@ -23,6 +23,22 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   And: the walk is 7 since 22 Nov, so a walking jump carries 5.6 and the 5.5 "sprint gap" can probably be made
   without sprinting (not checked in play).
 
+## 23 Nov 2026 15:5x — THE OPENING: HIS BRAINSTORM NOTES WEIGHED AGAINST THE PROJECT (READ ONLY, NOTHING BUILT, NOTHING PLAYED)
+- His notes (with another assistant): a loose prop near spawn, a scale comparison, sound that changes with size, a
+  clear first view after growing, a reason to glance back; their pick: one reactive prop + a stronger audio change.
+- Found by reading code and the scene file: (1) no loose prop anywhere in the box or bedroom; inside the box it is a
+  risk (a loose block jammed this puzzle in D-0158; anything between lens and core blocks the light; E goes to the
+  arm-grab first): if wanted, three cubes on the bedroom floor for the kid. (2) The scale comparison exists: the
+  giant flashlight (the toy walks its turntable, the kid picks it up) and the walls flat at the kid's feet. (3) Sound:
+  one room loop, no footsteps, no filters; the burst's four wall thumps are 3D one-shots while the camera pulls far
+  back, so the burst is LIKELY near silent but for the grow cue (his ears); `BoxBurst.onBurst` is empty: one placed 2D
+  sound on it fixes that with no code. (4) First view: nothing turns the camera on the shift; facing the core, the
+  shelf switch is about 150 degrees behind the camera (his eyes): choices are a hint line, a one-time camera turn,
+  or the core on the box's west side. (5) Glance back: THIS WAY UP / FRAGILE inside, a label with blank lines outside.
+- The awkward cases in code: repeated E fine; no way found to break the opening by leaving early; camera against
+  cardboard and where the kid ends up by the core (he is wider than the gap to the turntable) need his play.
+- Waiting on: his look at the first view and the burst's sound; his "proceed" for the burst sound.
+
 ## 23 Nov 2026 12:3x — PLANS WAITING FOR HIS "PROCEED": A ROPE AT THE HALLWAY BOOKS (HIS IDEA) AND THE JUMP ANIMATION. NOTHING BUILT
 - His words: "in the hallway, we need a purpose for climbing up the books at the start of it... perhaps this our
   chance to polish up or find a better jumping animation?", then "maybe we can set up a rope up there and begin

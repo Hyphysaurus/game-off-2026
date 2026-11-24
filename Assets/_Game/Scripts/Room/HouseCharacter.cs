@@ -73,6 +73,8 @@ namespace ShiftJam
         private float headPitchLimit = 25f;
         [SerializeField, Range(0f, 1f), Tooltip("The share of the head's turn the neck takes; the head takes the rest.")]
         private float neckShare = 0.35f;
+        [SerializeField, Range(-45f, 45f), Tooltip("Degrees its head is tipped down at rest, shared between the neck and the head as above. The player's standing clip leaves this body's face turned up (seen in stills, 24 Nov); 0 = as the clip has it.")]
+        private float headDown = 16f;
         [SerializeField, Tooltip("How quickly the head eases toward where it looks (and back): higher is snappier.")]
         private float lookEase = 5f;
         [SerializeField, Tooltip("Where on a player it looks, as a share of their height from their feet (0.9 = about the eyes).")]
@@ -375,9 +377,10 @@ namespace ShiftJam
             // 3. the turn over the pose: the neck its share, the head the rest
             float neckPart = _neck != null ? Mathf.Clamp01(neckShare) : 0f;
             Vector3 right = transform.right;
-            if (_neck != null) Twist(_neck, _yaw * neckPart, _pitch * neckPart, right);
+            float pitch = _pitch - headDown;   // its look up or down at someone, over a level head (Head Down)
+            if (_neck != null) Twist(_neck, _yaw * neckPart, pitch * neckPart, right);
             Vector3 headRight = Quaternion.AngleAxis(_yaw * neckPart, Vector3.up) * right;   // the neck's turn turned the head's own right
-            Twist(_head, _yaw * (1f - neckPart), _pitch * (1f - neckPart), headRight);
+            Twist(_head, _yaw * (1f - neckPart), pitch * (1f - neckPart), headRight);
 
             _headWritten = _head.localRotation;
             if (_neck != null) _neckWritten = _neck.localRotation;

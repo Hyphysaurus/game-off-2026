@@ -52,6 +52,7 @@ namespace ShiftJam
         [SerializeField, Tooltip("How far above the middle the flash's light sits, units at toy size (the test room: 0.3).")] private float flashHeight = 0.3f;
 
         private static readonly Collider[] Found = new Collider[256];
+        private static readonly List<Grenade> LiveOnes = new List<Grenade>();
         private static readonly Dictionary<Damageable, Part> Parts = new Dictionary<Damageable, Part>();
         private static readonly HashSet<Rigidbody> Loose = new HashSet<Rigidbody>();
 
@@ -80,6 +81,14 @@ namespace ShiftJam
         /// <summary>Seconds from the throw until it goes off.</summary>
         public float Fuse => fuse;
 
+        /// <summary>Every grenade in a scene now, from the throw until it is gone (D-0188: a bot runs from the ones whose
+        /// blast would reach it). One that has gone off stays in it while its flash fades: test Gone. A look-only copy of
+        /// another player's grenade is in it too: its blast is real, only dealt from the thrower's PC.</summary>
+        public static IReadOnlyList<Grenade> Live => LiveOnes;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ForgetLive() => LiveOnes.Clear();   // the editor may enter Play without reloading scripts
+
         private void Awake()
         {
             _flight = GetComponent<BallFlight>();
@@ -87,6 +96,9 @@ namespace ShiftJam
             _baseScale = transform.localScale;
             _left = fuse;
         }
+
+        private void OnEnable() { if (!LiveOnes.Contains(this)) LiveOnes.Add(this); }   // D-0188
+        private void OnDisable() => LiveOnes.Remove(this);
 
         /// <summary>Sends it on its way. <paramref name="thrower"/> and <paramref name="throwerAlt"/> (the first-person
         /// body, when there is one) are never bumped into as it leaves; <paramref name="throwerScale"/> is how big the

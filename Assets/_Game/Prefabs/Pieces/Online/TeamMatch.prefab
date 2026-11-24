@@ -59,6 +59,9 @@ MonoBehaviour:
   botFireRange: 16
   botReactionTime: 0.8
   botDamage: 9
+  botSkills: {fileID: 11400000, guid: 364f99ab981f24147acc7a22738f114a, type: 2}
+  skillKey: 28
+  skillToast: 'Bots: {0}'
 --- !u!114 &2379910530318484382
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -73,7 +76,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.MatchHud
   hostHint: Press {0} to start a team match
   friendHint: Waiting for the host to start a team match
+  skillLine: 'Bots: {0}   ({1}: next level)'
   goWord: GO!
+  toastTheHint: 1
   drawWord: DRAW
   winsWord: '{0} WINS'
   wonLine: Your team won!
@@ -81,3 +86,5 @@ MonoBehaviour:
   goSeconds: 1.2
   barSize: 40
   bigSize: 150
+  backing: {r: 0.05, g: 0.06, b: 0.09, a: 0.8}
+  backingPad: {x: 18, y: 12}

@@ -44,7 +44,9 @@ namespace ShiftJam
 
         [System.NonSerialized] private NavMeshData _data;
         [System.NonSerialized] private NavMeshDataInstance _placed;
-        [System.NonSerialized] private bool _started;
+        // Not NonSerialized on purpose (D-0188): a script reload in Play keeps it, so OnEnable maps the floor again (the
+        // reload's OnDisable took the map away, and Start does not run twice). Never saved: it is not a serialized field.
+        private bool _started;
         [System.NonSerialized] private Mesh _shown;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -95,7 +97,13 @@ namespace ShiftJam
             _current = this;
             Triangles = NavMesh.CalculateTriangulation().indices.Length / 3;
             BuildMilliseconds = (Time.realtimeSinceStartup - began) * 1000f;
-            if (Triangles == 0) { Debug.LogWarning("BotGround: no walkable floor in " + name + "'s box (are its colliders on the Solid layers, and is the box over the floor?).", this); return false; }
+            if (Triangles == 0)
+            {
+                // An empty map is no map (D-0188): Mapped says no, and a bot does what a soldier did before there were maps.
+                Clear();
+                Debug.LogWarning("BotGround: no walkable floor in " + name + "'s box (are its colliders on the Solid layers, and is the box over the floor?).", this);
+                return false;
+            }
             if (Application.isPlaying)
             {
                 string told = "mapped " + Triangles + " triangles of floor for the bots in " + BuildMilliseconds.ToString("F0") + " ms";

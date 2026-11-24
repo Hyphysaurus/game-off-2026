@@ -27,6 +27,10 @@ namespace ShiftJam
     /// team's first soldiers (their Match Order) fill what its people leave of Team Size; the rest are put away (unseen,
     /// untouchable, idle: ToySoldier.PutAway), as all of them are during the countdown and the card. A bot's knock-down
     /// and a person knocked out by a bot score like any other. In warm-up they are the practice soldiers of before.
+    /// How well the bots play (D-0188) is a level of a Bot Skills asset (Easy, Normal, Hard): the host's level key (N) in
+    /// warm-up goes to the next one, this PC remembers it, and each soldier takes its senses and darts as it joins the
+    /// match; a soldier's BotBrain reads the rest as it starts to play. Only the host's soldiers think, so other PCs need
+    /// not hear of it.
     /// The host runs the match; the state travels on the players (NetMatch). This part does not draw the screen or move
     /// anyone itself: the screen reads the static surface below, the players move themselves, and each soldier walks,
     /// sees, shoots and dresses itself (this part only says its team, its numbers and whether it plays).
@@ -57,10 +61,14 @@ namespace ShiftJam
         [SerializeField, Tooltip("Team 2's name: the north half (z above 0).")] private string orangeName = "Orange";
         [SerializeField, Tooltip("Team 2's colour: name tags, the score, the card.")] private Color orangeColour = OrangeColour;
         [Header("The bots (the scene's toy soldiers, while they play)")]
-        [SerializeField, Min(0f), Tooltip("How far a bot sees, units at a soldier's own size (a practice soldier uses its own Sight Range).")] private float botSightRange = 20f;
-        [SerializeField, Min(0f), Tooltip("How far a bot fires, units at a soldier's own size (a practice soldier uses its own Fire Range).")] private float botFireRange = 16f;
-        [SerializeField, Min(0f), Tooltip("Seconds an enemy must stay seen before a bot reacts (a practice soldier uses its own Reaction Time).")] private float botReactionTime = 0.8f;
-        [SerializeField, Min(0f), Tooltip("Health one of a bot's darts takes off (a practice soldier uses its own Damage).")] private float botDamage = 9f;
+        [SerializeField, Min(0f), Tooltip("Only used when there is no Bot Skills asset at all (D-0188): how far a bot sees, units at a soldier's own size (a practice soldier uses its own Sight Range).")] private float botSightRange = 20f;
+        [SerializeField, Min(0f), Tooltip("Only used when there is no Bot Skills asset at all (D-0188): how far a bot fires, units at a soldier's own size (a practice soldier uses its own Fire Range).")] private float botFireRange = 16f;
+        [SerializeField, Min(0f), Tooltip("Only used when there is no Bot Skills asset at all (D-0188): seconds an enemy must stay seen before a bot reacts (a practice soldier uses its own Reaction Time).")] private float botReactionTime = 0.8f;
+        [SerializeField, Min(0f), Tooltip("Only used when there is no Bot Skills asset at all (D-0188): health one of a bot's darts takes off (a practice soldier uses its own Damage).")] private float botDamage = 9f;
+        [Header("How well the bots play (D-0188)")]
+        [SerializeField, Tooltip("The bots' levels (Easy, Normal, Hard...). Empty = Resources/BotSkills. With neither, one level is made from the four numbers above.")] private BotSkillSettings botSkills;
+        [SerializeField, Tooltip("The key the host presses in warm-up to go to the next level (M starts the match).")] private Key skillKey = Key.N;
+        [SerializeField, Tooltip("The toast the host sees on changing the level. {0} is the level's name. Placeholder words, yours to change.")] private string skillToast = "Bots: {0}";
 
         private static readonly Color BlueColour = new Color(0.25f, 0.55f, 1f), OrangeColour = new Color(1f, 0.55f, 0.15f);
 
@@ -68,6 +76,14 @@ namespace ShiftJam
         [NonSerialized] private int _placedRound = -1;   // the match this PC's own player was last put at its base for
         [NonSerialized] private readonly List<ToySoldier> _soldiers = new List<ToySoldier>();   // this scene's soldiers, found again at each change
         [NonSerialized] private int _loggedBlue = -1, _loggedOrange = -1;   // the bots in play last written to the log
+        // The bots' level (D-0188): the asset found, whether it was looked for, the level made from the four old numbers
+        // when there is none, and which of the asset's levels is in use (-1: not worked out yet).
+        [NonSerialized] private BotSkillSettings _skills;
+        [NonSerialized] private bool _skillsLooked;
+        [NonSerialized] private BotSkill _builtIn;
+        [NonSerialized] private int _skillIndex = -1;
+        private const string SkillPref = "ShiftJam.BotLevel";   // this PC's last pick, by the level's name
+        private static BotSkill _fallback;                       // a level when no scene has a match part (never null)
 
         /// <summary>Friendly fire off (Damageable.Spares): a hit from a teammate does nothing while a match runs.</summary>
         private static readonly Func<Transform, Damageable, bool> SparesRule = (source, victim) => victim != null && SameTeam(source, victim.transform);
@@ -142,6 +158,24 @@ namespace ShiftJam
 
         /// <summary>The start key's name, for a hint on screen ("M"; "" with no match part here).</summary>
         public static string StartKeyName => _scene != null && _scene.startKey != Key.None ? _scene.startKey.ToString() : "";
+
+        /// <summary>The bots' level in use (D-0188): the host's pick from the Bot Skills asset, or the level made from the
+        /// match part's four bot numbers when there is no asset. Never null (with no match part here: Normal's numbers).</summary>
+        public static BotSkill Skill
+        {
+            get
+            {
+                if (_scene != null) return _scene.CurrentSkill();
+                if (_fallback == null) _fallback = BotSkill.Normal();
+                return _fallback;
+            }
+        }
+
+        /// <summary>The bots' level's name, for the host's hint on screen (D-0188).</summary>
+        public static string SkillName => Skill.name ?? "";
+
+        /// <summary>The key that goes to the next level, for a hint on screen ("N"; "" with no match part here). D-0188.</summary>
+        public static string SkillKeyName => _scene != null && _scene.skillKey != Key.None ? _scene.skillKey.ToString() : "";
 
         /// <summary>True on the PC that may start a match: the host, in a scene with a match part.</summary>
         public static bool IsHost => _scene != null && NetSession.InParty && NetworkManager.Singleton.IsServer;
@@ -302,6 +336,7 @@ namespace ShiftJam
                 else if (Phase == MatchPhase.Warmup) Toasts.Show(HostStarts, ToastKind.Refused);
             }
             if (!nm.IsServer) return;
+            if (SkillPressed() && host.Phase == MatchPhase.Warmup) NextSkill();   // the host picks the bots' level (D-0188)
             double now = nm.ServerTime.Time;
             switch (host.Phase)
             {
@@ -317,6 +352,73 @@ namespace ShiftJam
             Keyboard keys = Keyboard.current;
             if (keys == null || startKey == Key.None || !keys[startKey].wasPressedThisFrame) return false;
             return !PauseMenu.IsOpen && !DebugConsole.IsOpen && !TitleMenu.IsOpen;
+        }
+
+        /// <summary>The level key (D-0188), pressed this frame with nothing else taking the keyboard.</summary>
+        private bool SkillPressed()
+        {
+            Keyboard keys = Keyboard.current;
+            if (keys == null || skillKey == Key.None || skillKey == startKey || !keys[skillKey].wasPressedThisFrame) return false;
+            return !PauseMenu.IsOpen && !DebugConsole.IsOpen && !TitleMenu.IsOpen;
+        }
+
+        // ---------------------------------------------------------------- the bots' level (D-0188)
+
+        /// <summary>The Bot Skills asset in use: the one set here, else Resources/BotSkills, else none (looked for once).</summary>
+        private BotSkillSettings Skills()
+        {
+            if (botSkills != null) return botSkills;
+            if (!_skillsLooked) { _skillsLooked = true; _skills = BotSkillSettings.Load(); }
+            return _skills;
+        }
+
+        /// <summary>The level in use on this PC: the asset's level this PC last picked (by name), else its starting level;
+        /// with no asset (or one with no levels), a level made from the four bot numbers above.</summary>
+        private BotSkill CurrentSkill()
+        {
+            BotSkillSettings set = Skills();
+            if (set == null || set.levels == null || set.levels.Length == 0) return BuiltInSkill();
+            if (_skillIndex < 0 || _skillIndex >= set.levels.Length) _skillIndex = RememberedSkill(set);
+            return set.levels[_skillIndex] ?? BuiltInSkill();
+        }
+
+        /// <summary>The level this PC's host last picked, found by its name; the asset's starting level the first time.</summary>
+        private static int RememberedSkill(BotSkillSettings set)
+        {
+            string picked = PlayerPrefs.GetString(SkillPref, "");
+            if (picked.Length > 0)
+                for (int i = 0; i < set.levels.Length; i++)
+                    if (set.levels[i] != null && set.levels[i].name == picked) return i;
+            return Mathf.Clamp(set.startLevel, 0, set.levels.Length - 1);
+        }
+
+        /// <summary>Normal's numbers with this part's own four (how far bots see and fire, their reaction, their damage):
+        /// the one level a project without a Bot Skills asset has.</summary>
+        private BotSkill BuiltInSkill()
+        {
+            if (_builtIn == null) { _builtIn = BotSkill.Normal(); _builtIn.name = "Built-in"; }
+            _builtIn.sightRange = botSightRange; _builtIn.fireRange = botFireRange;
+            _builtIn.reactionTime = botReactionTime; _builtIn.damage = botDamage;
+            return _builtIn;
+        }
+
+        /// <summary>The host's level key in warm-up: the next level (after the last, the first), remembered on this PC, said
+        /// in the log and as a toast. The soldiers take its numbers as the match puts them on their teams.</summary>
+        private void NextSkill()
+        {
+            BotSkillSettings set = Skills();
+            if (set == null || set.levels == null || set.levels.Length == 0)
+            {
+                Say("bot level: only the built-in one (no Bot Skills asset).");
+                return;
+            }
+            CurrentSkill();   // the index worked out, if it was not yet
+            _skillIndex = (_skillIndex + 1) % set.levels.Length;
+            string picked = CurrentSkill().name ?? "";
+            PlayerPrefs.SetString(SkillPref, picked);
+            PlayerPrefs.Save();
+            Say($"bot level: {picked}.");
+            Toasts.Show(string.Format(skillToast, picked), ToastKind.Tip);
         }
 
         // ---------------------------------------------------------------- the host runs the match
@@ -483,12 +585,13 @@ namespace ShiftJam
             _soldiers.Sort(ByPlace);   // the same order on every PC: by team, then Match Order, then where the post is
             int blueLeft = BotsWanted(Blue), orangeLeft = BotsWanted(Orange);   // 0 but in play
             int blue = 0, orange = 0;
+            BotSkill skill = CurrentSkill();   // the bots' level (D-0188): its senses and darts for every soldier
             foreach (ToySoldier s in _soldiers)
             {
                 int team = TeamOfPost(s);
                 bool plays = team == Blue ? blueLeft-- > 0 : team == Orange && orangeLeft-- > 0;
                 if (!plays) s.PutAway(true);   // unseen before it changes colour
-                s.JoinMatch(team, botSightRange, botFireRange, botReactionTime, botDamage);
+                s.JoinMatch(team, skill.sightRange, skill.fireRange, skill.reactionTime, skill.damage);
                 if (!plays) continue;
                 s.PutAway(false);   // back at its post, whole (one already in play goes on as it was)
                 if (team == Blue) blue++; else orange++;
@@ -496,7 +599,7 @@ namespace ShiftJam
             if (blue != _loggedBlue || orange != _loggedOrange)
             {
                 _loggedBlue = blue; _loggedOrange = orange;
-                TeamMatch.Say($"bots in play: {Name(Blue)} {blue}, {Name(Orange)} {orange}; {_soldiers.Count - blue - orange} soldier(s) put away.");
+                TeamMatch.Say($"bots in play ({skill.name}): {Name(Blue)} {blue}, {Name(Orange)} {orange}; {_soldiers.Count - blue - orange} soldier(s) put away.");
             }
         }
 

@@ -9,7 +9,8 @@ namespace ShiftJam
     /// A team match on screen (D-0182), a part beside TeamMatch on the same object (PartyBuilder adds both to the
     /// Stadium; any scene with a TeamMatch can have one).
     ///  - Top left: the two teams' scores with the clock between them, and under them what the match is played to and
-    ///    this PC's own team. In warm-up: how a match starts (the host's key, or "waiting for the host").
+    ///    this PC's own team. In warm-up: how a match starts (the host's key, or "waiting for the host"), and on the host's
+    ///    PC the bots' level and the key that changes it (D-0188).
     ///  - The middle: the countdown's "3, 2, 1" with the team you are on, then "GO!" for a moment.
     ///  - The end: a card with who won, the score, how this PC's team did, and the seconds until free roam.
     /// The scores and the countdown stand on a dark backing sized to their words: a team's colour must read over a blue
@@ -22,6 +23,7 @@ namespace ShiftJam
         [Header("Wording")]
         [SerializeField, Tooltip("Top left in warm-up, on the host's PC. {0} is the start key.")] private string hostHint = "Press {0} to start a team match";
         [SerializeField, Tooltip("Top left in warm-up, on everyone else's PC.")] private string friendHint = "Waiting for the host to start a team match";
+        [SerializeField, Tooltip("Top left in warm-up, under the host's hint (D-0188): the bots' level. {0} is the level's name, {1} the key that changes it. Placeholder words, yours to change. Empty = no line.")] private string skillLine = "Bots: {0}   ({1}: next level)";
         [SerializeField, Tooltip("In the middle as play starts.")] private string goWord = "GO!";
         [SerializeField, Tooltip("Also say how a match starts as a toast (top middle) each time warm-up begins: on arriving in the scene, and after a match. Off: only the small line top left says it.")] private bool toastTheHint = true;
         [SerializeField, Tooltip("The card's title when the teams are level.")] private string drawWord = "DRAW";
@@ -102,6 +104,9 @@ namespace ShiftJam
             if (phase == MatchPhase.Warmup)
             {
                 _sb.Append("<size=62%><alpha=#BB>").Append(Hint());
+                // The host's second line (D-0188): which level the bots play at, and the key that changes it.
+                if (TeamMatch.IsHost && !string.IsNullOrEmpty(skillLine))
+                    _sb.Append('\n').Append(string.Format(skillLine, TeamMatch.SkillName, TeamMatch.SkillKeyName));
                 return _sb.ToString();
             }
             int blue = TeamMatch.Blue, orange = TeamMatch.Orange;

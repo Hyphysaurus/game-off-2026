@@ -61,6 +61,9 @@ namespace ShiftJam
         public Material StreakMaterial => streak != null ? streak.sharedMaterial : null;
         public Color StreakColour => streakColour;
         public float StreakWidth => streakWidth;
+        /// <summary>How fast it flies, units per second at scale 1 (times the shooter's size for world units). A bot
+        /// leads its shots by it (D-0188).</summary>
+        public float Speed => speed;
 
         private static readonly Dictionary<Projectile, Stack<Projectile>> Pools = new Dictionary<Projectile, Stack<Projectile>>();
         private static readonly List<Projectile> Live = new List<Projectile>();

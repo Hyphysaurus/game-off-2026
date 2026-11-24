@@ -25,6 +25,10 @@ namespace ShiftJam
     /// (the soldier no longer tips its Visual over: the body plays its own fall) and BodyDresses (the soldier no longer
     /// paints its renderers in its team's colour: the body wears its team's kit). Neither switch is set on a soldier
     /// without a body, so the plastic soldiers behave exactly as before.
+    /// A bot's mind (D-0188): with a BotBrain beside it, while it plays in a team match on the host and the floor is
+    /// mapped (BotGround), it asks the brain each frame where to go and face, and the brain fires through Fire. Its
+    /// senses, its body and everything a shot does stay here. Without a brain, or at any other time, it runs exactly
+    /// the code it always did.
     /// </summary>
     [RequireComponent(typeof(CharacterController), typeof(Damageable))]
     public sealed class ToySoldier : MonoBehaviour, IResettable, IBuildMoved
@@ -277,6 +281,38 @@ namespace ShiftJam
         public int MatchOrder => matchOrder;
         /// <summary>Where it stands guard and gets up again: the same on every PC (a copy's post is the scene's).</summary>
         public Vector3 Post => _post;
+
+        // ---------------------------------------------------------------- what a bot's brain reads (D-0188)
+
+        /// <summary>Where its darts leave, world: the rifle tip, or chest height in front.</summary>
+        public Vector3 ShotFrom => Eye;
+        /// <summary>How fast its darts fly, world units a second (0 with no dart set).</summary>
+        public float DartSpeed => projectile != null ? projectile.Speed * Scale : 0f;
+        /// <summary>How far it fires now, world units, as it uses it (a hit's alert included).</summary>
+        public float FireReachNow => FireReach;
+        /// <summary>How far it sees now, world units, as it uses it (a hit's alert included).</summary>
+        public float SightReachNow => SightReach;
+        /// <summary>Its chest height above its feet, world units: where it looks from.</summary>
+        public float ChestHeightNow => chestHeight * Scale;
+        /// <summary>The layers its sight is stopped by.</summary>
+        public int SightLayers => Layers.Seen(sightMask);
+        /// <summary>The points it walks while it plays in a team match, in order from its post (never null; empty when it
+        /// has none). An entry may be missing (null).</summary>
+        public IReadOnlyList<Transform> MatchRoute => matchRoute != null ? matchRoute : System.Array.Empty<Transform>();
+        /// <summary>True while a flinch or a get-up holds its feet: it does not move whatever it is told.</summary>
+        public bool FeetHeld => Time.time < _standUntil;
+
+        // Its brain, if it has one (D-0188): looked for once (again after a script reload), never added here.
+        [System.NonSerialized] private BotBrain _brain;
+        [System.NonSerialized] private bool _brainLooked;
+        private BotBrain Brain
+        {
+            get
+            {
+                if (!_brainLooked) { _brainLooked = true; TryGetComponent(out _brain); }
+                return _brain;
+            }
+        }
 
         private float SightRange => InPlay ? _matchSight : sightRange;
         private float FireRange => InPlay ? _matchFire : fireRange;
@@ -546,7 +582,20 @@ namespace ShiftJam
 
             Perceive(dt);
             Vector3 move = Vector3.zero, face = Vector3.zero;
-            if (_state == State.Engage)
+            BotBrain brain = Brain;
+            if (brain != null && brain.CanDrive)
+            {
+                // A bot with a mind (D-0188), in play on the host with a mapped floor: its brain decides where it goes,
+                // where it faces and when it fires (through Fire). Its senses stay here: it is told who it is after
+                // (while engaged), where to aim on them and whether it sees them now. Its feet still stop while a flinch
+                // or a get-up holds them.
+                Transform quarry = null;
+                Vector3 aimAt = Vector3.zero;
+                if (_state == State.Engage && !TryTarget(out aimAt, out quarry)) quarry = null;
+                brain.Drive(dt, quarry, aimAt, _sees && quarry != null, out move, out face);
+                if (Time.time < _standUntil) move = Vector3.zero;
+            }
+            else if (_state == State.Engage)
             {
                 if (TryTarget(out Vector3 aim, out _)) { face = aim - transform.position; TryFire(aim); }
             }
@@ -753,19 +802,34 @@ namespace ShiftJam
             return first == null || first.IsChildOf(root);
         }
 
-        private void TryFire(Vector3 aim)
+        /// <summary>
+        /// A bot's brain fires (D-0188): one dart now straight toward <paramref name="aim"/> (the brain has already put its
+        /// lead and its error in the point), if it may: it sees its quarry, no flinch or get-up holds its fire, the point
+        /// is within its fire reach, its body faces it within 20 degrees, and its last shot allows it. The next is allowed
+        /// <paramref name="nextIn"/> seconds later. Everything a shot does (the dart, the copy on other PCs, the sound,
+        /// Fired) is the soldier's own. True when a dart left.
+        /// </summary>
+        public bool Fire(Vector3 aim, float nextIn) => Shoot(aim, false, nextIn);
+
+        /// <summary>Its own shot while engaged without a brain: its own interval and spread, as always.</summary>
+        private void TryFire(Vector3 aim) => Shoot(aim, true, 0f);
+
+        /// <summary>One dart toward <paramref name="aim"/> if it may. <paramref name="own"/>: its own interval (picked
+        /// after the checks) and its own spread; otherwise the next shot waits <paramref name="nextIn"/> seconds and the
+        /// dart goes straight at the point (D-0188).</summary>
+        private bool Shoot(Vector3 aim, bool own, float nextIn)
         {
-            if (!_sees || projectile == null || Time.time < _nextFire || Time.time < _holdFireUntil) return;   // a flinch holds its fire (D-0180)
+            if (!_sees || projectile == null || Time.time < _nextFire || Time.time < _holdFireUntil) return false;   // a flinch holds its fire (D-0180)
             Vector3 from = Eye;
             Vector3 to = aim - from;
-            if (to.magnitude > FireReach) return;
+            if (to.magnitude > FireReach) return false;
             // Facing is judged from the body, not the muzzle: a rifle tip out to the side and in front would read a close
             // target as off to one side and never fire.
             Vector3 flat = Vector3.ProjectOnPlane(aim - transform.position, Vector3.up);
-            if (flat.sqrMagnitude > 1e-6f && Vector3.Angle(transform.forward, flat) > 20f) return;   // still turning
-            _nextFire = Time.time + fireInterval * Random.Range(0.85f, 1.15f);
+            if (flat.sqrMagnitude > 1e-6f && Vector3.Angle(transform.forward, flat) > 20f) return false;   // still turning
+            _nextFire = Time.time + (own ? fireInterval * Random.Range(0.85f, 1.15f) : Mathf.Max(0f, nextIn));
             Vector3 dir = to.normalized;
-            if (spread > 0f)
+            if (own && spread > 0f)
             {
                 Vector3 axis = Vector3.Cross(dir, Mathf.Abs(dir.y) > 0.99f ? Vector3.right : Vector3.up).normalized;
                 axis = Quaternion.AngleAxis(Random.Range(0f, 360f), dir) * axis;
@@ -775,6 +839,7 @@ namespace ShiftJam
             CoopWorld.SoldierShot(this, from, dir);   // online host: a harmless copy of the dart on every other PC (D-0131)
             PlayFire();
             Fired?.Invoke(from, dir);                 // D-0187
+            return true;
         }
 
         /// <summary>Its own clip, else its dart's (the player's dart pistol sound): the course's soldiers were built with none and fired silently.</summary>

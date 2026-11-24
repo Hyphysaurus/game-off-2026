@@ -66,6 +66,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1349665869275810471}
+    - targetCorrespondingSourceObject: {fileID: 8979847652353356667, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3744745315977856708}
   m_SourcePrefab: {fileID: 100100000, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
 --- !u!1 &7973046851325070668 stripped
 GameObject:
@@ -116,6 +119,45 @@ MonoBehaviour:
   chestRadius: 0.2
   chestForward: 0.06
   legRadius: 0.11
+--- !u!114 &3744745315977856708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7973046851325070668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8720bee650d8c1f48a5871b75b2fede7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.BotBrain
+  turnSeconds: 0.25
+  personalSpace: 1.2
+  spaceShove: 0.6
+  stuckSeconds: 0.8
+  thinkEvery: 0.1
+  arriveWithin: 0.5
+  floorAhead: 0.8
+  floorEdge: 0.45
+  headwayShare: 0.3
+  leastStateSeconds: 0.6
+  lostSightSeconds: 0.5
+  underFireSeconds: 2
+  retrySeconds: 0.75
+  fightPace: 0.75
+  sidestepSeconds: 0.6
+  lineOfFireRoom: 0.5
+  repathDistance: 1.5
+  speedSmoothing: 0.15
+  fastestQuarry: 30
+  aimDrift: 0.8
+  lookDegrees: 60
+  huntAheadSeconds: 1
+  huntSeeWithin: 5
+  goalSearch: 4
+  dodgePace: 1.25
+  dodgeMargin: 1
+  gapSeconds: 0.3
 --- !u!4 &9194387123901694889 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7899918900974108062, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}

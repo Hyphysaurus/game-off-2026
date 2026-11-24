@@ -21,6 +21,8 @@ namespace ShiftJam
     ///    belonging to the half it stands in for team matches, and a landing point at each base (D-0182).
     ///  - D-0181: the whole plan 1.6 times wider (the field 81 across, 51 before) with the play pieces kept toy-sized
     ///    and more cover added, after his "feeling a bit small and cramped".
+    ///  - D-0188: a BotGround over the field (the floor the bots walk, mapped as the scene starts) and a BotBrain on
+    ///    each practice soldier whose prefab has none.
     /// </summary>
     public static class StadiumLayout
     {
@@ -250,6 +252,9 @@ namespace ShiftJam
                         so.FindProperty("wanderRadius").floatValue = 2.5f;   // they stay at their corner
                         so.FindProperty("matchOrder").intValue = guard.Order;
                         so.ApplyModifiedPropertiesWithoutUndo();
+                        // A bot's mind for the team match (D-0188), if its prefab did not bring one (FunnySoldier does
+                        // once Build Bot Pieces has run). Nothing else about the soldier changes.
+                        if (!soldier.TryGetComponent(out BotBrain _)) soldier.AddComponent<BotBrain>();
                         // The route starts at the post; the north's is the south's turned half round, as every piece is.
                         var route = new Vector2[guard.Route.Length + 1];
                         route[0] = by;
@@ -302,7 +307,34 @@ namespace ShiftJam
             Vector2 land = Spread(TeamLanding, true, TeamLandingBy);
             Spawn(spawns, new Vector3(land.x, 0f, land.y), 0f).SetTeam(TeamMatch.Blue, true);
             Spawn(spawns, new Vector3(-land.x, 0f, -land.y), 180f).SetTeam(TeamMatch.Orange, true);
+
+            // ---------------------------------------------------------------- the floor the bots walk (D-0188)
+            // Last, so the parts above keep their places among the root's children (CoopWorld numbers the soldiers by path).
+            PlaceBotGround(root);
         }
+
+        /// <summary>The map of the field's floor for the bots (BotGround, D-0188), under the layout's root: the prefab when
+        /// Build Bot Pieces has made it, else a plain object with the part. Its box covers the field and keeps low, so the
+        /// stands and the tops of the towers stay out: centre (0, 2, 0), Field Radius + 1 each way, 6 high.</summary>
+        private static void PlaceBotGround(Transform root)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(BotPieces.GroundPrefabPath);
+            GameObject go;
+            if (asset != null) go = (GameObject)PrefabUtility.InstantiatePrefab(asset, root);
+            else { go = new GameObject("BotGround", typeof(BotGround)); go.transform.SetParent(root, false); }
+            go.name = "BotGround";
+            go.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            if (!go.TryGetComponent(out BotGround ground)) ground = go.AddComponent<BotGround>();
+            var so = new SerializedObject(ground);
+            so.FindProperty("centre").vector3Value = new Vector3(0f, BotGroundCentreHeight, 0f);
+            float across = 2f * (FieldRadius + BotGroundBeyond);
+            so.FindProperty("size").vector3Value = new Vector3(across, BotGroundHeight, across);
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private const float BotGroundCentreHeight = 2f;   // the map's box: its middle this high above the field...
+        private const float BotGroundHeight = 6f;         // ...this tall (the field and the low pieces, not the stands)...
+        private const float BotGroundBeyond = 1f;         // ...and this far past the field's edge each way
 
         /// <summary>A practice soldier of the south half (its north twin is it turned half round): its post in the plan's
         /// units (held by its base's arch, as the plan had it), which of its team plays first in a team match (0 first),

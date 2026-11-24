@@ -15,14 +15,16 @@ namespace ShiftJam
     ///   breaks a toy (the fall rule); the paper plane from the playroom desk carries one down (glider-gated).
     /// - The way back to the hallway from the playroom: the mouse hole the hallway lets out at (Portal, toy only), arriving
     ///   on the hallway floor just past the bridge.
-    /// - What says so: a toy standing by the gap (ProblemHint, its words), a tape note on the wall over the gap, and one on
-    ///   the playroom desk by the plane.
+    /// - What says so: Gap, a talking toy standing by the gap (a house character, D-0185: E for its words a sentence at a
+    ///   time; the whole words show on approach from its hint), a tape note on the wall over the gap, and one on the
+    ///   playroom desk by the plane.
     /// - The room: the Playroom pack's room modules (as the bedroom), furniture from Cute_Furniture_Free, Christmas_Pack_FREE
     ///   and Food_Free scaled to the house (a real metre is 55 here, as the bedroom's bed), warm light.
     /// - The arena: six tan soldiers (the pack's soldier on a tan copy of its colour sheet) round the kitchen, sandbag cover,
     ///   cups and cans that break. Knock each down once (SquadGate) and the toy door home opens: a copy of the bedroom's,
     ///   leading back to the playroom.
-    /// Everything lives under Room/Course/Downstairs (and a few named pieces in R3/R4); running it again replaces them.
+    /// Everything lives under Room/Course/Downstairs (and a few named pieces in R3/R4; Gap and its hint under the scene's
+    /// HouseCharacters root); running it again replaces them.
     /// Menu: Shift Jam / House / Land Downstairs (D-0103).
     /// </summary>
     public static partial class CourseBuilder
@@ -324,44 +326,17 @@ namespace ShiftJam
             Log.AppendLine($"way back: the playroom's mouse hole ({back.transform.position}) to the hallway at {arrive.position}, facing the bridge");
         }
 
-        const string FunnyRig = "Assets/_Imports/ithappy/Funny_Characters/Meshes/Basic_Character.fbx";
-        const string FunnyIdle = "Assets/_Imports/ithappy/Funny_Characters/Animations/Animation_Clips/Idle.anim";
-        const string GapNpcController = "Assets/_Game/Data/GapNpc_Idle.controller";
-
-        /// <summary>The Funny Characters pack's figure standing idle: an Animator on its humanoid rig with a one-state
-        /// controller of the pack's own Idle loop (made once, in Data; it points into the git-ignored pack).</summary>
-        static void IdleOn(GameObject figure)
-        {
-            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(FunnyIdle);
-            var avatar = AssetDatabase.LoadAllAssetsAtPath(FunnyRig).OfType<Avatar>().FirstOrDefault();
-            if (clip == null || avatar == null) { Log.AppendLine($"pointers: the toy stays posed (idle {(clip != null)}, rig {(avatar != null)})"); return; }
-            var controller = AssetDatabase.LoadAssetAtPath<UnityEditor.Animations.AnimatorController>(GapNpcController)
-                             ?? UnityEditor.Animations.AnimatorController.CreateAnimatorControllerAtPathWithClip(GapNpcController, clip);
-            if (!figure.TryGetComponent(out Animator animator)) animator = figure.AddComponent<Animator>();
-            animator.avatar = avatar;
-            animator.runtimeAnimatorController = controller;
-            animator.applyRootMotion = false;
-            animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
-            Log.AppendLine("pointers: the toy by the gap stands idle");
-        }
-
         // ---- what says so: a toy by the gap, a note over it, a note by the plane
         static void Pointers(Transform r3, Transform r4)
         {
             const string words = "The living room is down there. The Tan Splinter took it.\nToo far to fall. With a paper plane: drop through,\nthen open it (Jump) once you are below the floor.";
-            var path = AssetDatabase.FindAssets("Basic_Character t:Prefab", new[] { "Assets/_Imports/ithappy" }).Select(AssetDatabase.GUIDToAssetPath).FirstOrDefault(x => Path.GetFileNameWithoutExtension(x) == "Basic_Character");
             Vector3 at = new Vector3(GapX0 - 16f, 0f, LaneZ - HallW / 2f + 3f);   // west of the hallway's lantern (x 163..169), clear of the charge core
-            if (path != null)
-            {
-                var npc = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(path), r3); npc.name = "GapNpc";
-                npc.transform.SetPositionAndRotation(at, Quaternion.LookRotation(Vector3.left));
-                var b = B(npc); npc.transform.localScale *= 3.4f / Mathf.Max(0.01f, b.size.y);   // a toy's height
-                Rest(npc, 0f, null);
-                var hint = npc.AddComponent<BoxCollider>(); hint.isTrigger = true; hint.size = new Vector3(14f, 6f, 14f) / npc.transform.localScale.x; hint.center = Vector3.up * 3f / npc.transform.localScale.x;
-                var ph = npc.AddComponent<ProblemHint>(); Set(ph, "message", words); Set(ph, "anySize", true);
-                IdleOn(npc);   // the pack's character has no Animator: it stood in its bind pose (a T), not as a toy waiting
-            }
-            else Log.AppendLine("pointers: no Basic_Character: the note only");
+            // D-0185: Gap, a house character at the toy's height, stands there and says the words a sentence at a time on E;
+            // the words also show on approach from GapHint's trigger box (14 wide, 6 high: as the bare figure's was). Both live
+            // under the scene's HouseCharacters root, where Place House Characters keeps them (it re-stands Gap from GapHint).
+            var gap = HouseCharacterPieces.StandGap(r3.gameObject.scene, at, Quaternion.LookRotation(Vector3.left), words, new Vector3(14f, 6f, 14f), Vector3.up * 3f);
+            Log.AppendLine(gap != null ? "pointers: Gap (a house character) by the gap, its hint on HouseCharacters/GapHint"
+                                       : "pointers: no HouseCharacter prefab (run Shift Jam > Characters > Build House Character): the hint only, on HouseCharacters/GapHint");
             TapeSign("GapNote", r3, new Vector3((GapX0 + GapX1) / 2f, 4.2f, LaneZ + HallW / 2f - 0.15f), Vector3.back, "LIVING ROOM BELOW\nDROP THROUGH, THEN\nOPEN THE PLANE", 8f, 3.4f);
             var glider = r4.GetComponentInChildren<GliderPickup>(true);
             if (glider != null)

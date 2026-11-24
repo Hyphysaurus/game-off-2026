@@ -58,6 +58,11 @@ namespace ShiftJam
 
             IInteractable best = null;
             float bestDistance = float.MaxValue;
+            // A hint (words, no key) is the target only when nothing E works on is in reach (D-0185): Gap, a talking toy,
+            // stands inside the gap's hint box, and with the search's centre inside both the hint won as often as not, so
+            // E did nothing.
+            IInteractable bestHint = null;
+            float bestHintDistance = float.MaxValue;
             for (int i = 0; i < count; i++)
             {
                 if (_hits[i].transform.IsChildOf(transform)) continue;
@@ -71,8 +76,10 @@ namespace ShiftJam
                 var hit = _hits[i];
                 bool exact = hit is BoxCollider || hit is SphereCollider || hit is CapsuleCollider || (hit is MeshCollider mc && mc.convex);
                 float distance = ((exact ? hit.ClosestPoint(centre) : hit.bounds.ClosestPoint(centre)) - centre).sqrMagnitude;
-                if (distance < bestDistance) { bestDistance = distance; best = candidate; }
+                if (candidate is IHintOnly) { if (distance < bestHintDistance) { bestHintDistance = distance; bestHint = candidate; } }
+                else if (distance < bestDistance) { bestDistance = distance; best = candidate; }
             }
+            if (best == null) best = bestHint;
 
             if (!ReferenceEquals(best, Target))
             {

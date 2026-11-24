@@ -57,9 +57,16 @@ namespace ShiftJam
         private TMP_Text _hud;
         private float _nextHud;
 
+        /// <summary>Thrown by anything that would make an object once Play has stopped. Stopping Play while online drops
+        /// the connection, and the reconnect that starts then is still awaiting the network when the editor is back in
+        /// edit mode: carried on, it made a "NetSession" and a "NetworkManager" in whatever scene was OPEN FOR EDITING,
+        /// where the next save kept them (found 24 Nov, when a save of the house picked both up).</summary>
+        private const string PlayStopped = "Play has stopped: nothing online is made outside Play.";
+
         private static NetSession Get()
         {
             if (_instance != null) return _instance;
+            if (!Application.isPlaying) throw new InvalidOperationException(PlayStopped);
             var go = new GameObject("NetSession");
             DontDestroyOnLoad(go);
             _instance = go.AddComponent<NetSession>();
@@ -273,9 +280,11 @@ namespace ShiftJam
             }
             foreach (var party in open)
             {
+                if (!Application.isPlaying) return;
                 try { await JoinById(party.Id); return; }
-                catch (Exception e) { Debug.LogWarning("NetSession: " + party.Name + " would not take us: " + e.Message); }
+                catch (Exception e) { if (!Application.isPlaying) return; Debug.LogWarning("NetSession: " + party.Name + " would not take us: " + e.Message); }
             }
+            if (!Application.isPlaying) return;   // Play stopped while we looked: hosting would make objects in the open scene
             _busy = false;   // Host checks it
             Host();
         }
@@ -305,7 +314,7 @@ namespace ShiftJam
         /// straight into another open world, or a new one of our own. Never stranded on the title.</summary>
         private async void Recover(string why)
         {
-            if (_busy) return;
+            if (_busy || !Application.isPlaying) return;   // Play is stopping: that is why the connection went
             _busy = true;
             string last = _lastId;
             _session = null; _local = false;
@@ -317,12 +326,18 @@ namespace ShiftJam
                 await ShutdownDone();
                 for (int attempt = 0; attempt < 2 && !string.IsNullOrEmpty(last); attempt++)
                 {
+                    if (!Application.isPlaying) return;   // Play stopped while we waited: there is nothing to get back to
                     try { await JoinById(last); return; }
-                    catch (Exception e) { Debug.LogWarning("NetSession: rejoin " + (attempt + 1) + ": " + e.Message); await Task.Delay(1500); }
+                    catch (Exception e)
+                    {
+                        if (!Application.isPlaying) return;
+                        Debug.LogWarning("NetSession: rejoin " + (attempt + 1) + ": " + e.Message); await Task.Delay(1500);
+                    }
                 }
+                if (!Application.isPlaying) return;
                 await PlayOnlineCore();
             }
-            catch (Exception e) { Fail("Could not get back online", e); }
+            catch (Exception e) { if (Application.isPlaying) Fail("Could not get back online", e); }
             finally { _busy = false; }
         }
 
@@ -385,6 +400,7 @@ namespace ShiftJam
         private void EnsureNetworkManager()
         {
             if (NetworkManager.Singleton != null) return;
+            if (!Application.isPlaying) throw new InvalidOperationException(PlayStopped);
             GameObject prefab = Resources.Load<GameObject>(PlayerPrefabPath);
             if (prefab == null) throw new InvalidOperationException("Resources/" + PlayerPrefabPath + " is missing: run Shift Jam / Party / Build Net Player + Stadium.");
             var go = new GameObject("NetworkManager");

@@ -3433,3 +3433,44 @@
   - The play log's line now says how hard: "grenade thrown at 87% power, 2 left".
   - My call, his to overturn: the charge stops at full and waits (it does not swing back down). Numbers are in
     `Resources/Grenades`.
+- **D-0185 (24 Nov, 12:2x) Funny characters, stage 2: house characters. Three stand in the house. NOT PLAYED.**
+  The third of his three uses ("character npcs around th4e house"). One builder, staged outside, read by me.
+  - `Room/HouseCharacter.cs` (on the body, beside `CharacterBody`): it idles and now and then looks round; a few times a
+    second it finds the nearest player within **Notice Range** (any player's body on this PC), turns its body to
+    them and its head and neck a little more (added over the Animator's pose each frame; nobody near: it turns back
+    to the way it was placed); the first time someone comes within **Greet Range** it waves (again only after
+    **Greet Again Seconds**); **E** ("Talk"): it says its next line to that player as a toast under its name, with a
+    talking gesture. Its name, lines, prompt and every number are its own fields. A solid capsule fitted to what it
+    wears. Each PC runs its own (scenery that answers: nothing is sent).
+  - `Animation/HouseCharacter.controller` (Idle, LookAround, Wave, Talk), built in code. Idle and look-around are the
+    player's own clip copies; the wave and the talk are copied into the ignored `_Imports/ShiftJam/CharacterClips`
+    from the free Christmas pack (Santa_WaveHello played about twice as fast, the first 4 s of
+    Santa_TalkGestureActive). A missing clip: that state is left out and the character still works.
+  - `Prefabs/Characters/HouseCharacter.prefab`: a VARIANT of FunnyBody (so the look system is one), with the
+    controller, the capsule, and its Animator culled off screen. Made once; later builds only bring it up to date
+    and never touch its wording.
+  - `Debug/HouseCharacterPieces.cs`: menus Shift Jam > Characters > Build House Character, and Place House
+    Characters, which works on the open scene, under ONE root `HouseCharacters`, undoable, never saving: beside each
+    hub door of a table (a step or more into the room where the door's own dressing takes the nearest spots), and
+    in place of the bare figure by the gap, each as tall as the scene's player toy (1.8).
+  - **In Greybox now (placed through the bridge, the scene saved by me; it was clean before):** **Gap** by the gap
+    in the hallway (the old `GapNpc`, the pack's bare rig with every part on at once and twice a toy's height, is
+    gone; its hint box and words moved to `HouseCharacters/GapHint`; Gap says the same words on E), **Pit** by the
+    Raceway door, **Dab** by the Colour Corner door. Names and lines are placeholder wording, his to change (on the
+    placed characters; a later Place stands them afresh from the builder's table).
+  - `CourseBuilder.Downstairs.Pointers()` stands Gap the same way, so a later Land Downstairs does not bring the
+    bare figure back.
+  - **The interaction picker changed (`Interaction/Interactor.cs`), the builder's find, kept:** a hint (words, no
+    key) is now the target only when nothing E works on is in reach. Before, standing inside a hint's box the hint
+    won every tie, so E on anything inside that box did nothing about half the time (Gap stands inside its own
+    hint box).
+  - Checked through the bridge, out of Play: the prefab is a variant with all its parts; three characters stand,
+    each 1.8 to the head; stills of each (`%TEMP%\shiftjam-stage\chars2\out`). NOT seen in Play: how the turn and
+    the head look, whether the wave at double speed and the cut talk read well, the lines.
+- **D-0186 (24 Nov, 12:2x) Stopping Play while online no longer leaves objects in the scene open for editing.**
+  Found when my save of Greybox picked up a "NetworkManager" and a "NetSession" at the scene's root (taken out
+  again before the commit). Stopping Play drops the connection; `NetSession.Recover` starts a reconnect; its awaits
+  come back after the editor has left Play, and it went on to make its objects in the scene open for editing, where
+  `DontDestroyOnLoad` throws and leaves them behind (the Unity log of 11:36 has both errors). Now nothing online is
+  made outside Play (`Get`, `EnsureNetworkManager`), and the reconnect stops quietly at its next step once Play
+  has stopped. A built game is not affected (there is no edit mode).

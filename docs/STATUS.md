@@ -2,6 +2,43 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 01:4x — "A MORE BUTTERY FEEL": READ ONLY, A PLAN THAT WAITS FOR HIS "PROCEED". NOTHING BUILT
+- His words: "i want to improve movement feel a bit and aim for a more buttery feel and experience", then, asked
+  which moments: "the camera and stopping, mostly, but also combat feel".
+- Read by three readers (body and animation, cameras and first person, frame pacing; no Play, nothing touched) plus
+  my own look at the combat code. Their full findings: `%TEMP%\shiftjam-stage\feel\readers_full.json` and the
+  three notes files beside it.
+- **What they found, in short.** The cameras and the motor are sound underneath (the camera moves after the body,
+  mouse look is raw, the body starts in 0.12 s and stops in 0.14 s). The roughness is in things that are welded
+  with no easing:
+  - Third-person camera: its height is locked to the feet (every step, jump and landing jolts the whole view); it
+    snaps back out from a wall in one frame; it follows the body on the flat with no give, so a stop or a turn of
+    the body is a stop or a turn of the whole picture; the follow-behind turn starts and ends at full speed.
+  - Stopping: first person coasts 1.44 units from a walk since D-0175 (0.89 before, third person 0.49); the
+    first-person bob got quicker with the faster walk (2.2 a second, was 1.5). Third person stops crisply, but its
+    legs cover only 39 % of the ground at a walk and 30 % at a sprint (one run clip, playback capped at 1.6), so
+    the feet skate, most visibly as it starts and stops.
+  - Combat: firing does nothing to the third-person camera (first person kicks the view); the first shot from the
+    hip waits 0.11 s for the arm; a toy soldier takes four pistol darts and never flinches; in first person the
+    gun is welded to the eye (no sway, no lag).
+  - Frames: nothing paces them (vSync off, no cap: 6 to 12 ms from frame to frame); kid size is heavier (42 lamp
+    shadow pictures a frame); the first kid-to-toy shift of a play freezes about 2 s (the bend re-skins the house).
+- **PLAN, first batch (small, no input delay anywhere, every number a setting with 0 = as today):**
+  1. Camera height eases (about 0.08 s, capped, not on a rope or the glider): steps, jumps, landings.
+  2. Camera goes in from a wall at once and eases back out (about 0.45 s).
+  3. Camera follows the body with a short, capped give on the flat, in the wide view; less with a weapon out, none
+     with aim held (the dot stays tied to the hand).
+  4. Follow-behind turn eases in and settles.
+  5. First person stops in about 0.7 units (Friction 4 -> 8, Accelerate 10 -> 14) and its bob goes back to its
+     old pace (Bob Per Unit 0.32 -> 0.22). Numbers only.
+  6. A small camera kick per shot in third person, sized by the gun's Recoil.
+  7. His to try, no code: the Game view's VSync box; then vSync on in builds.
+- **Second batch, each on his word:** corners that turn with the stick instead of cutting across (the change the
+  body reader rates highest); the first-person eye easing over steps and dipping on a landing; the first-person
+  gun swaying and lagging a little; a soldier's flinch on each hit; legs' playback 1.6 -> 2.2 (his eye); the first
+  shot from the hip leaving at once; the first shift's freeze paid at load; lamp shadows only in the room he is in.
+- Not played yet: D-0176 (the hit scan dart). No verdict yet on the aim fixes (D-0174).
+
 ## 24 Nov 2026 01:2x — ONE KIND OF SHOT, STEP 1 (D-0176): THE HIT SCAN SHOT IS NOW SEEN AS A FLYING DART. IN THE PROJECT, NOT PLAYED
 - His words after playing the aim fixes: "i want to keep ONE but i love the look of the flying dart..", then
   "proceed". Plan agreed: one rule where the hit is decided at the click and a real dart flies to that spot and

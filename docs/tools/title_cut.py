@@ -1,8 +1,8 @@
-import sys, numpy as np
+import os, sys, numpy as np
 from PIL import Image, ImageDraw
 from scipy import ndimage as ndi
 S=sys.argv[1]
-src=Image.open('/mnt/c/Users/maram/iCloudDrive/Procreate/Shift_Title_V2.png').convert('RGBA')
+src=Image.open(os.environ.get('SHIFT_TITLE_SRC','Shift_Title_V2.png')).convert('RGBA')   # the title drawing: set SHIFT_TITLE_SRC to its path
 a=np.asarray(src).astype(np.float32)/255
 rgb=a[...,:3]*a[...,3:4]+(1-a[...,3:4])          # over white paper
 lum=rgb@np.array([0.299,0.587,0.114],np.float32)

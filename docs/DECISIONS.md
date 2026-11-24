@@ -2288,7 +2288,7 @@
   the upload for me", "add it" (the permission rule). Page: https://hyphysaurus.itch.io/shift-jam-playtest
   (Restricted; friends get one download key each: password-only restricted pages reportedly do not work in the itch
   app, which is what auto-updates). butler v15.32.0 from itch's broth server (the .zip held butler.exe + two 7-zip
-  libraries, as the docs say) in C:\butler, logged in once (key in C:\Users\maram\.config\itch\butler_creds). His
+  libraries, as the docs say) in C:\butler, logged in once (key in %USERPROFILE%\.config\itch\butler_creds). His
   user settings allow exactly: unpacking that one download, and running /mnt/c/butler/butler.exe. Each build:
   `butler push <Builds\Windows\ShiftJam_vN> hyphysaurus/shift-jam-playtest:windows --userversion N` (the share copy
   without LLMUnity's libraries); friends with the app get only the changed files. `docs/tools/itch_push.ps1` does the

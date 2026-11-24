@@ -198,6 +198,19 @@ namespace ShiftJam
             return place;
         }
 
+        /// <summary>How many people are on a team (0 when no match is on).</summary>
+        public static int People(int team)
+        {
+            if (team == NoTeam || !HasTeams) return 0;
+            int n = 0;
+            foreach (NetMatch m in NetMatch.All) if (m != null && m.IsSpawned && m.Team == team) n++;
+            return n;
+        }
+
+        /// <summary>How many bots a team should have while play is on: what its people leave of Team Size (two people on
+        /// a team of two: none). 0 at any other time. The scene may hold fewer soldiers than this asks for.</summary>
+        public static int BotsWanted(int team) => team != NoTeam && Phase == MatchPhase.Playing ? Mathf.Max(0, TeamSize - People(team)) : 0;
+
         /// <summary>The team and the member (its player's NetMatch) that <paramref name="t"/> is part of.</summary>
         private static int MemberOf(Transform t, out Component who)
         {

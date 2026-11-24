@@ -18,8 +18,15 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   not roll); a drop while aiming or reloading (should not roll by itself).
 - Look for: straight into the dive, or a flash of the run first; hands and feet slipping (PlayerMoves > Land Roll
   Most, 1.6 now: lower = less slip, more brake); rolling off something narrow; the body coming up running.
-- NEXT: the rope build (contract + check ready at `%TEMP%\shiftjam-stage\rope`), early in a usage window. Then a
-  v18 build mid-week.
+- **17:0x his go: "lets start the rope build, it should be at the top of the book steps in the hallway first".**
+  CHECKPOINT (if this run dies, pick up here): run `wf_c3874653-139` (script in the session's `workflows/scripts/
+  rope-build-*.js`): one builder -> one reviewer -> one fixer, building from `ROPE_CONTRACT.md` as corrected by
+  `ROPE_CONTRACT_CHECK.md`, staged in `%TEMP%\shiftjam-stage\rope\build` (`.orig.cs` + edits + new files +
+  `manifest.tsv` + `README.txt` with the orchestrator's steps). NOTHING is in the project yet. To land: editor not in
+  Play; `cmp` each `.orig.cs` with the project; copy; let Unity compile; run the menus the README names (the rope
+  piece, the rider onto Player.prefab, Rebuild Clips + Controllers again for the hang state, the placement of
+  `Rope_HallBooks` at the top of the book steps); save Greybox; docs (D-0170); commit; push.
+- Then a v18 build mid-week.
 
 ## 23 Nov 2026 16:1x — THE JUMP'S POSE FOLLOWS THE JUMP (D-0169): IN THE PROJECT, PLAYED 16:2x, HIS "the jump looks good"
 - His word after playing (16:2x, the play I launched for him at his "launch the playtest"): "the jump looks good". Then:

@@ -15,12 +15,18 @@ namespace ShiftJam
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int GroundedHash = Animator.StringToHash("Grounded");
         private static readonly int VerticalHash = Animator.StringToHash("VerticalVelocity");
+        private static readonly int AirPhaseHash = Animator.StringToHash("AirPhase");
+        // The air pose follows the jump (D-0169): the Air state shows its clip at the time AirPhase says, not at the clock's.
+        private const float AirPhaseRate = 4f;       // most the phase moves a second once the air pose shows: a cut jump, a glider or a line opened in mid-jump catches up in a few frames without a pop
+        private const float AirPhaseFloor = 0.18f;   // least phase when no jump is under way (a pad, a knock, a fling off a line): just airborne, not the planted push-off
+        private const float AirPhaseHeld = 0.5f;     // gliding or on a line: the top of the arc, neither going up nor coming down
+        private const float LeastTakeOff = 0.01f;    // own units a second: a jump height of 0 in the settings must not divide by 0
 
         [SerializeField] private MovementSettings settings;
         [SerializeField] private PlayerInput input;
         [SerializeField, Tooltip("Movement is relative to this camera's facing. Main Camera if empty.")]
         private Transform cameraTransform;
-        [SerializeField, Tooltip("Found in children if empty. Reads Speed (0..1), Grounded, VerticalVelocity.")]
+        [SerializeField, Tooltip("Found in children if empty. Reads Speed (0..1), Grounded, VerticalVelocity and AirPhase (0 take-off, 0.5 the top, 1 landing).")]
         private Animator animator;
         [SerializeField, Tooltip("Optional. Without one the player is always kid size.")]
         private Shifter shifter;
@@ -34,6 +40,10 @@ namespace ShiftJam
         private bool _jumping;              // a jump started and has not landed yet
         private bool _jumpCut;              // this jump was already shortened by an early release
         private Vector3 _windTarget; private float _windAccel; private int _windFrame = -10;   // this frame's wind, from an Updraft
+        private float _airPhase;            // where the air pose is in the jump's arc: 0 take-off, 0.5 the top, 1 landing
+        private bool _toldGrounded = true;  // what the Animator was last told of the ground (the controller's Grounded starts true)
+        private Animator _airPhaseFor;      // the Animator the answer below was worked out for (the body can be swapped)
+        private bool _hasAirPhase;          // that Animator lists AirPhase (a controller built before D-0169 does not)
 
         public bool Grounded { get; private set; }
         public Vector3 Velocity => _planar + Vector3.up * _vertical;
@@ -175,7 +185,11 @@ namespace ShiftJam
                 _controller.Move(v * dt + Vector3.up * pivot);
                 Grounded = false;
                 _jumping = false; _jumpCut = true; _lastGroundedTime = -10f; _jumpPressedTime = -10f;
-                if (animator != null) { animator.SetFloat(SpeedHash, 0f, 0.08f, dt); animator.SetBool(GroundedHash, false); animator.SetFloat(VerticalHash, 0f); }
+                if (animator != null)
+                {
+                    animator.SetFloat(SpeedHash, 0f, 0.08f, dt); animator.SetBool(GroundedHash, false); animator.SetFloat(VerticalHash, 0f);
+                    WriteAirPhase(toldGrounded: false, held: true, scale, dt);
+                }
                 return;
             }
 
@@ -281,7 +295,62 @@ namespace ShiftJam
                 bool steadyGrounded = Glide != null || Grounded || Time.time - _lastGroundedTime <= settings.groundedGrace;
                 animator.SetBool(GroundedHash, steadyGrounded);
                 animator.SetFloat(VerticalHash, Glide != null ? 0f : _vertical / scale);
+                WriteAirPhase(steadyGrounded, held: Glide != null, scale, dt);
             }
+        }
+
+        /// <summary>
+        /// Moves the air pose's phase and hands it to the Animator (D-0169), so the body pushes off, hangs at the top and
+        /// reaches for the floor in step with the jump itself instead of holding one pose. Called wherever the Animator
+        /// is told of the ground, with the same answer it was given (<paramref name="toldGrounded"/>): on the frame that
+        /// answer turns to "in the air" the phase starts at where the jump is; after that it follows at no more than
+        /// AirPhaseRate, so a cut jump or a bumped head catches up without a pop. On the ground it is left alone: the
+        /// air pose is still blending out there and must not run backwards. <paramref name="held"/>: on the glider or on
+        /// a line, where the body neither rises nor comes down: the phase goes to AirPhaseHeld, and at the same rate,
+        /// because both can start in the middle of a jump with the air pose on screen (the line leaves the body in Air;
+        /// the glider's crouch fades in over it).
+        /// </summary>
+        private void WriteAirPhase(bool toldGrounded, bool held, float scale, float dt)
+        {
+            bool lostGround = _toldGrounded && !toldGrounded;
+            if (held || !toldGrounded)
+            {
+                float target = held ? AirPhaseHeld : AirPhaseTarget(scale);
+                // Only the frame the ground is lost may jump: the air pose is not on screen yet. Anything later is walked to,
+                // so opening the glider or firing the line in mid-jump does not pop the pose.
+                _airPhase = lostGround ? target : Mathf.MoveTowards(_airPhase, target, AirPhaseRate * dt);
+            }
+            _toldGrounded = toldGrounded;
+            if (ListsAirPhase()) animator.SetFloat(AirPhaseHash, _airPhase);
+        }
+
+        /// <summary>
+        /// Where the body is in a jump's arc, from its vertical speed alone (own units, so a toy and a kid agree): 0 while it
+        /// rises at a jump's take-off speed, 0.5 at the top, 1 when it comes down as fast as it took off. Anything that is
+        /// not a jump (a pad, a knock, a fling off a line) can rise much faster and for longer: it never shows less than
+        /// AirPhaseFloor, so a long rise holds a just-airborne pose and not the push-off with a foot planted.
+        /// </summary>
+        private float AirPhaseTarget(float scale)
+        {
+            float takeOff = Mathf.Max(LeastTakeOff, Mathf.Sqrt(Mathf.Max(0f, 2f * settings.gravity * settings.jumpHeight)));
+            float target = Mathf.Clamp01((takeOff - _vertical / scale) / (2f * takeOff));
+            return _jumping ? target : Mathf.Max(target, AirPhaseFloor);
+        }
+
+        /// <summary>
+        /// True if the Animator in use has the AirPhase parameter. A controller built before D-0169 does not, and Unity
+        /// logs a warning every frame for a parameter it does not know. Worked out once for each Animator (the list is
+        /// only there once the Animator is running, so it is asked again until then), never by name each frame.
+        /// </summary>
+        private bool ListsAirPhase()
+        {
+            if (ReferenceEquals(animator, _airPhaseFor)) return _hasAirPhase;
+            if (!animator.isInitialized) return false;
+            _airPhaseFor = animator;
+            _hasAirPhase = false;
+            foreach (AnimatorControllerParameter p in animator.parameters)
+                if (p.nameHash == AirPhaseHash && p.type == AnimatorControllerParameterType.Float) _hasAirPhase = true;
+            return _hasAirPhase;
         }
 
         /// <summary>The glider's forward flight (D-0095): the heading turns toward where the stick points at the glide's turn

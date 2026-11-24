@@ -10,10 +10,14 @@ namespace ShiftJam
     /// <summary>
     /// The Animator controller of one player body, made with the AnimatorController API (never by hand). Base layer:
     /// Locomotion and Crouch are blend trees over the way the body moves against its facing (MoveX, MoveZ, in own units a
-    /// second, each clip placed at the speed it covers ground at); the air (the jump loop, the fall, the landing); the
+    /// second, each clip placed at the speed it covers ground at); the air (the jump, the fall, the landing); the
     /// one-shot moves the scripts start and end (Roll, Punch, Kick, Block, HitLight, HitHeavy, Death, Fidget) and the
     /// wake-up (the death played backwards). On top, as on the old body: the Arms layer (one arm holding) and the Carry
     /// layer (two arms, IK pass), with the same masks and pose clips.
+    /// The jump (D-0169): the state Air does not play by the clock. It shows the Jump_Arc clip at the point the AirPhase
+    /// parameter names (0 take-off, 0.5 the top, 1 coming down at a full jump's landing speed), and PlayerMotor works
+    /// that out from the body's own vertical speed, so the pose follows the jump: a full jump runs the whole arc, and
+    /// a hop cut short moves on to the part of the arc its speed belongs to.
     /// </summary>
     public static partial class PlayerPortBuilder
     {
@@ -35,6 +39,7 @@ namespace ShiftJam
         // first tenth), so the get-up starts at 1 - WakeFrom and runs to 1, where the clip's first frame stands.
         private const float WakeStartAt = 1f - WakeFrom;
         private const float WakeSeconds = 1.7f;        // WakeUp.duration: the get-up plays the death backwards in this time
+        private const string AirPhaseParam = "AirPhase";   // where the jump is in its arc; PlayerMotor writes it by the same name
 
         private static RuntimeAnimatorController BuildController(BodySpec spec, Dictionary<string, AnimationClip> clips, PlayerBodySettings.Body body)
         {
@@ -48,6 +53,7 @@ namespace ShiftJam
             c.AddParameter("Crouched", AnimatorControllerParameterType.Bool);
             c.AddParameter(new AnimatorControllerParameter { name = "Pace", type = AnimatorControllerParameterType.Float, defaultFloat = 1f });
             c.AddParameter(new AnimatorControllerParameter { name = "MoveSpeed", type = AnimatorControllerParameterType.Float, defaultFloat = 1f });
+            c.AddParameter(new AnimatorControllerParameter { name = AirPhaseParam, type = AnimatorControllerParameterType.Float, defaultFloat = 0f });
             // Grounded starts true, or the first frame would fall.
             AnimatorControllerParameter[] ps = c.parameters;
             foreach (AnimatorControllerParameter p in ps) if (p.name == "Grounded") p.defaultBool = true;
@@ -75,7 +81,11 @@ namespace ShiftJam
             low.AddChild(clips["Crouch_Walk_Left"], new Vector2(-body.crouchSide, 0f));
             low.AddChild(clips["Crouch_Walk_Right"], new Vector2(body.crouchSide, 0f));
 
-            AnimatorState air = State(sm, "Air", clips["Jump_Loop"], 1f);
+            // Air shows the jump's arc at the time AirPhase names (D-0169). It used to hold the pack's Jump_Loop, one
+            // frozen tuck for the whole of every jump; that clip is still copied but no state uses it now.
+            AnimatorState air = State(sm, "Air", clips["Jump_Arc"], 1f);
+            air.timeParameter = AirPhaseParam;
+            air.timeParameterActive = true;
             AnimatorState fall = State(sm, "Fall", clips["Fall"], 1f);
             AnimatorState land = State(sm, "Land", clips["Jump_End"], LandPlayback);
 
@@ -87,7 +97,10 @@ namespace ShiftJam
             Go(air, fall, AirToFall).Conditions((AnimatorConditionMode.IfNot, 0f, "Grounded"), (AnimatorConditionMode.Less, LongFall, "VerticalVelocity"));
             foreach (AnimatorState up in new[] { air, fall })
             {
-                Go(up, loco, ToGroundMoving).Conditions((AnimatorConditionMode.If, 0f, "Grounded"), (AnimatorConditionMode.Greater, MovingAbove, "Speed"));
+                AnimatorStateTransition run = Go(up, loco, ToGroundMoving);
+                run.Conditions((AnimatorConditionMode.If, 0f, "Grounded"), (AnimatorConditionMode.Greater, MovingAbove, "Speed"));
+                // Out of a jump the next jump may cut this blend short: chained hops keep their take-off (D-0169).
+                if (up == air) run.interruptionSource = TransitionInterruptionSource.Destination;
                 AnimatorStateTransition touch = Go(up, land, ToLand);
                 touch.offset = LandFrom;
                 touch.Conditions((AnimatorConditionMode.If, 0f, "Grounded"), (AnimatorConditionMode.Less, MovingAbove, "Speed"));
@@ -132,7 +145,24 @@ namespace ShiftJam
             bool whole = built != null && built.layers.Length == 3 && built.layers[1].name == "Arms" && built.layers[2].name == "Carry" && built.layers[2].iKPass
                          && built.layers[0].stateMachine.states.Length == 14;
             Check(whole, $"{spec.name}: {spec.controller} has Base (14 states), Arms and Carry (IK pass)" + (built != null ? $" [{built.layers.Length} layers, {built.layers[0].stateMachine.states.Length} states]" : " [missing]"));
+            Check(whole && JumpFollows(built, clips["Jump_Arc"]), $"{spec.name}: Air shows Jump_Arc at the time {AirPhaseParam} names, and the next jump can cut its blend into Locomotion short");
             return built;
+        }
+
+        /// <summary>True if the written controller has the jump as D-0169 asks: the AirPhase parameter, the state Air on the
+        /// arc clip with its time taken from that parameter, and Air's way back to Locomotion open to the next jump.</summary>
+        private static bool JumpFollows(AnimatorController built, AnimationClip arc)
+        {
+            bool listed = false, scrubbed = false, cut = false;
+            foreach (AnimatorControllerParameter p in built.parameters) listed |= p.name == AirPhaseParam && p.type == AnimatorControllerParameterType.Float;
+            foreach (ChildAnimatorState child in built.layers[0].stateMachine.states)
+            {
+                if (child.state.name != "Air") continue;
+                scrubbed = child.state.motion == arc && child.state.timeParameterActive && child.state.timeParameter == AirPhaseParam;
+                foreach (AnimatorStateTransition t in child.state.transitions)
+                    cut |= t.destinationState != null && t.destinationState.name == "Locomotion" && t.interruptionSource == TransitionInterruptionSource.Destination;
+            }
+            return listed && scrubbed && cut;
         }
 
         private static AnimatorState Tree(AnimatorController c, string name, out BlendTree tree)

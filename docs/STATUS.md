@@ -2,6 +2,27 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 16:1x — THE JUMP'S POSE FOLLOWS THE JUMP (D-0169): IN THE PROJECT, CONTROLLERS REBUILT AND CHECKED IN A HIDDEN RUN, NOT PLAYED
+- What changed: in the air the body used to hold one frozen tuck. Now it pushes off one foot, strides through the
+  top and reaches down, and the frame is picked by how fast the body is rising or falling (the motor sets it), so a
+  full jump, a cut jump and the book hops stay in step. Made from the old pack's running-jump clips (his "looks
+  decent" of 2 Nov). The next jump can cut the landing blend short, so chained hops keep their take-off.
+- Landed with Unity closed (he had shut it at 13:00): three scripts copied in, then Shift Jam > Player > Rebuild
+  Clips + Controllers (D-0169) run hidden at low priority. Every check passed for both bodies; no scene opened;
+  git shows the three scripts and the two controllers only. Numbers in DECISIONS D-0169.
+- HIS PLAYTEST (Greybox, the hallway): the book stairs with Jump held and with Jump tapped; two hops in a row while
+  running; a jump on the flat; a jump pad; walking off a ledge; the glider opened in mid-jump.
+- Look for: does the body leap rather than sit in the air; the feet at landing on a higher book (they may still be
+  a little up for a moment); a tap hop (it shows no push-off); any twist of the body that reads as a wobble; the
+  first Play's Console for a line about `AirPhase` (there should be none).
+- Not in it: squash and stretch; the first-person legs (they show no jump, as before).
+- 🔴 Never run Shift Jam > Player > Build Player Port: it opens and saves four scenes (it asks first now).
+- NEXT (running): the rope. Contract and its check are written (`%TEMP%\shiftjam-stage\rope\ROPE_CONTRACT.md`,
+  `ROPE_CONTRACT_CHECK.md`, 12 corrections, 3 must). Found on the way: the top's east edge is the landing BOOK, which
+  sticks 5.5 out of the box to x 21.4 with open air under it, so the first rope hangs at (22.4, 14, -150), 8 long.
+  And: the walk is 7 since 22 Nov, so a walking jump carries 5.6 and the 5.5 "sprint gap" can probably be made
+  without sprinting (not checked in play).
+
 ## 23 Nov 2026 12:3x — PLANS WAITING FOR HIS "PROCEED": A ROPE AT THE HALLWAY BOOKS (HIS IDEA) AND THE JUMP ANIMATION. NOTHING BUILT
 - His words: "in the hallway, we need a purpose for climbing up the books at the start of it... perhaps this our
   chance to polish up or find a better jumping animation?", then "maybe we can set up a rope up there and begin
@@ -38,16 +59,7 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   cut the stairs to 6 books and a box 6.6 high (an hour; gives 7 of headroom, so a running jump into a rope works).
 - **12:40 his go: "IM IN WOW, can you automate for me".** Read as: build both (the jump first, then the rope) and do
   the editor steps myself through his open editor; no Play runs, nothing that takes focus; how it feels stays his.
-- **CHECKPOINT 12:5x (if this run dies, pick up here):** two editor tests passed first (a state timed by a number
-  works; holding `RootT.y` takes the lift out: lowest foot 0.12 to 0.27 over the root at every phase). Contract:
-  `%TEMP%\shiftjam-stage\jump\JUMP_CONTRACT.md`. Run `wf_2af4a96f-d6e` (script under the session's
-  `workflows/scripts/jump-build-rope-contract-*.js`): jump builder -> reviewer -> fixer, staged in
-  `%TEMP%\shiftjam-stage\jump\build` (edited copies + `.orig.cs` + `manifest.tsv`; compile with
-  `sjcsc-staged.sh <dir>` and `--player`); beside it a rope designer -> skeptic writing
-  `%TEMP%\shiftjam-stage\rope\ROPE_CONTRACT.md` and `ROPE_CONTRACT_CHECK.md`. NOTHING is in the project yet.
-  To land the jump: editor not in Play; `cmp` each `.orig.cs` with the project file; copy; let Unity compile; run
-  Shift Jam > Player > Rebuild Clips + Controllers (D-0169); read the `[PlayerPort]` lines; `git status` must show
-  only the three scripts and the two controllers.
+- 16:1x: the jump is in (entry above). The rope contract is written and checked; its build is next.
 
 ## 23 Nov 2026 12:1x — ARMORY BENCH: HIS TWO MENUS RAN, THE BENCH IS PLACED IN GREYBOX (D-0167): IN THE SCENE, NOT PLAYED
 - He ran both menus at 12:06 and asked me to place the bench ("can you place them in for me?"). The bake logged what

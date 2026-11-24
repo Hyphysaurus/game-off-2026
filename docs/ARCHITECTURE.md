@@ -15,7 +15,7 @@ Inspector reference or an event.
 
 ## Each frame
 1. `PlayerInput` reads the devices (the only script that knows about devices).
-2. `PlayerMotor.Update` moves the capsule and writes `Speed` (0..1), `Grounded`, `VerticalVelocity` to the Animator.
+2. `PlayerMotor.Update` moves the capsule and writes `Speed` (0..1), `Grounded`, `VerticalVelocity` and `AirPhase` (where the body is in a jump's arc, D-0169) to the Animator.
 3. The Animator picks the clip.
 4. `ShoulderCamera.LateUpdate` follows, after the player has moved. That order is why it never jitters.
 5. `Interactor.Update` finds the nearest `IInteractable` in reach; `InteractPrompt` shows its words.
@@ -26,11 +26,13 @@ interaction reach all multiply by it. Jump timing stays the same at both sizes b
 scale together. The blend between sizes is geometric (even growth to the eye), eased by a curve.
 
 ## Animator contract (built by `PlayerPortBuilder`, D-0064; never by hand)
+Rebuild with **Shift Jam > Player > Rebuild Clips + Controllers (D-0169)**: clips and the two controllers only. Never
+Build Player Port (it opens and saves four scenes; it asks first now).
 One controller per body (`PlayerMale`, `PlayerFemale`), from the Playroom clips' copies. Parameters: `Speed` float,
-`Grounded` bool, `VerticalVelocity` float (the motor writes these); `MoveX`, `MoveZ` (own units a second against the
+`Grounded` bool, `VerticalVelocity` float, `AirPhase` float (0 take-off, 0.5 the top, 1 landing) (the motor writes these); `MoveX`, `MoveZ` (own units a second against the
 body's facing), `Crouched`, `Pace` (the legs' playback) and `MoveSpeed` (a one-shot's playback) from `PlayerAnimation`.
 Base layer: **Locomotion** and **Crouch** are 2D blend trees on `MoveX` / `MoveZ`, each clip placed at the speed it
-covers ground at; **Air** (the jump loop), **Fall**, **Land**; the one-shots **Roll, Punch, Kick, Block, HitLight,
+covers ground at; **Air** (the jump's arc `Jump_Arc`, cut from the old pack's running-jump clips, shown at the time `AirPhase` names: D-0169), **Fall**, **Land**; the one-shots **Roll, Punch, Kick, Block, HitLight,
 HitHeavy, Death, Fidget**, started and ended by code; **Wake** (the death backwards). A take-off (`VerticalVelocity`
 > 0.5) blends straight to Air, a walk-off to Fall; landing while moving blends to Locomotion, landing still plays Land
 from its touch-down. Layers 1 and 2 are **Arms** (one arm holding) and **Carry** (two arms, IK pass), as on the old

@@ -2945,3 +2945,43 @@
     edited files); the contract's searches over the new text all pass; the three edits are 4 lines, 3 lines and 3
     lines. NOT run in Unity, not played: the bake, the bench prefab and the screen are seen for the first time when
     he clicks the menus.
+- **D-0169 (23 Nov, 16:1x) The jump's pose follows the jump: one arc from the old pack's running-jump clips, timed by the motor.**
+  His words: "perhaps this our chance to polish up or find a better jumping animation?", then, asked for his go,
+  "IM IN WOW, can you automate for me".
+  - **Seen first** (frame sheets `docs/stills/jump_today_d0169.png`, `jump_oldbody_d0169.png`, local): in the air the
+    body held ONE pose for the whole of every jump (the Playroom `Jump_Loop` does not move in its first 0.8 s): knees
+    tucked, arms wide. No push-off, nothing changed on the way up or down, a landing while moving had no landing. It is
+    the tuck D-0007 turned down, back since the body port (D-0064).
+  - **Now:** the state `Air` plays `Jump_Arc` (1 s; made by the builder from the Funny Characters "Jump run start" from
+    0.10 s, the first 0.30 s of "Jump run middle" and "Jump run end" up to 0.39 s; the last half of the hang eases into
+    the landing because that join is not exact) at the time a new float `AirPhase` names: 0 take-off, 0.5 the top, 1
+    coming down as fast as it took off. `PlayerMotor` works it out from the vertical speed against the jump's own
+    take-off speed (`sqrt(2 * gravity * jumpHeight)`, own units): snapped on the frame the Animator is told the ground
+    is lost, then moved at most 4 a second (a cut jump catches up in a few frames), left alone on the ground (the pose
+    is still blending out), never under 0.18 when no jump is under way (a pad, a knock, a fling), walked to 0.5 on
+    the glider or on a line. Written only when the Animator lists the parameter.
+  - **The lift:** the source clips carry their own jump height in the root (0.93 to 2.17): played as copied the body
+    would float 1.4 above its capsule. The arc's root height is rewritten to `max(standing height, floor - lower
+    foot)`, smoothed: 0.935 in the air, 1.02 at the push-off.
+  - **Chained hops keep their take-off:** `Air -> Locomotion` can be cut short by the next jump (interruption source
+    Destination).
+  - **Unchanged:** `Fall` (ledges, lines, long falls), `Land` (standing landings), 14 base states, 3 layers, first
+    person (its legs show no jump, as before). No net code: NetworkAnimator syncs the new float by itself.
+  - **A narrow menu:** Shift Jam > Player > Rebuild Clips + Controllers (D-0169). Clips and the two controllers only;
+    the bodies' numbers are read from `PlayerBody.asset`, never written; it refuses in Play and when the body
+    settings have unsaved edits; it poses each body in a preview scene at five phases and puts both controllers back
+    if a check fails. 🔴 The full Build Player Port opens and saves four scenes: it now asks first and refuses in Play.
+  - **Proof (hidden batch run, 16:14, `%TEMP%\claude-batch\logs\jump-rebuild-d0169.log`):** every check passed for
+    both bodies. At AirPhase 0 / 0.25 / 0.5 / 0.75 / 1: lowest foot bone 0.18 / 0.24 / 0.12 / 0.22 / 0.09 over the
+    body's origin (it floated to 1.4 before the rewrite), hips 0.81 / 0.71 / 0.71 / 0.72 / 0.74, pelvis yaw 4 / -11 /
+    -11 / -12 / 9 degrees; phase 1 is not phase 0. No scene opened, `PlayerBody.asset` and `PlayerMoves.asset` byte
+    for byte as before; git shows the three scripts and the two controllers only. Before the build two editor tests:
+    a state timed by a number works; holding the root's height removes the lift.
+  - **How it was made:** contract (`%TEMP%\shiftjam-stage\jump\JUMP_CONTRACT.md`), one builder, one reviewer (no
+    must; two shoulds fixed: the glider or the dart line opened in mid-jump no longer pops the pose; the narrow run
+    refuses on unsaved body settings), compiled outside as the editor and as a built game. The 5-hour limit cut the
+    run at 12:45; it picked itself up at 15:21.
+  - **Known, for his eyes:** a tap hop runs phase 0.27 to 0.71 (no push-off pose, lands with the legs partly tucked);
+    a hop onto a higher step lands near 0.84, where the lower foot is still about 0.4 up for a moment. If either
+    reads badly, the next step is to let the pose see the ground coming (time to landing instead of speed alone).
+    Squash and stretch: later, through `FX/Squash.cs`. NOT PLAYED.

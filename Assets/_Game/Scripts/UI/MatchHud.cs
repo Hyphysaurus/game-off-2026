@@ -23,6 +23,7 @@ namespace ShiftJam
         [SerializeField, Tooltip("Top left in warm-up, on the host's PC. {0} is the start key.")] private string hostHint = "Press {0} to start a team match";
         [SerializeField, Tooltip("Top left in warm-up, on everyone else's PC.")] private string friendHint = "Waiting for the host to start a team match";
         [SerializeField, Tooltip("In the middle as play starts.")] private string goWord = "GO!";
+        [SerializeField, Tooltip("Also say how a match starts as a toast (top middle) each time warm-up begins: on arriving in the scene, and after a match. Off: only the small line top left says it.")] private bool toastTheHint = true;
         [SerializeField, Tooltip("The card's title when the teams are level.")] private string drawWord = "DRAW";
         [SerializeField, Tooltip("The card's title when a team won. {0} is the team's name.")] private string winsWord = "{0} WINS";
         [SerializeField, Tooltip("On the card when this PC's team won.")] private string wonLine = "Your team won!";
@@ -57,6 +58,9 @@ namespace ShiftJam
             {
                 // "GO!" only for a countdown this PC watched: a friend who joins mid-match is not told to go
                 _goUntil = phase == MatchPhase.Playing && _last == MatchPhase.Countdown ? Time.unscaledTime + goSeconds : 0f;
+                // Warm-up begins (arriving in the scene, or a match just over): how a match starts, where it cannot be
+                // missed. The first play of the mode went by with the small line top left unread and no match started.
+                if (toastTheHint && phase == MatchPhase.Warmup) Toasts.Show(Hint(), ToastKind.Tip);
                 _last = phase;
                 _nextDraw = 0f;
             }
@@ -97,7 +101,7 @@ namespace ShiftJam
             _sb.Clear();
             if (phase == MatchPhase.Warmup)
             {
-                _sb.Append("<size=62%><alpha=#BB>").Append(TeamMatch.IsHost ? string.Format(hostHint, TeamMatch.StartKeyName) : friendHint);
+                _sb.Append("<size=62%><alpha=#BB>").Append(Hint());
                 return _sb.ToString();
             }
             int blue = TeamMatch.Blue, orange = TeamMatch.Orange;
@@ -109,6 +113,9 @@ namespace ShiftJam
             if (mine != TeamMatch.NoTeam) _sb.Append("     You: <alpha=#FF>").Append(Tint(mine)).Append(Upper(mine)).Append("</color>");
             return _sb.ToString();
         }
+
+        /// <summary>How a match starts, for this PC: the host's key, or that the host starts it.</summary>
+        private string Hint() => TeamMatch.IsHost ? string.Format(hostHint, TeamMatch.StartKeyName) : friendHint;
 
         /// <summary>The middle of the screen: the countdown's number with this PC's team, then "GO!" for a moment.</summary>
         private string Big(MatchPhase phase)

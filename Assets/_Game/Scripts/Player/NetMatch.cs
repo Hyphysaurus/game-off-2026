@@ -72,9 +72,9 @@ namespace ShiftJam
             _winner.OnValueChanged += OnMoreSeen;
             _endsAt.OnValueChanged += OnMoreSeen;
             // Arrived with a match already under way (a friend joining): say what was found, once.
-            if (_team.Value != 0) Debug.Log($"TeamMatch: {Who} is on {TeamMatch.NameOrNone(_team.Value)}.");
+            if (_team.Value != 0) TeamMatch.Say($"{Who} is on {TeamMatch.NameOrNone(_team.Value)}.");
             if (OfHost == this && !IsServer && Phase != MatchPhase.Warmup)
-                Debug.Log($"TeamMatch: the host's match is in {Phase}: {TeamMatch.Name(TeamMatch.Blue)} {_blue.Value}, {TeamMatch.Name(TeamMatch.Orange)} {_orange.Value}.");
+                TeamMatch.Say($"the host's match is in {Phase}: {TeamMatch.Name(TeamMatch.Blue)} {_blue.Value}, {TeamMatch.Name(TeamMatch.Orange)} {_orange.Value}.");
             if (IsServer) Arrived?.Invoke(this);
             TeamMatch.NotifyChanged();
         }
@@ -98,7 +98,7 @@ namespace ShiftJam
 
         private void OnTeamSeen(byte before, byte now)
         {
-            Debug.Log($"TeamMatch: {Who} is on {TeamMatch.NameOrNone(now)}.");
+            TeamMatch.Say($"{Who} is on {TeamMatch.NameOrNone(now)}.");
             TeamMatch.NotifyChanged();
         }
 
@@ -109,7 +109,7 @@ namespace ShiftJam
                 ? $" ({TeamMatch.Name(TeamMatch.Blue)} {_blue.Value}, {TeamMatch.Name(TeamMatch.Orange)} {_orange.Value}: " +
                   (_blue.Value == _orange.Value ? "a draw)" : TeamMatch.Name(_blue.Value > _orange.Value ? TeamMatch.Blue : TeamMatch.Orange) + " wins)")
                 : "";
-            Debug.Log($"TeamMatch: phase {(MatchPhase)before} -> {phase}{more}.");
+            TeamMatch.Say($"phase {(MatchPhase)before} -> {phase}{more}.");
             TeamMatch.NotifyChanged();
         }
 
@@ -122,7 +122,7 @@ namespace ShiftJam
         private void OnScoreSeen(int before, int now)
         {
             // A score back to 0 is a match starting or ending: the phase's line says so.
-            if (now != 0) Debug.Log($"TeamMatch: score {TeamMatch.Name(TeamMatch.Blue)} {_blue.Value}, {TeamMatch.Name(TeamMatch.Orange)} {_orange.Value}.");
+            if (now != 0) TeamMatch.Say($"score {TeamMatch.Name(TeamMatch.Blue)} {_blue.Value}, {TeamMatch.Name(TeamMatch.Orange)} {_orange.Value}.");
             TeamMatch.NotifyChanged();
         }
 

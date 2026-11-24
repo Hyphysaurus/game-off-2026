@@ -75,6 +75,14 @@ namespace ShiftJam
         /// <summary>Raised on every PC whenever the phase, a score or anybody's team changes (and when a player comes or goes).</summary>
         public static event Action Changed;
 
+        /// <summary>One line of the match's own story (a phase, a team, a point, the bots in play): into the Unity log as
+        /// "TeamMatch: ..." and into the play log of whoever is recording a play, so a play's log shows its matches.</summary>
+        internal static void Say(string what)
+        {
+            Debug.Log("TeamMatch: " + what);
+            Playtest.PlayLog.Tell("team match: " + what);
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ForgetAll() { _scene = null; Changed = null; }   // the editor may enter Play without reloading scripts
 
@@ -441,7 +449,7 @@ namespace ShiftJam
             foreach (NetPlayer p in NetPlayer.Spawned) if (p != null && p.IsSpawned && p.IsOwner) { own = p; break; }
             if (own == null) return;
             _placedRound = round;
-            Debug.Log($"TeamMatch: this PC's player goes to the {Name(Mine)} base.");
+            TeamMatch.Say($"this PC's player goes to the {Name(Mine)} base.");
             own.ToBase();
         }
 
@@ -468,7 +476,7 @@ namespace ShiftJam
                     s.PutAway(false);
                     if (was) back++;
                 }
-                if (back > 0) Debug.Log($"TeamMatch: {back} soldier(s) back for warm-up.");
+                if (back > 0) TeamMatch.Say($"{back} soldier(s) back for warm-up.");
                 _loggedBlue = _loggedOrange = -1;
                 return;
             }
@@ -488,7 +496,7 @@ namespace ShiftJam
             if (blue != _loggedBlue || orange != _loggedOrange)
             {
                 _loggedBlue = blue; _loggedOrange = orange;
-                Debug.Log($"TeamMatch: bots in play: {Name(Blue)} {blue}, {Name(Orange)} {orange}; {_soldiers.Count - blue - orange} soldier(s) put away.");
+                TeamMatch.Say($"bots in play: {Name(Blue)} {blue}, {Name(Orange)} {orange}; {_soldiers.Count - blue - orange} soldier(s) put away.");
             }
         }
 

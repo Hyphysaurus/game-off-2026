@@ -2,6 +2,12 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 18:4x — FIRST PERSON CAN CLIMB THE BOOKS: ITS JUMP AND GRAVITY MATCH THIRD PERSON NOW (D-0173). LIVE IN HIS PLAY, NO VERDICT YET
+- His "i cant jump up the book shelf ladder in First Person". The first-person body jumped 0.55 (the test room's
+  number) against risers of 1.1. Now `FirstPersonSettings`: Jump Height 2, Gravity 25, as the third-person toy.
+- Open: a first-person crouch-jump now clears 2.9 (third person 2.0); first person still runs 4.8 / sprints 8.1
+  against third person's 7 / 11. His call whether to match those too.
+
 ## 23 Nov 2026 18:3x — INSTANT SHOTS TO TRY (D-0172): IN THE PROJECT, THE STADIUM USES THEM, F9 FLIPS THEM ANYWHERE. NOT PLAYED
 - His "lets try the instant, TDM will go into the stadium scene weve been building". A scene part `ShotRules`
   (Foam Dart / Instant); the Stadium has one set to Instant; everywhere else shots are foam darts as before.

@@ -3072,3 +3072,16 @@
     while aiming, foam darts aimed to allow for their drop. A faint dot from the hip and a smaller dot were offered.
   - Made by the orchestrator, compiled outside both ways, landed with his editor open and not in Play (0 errors).
     No reviewer. NOT PLAYED. Online: other players' copies are not yet shown the line (they see the dart land).
+- **D-0173 (23 Nov, 18:4x) First person jumps and falls like third person (jump 2.0, gravity 25).**
+  His "im noticing i cant jump up the book shelf ladder in First Person". Cause: the first-person body kept the test
+  room's Half-Life numbers (jump 0.55, gravity 15.2) while the course is measured for the third-person toy (jump
+  2.0, gravity 25): a book riser is 1.1, so only a crouch-jump (0.55 + 0.9) cleared it, and nobody is told that.
+  The same numbers made the hallway's sprint gap impossible in first person (0.54 s in the air at a sprint of 8.1 is
+  4.4; the gap is 5.5). Not from today's work: it was so since the first-person port (D-0074).
+  - `Data/FirstPersonSettings.asset`: Jump Height 0.55 -> 2, Gravity 15.2 -> 25 (taken from `MovementSettings`). Two
+    numbers, no code. Set while he was in Play; live at once.
+  - Left as they were: first person's own run 4.8 and sprint 8.1 (third person walks 7 and sprints 11). By the
+    numbers the hop pit (3.5) is 3.84 at a run and the sprint gap (5.5) is 6.5 at a sprint: in first person the
+    "hold Shift to run, then jump" lesson holds; in third person a walking jump now carries 5.6 and clears it.
+  - Side effect to decide: crouching in the air still lifts the feet 0.9, so a first-person crouch-jump clears 2.9
+    where third person clears 2.0. NOT PLAYED after the change.

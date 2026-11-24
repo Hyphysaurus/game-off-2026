@@ -28,10 +28,12 @@ MonoBehaviour:
   stopSpeed: 2.5
   airAccelerate: 10
   airSpeedCap: 0.76
-  gravity: 15.2
-  jumpHeight: 0.55
+  gravity: 25
+  jumpHeight: 2
   maxFallSpeed: 50
   fieldOfView: 90
+  aimFieldOfView: 56
+  aimBlend: 8
   mouseSensitivity: 0.1
   padSensitivity: 200
   invertY: 0

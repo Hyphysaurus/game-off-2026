@@ -2,6 +2,32 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 05:0x — TEAM DEATHMATCH WITH BOTS IS BUILT AND IN THE SCENE (D-0182); THE STADIUM IS WIDER (D-0181). NOTHING OF IT PLAYED
+- His words: "that stadium was feeling a bit small and cramped last i had played it, lets expand it then proceed
+  with the TDM plan", and before it "lets get bots in". Both done; all local commits, NOT PUSHED (origin is still
+  `9f2785a`, v18). His editor was closed the whole time; five short hidden Unity runs (about 50 s each, low
+  priority; WoW was open) rebuilt and checked the scene.
+- **TO PLAY IT:** title > Online > host. In the Stadium the top left says "Press M to start a team match". **M**:
+  3-2-1 with "You are on BLUE", GO puts you at the Blue base as a toy. Alone: you + the Blue bot (it walks the
+  centre lane) against two Orange bots. First to 10 or 5 minutes, a card, free roam again. The Unity console
+  writes one "TeamMatch:" line at each step (phase, teams, score, bots in play).
+- **WHAT TO LOOK AT (his verdicts):** (1) the field's size, 81 across (`StadiumLayout.Grow` 1.6, one number) and
+  the cover's density; (2) the bots: too easy or too hard (sight 20, fire 16, reaction 0.8 s, damage 9), do they
+  get stuck on their routes, do they read as blue and orange; (3) the screen: scores top left, countdown, the
+  card; (4) the enemy name tag hidden behind cover (my call; one box on NetNameTag); (5) match numbers (10
+  points, 5 minutes, teams of 2). **Tune on `Prefabs/Pieces/Online/TeamMatch.prefab`, not on the scene's copy:**
+  the ship remakes the scene from the prefab.
+- NOT VERIFIED BY ANYONE: a match with a second PC (joining mid-match, the clock on a friend's PC, the order
+  the GO message and the phase arrive in). Nothing online has been tried on two PCs since v11 (21 Nov).
+- Known and left: see D-0182's last bullet. Stills of the wider field and of the match screen:
+  `%TEMP%\shiftjam-stage\stadium2\out` and `%TEMP%\shiftjam-stage\tdm2\out`.
+- **NEXT (his word needed):** the funny characters for bots, friends and house NPCs: the read is done
+  (`%TEMP%\shiftjam-stage\chars`: pack.md, body.md, npc.md), the plan is given, nothing built. Order proposed:
+  the look system (recipe + wearer + baked catalogue), house characters, bots wear them (team colour by outfit),
+  then players (first fix two bugs the read found: a friend sees you in THEIR body choice, and a Female player
+  probably slides in idle on a friend's screen). Also still his: v19 ship + push, the hit scan step 2, the
+  corners and flinch verdicts.
+
 ## 24 Nov 2026 03:2x — CHECKPOINT: HIS GO: "lets expand it then proceed with the TDM plan". THE STADIUM'S GROWTH IS STAGED, NOT IN THE PROJECT YET
 - His words (03:2x): "that stadium was feeling a bit small and cramped last i had played it, lets expand it then
   proceed with the TDM plan". Before it: "lets get bots in" (bots = the toy soldiers on teams first), and "these

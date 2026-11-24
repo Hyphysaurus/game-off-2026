@@ -3316,3 +3316,63 @@
     the race gate's arrival point, and the towers grown over two spawns.
   - `Scenes/Stadium.unity` is rebuilt and saved (checked whole: no cut save). Nothing else changed in the rebuild
     (the NetPlayer, the camera and the HUD came out the same). NOT PLAYED.
+- **D-0182 (24 Nov, 05:0x) Team deathmatch in the Stadium, with the toy soldiers as bots. Built in three steps, scene rebuilt. NOT PLAYED.**
+  His "lets expand it then proceed with the TDM plan", and before it "lets get bots in" (the plan: STATUS, 24 Nov
+  02:5x). Three readers mapped what existed (no team, no shared match state, no team spawns, every hit between
+  players through one relay); a written contract fixed the rules, the names and who owned which file
+  (`%TEMP%\shiftjam-stage\tdm\TDM_CONTRACT.md`); two builders, one at a time, staged outside the project, each
+  read by me before landing; the screen is mine.
+  - **What a player gets.** Free roam as before (warm-up). The host presses **M**: "3, 2, 1" with your team shown;
+    at GO everyone is at their team's base as a toy, whole and restocked. Blue is the south half, Orange the north.
+    One point a knock-out for the other team; first to 10, or ahead after 5 minutes (level: a draw); a card for 8
+    seconds; warm-up again. Alone you play with one bot against two.
+  - **Rules while a match runs:** teams alternately in join order, a later joiner to the team with fewer people;
+    no friendly fire (your own grenade still hurts you); comebacks at your own half's spawn furthest from the
+    nearest enemy; no growing ("No growing during a match"); the house door and the race gates shut; a player at
+    the race track or in a car is brought to their base at GO. Nothing changes outside a match, in the house or
+    in single player.
+  - **The parts** (ARCHITECTURE has the rows):
+    - `Core/TeamMatch.cs`, the match, a drop-in part with its screen `UI/MatchHud.cs` on one prefab
+      (`Prefabs/Pieces/Online/TeamMatch.prefab`, made once by `PartyBuilder`, never rewritten: its numbers, names,
+      colours and wording are tuned ON THE PREFAB, because the ship remakes the Stadium's scene and a number
+      changed on the scene's own copy would be lost). The host runs it; everything else reads its static surface.
+    - `Player/NetMatch.cs` on the online player: what travels. Each player's team, and on the HOST's player the
+      phase, the scores, the server time the phase ends, the winner, the match's number; the host alone writes.
+      A late joiner has it all when the host's player appears. (`NetWorld.Host` is set on the host's PC only, so
+      the state is read through `NetMatch.OfHost`, set on every PC.) No new networked object in the scene.
+    - Friendly fire is ONE rule in ONE place: `Damageable.Spares`, asked at the top of `Damageable.Hit` before the
+      hand-over to another PC and before anything is shown. It covers players, bots, their copies, shots, melee
+      and blasts.
+    - `Core/NetSpawnPoint.cs`: a point can belong to a team and be its landing; `StadiumLayout` gives the eight
+      ring spawns the team of their half and puts a landing point 5.6 in front of each base's arch.
+    - **The bots** are the layout's four soldiers. A soldier's team is the half its post stands in. At GO a team's
+      first soldiers (their **Match Order**) fill what its people leave of **Team Size** (2); the rest stay put
+      away, as all four are during the countdown and the card. Every PC works this out from the synced state, so
+      no new message was needed. A bot in play walks its **Match Route** (the centre lane and a flank a half, the
+      north's turned half round; every leg checked against the rebuilt field's pieces, smallest gap 0.98), goes
+      after the nearest enemy it can see, people and bots, with the match's own numbers (sight 20, fire 16,
+      reaction 0.8 s, damage 9, on the TeamMatch part) and wears its team's colour (run-time copies of its
+      materials; the hit flash passes over it). A bot knocked down is a point (counted on the host, where its
+      soldier falls); a person knocked out by a bot is a point (`NetHealth.BotOf(team)` is the "by", so the feed
+      names "Blue bot"). PUT AWAY never means switched off: `CoopWorld` numbers the ACTIVE soldiers by scene path
+      on every PC, so a put-away soldier stays an active object: unseen, untouchable, idle.
+    - The screen: scores and clock top left with your team (toasts own the top middle), the countdown and "GO!"
+      in the middle, the end card; the kill feed and Tab board in team colours with the players under their
+      teams; a name tag in its team's colour.
+  - **Calls of mine, his to overturn:** (1) an ENEMY's name tag shows only with a clear line to them (a tag floats
+    higher than the field's walls and would give away anyone behind one): one box on NetNameTag, **Hide Enemies
+    Behind Cover**. (2) Bots are plain plastic in the team's colour (their army-green texture off), so friend and
+    foe read at a glance. (3) During the countdown all bots are away and nobody is moved; everyone is placed at GO.
+  - **Found and fixed on the way:** the first builder's end card could have read "DRAW" on a friend's PC (the
+    winner arrives just after the phase: every match value now tells the screen of its own change); a player whose
+    fall or comeback reset was still running at GO was not moved to their base (`Respawn.Busy`: the move waits and
+    asks again).
+  - **Checked:** compiled outside Unity both ways after each step; Unity's own compile with Netcode's code
+    generator clean; the rebuilt scene and player listed by a hidden run (`match_report.txt`: the part and its
+    screen, 4 ring spawns + 1 landing a team, each soldier's order and route, NetMatch on the player); the screen
+    photographed in each state from a hidden run, no text overflow. NOT PLAYED: no match has run on any PC, and
+    nothing online has been tried on two PCs since v11.
+  - **Known and left:** the host's own player gets no ten-second credit from a bot's hit (a bot's finishing dart
+    counts; "hit by a bot, then finished by your own grenade" gives nobody a point); a bot put away mid-fight
+    still has its darts in flight; the editor's T dev key can still grow you in a match; per-player knock-out
+    counts on the Tab board are each PC's own count (the teams' scores are the host's).

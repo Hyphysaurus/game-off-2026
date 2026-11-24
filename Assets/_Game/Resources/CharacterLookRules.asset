@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6acb5ab91ad1fa64cb727c2c5b93acdc, type: 3}
+  m_Name: CharacterLookRules
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.CharacterLookRules
+  eyebrow: 1
+  outerwear: 1
+  pants: 1
+  shoe: 1
+  hair: 0.7
+  glasses: 0.3
+  mustache: 0.3
+  glove: 0.4
+  backpack: 0.1
+  fullBody: 0
+  hatWhenNoHair: 1
+  hatOverHair: 0.25
+  tallestHairUnderHat: 1.8
+  heaviest:
+  - slot: 1
+    triangles: 3000
+  - slot: 8
+    triangles: 3500
+  - slot: 10
+    triangles: 3000
+  - slot: 2
+    triangles: 2000
+  - slot: 11
+    triangles: 6000
+  colourBodies:
+  - colour: Blue
+    bodies:
+    - Body_Blue_001
+    - Body_Blue_002
+    - Body_Blue_003
+  - colour: Orange
+    bodies:
+    - Body_Orange_001
+    - Body_Orange_002
+  practiceColour: Green

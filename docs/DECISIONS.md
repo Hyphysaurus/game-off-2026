@@ -3382,3 +3382,36 @@
     counts; "hit by a bot, then finished by your own grenade" gives nobody a point); a bot put away mid-fight
     still has its darts in flight; the editor's T dev key can still grow you in a match; per-player knock-out
     counts on the Tab board are each PC's own count (the teams' scores are the host's).
+- **D-0183 (24 Nov, 11:5x) Funny characters, stage 1: the look system. One rig, a LOOK = a part a slot, rolled from a seed. Built and photographed; nothing in the game wears it yet.**
+  His "these will be for bots, multiplayer characters, and for character npcs around th4e house", then "proceed with
+  the funny characters plan". Three readers mapped the pack, the player's body and the soldiers; a hidden survey run
+  settled what files alone could not: ALL 543 parts go onto the pack's one skeleton by setting the slot's mesh and
+  materials (bones and bind poses match after import); colour is a word in each part's name (Body has Blue and Orange:
+  the two teams read by outfit); the game's own player clips sit well on these bodies; a swapped slot keeps the old
+  part's culling box. Plan: four stages, one builder at a time (contract `%TEMP%\shiftjam-stage\chars\CHARS_CONTRACT.md`):
+  this one, then house characters, then the bots wear them, then the players' two body-sync faults.
+  - `Scripts/Characters/`: `CharacterSlot` (12 slots); `CharacterCatalog` (every part once: id = the part's file name,
+    slot, mesh, materials, colour word, kind word, triangles, height; `Resources/CharacterCatalog.asset`, BAKED, it
+    references the git-ignored pack and copies nothing); `CharacterLook` (one part id a slot; `Roll(catalog, rules,
+    seed, colour)` gives the same look from the same seed on every PC and in every run, with its own small number
+    generator, one stream a slot; one line of text out and in); `CharacterLookRules` (a ScriptableObject: the chance
+    of each optional slot, the heaviest part allowed a slot, which bodies go with a colour word, the practice
+    colour; `Resources/CharacterLookRules.asset` is made once and never overwritten: his to tune); `CharacterBody`
+    (on the body prefab: finds the 12 slot renderers by name, wears a look, sets one culling box on all of them,
+    dresses itself in Awake from its seed, rules and colour or from a look text; "Dress now" and "Roll the next look"
+    in its menu work in the editor without Play; nothing each frame).
+  - `Prefabs/Characters/FunnyBody.prefab`: the pack's rig nested, `CharacterBody`, dressed in seed 1 (6 slots, 7,305
+    triangles; the pack's own default shows all 12 at once, 26,150), humanoid avatar kept, root motion off, always
+    animating, no controller yet. Made by `Debug/CharacterPieces.cs` (menu Shift Jam > Characters > Build Characters;
+    the same call bakes the catalogue). A second menu, Line Up Twelve Looks, stands twelve in the open scene to look
+    at; it saves nothing.
+  - Default roll: body, eyebrows, top, trousers and shoes always; hair 70%; a hat when there is no hair, else 25%
+    over hair that is not tall; glasses 30%; moustache 30%; gloves 40%; a backpack 10%; no full-body suits. A colour
+    word fixes body, top and trousers ("Orange" leaves out the third orange body, which reads brown).
+  - CHECKED in his open editor, out of Play, through the bridge: 543 parts baked, 0 left out; the body prefab's
+    seed-1 look is exactly the one an independent Python copy of the roll predicted; the same seed rolled twice
+    gives the same look; twelve looks dressed by the real system and photographed in a scene of their own
+    (`%TEMP%\shiftjam-stage\chars1\out`); his open scene was never marked changed. My one change to the builder's
+    work: the prefab's first build happens in a preview scene, so the open scene never holds it.
+  - Not yet: anything that wears it in the game. No controller on the body (stage 2 gives house characters one;
+    stage 3 drives the bots with the player's own controller).

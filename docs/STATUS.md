@@ -2,6 +2,42 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 02:5x — TEAM DEATHMATCH IN THE STADIUM: READ ONLY, A PLAN THAT WAITS FOR HIS "PROCEED". NOTHING BUILT
+- His "begin the TDM plan". Read by three readers (the online code, the Stadium and its builders, the match flow
+  and the screen, with his recorded picks); nothing run, nothing touched. Full findings:
+  `%TEMP%\shiftjam-stage\tdm\readers_full.json` and the three notes files beside it.
+- **What is there.** Up to 4 players in a party; the host is whoever made it. Each PC owns its own player: a hit
+  goes from the shooter's PC to the victim's, the victim's PC decides the knock-out and who gets the credit, and
+  tells everyone. Each PC then keeps its own tally for the kill feed and the Tab board (nothing is sent: a late
+  joiner starts at zero). A knocked-out player is back in 2 s at the spawn furthest from everyone, teammates too.
+  The Stadium is a round field 50.8 across in two matching halves, a base in each, 8 ring spawns that split 4
+  and 4, one shared landing point on the middle stage, four practice soldiers that shoot everyone, gun stands
+  each PC runs for itself. Shots there are hit scan (made by the builder since v18).
+- **What is not there.** No team anywhere in the code. Nothing every PC agrees on that could run a match: no
+  round state, no timer, no start, no end, no way to put everyone somewhere at once. Friendly fire is full damage.
+  Name colours come from the join order. The Stadium's screen has no start or end card.
+- **PLAN: the smallest real match (start, score, end, again), every scene piece made by the builders:**
+  1. A match part in the Stadium, run by the host and seen by all: warm-up, countdown, playing, ended; team
+     scores; time left. Its numbers on the part.
+  2. Teams: the host puts each player on a team by arrival (a late joiner goes to the smaller one); team colour
+     on name tags, the kill feed and the Tab board, and a marker so friend and foe read at a glance.
+  3. Friendly fire off.
+  4. Team spawns: the ring's two halves, a landing point in each base, a comeback at the own-team spawn furthest
+     from the ENEMY.
+  5. The score counted once, on the host, from knock-outs (and the Tab board by team, right for a late joiner).
+  6. The match itself: free roam as today until the host starts it; 3, 2, 1; everyone at their base, whole and
+     restocked; first team to the score or the clock runs out; a win / lose card on every PC; back to free roam,
+     and the host can start the next.
+  7. The screen: team score and clock at the top, the card at the end.
+  8. Out of the way while a match runs: the practice soldiers, the doors, and growing (toy size only).
+- **Defaults I will take unless he says otherwise:** two teams balanced by arrival (1 v 1, 2 v 1 and 2 v 2 all
+  work); first to 10 knock-outs or 5 minutes; toy size only; people only, no bots; the host starts it with a key.
+- **Not in the first slice:** bots, a team-picking or ready screen, a kill cam, a score board in the world, start
+  gates, gun stands shared between PCs, vehicles in the match, CTF.
+- **To know before saying yes:** each PC decides its own knock-outs, so this is for friends, not cheat-proof; the
+  match ends if the host leaves; it needs two players to test (two copies of the game on one PC work); about two
+  build sessions, one builder at a time, then his two-window test and a v19 for friends.
+
 ## 24 Nov 2026 02:2x — THE FIRST SHIFT'S FREEZE, CORNERS THAT TURN WITH THE STICK, A SOLDIER'S FLINCH (D-0178 to D-0180): IN THE PROJECT, NOT PLAYED
 - His "proceed with all then begin second feel batch" to the next-steps list. Pushed first (`48d35e4`). Then
   built: the freeze fix and the corners by me, the flinch by one builder whose changes I read before landing. All

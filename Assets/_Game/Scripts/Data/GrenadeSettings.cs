@@ -53,6 +53,16 @@ namespace ShiftJam
         [Range(0f, 0.99f), Tooltip("The arm starts back to the animation from this share of the swing (the test room: 0.7).")]
         public float armOutFrom = 0.7f;
 
+        [Header("How hard: the longer G is held, the further it goes (D-0184)")]
+        [Min(0f), Tooltip("Seconds G must be held for the hardest throw. Let go sooner and it goes less far; a tap is the shortest lob. 0 = no charging: every throw leaves at Throw Speed, as before.")]
+        public float chargeSeconds = 0.9f;
+        [Range(0.05f, 1f), Tooltip("A tap's throw, as a share of Throw Speed (0.45: under half as fast, so it lands close).")]
+        public float leastThrow = 0.45f;
+        [Min(1f), Tooltip("A full hold's throw, as a share of Throw Speed (1.3: a third faster than the old single throw, so it lands further).")]
+        public float mostThrow = 1.3f;
+        [Tooltip("How the throw grows while G is held: across, the share of Charge Seconds held (0 to 1); up, the share of the way from the shortest throw to the hardest. A straight line: it grows evenly. Bulging up: most of the reach comes early.")]
+        public AnimationCurve chargeCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+
         [Header("The throw arc while G is held (D-0148)")]
         [Tooltip("Hold G (pad: the right stick held in) to see where the throw goes; let go to throw.")]
         public bool showArc = true;

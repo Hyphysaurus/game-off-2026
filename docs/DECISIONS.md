@@ -3415,3 +3415,21 @@
     work: the prefab's first build happens in a preview scene, so the open scene never holds it.
   - Not yet: anything that wears it in the game. No controller on the body (stage 2 gives house characters one;
     stage 3 drives the bots with the player's own controller).
+- **D-0184 (24 Nov, 11:5x) The grenade is thrown as hard as G was held. NOT PLAYED.**
+  His "we should be able to increase distance of it thrown or reduce based on how long we hold iot", then "proceed".
+  Before: G held showed the arc, letting go threw at one speed (Throw Speed 16), so distance changed only with how
+  high you looked.
+  - `GrenadeThrower`: a hold charges from the moment the key goes down to full after **Charge Seconds** (0.9) and
+    stays there; letting go throws at that share of Throw Speed, from **Least Throw** (0.45: a tap, a short lob) to
+    **Most Throw** (1.3: further than the old single throw), along **Charge Curve** (a straight line by default). On
+    a level look that is roughly 2.5 units for a tap, 7.5 for the old throw's speed (reached at about two thirds of
+    the hold) and 11.5 for a full hold, by the grenade's own fall and drag. The arc and its landing ring are drawn
+    from the same sum each frame, so they grow as the key is held: the ring is the aim, and no new read-out was
+    needed. The power is fixed as the key is let go (the grenade leaves a moment later, mid-swing).
+  - The pad works the same (the right stick held in charges, the left stick's press throws). Online nothing
+    changed: the thrower's PC already decides the speed and sends it.
+  - `StartThrow()` with no key (anything that throws from code) is the old single throw; `StartThrow(power)` is new.
+    **Charge Seconds 0** switches charging off: every throw as before.
+  - The play log's line now says how hard: "grenade thrown at 87% power, 2 left".
+  - My call, his to overturn: the charge stops at full and waits (it does not swing back down). Numbers are in
+    `Resources/Grenades`.

@@ -9,7 +9,9 @@ namespace ShiftJam
     /// you look, and it takes the thrower's own speed with it. A few are carried; a supply crate fills them up (Add),
     /// and so does the reset key. No throw while a move is under way, the hands are full, in Build Mode or in a car.
     /// A kid's throw leaves from the kid's chest and is as many times faster as the kid is bigger; the grenade does the
-    /// rest (Grenade). It tells the game what happened (GameEvents: GrenadesChanged, GrenadeThrown, GrenadeWentOff);
+    /// rest (Grenade). How hard it is thrown is how long the key was held (D-0184): a tap is a short lob, a full hold
+    /// (Charge Seconds) throws further than the old single throw did, and the arc shown while the key is held grows
+    /// with it, so the landing ring is the aim. It tells the game what happened (GameEvents: GrenadesChanged, GrenadeThrown, GrenadeWentOff);
     /// the weapon read-out, the hit marker and the play log listen. The WeaponHolder of a player adds one of these;
     /// every number is in Resources/Grenades. Online (D-0130), each throw's start is told to the other PCs (Started),
     /// where the thrower on this player's copy, made look-only (UseLookOnly), swings the same arm and throws nothing.
@@ -25,6 +27,10 @@ namespace ShiftJam
         private ThrowPose _pose;
         private float _wait, _swingLeft;
         private bool _released = true;
+        private bool _wasHeld;          // the key was held last frame
+        private float _heldSince;       // when this hold began (game time: a pause does not charge)
+        private float _charge;          // how far this hold has charged, 0 to 1; 0 when the key is up
+        private float _thrownPower = 1f;   // the power of the throw under way, fixed as the key is let go
         private bool _look;   // another player's copy on this PC (D-0130): it swings the arm when told and throws nothing
 
         /// <summary>True on another player's copy on this PC: it only swings the arm, when NetCombat says.</summary>
@@ -43,6 +49,10 @@ namespace ShiftJam
         public Grenade Last { get; private set; }
         /// <summary>The numbers in use.</summary>
         public GrenadeSettings Settings => _s;
+        /// <summary>How far the hold under way has charged, 0 (just pressed, or the key is up) to 1 (the hardest throw).</summary>
+        public float Charge => _charge;
+        /// <summary>How hard the last throw left, as a share of Throw Speed (1 = the old single throw).</summary>
+        public float LastPower => _thrownPower;
 
         // Another player's copy: their Shifter does not run here, but the network sizes the body with their shift.
         private float Scale => _shifter != null && !_look ? _shifter.Scale : Mathf.Max(0.001f, transform.lossyScale.y);
@@ -69,14 +79,20 @@ namespace ShiftJam
             _pose.Rest();
         }
 
-        private void OnKey() => StartThrow();
+        // The key is let go: the throw is as hard as the hold was long (the charge of the frame before: this frame's
+        // Update has not run yet, and it would read the key as up).
+        private void OnKey() => StartThrow(PowerAt(_charge));
 
-        /// <summary>Starts a throw, as the key does. False when it cannot: none left, the last throw too recent, a move
-        /// under way, the hands full, or no grenade set.</summary>
-        public bool StartThrow()
+        /// <summary>Starts a throw at the old single speed (Throw Speed), for whatever throws without a key held. False
+        /// when it cannot: none left, the last throw too recent, a move under way, the hands full, or no grenade set.</summary>
+        public bool StartThrow() => StartThrow(1f);
+
+        /// <summary>Starts a throw that leaves at <paramref name="power"/> times Throw Speed. False as above.</summary>
+        public bool StartThrow(float power)
         {
             if (_look || !isActiveAndEnabled || Carried <= 0 || _wait > 0f || _s.grenade == null) return false;
             if (_holder != null && !_holder.FreeToAct) return false;
+            _thrownPower = Mathf.Max(0.01f, power);
             Carried--;
             _wait = _s.cooldown;
             _swingLeft = _s.swingSeconds;
@@ -143,8 +159,27 @@ namespace ShiftJam
             GameEvents.RaiseGrenadesChanged(this);
         }
 
+        /// <summary>The throw's power for a hold charged this far (0 to 1), as a share of Throw Speed: from the shortest
+        /// lob to the hardest throw along the charge curve. With charging off (Charge Seconds 0): always 1.</summary>
+        private float PowerAt(float charge)
+        {
+            if (_s.chargeSeconds <= 0f) return 1f;
+            float along = _s.chargeCurve != null && _s.chargeCurve.length > 0 ? Mathf.Clamp01(_s.chargeCurve.Evaluate(Mathf.Clamp01(charge))) : Mathf.Clamp01(charge);
+            return Mathf.Lerp(_s.leastThrow, Mathf.Max(_s.leastThrow, _s.mostThrow), along);
+        }
+
+        /// <summary>The hold: it starts charging as the key goes down and stops at full; with the key up there is none.</summary>
+        private void Charging()
+        {
+            bool held = !_look && _input != null && _input.GrenadeHeld;
+            if (held && !_wasHeld) _heldSince = Time.time;
+            _charge = !held ? 0f : _s.chargeSeconds > 0f ? Mathf.Clamp01((Time.time - _heldSince) / _s.chargeSeconds) : 1f;
+            _wasHeld = held;
+        }
+
         private void Update()
         {
+            Charging();
             _wait = Mathf.Max(_wait - Time.deltaTime, 0f);
             if (_swingLeft <= 0f) return;
             _swingLeft = Mathf.Max(_swingLeft - Time.deltaTime, 0f);
@@ -174,7 +209,7 @@ namespace ShiftJam
             if (!lining) { if (_arc != null) _arc.Hide(); return; }
             if (_arc == null) _arc = ArcPreview.For(transform);
             if (_arc == null) return;
-            Release(out Vector3 from, out Vector3 velocity, out Transform alt);
+            Release(PowerAt(_charge), out Vector3 from, out Vector3 velocity, out Transform alt);   // as hard as letting go now would throw it
             float size = _s.grenade.SizeFor(Scale);
             var flight = _s.grenade.GetComponent<BallFlight>();
             if (flight == null) { _arc.Hide(); return; }
@@ -189,7 +224,7 @@ namespace ShiftJam
 
         private void LetGo()
         {
-            Release(out Vector3 from, out Vector3 velocity, out Transform alt);
+            Release(_thrownPower, out Vector3 from, out Vector3 velocity, out Transform alt);
             Vector3 spin = new Vector3(Random.Range(-_s.spin, _s.spin), Random.Range(-_s.spin, _s.spin), Random.Range(-_s.spin, _s.spin));
             Grenade thrown = Instantiate(_s.grenade, from, Quaternion.identity);
             thrown.Throw(transform, alt, Scale, velocity, spin);
@@ -201,8 +236,9 @@ namespace ShiftJam
         }
 
         /// <summary>Where a throw leaves from and how fast, now (the throw and its arc both use it, D-0148): just in front
-        /// of the chest, tilted up a little above the look, taking the thrower's own speed with it.</summary>
-        private void Release(out Vector3 from, out Vector3 velocity, out Transform alt)
+        /// of the chest, tilted up a little above the look, taking the thrower's own speed with it.
+        /// <paramref name="power"/>: the share of Throw Speed it leaves at (D-0184: how long the key was held).</summary>
+        private void Release(float power, out Vector3 from, out Vector3 velocity, out Transform alt)
         {
             Vector3 look = _holder != null ? _holder.AimForward : transform.forward;
             Vector3 way = (look + Vector3.up * _s.loft).normalized;
@@ -216,7 +252,7 @@ namespace ShiftJam
             // chest and is as many times faster as the kid is bigger.
             float size = _s.grenade.SizeFor(Scale);
             from = feet.position + (left * _s.releasePoint.x + Vector3.up * _s.releasePoint.y + flat * _s.releasePoint.z) * size;
-            velocity = way * (_s.throwSpeed * size);
+            velocity = way * (_s.throwSpeed * power * size);
             // It takes the thrower's own speed with it. A body standing on the floor is held to it by a small
             // downward speed of its own: that is not the thrower moving, and it is left out.
             Vector3 own = Vector3.zero; bool grounded = false;

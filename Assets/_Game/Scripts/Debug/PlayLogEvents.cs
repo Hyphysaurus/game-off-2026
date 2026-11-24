@@ -146,7 +146,7 @@ namespace ShiftJam
         private void OnBeltChanged(AmmoBelt belt) => _ammoChanged = true;
         private void OnDartStuck(Transform shooter) { if (Mine(shooter)) PlayLog.Count("darts stuck"); }
 
-        private void OnGrenadeThrown(GrenadeThrower who) { if (!Mine(who)) return; PlayLog.Tell("grenade thrown, " + who.Carried + " left"); PlayLog.Count("grenades thrown"); }
+        private void OnGrenadeThrown(GrenadeThrower who) { if (!Mine(who)) return; PlayLog.Tell("grenade thrown at " + Mathf.RoundToInt(who.LastPower * 100f) + "% power, " + who.Carried + " left"); PlayLog.Count("grenades thrown"); }
         private void OnGrenadeWentOff(GrenadeThrower who, int hits, bool finished)
         {
             if (!Mine(who)) return;

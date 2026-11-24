@@ -25,16 +25,22 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
 - His 03:14 play (33 min, about 2.5 at the keys): the FIRST SHIFT OF THE PLAY TOOK 0.11 s (it was 1.4 to 2.1 s
   before D-0178): the freeze is gone. Two rope rides, a grenade knock-down. No word from him on the corners or the
   soldier's flinch.
-- TDM (D-0182), 04:2x: the contract is final (`%TEMP%\shiftjam-stage\tdm\TDM_CONTRACT.md`, second version, checked
-  against the code). Three builders, ONE at a time, each landed after my own read:
-  **A1 the match for people** (stage `tdm1`; RUNNING since 04:24, workflow `wf_607c345d-1ea`): the match part
-  (`Core/TeamMatch.cs`, made with the scene like `ShotRules`), what travels (`Player/NetMatch.cs` on the online
-  player), teams, team spawns and a landing point a base, friendly fire through one rule (`Damageable.Spares`), the
-  clock, the score, the end, toy-only, the shut doors; the four soldiers put away for the match.
-  **B the screen** (`tdm2`: score bar, clock, team colours, the countdown, the end card). **A2 the bots** (`tdm3`:
-  the soldiers on teams, filling each team to 2, their routes). IF A RUN DIES: its stage folder has `NOTES.md` and
-  the staged files; nothing is in the project until I land it. After all three: one hidden Unity run to rebuild
-  the NetPlayer and the Stadium (the part, the team spawns, `NetMatch` on the player), then his play.
+- TDM (D-0182), 04:5x: **STEPS 1 AND 2 ARE IN THE PROJECT AND THE SCENE IS REBUILT (`8039376`, local). NOT PLAYED.**
+  Step 1, the match for people (builder A1, 19 min, read by me, one fix of mine: every match variable now tells
+  the screen of its change): `Core/TeamMatch.cs` (the part, made with the scene), `Player/NetMatch.cs` (what
+  travels, on the online player), teams, team spawns + a landing point a base, friendly fire as one rule
+  (`Damageable.Spares`), the clock on the server's time, the score, the end, toy-only, the shut doors, the soldiers
+  put away for the match. Step 2, the screen (mine): `UI/MatchHud.cs` (scores + clock top left, the countdown and
+  GO in the middle, the end card), the kill feed and Tab board in team colours, name tags in team colours with an
+  enemy's tag hidden behind cover. Unity's own compile (with Netcode's code generator) is clean; the rebuilt scene
+  has the part, its screen, 4 ring spawns + 1 landing a team; the NetPlayer has NetMatch.
+  **TO TRY IT NOW (alone):** title > Online > host, in the Stadium press **M**: 3-2-1, you land at the Blue base,
+  the clock runs 5:00, no enemies yet (the soldiers are put away).
+  **Step 3, the bots (builder A2, stage `tdm3`, RUNNING since 04:50, workflow `wf_0b6d91a7-5f6`; brief
+  `%TEMP%\shiftjam-stage\tdm\TDM_A2_BOTS.md`):** the four soldiers on teams by their half, filling each team to 2,
+  walking two checked routes a half, team-coloured, scoring both ways. IF THE RUN DIES: `tdm3\NOTES.md` + the
+  staged files; nothing of step 3 is in the project until I land it. After it: one more hidden rebuild
+  (`weapons/run_probe.sh stadium2/probe/StadiumCheckProbe.cs ...` writes `match_report.txt`), docs, his play.
 
 ## 24 Nov 2026 02:5x — TEAM DEATHMATCH IN THE STADIUM: READ ONLY, A PLAN THAT WAITS FOR HIS "PROCEED". NOTHING BUILT
 - His "begin the TDM plan". Read by three readers (the online code, the Stadium and its builders, the match flow

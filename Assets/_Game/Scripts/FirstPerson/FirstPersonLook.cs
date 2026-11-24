@@ -72,6 +72,18 @@ namespace ShiftJam
 
         private void OnEnable() { Cursor.lockState = CursorLockMode.Locked; Cursor.visible = false; }
 
+        /// <summary>The share of the look that is kept while the view is narrowed for aim (D-0174; FirstPersonSettings >
+        /// Aim Look Match): the narrowed view's half-height over the plain view's (the tangents of half their angles; the
+        /// settings' own kind of degrees gives the same ratio as the camera's), so a target crosses the screen at the
+        /// same speed for the same hand movement through a sight as without one. It eases in and out with the view
+        /// itself. 1 with no aim.</summary>
+        private float AimLookScale()
+        {
+            if (_fov <= 0f || _s.aimLookMatch <= 0f || Mathf.Approximately(_fov, _s.fieldOfView)) return 1f;
+            float kept = Mathf.Tan(Mathf.Clamp(_fov, 1f, 179f) * 0.5f * Mathf.Deg2Rad) / Mathf.Tan(Mathf.Clamp(_s.fieldOfView, 1f, 179f) * 0.5f * Mathf.Deg2Rad);
+            return Mathf.Lerp(1f, kept, _s.aimLookMatch);
+        }
+
         private void LateUpdate()
         {
             if (_s == null || _camera == null) return;
@@ -86,6 +98,7 @@ namespace ShiftJam
                 if (_hands != null && _hands.RotatingHeld) _hands.RotateBy(look);
                 else
                 {
+                    look *= AimLookScale();   // through a sight the view is narrower: the look turns less by as much (D-0174)
                     Yaw = Mathf.Repeat(Yaw + look.x, 360f);
                     Pitch = Mathf.Clamp(Pitch + (_s.invertY != PlayerOptions.InvertY ? look.y : -look.y), -_s.maxPitch, _s.maxPitch);
                 }
@@ -103,7 +116,7 @@ namespace ShiftJam
             {
                 Vector3 v = _body.Velocity; v.y = 0f;
                 float speed = v.magnitude;
-                float target = _body.Grounded ? Mathf.Clamp01(speed / (_s.runSpeed * scale)) : 0f;
+                float target = _body.Grounded ? Mathf.Clamp01(speed / Mathf.Max(1e-4f, _body.WalkSpeed * scale)) : 0f;
                 _bobWeight = Mathf.MoveTowards(_bobWeight, target, gdt * 4f);
                 _bobPhase += speed / Mathf.Max(1e-4f, scale) * _s.bobPerUnit * Mathf.PI * 2f * gdt;
                 bob = Mathf.Sin(_bobPhase) * _s.bobAmount * scale * _bobWeight;

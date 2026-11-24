@@ -99,6 +99,38 @@ namespace ShiftJam
             return shot;
         }
 
+        /// <summary>The way to fire this shot from <paramref name="from"/> so that it lands on <paramref name="target"/>
+        /// (D-0174). A shot with Drop falls as it flies, so one fired straight at a point lands under it (the foam dart:
+        /// 0.13 under at 10 units, 0.52 at 20). This is the flatter of the two arcs through the point: the straight
+        /// line, lifted by what the shot falls in the time it takes to get there. <paramref name="scale"/> and
+        /// <paramref name="speedScale"/> are the ones it will be fired with. <paramref name="within"/> (units at scale 1)
+        /// is as far as the lift is worked out for: a target further off gets the lift for that distance, and the shot
+        /// lands under it. The straight line when <paramref name="within"/> is 0, when the shot has no Drop, or when the
+        /// target is further than the shot can be thrown; zero when the two points are the same. Not allowed for: an
+        /// ammo that changes its own flight (the paint ball's real drag, off unless PaintSettings switches it on), and
+        /// the hair more the shot's stepping drops it (the pull is added before each step: 0.03 more at 40 units at 60
+        /// frames a second, half the dart's own radius; 0.015 at 20).</summary>
+        public Vector3 AimFor(Vector3 from, Vector3 target, float scale, float speedScale, float within)
+        {
+            Vector3 line = target - from;
+            float far = line.magnitude;
+            if (far < 1e-5f) return Vector3.zero;
+            line /= far;
+            scale = Mathf.Max(0.001f, scale);
+            float pull = drop * scale;
+            if (pull <= 0f || within <= 0f) return line;
+            float reach = Mathf.Min(far, within * scale);
+            float pace = speed * Mathf.Max(0.01f, speedScale) * scale;
+            // After t seconds the shot is at  v t + G t t / 2  (G: straight down, as strong as the pull). Passing the
+            // point d at time T with a speed of pace:  (pull pull / 4) T^4 - (pace pace + d.G) T^2 + d.d = 0. The
+            // smaller T is the flatter arc; written this way round it does not lose its figures as the pull gets small.
+            float b = pace * pace - pull * line.y * reach;
+            float under = b * b - pull * pull * reach * reach;
+            if (b <= 0f || under < 0f) return line;
+            float timeSquared = 2f * reach * reach / (b + Mathf.Sqrt(under));
+            return (line * reach + Vector3.up * (0.5f * pull * timeSquared)).normalized;
+        }
+
         /// <summary>One of this ammo's firing sounds, for the gun that fires it; null when it has none, or the clip is
         /// not in the project.</summary>
         public AudioClip FireClip() => Pick(fireClips);

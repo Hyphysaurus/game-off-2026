@@ -5,7 +5,8 @@ namespace ShiftJam
     /// <summary>
     /// A toy blaster: fires pooled Projectiles at a set interval (tap or hold if automatic), several pellets with spread for
     /// a shotgun, aimed where the camera's centre ray lands (so third-person shots go to the crosshair; the holder's arm
-    /// points the barrel at the same spot).
+    /// points the barrel at the same spot). A shot that falls as it flies leaves a little above that line, so its arc
+    /// passes through the point under the dot (D-0174; Resources/WeaponAmmo > Drop Aim Within).
     /// Shots leave from the muzzle unless the muzzle has poked through a wall, in which case they leave from the chest and
     /// hit that wall. Each shot kicks the gun back (and the view, in first person): how hard is this gun's Recoil, and
     /// what a kick of 1 is (degrees, distance, how it settles) is the same for every gun, in WeaponHold (the test
@@ -129,13 +130,17 @@ namespace ShiftJam
             if (Vector3.Distance(Holder.AttackOrigin, target) < pointBlank * Scale)
                 from = target - Holder.AimForward * (0.2f * Scale);
 
+            bool instant = ShotRules.Instant;   // the scene's rule: shots land at once (D-0172)
+            if (_shared == null) _shared = WeaponAmmoSettings.Load();
             Vector3 dir = target - from;
             if (dir.sqrMagnitude < 1e-6f) dir = look;
+            // A shot that flies falls on the way: it leaves a little above the line, so that its arc passes through the
+            // point under the dot instead of under it (D-0174; WeaponAmmo > Drop Aim Within, the ammo's own Drop and speed).
+            else if (!instant) dir = shot.AimFor(from, target, scale, shotSpeed, _shared.dropAimWithin);
             dir.Normalize();
-            // Where the scene's rule says shots land at once (D-0172, ShotRules): each pellet is put just in front of the
+            // Where the scene's rule says shots land at once (ShotRules): each pellet is put just in front of the
             // first thing on its line, so it lands there the next step with everything a landing does (damage, the shove,
             // the stuck dart, the marker), and the gun draws the line it took. A pellet that meets nothing flies as a dart.
-            bool instant = ShotRules.Instant;
             Vector3 gunEnd = muzzle != null ? muzzle.position : transform.position;
             for (int p = 0; p < pellets; p++)
             {
@@ -151,7 +156,6 @@ namespace ShiftJam
 
             _kick = 1f;
             Holder.Punch(new Vector2(-viewPunch.x, Random.Range(-viewPunch.y, viewPunch.y)) * recoil);
-            if (_shared == null) _shared = WeaponAmmoSettings.Load();
             // The sound: the loaded ammo's (the AmmoBelt: paint), else the shot's own (the foam dart), else this gun's.
             AudioClip ammoClip = _belt != null ? _belt.FireClip() : null;
             AudioClip own = ammoClip == null ? shot.FireClip() : null;

@@ -103,6 +103,14 @@ namespace ShiftJam
         public Vector3 PlanarVelocity => _planar;
         /// <summary>The fastest the body runs, own units a second (the legs' playback is worked out against it).</summary>
         public float SprintSpeed => settings.sprintSpeed;
+        /// <summary>The walk's top speed, own units a second.</summary>
+        public float WalkSpeed => settings.walkSpeed;
+        /// <summary>How high a full jump goes, own units.</summary>
+        public float JumpHeight => settings.jumpHeight;
+        /// <summary>The fastest the body falls, own units a second.</summary>
+        public float MaxFallSpeed => settings.maxFallSpeed;
+        /// <summary>How fast a shoved loose thing is set moving, own units a second.</summary>
+        public float PushSpeed => settings.pushSpeed;
         /// <summary>The camera the stick is read against.</summary>
         public Transform View => cameraTransform;
 

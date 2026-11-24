@@ -11,6 +11,8 @@ namespace ShiftJam
     /// follow the test room: C crouch (hold), Left Ctrl dodge roll, Q block (hold), left mouse fire or punch, right mouse
     /// aim or kick, X put down what is carried or holster / draw, Z drop the weapon, R reload, G throw a grenade.
     /// A car reads it as its driver (ICarDriver: Move, JumpHeld and Sprint, as they are).
+    /// The look: a stick's held value comes through the Look action; a mouse's movement is read from the mouse itself,
+    /// once a frame, when a camera asks for it (ConsumeLook, D-0174).
     /// </summary>
     public sealed class PlayerInput : MonoBehaviour, ICarDriver
     {
@@ -23,7 +25,7 @@ namespace ShiftJam
         private InputAction _move, _look, _jump, _sprint, _interact, _use, _drop, _previous, _next, _shift, _crouch, _aim, _dodge, _block;
         // Workshop extras the asset has no actions for: made here so this stays the only script that knows devices.
         private InputAction _dropWeapon, _scroll, _rotate, _reload, _grenade, _grenadePad, _grenadePadHold, _light;
-        private Vector2 _mouseLook;   // pixels moved since the last read
+        private int _mouseReadFrame = -1;   // the frame the mouse's movement was last handed out in: once a frame
         private readonly InputAction[] _slots = new InputAction[4];   // 1 to 4: the inventory slots
         private Vector2 _stickLook;   // current right-stick value, -1..1
 
@@ -163,7 +165,7 @@ namespace ShiftJam
             _dodge.performed -= OnDodge;
             _look.performed -= OnLook;
             _look.canceled -= OnLook;
-            _mouseLook = _stickLook = Vector2.zero;
+            _stickLook = Vector2.zero;
         }
 
         private void OnDestroy()
@@ -188,10 +190,40 @@ namespace ShiftJam
 
         private void OnLook(InputAction.CallbackContext ctx)
         {
-            Vector2 value = ctx.ReadValue<Vector2>();
-            // A mouse or touch gives pixels moved this frame: accumulate. A stick gives a held value: keep the latest.
-            if (ctx.control.device is Pointer) _mouseLook += value;
-            else _stickLook = value;
+            // The action has come to rest: nothing bound to it is moved or held, so the stick is at rest too.
+            if (ctx.canceled) { _stickLook = Vector2.zero; return; }
+            // A stick gives a held value: keep the latest. A mouse is not read here but once a frame, in MouseMoved.
+            if (ctx.control == null || ctx.control.device is Pointer) return;
+            _stickLook = ctx.ReadValue<Vector2>();
+        }
+
+        /// <summary>
+        /// The pixels the mouse moved this frame (every pointer that drives this player), handed out once: a second ask
+        /// in the same frame gets nothing. Read from the devices themselves when a camera asks, not added up from the
+        /// Look action's calls (D-0174). The Input System keeps a running total of a pointer's movement through each
+        /// frame and hands the action that total again every time it grows, and it grows more than once in any frame
+        /// where a mouse button or a key went down or up while the mouse was moving (such an event is never merged with
+        /// the moves either side of it). Adding those totals up counted the first part of that frame's movement twice:
+        /// every click and every key press while the view was turning turned it a little further the same way.
+        /// </summary>
+        private Vector2 MouseMoved()
+        {
+            if (_mouseReadFrame == Time.frameCount) return Vector2.zero;
+            _mouseReadFrame = Time.frameCount;
+            if (_look == null || !_look.enabled) return Vector2.zero;   // the keys are switched off (this script is): so is the mouse
+            Vector2 moved = Vector2.zero;
+            if (Paired != null)
+            {
+                foreach (InputDevice device in Paired)
+                    if (device is Pointer pointer && pointer.added) moved += pointer.delta.ReadValue();
+            }
+            else
+            {
+                ReadOnlyArray<InputDevice> devices = InputSystem.devices;
+                for (int i = 0; i < devices.Count; i++)
+                    if (devices[i] is Pointer pointer) moved += pointer.delta.ReadValue();
+            }
+            return moved;
         }
 
         /// <summary>
@@ -204,7 +236,8 @@ namespace ShiftJam
             Paired = only.HasValue ? devices : null;
             if (_instance != null) _instance.devices = only;
             if (_extras != null) _extras.devices = only;
-            _mouseLook = _stickLook = Vector2.zero;
+            _stickLook = Vector2.zero;
+            _mouseReadFrame = Time.frameCount;   // what the mouse moved before the pairing is not this player's
         }
 
         /// <summary>The devices this player is paired with; null when every device drives it (single player).</summary>
@@ -223,13 +256,12 @@ namespace ShiftJam
 
         /// <summary>
         /// The look turn for this frame, in degrees: mouse pixels times sensitivity plus stick times degrees per second times dt.
-        /// Reading it clears the mouse delta, so call it once per frame.
+        /// The mouse's part is handed out once a frame: whoever asks first gets it (a held thing being turned takes it
+        /// before the camera), a second ask in the same frame gets the stick's part only.
         /// </summary>
         public Vector2 ConsumeLook(float degreesPerPixel, float padDegreesPerSecond, float deltaTime)
         {
-            Vector2 look = _mouseLook * degreesPerPixel + _stickLook * (padDegreesPerSecond * deltaTime);
-            _mouseLook = Vector2.zero;
-            return look;
+            return MouseMoved() * degreesPerPixel + _stickLook * (padDegreesPerSecond * deltaTime);
         }
     }
 }

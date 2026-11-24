@@ -3090,3 +3090,66 @@
   jump into a rope should automatically grab". `Resources/Rope.asset`: Catch Reach 1 -> 1.5, Leave Reach 1.4 -> 1.9.
   E in the air stays, and is no longer needed. Also his: "darker box looks good" (`ToyBoxDark`, lights 0.35, ambient
   0.30).
+- **D-0174 (23 Nov, 23:2x) Three aim fixes: the mouse is read once a frame, the look slows as the view narrows for aim, a falling shot is aimed for its drop.**
+  His "lets go with the three aim fixes, proceed" (18:46; the usage limit cut the session there, built at 23:1x). The
+  three faults are the ones read for D-0172.
+  - **The mouse, once a frame (the click nudge).** Cause, read in the Input System 1.18 source in the project's
+    package cache: a mouse's `delta` is a running total through one frame (`FastMouse.OnStateEvent` adds each event's
+    movement to what the state already holds; `OnNextUpdate` puts it back to zero at the next update). The mouse's
+    events of a frame are merged into one unless the buttons change between them (`FastMouse.MergeForward`), and an
+    event is only ever merged with the very next one when that is for the same device (`InputManager`, the merge
+    check). So in a frame where a mouse button OR A KEY goes down or up while the mouse moves, the Look action is
+    called more than once, each time with the total so far, and `PlayerInput.OnLook` added those totals up: the part
+    of the frame's movement before the button or key was counted twice. Up to one frame's movement a press or a
+    release: about a pixel on slow tracking, tens of pixels on a flick. Not only clicks: every WASD, jump, crouch or
+    reload press while the view turns.
+    Now `PlayerInput.MouseMoved` reads each pointer's `delta` itself, once a frame, when a camera asks
+    (`ConsumeLook`); the Look action only carries the stick. Kept as they were: a held thing being turned takes the
+    mouse before the camera (a second ask in a frame gets none), a paired seat reads only its own devices, a
+    switched-off PlayerInput gives no mouse. Also: the stick's value is cleared when the Look action comes to rest
+    (it could stay stuck when a mouse and a stick were used together).
+  - **The look slows with the view on aim.** The view narrows on aim (third person 75 to 55; first person 90 to the
+    gun's 72 / 68 / 75) while the mouse turned 0.1 degrees a pixel throughout, so a target crossed the screen 1.3 to
+    1.5 times faster for the same hand movement. Now the turn is multiplied by tan(half the narrowed view) over
+    tan(half the plain view): third person 0.68 at full aim; first person pistol 0.73, SMG 0.67, shotgun 0.77. It
+    eases in and out with the view. Mouse and stick alike; the flashlight's aim too (the same view). One slider in
+    each view's settings: `CameraSettings` / `FirstPersonSettings` > Aim Look Match (1 = the same speed on screen,
+    0 = as before).
+  - **A falling shot is aimed for its drop.** `Projectile.AimFor`: the direction whose arc passes through the point
+    under the dot (the flatter of the two: the line, lifted by what the shot falls in the time it takes to get
+    there), from the ammo's own speed and Drop, the gun's Shot Speed and the shooter's size. `BlasterWeapon` fires
+    along it; the spread goes round it. Worked out as far as `Resources/WeaponAmmo` > Drop Aim Within, 40 units:
+    further off the shot gets the lift for 40 and lands under the dot (the pistol: 1.6 under at 60, it was 4.7).
+    Why a limit: the lift is for the distance of whatever is under the dot, so with the dot just off a near target
+    and on something far behind it, the dart passes over the dot's line at the target: up to 0.5 at 20 units with
+    the limit at 40; with no limit, 2.6. 0 = off. Instant shots (D-0172) have no arc and skip it.
+    Checked in a stepping copy of the dart's flight (`Projectile.Update`'s own order of pull and step), not in Play:
+    before, 0.14 / 0.53 / 2.1 under at 10 / 20 / 40; after, the worst miss inside 40 is 0.03 at 60 frames a second
+    (0.012 at 144, 0.06 at 30), at toy and kid size, level and steep: the hair more the stepping drops a shot.
+  - **Left alone:** toy soldiers still fire straight at their target (their darts land low at range: that is their
+    miss); the paint ball's real drag (off) is not allowed for; darts still need a lead on a moving target; the dot
+    still shows only while aiming (D-0154).
+  - Made by the orchestrator, staged outside (`%TEMP%\shiftjam-stage\aim3`), compiled outside both ways (0 errors),
+    landed with Unity closed. No reviewer (his rule: a review on his word). NOT PLAYED.
+- **D-0175 (23 Nov, 23:2x) First person moves at the third-person toy's numbers, read from where third person keeps them.**
+  His "match speeds across fps and tps". First person had its own Half-Life numbers (run 4.8, sprint 8.1) against
+  third person's walk 7 and sprint 11; D-0173 had already had to copy the jump and gravity across by hand.
+  - `FirstPersonSettings` > Match Third Person, on (the asset has no line for it, so the script's default holds).
+    The first-person body then takes from `PlayerMotor` (`Data/MovementSettings`): walk 7, sprint 11, jump 2,
+    gravity 25, fastest fall 30 (was 50), the shove on a loose thing 3 (was 2.9); from `Resources/PlayerMoves`:
+    the crouched top speed 1.67 (was 1.63); and third person's aim rule (D-0141) from the motor's `AimShare` and
+    `SprintLocked`, which `PlayerMoves` keeps writing in first person: with aim held 0.6 of the walk (4.2; first
+    person kept its full 4.8 before) and no sprint. Not while a prop is in the first-person hands (there the aim
+    button turns the prop). Off: the body's own numbers, as before.
+  - One place for each number now: a change to the third-person walk, sprint, jump, crouch speed or aim share
+    changes both views.
+  - Not matched: how the body gets up to speed and stops (HL2's acceleration and friction): from a walk of 7 it
+    coasts about 1.4 after the stick is let go (0.9 at the old 4.8; third person 0.5); `FirstPersonSettings` >
+    Friction is the number. The air's rules. The crouch-jump's extra lift (2.9 against third person's 2.0: his
+    call, still open). The view's bob is paced by the ground covered, so it is quicker at the new walk (2.2 a
+    second, was 1.5): Bob Per Unit.
+  - `FirstPersonBody.Setup` takes the motor and the moves' settings (`FirstPersonMode.BuildRig`); `PlayerMotor`
+    says its WalkSpeed, JumpHeight, MaxFallSpeed, PushSpeed. Compiled outside both ways, landed with Unity closed.
+    No reviewer. NOT PLAYED.
+  - With it: `Data/RopeSettings.cs` defaults now say what `Resources/Rope.asset` has had since his verdict (Catch
+    Reach 1.5, Leave Reach 1.9), so a freshly made asset agrees (owed from the D-0170 addendum).

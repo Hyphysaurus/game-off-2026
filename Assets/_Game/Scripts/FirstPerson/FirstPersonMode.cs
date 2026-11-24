@@ -148,7 +148,8 @@ namespace ShiftJam
             _body = _rig.AddComponent<FirstPersonBody>();
             _look = _rig.AddComponent<FirstPersonLook>();
             _hands = _rig.AddComponent<PhysicsGrabber>();
-            _body.Setup(settings, input, _shifter, transform, _hands);
+            // The motor and the moves' numbers go with it: matched (FirstPersonSettings), the body moves at theirs (D-0175).
+            _body.Setup(settings, input, _shifter, transform, _hands, _motor, _moves != null && _moves.Settings != null ? _moves.Settings : PlayerMoveSettings.Load());
             _look.Setup(settings, input, _body, _view, _hands);
             _hands.Setup(settings, input, _body, _view != null ? _view.transform : null, _holder, _interactor);
         }

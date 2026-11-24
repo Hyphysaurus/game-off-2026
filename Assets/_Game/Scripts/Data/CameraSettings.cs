@@ -34,6 +34,8 @@ namespace ShiftJam
         public float aimDistance = 1.29f;
         [Tooltip("Field of view while aim is held, degrees, at either size (the test room: 55).")]
         public float aimFieldOfView = 55f;
+        [Range(0f, 1f), Tooltip("How much the look slows as the view narrows for aim (D-0174). 1: the mouse and the stick turn the view less by as much as the view has narrowed, so a target crosses the screen at the same speed for the same hand movement with aim held as without (at 75 narrowed to 55 the turn is 0.68 of the usual). 0: the same turn as always, which carried a target about one and a half times faster across the screen with aim held.")]
+        public float aimLookMatch = 1f;
         [Tooltip("How quickly the camera moves between the views. Higher is snappier.")]
         public float viewBlend = 8f;
 

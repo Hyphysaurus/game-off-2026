@@ -9,6 +9,10 @@ namespace ShiftJam
     /// crouch-jump clears higher ledges. You cannot stand up under a ceiling. Steps are walked up. Loose props are shoved.
     /// Everything is multiplied by the Shifter's scale, live, so a shift in first person grows or shrinks the body.
     /// Facing (yaw) is set by FirstPersonLook on this transform.
+    /// How fast it goes is the third-person toy's own numbers while FirstPersonSettings > Match Third Person is on
+    /// (D-0175): its walk, sprint, crouched speed, the slower walk with aim held, its jump, gravity and fastest fall,
+    /// read from the third-person motor and moves, so the same toy moves the same in either view. How it gets up to
+    /// speed and slows down stays HL2's.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public sealed class FirstPersonBody : MonoBehaviour
@@ -19,6 +23,8 @@ namespace ShiftJam
         private PlayerInput _input;
         private Shifter _shifter;
         private PhysicsGrabber _hands;
+        private PlayerMotor _third;          // the third-person motor this body stands in for: its numbers are this body's while matched (D-0175)
+        private PlayerMoveSettings _moves;   // third person's crouched speed
         private CharacterController _cc;
         private readonly Collider[] _overlap = new Collider[16];
         private Vector3 _velocity;
@@ -40,9 +46,41 @@ namespace ShiftJam
         public Vector3 Centre => transform.position + Vector3.up * (_cc != null ? _cc.height * 0.5f : 0.9f * Scale);
         public CharacterController Capsule => _cc;
 
-        public void Setup(FirstPersonSettings settings, PlayerInput input, Shifter shifter, Transform owner, PhysicsGrabber hands)
+        // While matched (D-0175) the third-person toy's numbers stand in for this body's own.
+        private bool Matched => _s.matchThirdPerson && _third != null;
+        /// <summary>The walk's top speed, own units a second (the view's bob is paced against it).</summary>
+        public float WalkSpeed => Matched ? _third.WalkSpeed : _s.runSpeed;
+        private float OwnGravity => Matched ? _third.OwnGravity : _s.gravity;
+        private float JumpHeight => Matched ? _third.JumpHeight : _s.jumpHeight;
+        private float MaxFallSpeed => Matched ? _third.MaxFallSpeed : _s.maxFallSpeed;
+        private float PushSpeed => Matched ? _third.PushSpeed : _s.runSpeed * 0.6f;
+
+        /// <summary>The fastest the body may go right now, own units a second, before a heavy gun's share. Matched, it is
+        /// the third-person motor's own rule: the sprint, or the walk when Sprint is not held, when crouched, or while
+        /// aim is held; never above the crouched speed while crouched; the aim's share of that while aim is held (the
+        /// player's moves go on writing those two asks to the parked motor in first person). With a prop in the hands
+        /// the aim button turns the prop: that is no aim, and nothing slows. Not matched: this body's own run, sprint
+        /// and crouch share.</summary>
+        private float TopSpeed()
         {
-            _s = settings; _input = input; _shifter = shifter; Owner = owner; _hands = hands;
+            bool sprint = _input != null && _input.Sprint && !_crouched;
+            if (!Matched)
+            {
+                float own = sprint ? _s.sprintSpeed : _s.runSpeed;
+                return _crouched ? own * _s.crouchSpeedMultiplier : own;
+            }
+            bool aimed = _hands == null || _hands.Held == null;   // the same rule that narrows the view (FirstPersonMode)
+            float top = sprint && !(aimed && _third.SprintLocked) ? _third.SprintSpeed : _third.WalkSpeed;
+            if (_crouched) top = _moves != null ? Mathf.Min(top, _moves.crouchSpeed) : top * _s.crouchSpeedMultiplier;
+            return aimed ? top * _third.AimShare : top;
+        }
+
+        /// <summary><paramref name="third"/> and <paramref name="moves"/>: the third-person motor this body stands in for
+        /// and the moves' numbers, for Match Third Person; without the motor the body keeps its own numbers.</summary>
+        public void Setup(FirstPersonSettings settings, PlayerInput input, Shifter shifter, Transform owner, PhysicsGrabber hands,
+            PlayerMotor third = null, PlayerMoveSettings moves = null)
+        {
+            _s = settings; _input = input; _shifter = shifter; Owner = owner; _hands = hands; _third = third; _moves = moves;
             _cc = GetComponent<CharacterController>();
             _cc.minMoveDistance = 0f;
             _cc.slopeLimit = settings.slopeLimit;
@@ -164,16 +202,14 @@ namespace ShiftJam
             wish.y = 0f;
             float wishSpeed = Mathf.Clamp01(wish.magnitude);
             Vector3 wishDir = wishSpeed > 1e-4f ? wish.normalized : Vector3.zero;
-            float top = (_input != null && _input.Sprint && !_crouched ? _s.sprintSpeed : _s.runSpeed) * scale;
-            if (_crouched) top *= _s.crouchSpeedMultiplier;
-            top *= SpeedShare;
+            float top = TopSpeed() * SpeedShare * scale;
             wishSpeed *= top;
 
-            float gravity = _s.gravity * scale;
+            float gravity = OwnGravity * scale;
             bool jump = Grounded && Time.time - _jumpPressed <= JumpBuffer;
             if (jump)
             {
-                _velocity.y = Mathf.Sqrt(2f * gravity * _s.jumpHeight * scale);
+                _velocity.y = Mathf.Sqrt(2f * gravity * JumpHeight * scale);
                 _jumpPressed = -10f;
                 Grounded = false;
             }
@@ -187,7 +223,7 @@ namespace ShiftJam
             else
             {
                 AirAccelerate(wishDir, wishSpeed, dt, scale);
-                _velocity.y = Mathf.Max(_velocity.y - gravity * dt, -_s.maxFallSpeed * scale);
+                _velocity.y = Mathf.Max(_velocity.y - gravity * dt, -MaxFallSpeed * scale);
             }
 
             _cc.stepOffset = Grounded ? Mathf.Min(_s.stepHeight * scale, _cc.height * 0.5f) : 0f;
@@ -250,7 +286,7 @@ namespace ShiftJam
             Vector3 dir = new Vector3(hit.moveDirection.x, 0f, hit.moveDirection.z);
             if (dir.sqrMagnitude < 1e-4f) return;
             dir.Normalize();
-            float want = Mathf.Min(new Vector3(_velocity.x, 0f, _velocity.z).magnitude, _s.runSpeed * 0.6f * _scale);
+            float want = Mathf.Min(new Vector3(_velocity.x, 0f, _velocity.z).magnitude, PushSpeed * _scale);
             float have = Vector3.Dot(body.linearVelocity, dir);
             if (have < want) body.AddForce(dir * (want - have), ForceMode.VelocityChange);
         }

@@ -2,6 +2,52 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 23:3x — THE THREE AIM FIXES (D-0174) AND ONE SET OF SPEEDS FOR BOTH VIEWS (D-0175): IN THE PROJECT, NOT PLAYED
+- His word (18:46, the last before the usage limit cut the session): "lets go with the three aim fixes, proceed and
+  push, and match speeds across fps and tps". Built at 23:1x with Unity closed: staged outside
+  (`%TEMP%\shiftjam-stage\aim3`), compiled outside as the editor and as a built game (0 errors), landed. No reviewer
+  (his rule: a review on his word). Details and numbers: DECISIONS D-0174, D-0175.
+- **1. The click nudge is gone (the mouse is read once a frame).** The game counted part of the mouse's movement
+  twice in any frame where a mouse button or a key went down or up while the mouse was moving: every click, and
+  every WASD, jump, crouch or reload press while the view turned, turned it a little further. Now `PlayerInput`
+  reads the mouse itself once a frame. All looking, both views, the cars' camera too.
+- **2. The look slows as the view narrows for aim.** The same hand movement now carries a target across the screen
+  at the same speed with aim held as without (it was 1.3 to 1.5 times faster on aim). Third person turns 0.68 of
+  the usual at full aim; first person 0.73 pistol, 0.67 SMG, 0.77 shotgun. Slider: Aim Look Match on
+  `Data/CameraSettings` and on `Data/FirstPersonSettings` (1 = this, 0 = as before).
+- **3. Darts land on the dot.** A dart leaves a little above the line so that its arc passes through the point
+  under the dot: before, 0.14 / 0.53 / 2.1 under at 10 / 20 / 40 units; now within 0.03 out to 40. Further off it
+  still lands under (1.6 under at 60; it was 4.7). Number: `Resources/WeaponAmmo` > Drop Aim Within (40; 0 = off).
+  The price of it: with the dot just off a near target and on something far behind, the dart passes up to 0.5 over
+  the dot's line at the target. Instant shots (the Stadium, F9) are untouched.
+- **4. First person moves at third person's numbers (D-0175).** Walk 7 (was 4.8), sprint 11 (was 8.1), crouched
+  1.67, and third person's aim rule: 0.6 of the walk and no sprint while aim is held. Read from where third person
+  keeps them, so the two views cannot drift apart again (`FirstPersonSettings` > Match Third Person, on).
+- HIS PLAYTEST (Greybox, the armory range; foam darts, so no F9):
+  1. Hold aim, track a target while stepping left and right with A / D, and click while sweeping across it: the
+     view should no longer skip ahead on a click or a key.
+  2. Sweep the dot across a target from the hip, then with aim held, with the same hand movement: the same speed
+     on screen. In first person through each gun's sight too.
+  3. With aim held, shoot a flat wall from about 10 and from about 20 units: the darts should stick on the dot, not
+     under it. From 60 or more: a little under.
+  4. V for first person: walk, sprint, crouch, aim-walk against third person; the book steps; stop on a narrow book.
+- Look for: aim that now feels too slow (Aim Look Match down toward 0); a dart sailing over a target's shoulder when
+  the dot was just off it (Drop Aim Within down); first person sliding on after the stick is let go (it coasts
+  about 1.4 from a walk now, 0.9 before, third person 0.5: `FirstPersonSettings` > Friction up); the first-person
+  bob (quicker at the faster walk: Bob Per Unit).
+- Left as they were, his calls: toy soldiers still fire straight (their darts land low at range); the first-person
+  crouch-jump still clears 2.9 against third person's 2.0; the dot shows only while aiming.
+- With it: `Data/RopeSettings.cs` defaults now match `Resources/Rope.asset` (Catch Reach 1.5, Leave Reach 1.9).
+- **His 20:09 play (8:55, on `c5f5798`, no word from him yet), from the log:** 4 rope rides. After the first he went
+  rope to rope three times with no long hang: caught 12.8 up, let go after 0.6 s, caught the next 6.3 up, let go
+  after 0.3 s at speed 7.5, caught the next 5.5 up, let go after 0.3 s at 11.1, down past the last rope. That is the
+  wider catch (no E) working. Also in it: 23 frames over 100 ms, where his other plays today had 0 to 4: a run of
+  frames of about 118 ms at 6:28 (just after the window came back) and another from 6:51 to 6:56 near
+  (552, 8, -113) with the pistol out. Not looked into.
+- STILL OWED: the rope's review (his "after i playtest"; both plays went well: one reviewer on `RopeRider`, the
+  motor's fling, every way a ride ends, on his word). TDM in the Stadium (teams, score, spawns) is not built.
+  Then a v18 build mid-week.
+
 ## 23 Nov 2026 18:5x — HIS VERDICTS: THE DARKER BOX, THE ROPES AND THE HANDS ARE GOOD; A ROPE NOW CATCHES WITHOUT E FROM FURTHER OFF
 - His words: "darker box looks good, ropes and hands feel and look good but id like to be able to jump into a rope
   and not need to press E to grab it, jump into a rope should automatically grab".

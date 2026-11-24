@@ -254,6 +254,9 @@ namespace ShiftJam
             if (_chase != null) { InsideBody = false; _viewReady = false; VehicleView(look, fov, dt); return; }
             if (_cursorLocked && Time.timeScale > 0f)
             {
+                // With aim held the view is narrower, so the same turn carries a target further across the screen: the
+                // look turns less by as much as the view has narrowed (D-0174).
+                look *= AimLookScale(fov);
                 _yaw = Mathf.Repeat(_yaw + look.x, 360f);
                 float up = settings.invertY != PlayerOptions.InvertY ? look.y : -look.y;
                 _pitch = Mathf.Clamp(_pitch + up, settings.minPitch, settings.maxPitch);
@@ -328,6 +331,20 @@ namespace ShiftJam
             if (_punchLeft > 0f) _punchLeft = Mathf.Max(0f, _punchLeft - dt);
             _camera.fieldOfView = fov + FovOffset + PunchNow;
             _camera.nearClipPlane = near;
+        }
+
+        /// <summary>The share of the look that is kept while the view is narrowed for aim (D-0174; CameraSettings > Aim
+        /// Look Match): the narrowed view's half-height over the plain view's (the tangents of half their angles), so a
+        /// target crosses the screen at the same speed for the same hand movement with aim held as without. It eases in
+        /// and out with the view itself (the blend as it stood last frame: the look is read before this frame's).
+        /// 1 with no aim. <paramref name="wideFov"/>: the wide view's field of view at this size.</summary>
+        private float AimLookScale(float wideFov)
+        {
+            if (_aimView <= 0.0001f || settings.aimLookMatch <= 0f) return 1f;
+            float plain = Mathf.Lerp(wideFov, settings.armedFieldOfView, _armedView);
+            float narrowed = Mathf.Lerp(plain, settings.aimFieldOfView, _aimView);
+            float kept = Mathf.Tan(Mathf.Clamp(narrowed, 1f, 179f) * 0.5f * Mathf.Deg2Rad) / Mathf.Tan(Mathf.Clamp(plain, 1f, 179f) * 0.5f * Mathf.Deg2Rad);
+            return Mathf.Lerp(1f, kept, settings.aimLookMatch);
         }
 
         /// <summary>On foot with no look input for a moment (D-0124, his "it doesn't turn behind me"): ease the yaw round

@@ -18,8 +18,8 @@ namespace ShiftJam
     public sealed class RopeSettings : ScriptableObject
     {
         [Header("Taking hold (own units: a toy is 1.8 tall)")]
-        [Tooltip("In the air: the hands catch a rope this near them. 1 = a path 2 wide catches when walking off a ledge toward a rope (0.7 was a path 1.4 wide).")]
-        public float catchReach = 1f;
+        [Tooltip("In the air: the hands catch a rope this near them. 1.5 = as far as E reaches in the air, so jumping into a rope takes hold without the key (1 was a path 2 wide when walking off a ledge toward a rope, and anything further out needed E).")]
+        public float catchReach = 1.5f;
         [Tooltip("The highest the hands may hold: this far below where the rope is tied, so the head stays under what it hangs from. 1.7 keeps the capsule's top (0.38 over the hands) off the ceiling at the widest swing: 1.7 x cos 75 = 0.44.")]
         public float minHold = 1.7f;
         [Tooltip("Where a grab settles: after taking hold higher than this far below where the rope is tied, the toy lets itself down to here by itself, keeping its swing (a rope held just under the ceiling is a tiny pendulum). Sprint pressed on the rope climbs instead and ends it. On a shorter rope it is the rope's end.")]
@@ -30,8 +30,8 @@ namespace ShiftJam
         public float catchAirSeconds = 0.12f;
         [Tooltip("After letting go, and again after landing, the same rope is not caught for this long, even once the hands are clear of it (it swings back past you).")]
         public float regrabSeconds = 0.55f;
-        [Tooltip("After a let-go the same rope cannot catch you again until the hands have been this far from it, or you have landed. Without it, letting go while hanging still falls along the rope and is caught again half a second later.")]
-        public float leaveReach = 1.4f;
+        [Tooltip("After a let-go the same rope cannot catch you again until the hands have been this far from it, or you have landed. Without it, letting go while hanging still falls along the rope and is caught again half a second later. Keep it above Catch Reach.")]
+        public float leaveReach = 1.9f;
         [Tooltip("Where the hands hold the rope, from the feet: x right, y up, z forward. Live: change it while hanging. The body's arms are 0.52 long from shoulders about 1.3 up: much higher or further out and the upper hand cannot reach the rope.")]
         public Vector3 handOffset = new Vector3(0f, 1.42f, 0.36f);
 

@@ -65,6 +65,10 @@ namespace ShiftJam
         [Tooltip("How much bigger the ticks start: for a hit, and for the finishing hit (the test room: 1.25 and 1.7). They come back to their size as they fade.")]
         public Vector2 markerScales = new Vector2(1.25f, 1.7f);
 
+        [Header("A shot's aim")]
+        [Min(0f), Tooltip("A shot that falls as it flies (the foam dart, the paint ball) is fired a little above the line to the point under the dot, so that its arc passes through that point (D-0174). This is as far as that is worked out for, units at scale 1: a target further off gets the lift for this distance and the shot lands under it (at 40, a pistol dart is 1.6 under the dot at 60 units; without the lift it was 4.7 under). Higher: exact further out, but a shot that just misses something near, with the dot on something far behind it, passes higher over the dot's line (at 40: up to 0.5 over it, at 20 units). 0 = off: every shot is fired straight at the point and lands under it, as before (the pistol's dart: 0.13 under at 10 units, 0.52 at 20). Shots that land at once (ShotRules: Instant) have no arc and never use it.")]
+        public float dropAimWithin = 40f;
+
         [Header("A shot leaving")]
         [Min(0), Tooltip("Small bits thrown from the barrel along the shot, so it is seen leaving (the test room: 6). 0 = none.")]
         public int puffAmount = 6;

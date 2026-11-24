@@ -12,6 +12,8 @@ namespace ShiftJam
     ///    this PC's own team. In warm-up: how a match starts (the host's key, or "waiting for the host").
     ///  - The middle: the countdown's "3, 2, 1" with the team you are on, then "GO!" for a moment.
     ///  - The end: a card with who won, the score, how this PC's team did, and the seconds until free roam.
+    /// The scores and the countdown stand on a dark backing sized to their words: a team's colour must read over a blue
+    /// sky as well as over the field (Blue's score was all but lost on the Stadium's sky without it).
     /// It reads TeamMatch's static surface and decides nothing. Nothing shows offline or in a scene with no match part.
     /// The kill feed and the Tab board stay NetScoreboard's.
     /// </summary>
@@ -29,12 +31,15 @@ namespace ShiftJam
         [SerializeField, Min(0f), Tooltip("Seconds \"GO!\" stays in the middle of the screen.")] private float goSeconds = 1.2f;
         [SerializeField, Min(8f), Tooltip("Size of the score line, top left.")] private float barSize = 40f;
         [SerializeField, Min(8f), Tooltip("Size of the countdown's number in the middle.")] private float bigSize = 150f;
+        [SerializeField, Tooltip("The dark backing behind the scores and behind the countdown, so a team's colour reads over the sky and the field. Clear (alpha 0) = no backing.")] private Color backing = new Color(0.05f, 0.06f, 0.09f, 0.8f);
+        [SerializeField, Tooltip("How far the backing reaches past the words, sideways and up and down.")] private Vector2 backingPad = new Vector2(18f, 12f);
 
         private const float RedrawSeconds = 0.1f;   // the clock and the countdown are redrawn this often
         private const int CanvasOrder = 44;         // just under the kill feed and the Tab board (45)
 
         [System.NonSerialized] private GameObject _root, _card;
         [System.NonSerialized] private TextMeshProUGUI _bar, _big, _cardText;
+        [System.NonSerialized] private RectTransform _barBack, _bigBack;
         [System.NonSerialized] private MatchPhase _last = MatchPhase.None;
         [System.NonSerialized] private float _goUntil, _nextDraw;
         private readonly StringBuilder _sb = new StringBuilder(160);
@@ -60,12 +65,29 @@ namespace ShiftJam
 
             Set(_bar, Bar(phase));
             Set(_big, Big(phase));
+            SizeBacks();
             bool card = phase == MatchPhase.Ended;
             if (_card.activeSelf != card) _card.SetActive(card);
             if (card) Set(_cardText, Card());
         }
 
         private static void Set(TextMeshProUGUI label, string text) { if (label.text != text) label.text = text; }
+
+        /// <summary>Each backing fitted to the words it stands behind, and hidden when there are none.</summary>
+        private void SizeBacks()
+        {
+            Fit(_barBack, _bar);
+            Fit(_bigBack, _big);
+        }
+
+        private void Fit(RectTransform back, TextMeshProUGUI words)
+        {
+            bool any = backing.a > 0f && !string.IsNullOrEmpty(words.text);
+            if (back.gameObject.activeSelf != any) back.gameObject.SetActive(any);
+            if (!any) return;
+            Vector2 size = words.GetPreferredValues(words.text) + backingPad * 2f;
+            if ((back.sizeDelta - size).sqrMagnitude > 0.25f) back.sizeDelta = size;
+        }
 
         // ---------------------------------------------------------------- the words
 
@@ -142,10 +164,15 @@ namespace ShiftJam
             scaler.referenceResolution = new Vector2(1920f, 1080f); scaler.matchWidthOrHeight = BuildUiKit.HudMatch;   // by screen height (D-0133)
 
             // Top left: the toasts and a door's countdown own the top middle, the kill feed the top right.
-            var bar = BuildUiKit.Rect("Score", _root.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -24f), new Vector2(900f, 130f));
+            // Each backing is made before its words, so it is drawn behind them; SizeBacks fits it to them.
+            var bar = BuildUiKit.Rect("Score", _root.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f + backingPad.x, -24f - backingPad.y), new Vector2(900f, 130f));
+            _barBack = BuildUiKit.Rect("Back", bar, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(-backingPad.x, backingPad.y), Vector2.zero);
+            BuildUiKit.Panel(_barBack, backing).raycastTarget = false;
             _bar = Words(bar, barSize, TextAlignmentOptions.TopLeft);
 
             var big = BuildUiKit.Rect("Countdown", _root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 150f), new Vector2(1200f, 320f));
+            _bigBack = BuildUiKit.Rect("Back", big, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            BuildUiKit.Panel(_bigBack, backing).raycastTarget = false;
             _big = Words(big, bigSize, TextAlignmentOptions.Center);
 
             var card = BuildUiKit.Rect("Card", _root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 60f), new Vector2(820f, 380f));

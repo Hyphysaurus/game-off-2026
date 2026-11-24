@@ -2,6 +2,24 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 03:2x — CHECKPOINT: HIS GO: "lets expand it then proceed with the TDM plan". THE STADIUM'S GROWTH IS STAGED, NOT IN THE PROJECT YET
+- His words (03:2x): "that stadium was feeling a bit small and cramped last i had played it, lets expand it then
+  proceed with the TDM plan". Before it: "lets get bots in" (bots = the toy soldiers on teams first), and "these
+  will be for bots, multiplayer characters, and for character npcs around th4e house" (the funny characters: a
+  read-only look is running, `%TEMP%\shiftjam-stage\chars`; a plan follows, built after TDM unless he says otherwise).
+- ORDER NOW: 1. the Stadium wider (D-0181), 2. TDM with bots (the plan in the entry below), 3. the characters.
+- **The Stadium's growth, staged in `%TEMP%\shiftjam-stage\stadium2` (compiles; NOT landed: he is in Play):** in
+  `StadiumLayout` the whole plan is spread 1.6 times (`Grow`): the field 81 across (51 before), the shell and what
+  stands round it grown with it, the play pieces kept toy-sized. Things that belong together keep their
+  distances (`By`): each base's blocks, flags and palms with its arch, a slide and a trampoline with their
+  platform, the stage's walls, the pistol and the crate with the base, the soldiers beside their base. Eleven more
+  cover pieces a half for the wider ground (given in the built field's units, `AsBuilt`): PROVISIONAL places, to be
+  checked against a top-down still once the scene is rebuilt. `PartyBuilder`: the house door and the race gate sit
+  on the rim by the field's radius, not at fixed numbers.
+- TO DO when he is out of Play: land the two scripts, measure the pieces' footprints, rebuild the Stadium (menu
+  Shift Jam > Party > Build Net Player + Stadium, Greybox open and clean), look at a top-down still, move what
+  overlaps or leaves a hole. Then TDM: a contract first, then one builder at a time.
+
 ## 24 Nov 2026 02:5x — TEAM DEATHMATCH IN THE STADIUM: READ ONLY, A PLAN THAT WAITS FOR HIS "PROCEED". NOTHING BUILT
 - His "begin the TDM plan". Read by three readers (the online code, the Stadium and its builders, the match flow
   and the screen, with his recorded picks); nothing run, nothing touched. Full findings:

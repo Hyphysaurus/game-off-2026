@@ -55,8 +55,10 @@ namespace ShiftJam
         [SerializeField, Tooltip("What the rope's points stop on (floors, walls). Players and triggers never stop it.")]
         private LayerMask bumpsInto = ~0;
 
-        private Vector3[] _points;       // the chain, world space; 0 is where it is tied
-        private Vector3[] _previous;     // where each point was a step ago (its speed is the difference)
+        // Not kept through the editor's script reload: a reload hands a private array back EMPTY, not null, and a chain
+        // of no points is not "no chain yet" to a null test (the picture below threw on every Scene view repaint).
+        [System.NonSerialized] private Vector3[] _points;       // the chain, world space; 0 is where it is tied
+        [System.NonSerialized] private Vector3[] _previous;     // where each point was a step ago (its speed is the difference)
         private float _restLink;         // a link's length, world units
         private float _stepTimer;
         private int _heldIndex = -1;     // the point the hands hold; -1 when free
@@ -86,7 +88,9 @@ namespace ShiftJam
         /// <summary>True while someone swings on it.</summary>
         public bool Held => Holder != null;
         /// <summary>Where its loose end is right now, world.</summary>
-        public Vector3 End => _points != null ? _points[_points.Length - 1] : Anchor + Vector3.down * Length;
+        public Vector3 End => Chained ? _points[_points.Length - 1] : Anchor + Vector3.down * Length;
+        /// <summary>True once the chain has been made (in Play): at least its two ends.</summary>
+        private bool Chained => _points != null && _points.Length > 1;
 
         private void Awake()
         {
@@ -140,7 +144,7 @@ namespace ShiftJam
         public Vector3 ClosestPoint(Vector3 point, float minHold, out float along)
         {
             float whole = Length, lowest = Mathf.Min(minHold, whole);
-            if (_points == null)
+            if (!Chained)
             {
                 along = Mathf.Clamp(Vector3.Dot(point - Anchor, Vector3.down), lowest, whole);
                 return Anchor + Vector3.down * along;
@@ -170,7 +174,7 @@ namespace ShiftJam
         /// <summary>The point <paramref name="along"/> the rope from where it is tied (world units), as it bends right now.</summary>
         public Vector3 PointAlong(float along)
         {
-            if (_points == null) return Anchor + Vector3.down * Mathf.Clamp(along, 0f, Length);
+            if (!Chained) return Anchor + Vector3.down * Mathf.Clamp(along, 0f, Length);
             float f = Mathf.Clamp(along / _restLink, 0f, _points.Length - 1);
             int i = Mathf.Min(Mathf.FloorToInt(f), _points.Length - 2);
             return Vector3.Lerp(_points[i], _points[i + 1], f - i);
@@ -244,7 +248,7 @@ namespace ShiftJam
 
         private void LateUpdate()
         {
-            if (_points == null || !_awake) return;
+            if (!Chained || !_awake) return;
             bool held = Holder != null;
             if (!held) _heldIndex = -1;
             float step = 1f / Mathf.Max(LeastStepsPerSecond, settings.stepsPerSecond);
@@ -455,7 +459,7 @@ namespace ShiftJam
             Gizmos.color = new Color(0.9f, 0.7f, 0.3f);
             float knot = GizmoKnot * Size;
             Gizmos.DrawWireSphere(Anchor, knot);
-            if (_points != null)
+            if (Chained)
             {
                 for (int i = 0; i < _points.Length - 1; i++) Gizmos.DrawLine(_points[i], _points[i + 1]);
                 Gizmos.DrawWireSphere(_points[_points.Length - 1], knot);

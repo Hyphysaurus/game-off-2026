@@ -3183,3 +3183,46 @@
     and the drop aim for the player's guns removed, the Stadium's part with them.
   - Made by the orchestrator, staged outside (`%TEMP%\shiftjam-stage\flydart`), compiled outside both ways and in
     his open editor (not in Play, 0 errors). No reviewer. NOT PLAYED.
+- **D-0177 (24 Nov, 02:0x) A more buttery feel, first batch: give in the camera's follow, an eased way back out from walls, a turn-behind that eases, a shorter first-person stop, a camera kick per shot.**
+  His words: "i want to improve movement feel a bit and aim for a more buttery feel and experience"; asked where:
+  "the camera and stopping, mostly, but also combat feel"; then "proceed first back" (batch) to the plan in STATUS.
+  - **Read first** (three readers on the body, the cameras and the frame pacing, plus my look at the combat code; no
+    Play): the cameras run after the body and the look is raw; the body starts in 0.12 s and stops in 0.14 s. The
+    roughness is in what is welded with no easing: the third-person camera's height and place are the feet's,
+    frame for frame; it jumps back out from a wall in one frame; the turn-behind starts and stops at full rate;
+    first person coasts 1.4 from a walk since D-0175; firing does nothing to the third-person camera. Full
+    findings: `%TEMP%\shiftjam-stage\feel\readers_full.json`.
+  - **The give in the follow (`ShoulderCamera.Give`).** The camera's place is worked out on the body as it really
+    is, exactly as before (so walls are met the same). Then it is moved back toward a point that trails the body:
+    across the floor by Give Seconds 0.07 (never more than Give Most 0.35), in height by Give Height Seconds 0.08
+    (never more than Give Height Most 0.4), and that last move is cut short by anything in its way (one more
+    sweep). With a weapon out only Give Armed Share 0.4 of the floor give is kept; with aim held none of either
+    (the dot stays fixed to the hand); none on a rope, on the glider or on a line (they were judged without it);
+    put in place with no easing on the view's first frame, during a shift, after a warp and when the camera
+    comes back on. Stepped in a copy of the maths at 60, 120 and 144 frames a second: letting go at a walk, the
+    body stops in 0.14 s and the camera glides to rest 0.23 s after the stick is let go; at a start the camera is
+    at walk speed 0.02 s after the body; a 0.3 step up is spread over about 0.2 s (71 % at 0.1 s).
+  - **Walls:** the camera goes in at once and comes back out over Wall Return Seconds 0.45. It is the SHARE of the
+    wanted distance a wall leaves that is eased, so the views' own changes (aim in, aim out) are not slowed.
+  - **The turn behind the player** builds up over Follow Ease Seconds 0.4 and slows over the last Follow Settle
+    Angle 30 degrees; it dies away as the player slows to a stop; a look still ends it at once.
+  - **First person** (`Data/FirstPersonSettings.asset`, numbers only): Friction 4 -> 8, Accelerate 10 -> 16, Bob
+    Per Unit 0.32 -> 0.22. Stepped the way the body steps: a stop from a walk 1.39 -> 0.67 units (0.51 -> 0.25 s),
+    from a sprint 2.36 -> 1.14; the start to a walk 0.12 -> 0.08 s; a crouched start stays 0.22 s (the reader's
+    Accelerate 14 would have made it 0.43 s); the bob is back at 1.5 a second at a walk.
+  - **A shot kicks the third-person camera** (`WeaponHolder.Kick`, called by `BlasterWeapon`): the view widens
+    Camera Kick Fov 0.7 degrees and rattles Camera Kick Shake 0.05 for Camera Kick Seconds 0.14, each times the
+    gun's Recoil (`Resources/WeaponHold` > The kick of a shot). Nothing in first person or on another player's copy.
+  - Every new number is a setting whose 0 is the old behaviour. `Data/CameraSettings.asset` and
+    `Resources/WeaponHold.asset` have no lines for the new ones: the scripts' defaults hold until he changes one.
+  - **Not in this batch (each on his word):** corners that turn with the stick; the first-person eye over steps
+    and landings; the first-person gun's sway; a soldier's flinch; legs' playback; the hip shot leaving at once;
+    the first shift's freeze paid at load; lamp shadows by room; vSync (his to try in the Game view first).
+  - Made by the orchestrator, staged outside (`%TEMP%\shiftjam-stage\feel1`), compiled outside both ways and in his
+    open editor (not in Play, 0 errors). No reviewer. NOT PLAYED.
+- **D-0170 addendum (24 Nov, 02:0x): the rope's Scene view picture threw on every repaint.** Found while landing
+  D-0177: 76,836 `IndexOutOfRangeException` at `Rope.OnDrawGizmos` in the editor log (243 MB) since the first
+  script reload of this editor session (01:20). Cause: the editor's reload hands a private array back EMPTY, not
+  null, so `_points != null` was true with nothing in it. Now `_points` and `_previous` are not kept through a
+  reload (`[NonSerialized]`) and every test asks for a made chain (`Chained`: at least its two ends). Play was not
+  affected (the chain is made when the rope wakes). Compiled in his editor; no errors since.

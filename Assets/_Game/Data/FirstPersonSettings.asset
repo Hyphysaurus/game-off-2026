@@ -23,8 +23,8 @@ MonoBehaviour:
   runSpeed: 4.8
   sprintSpeed: 8.1
   crouchSpeedMultiplier: 0.34
-  accelerate: 10
-  friction: 4
+  accelerate: 16
+  friction: 8
   stopSpeed: 2.5
   airAccelerate: 10
   airSpeedCap: 0.76
@@ -40,7 +40,7 @@ MonoBehaviour:
   maxPitch: 89
   viewBob: 1
   bobAmount: 0.025
-  bobPerUnit: 0.32
+  bobPerUnit: 0.22
   nearClip: 0.04
   grabReach: 2.4
   maxLiftMass: 20

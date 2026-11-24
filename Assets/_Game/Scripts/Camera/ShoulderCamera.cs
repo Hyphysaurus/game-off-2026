@@ -14,6 +14,10 @@ namespace ShiftJam
     /// near plane's reach, up from the body's middle, then sideways to the shoulder, then back: so the camera stops
     /// short of a wall and never starts inside one. When that brings it into the player's own body, InsideBody says so
     /// and BodyFade hides the body.
+    /// On foot there is a little give in how it follows (D-0177): it trails the body's height and its place on the floor
+    /// by a moment (never far), so steps, landings, starts and stops do not jolt the whole picture; none with aim held,
+    /// on a rope, on the glider or on a line. A wall takes it in at once and it eases back out. The turn behind the
+    /// player eases in and settles.
     /// While a vehicle is driven it frames the car instead (D-0036, VehicleCameraSettings): its middle, by its own size,
     /// trailing it a little, swinging in behind the way it travels, slower in the air; with speed the view widens and the
     /// camera moves in and flattens, more so past top speed (a boost); in the garage (menu up) right-drag, A/D and the
@@ -40,6 +44,11 @@ namespace ShiftJam
         private CharacterController _capsule;
         private float _side, _rise, _reach, _armedView, _aimView, _glideView, _heightShare = 1f; private bool _viewReady;   // the view now, eased
         private float _yaw, _pitch;
+        // The give in the follow (D-0177): where the camera takes the body to be (it trails the body a little), how much
+        // of that shows now, and how much of the wanted distance a wall leaves it (eased on the way back out).
+        private Vector3 _trail, _trailVelocity; private float _trailRiseVelocity; private bool _trailReady;
+        private float _giveShare = 1f, _blockShare = 1f;
+        private float _followWeight, _followYaw;   // the follow-behind turn: how far it has built up, and the heading it turns to
         private bool _cursorLocked;
         private readonly RaycastHit[] _hits = new RaycastHit[16];
         // vehicle mode (D-0036): while a vehicle is driven the camera frames the car, not the driver
@@ -170,7 +179,7 @@ namespace ShiftJam
             SetCursorLocked(true);
         }
 
-        private void OnEnable() { SetCursorLocked(!_menuHold); }   // coming back from a menu, Build Mode or first person
+        private void OnEnable() { SetCursorLocked(!_menuHold); _trailReady = false; _blockShare = 1f; _followWeight = 0f; }   // coming back from a menu, Build Mode or first person: the give starts afresh
         private void OnDisable() { SetCursorLocked(false); InsideBody = false; }
 
         private bool _menuHold;
@@ -270,10 +279,12 @@ namespace ShiftJam
             // Not while holding a heavy thing (D-0160): the grip walks the player round it, the camera swung to follow, and a
             // thing steered by the view turned on by itself.
             if (!armed && !(_motor != null && _motor.HoldAt.HasValue)) FollowBehind(dt);
+            else _followWeight = 0f;
             float wantSide = armed ? settings.armedShoulderOffset : settings.shoulderOffset;
             float wantRise = armed ? settings.armedRise : 0f;
             float wantReach = aiming ? settings.aimDistance : armed ? settings.armedDistance : settings.distance;
             float wantShare = _stance != null ? _stance.HeightShare : 1f;   // a crouch lowers the pivot with the head
+            bool settled = _viewReady;   // false on the first frame of this view (the start, a new player, out of a car): nothing eases, everything is put in place
             float ease = _viewReady ? 1f - Mathf.Exp(-Mathf.Max(0.01f, settings.viewBlend) * dt) : 1f;
             _viewReady = true;
             _side = Mathf.Lerp(_side, wantSide, ease);
@@ -307,9 +318,17 @@ namespace ShiftJam
             Vector3 right = heading * Vector3.right * Mathf.Sign(_side);
             pivot += right * Sweep(pivot, right, Mathf.Abs(_side) * scale, ball);
             float wanted = _reach * scale * distanceMul * (1f + (_glider != null ? _glider.PullBack : 0f) * _glideView);   // a little further back on the glider
-            float distance = Sweep(pivot, back, wanted, ball);
+            float swept = Sweep(pivot, back, wanted, ball);
+            // A wall takes the camera in at once; the way back out is eased (D-0177), so a thing passing behind the
+            // player is not a jump in and a jump out. It is the share of the wanted distance the wall leaves that is
+            // eased, so the views' own changes of distance (aim in, aim out) are not slowed by it.
+            float block = wanted > 1e-5f ? Mathf.Clamp01(swept / wanted) : 1f;
+            if (!settled || block <= _blockShare || settings.wallReturnSeconds <= 0f) _blockShare = block;
+            else _blockShare = Mathf.Lerp(_blockShare, block, 1f - Mathf.Exp(-2.3f / settings.wallReturnSeconds * dt));
+            float distance = Mathf.Min(swept, wanted * _blockShare);
 
             Vector3 position = pivot + back * distance;
+            position += Give(position, scale, ball, settled, dt);
             if (_leave > 0f)
             {
                 // just got out: ease from the car's framing to the shoulder instead of cutting
@@ -351,17 +370,74 @@ namespace ShiftJam
         /// toward the way the player is moving, faster the faster they go; not when backing toward the camera, not while
         /// the mouse is free or the game is paused. CameraSettings: followBehind, followDelay, followRate,
         /// followMaxAngle, followMinSpeed.</summary>
+        /// <remarks>The turn eases in and settles (D-0177): it builds up over Follow Ease Seconds instead of starting at
+        /// its full rate, slows over the last Follow Settle Angle instead of stopping dead when it is lined up, and dies
+        /// away as the player slows to a stop. A look, a menu or a pause still ends it at once.</remarks>
         private void FollowBehind(float dt)
         {
-            if (!settings.followBehind || _motor == null || !_motor.isActiveAndEnabled || !_cursorLocked || Time.timeScale <= 0f) return;
-            if (Time.unscaledTime - _lastLookTime < settings.followDelay) return;
+            bool may = settings.followBehind && _motor != null && _motor.isActiveAndEnabled && _cursorLocked && Time.timeScale > 0f
+                && Time.unscaledTime - _lastLookTime >= settings.followDelay;
+            if (!may) { _followWeight = 0f; return; }
             Vector3 planar = _motor.PlanarVelocity;
             float scale = Mathf.Max(1e-4f, _motor.Scale);
             float share = Mathf.Clamp01(planar.magnitude / scale / Mathf.Max(0.01f, _motor.SprintSpeed));
-            if (share < settings.followMinSpeed) return;
-            float moveYaw = Mathf.Atan2(planar.x, planar.z) * Mathf.Rad2Deg;
-            if (Mathf.Abs(Mathf.DeltaAngle(_yaw, moveYaw)) > settings.followMaxAngle) return;   // backing up toward the camera
-            _yaw = Mathf.MoveTowardsAngle(_yaw, moveYaw, settings.followRate * share * dt);
+            bool moving = share >= settings.followMinSpeed;
+            if (moving)
+            {
+                float moveYaw = Mathf.Atan2(planar.x, planar.z) * Mathf.Rad2Deg;
+                if (Mathf.Abs(Mathf.DeltaAngle(_yaw, moveYaw)) > settings.followMaxAngle) { _followWeight = 0f; return; }   // backing up toward the camera
+                _followYaw = moveYaw;
+            }
+            _followWeight = settings.followEaseSeconds > 0f
+                ? Mathf.Lerp(_followWeight, moving ? 1f : 0f, 1f - Mathf.Exp(-2.3f / settings.followEaseSeconds * dt))
+                : moving ? 1f : 0f;
+            if (_followWeight < 0.001f) return;
+            float left = Mathf.Abs(Mathf.DeltaAngle(_yaw, _followYaw));
+            float settle = settings.followSettleAngle > 0f ? Mathf.Clamp(left / settings.followSettleAngle, 0.05f, 1f) : 1f;
+            float pace = moving ? share : settings.followMinSpeed;   // slowed under the least speed: what is left of the turn dies away at that pace
+            _yaw = Mathf.MoveTowardsAngle(_yaw, _followYaw, settings.followRate * pace * _followWeight * settle * dt);
+        }
+
+        private const float GiveBlend = 0.25f;   // seconds the give takes to fade out, or back in, round a rope, the glider or a line
+
+        /// <summary>The give in the follow (D-0177): how far the finished camera position is moved back toward where the
+        /// body just was. The camera takes the body to be at a point that trails it: across the floor by Give Seconds
+        /// (never further than Give Most), in height by Give Height Seconds (never more than Give Height Most). So a
+        /// start, a stop or a turn of the body is not a start, a stop or a turn of the whole picture, and a step, a
+        /// jump or a landing does not jolt it. The camera's place is first worked out on the body as it really is (so
+        /// walls are met exactly as before); the give is added after, cut short by anything in its way.
+        /// With a weapon out only Give Armed Share of the floor give is kept, and with aim held none of either, so the
+        /// dot stays fixed to the hand. On a rope, on the glider and on a line the camera is fixed to the body, as
+        /// those were made and judged. Put in place with no easing on this view's first frame, during a shift, and
+        /// after a warp (the body is suddenly far from where it was).</summary>
+        private Vector3 Give(Vector3 from, float scale, float ball, bool settled, float dt)
+        {
+            Vector3 at = target.position;
+            bool held = (_glider != null && _glider.Gliding) || RopeRider.Holds(target.gameObject) || (_motor != null && _motor.Pull.HasValue);
+            _giveShare = settled ? Mathf.MoveTowards(_giveShare, held ? 0f : 1f, dt / GiveBlend) : held ? 0f : 1f;
+            float most = settings.giveMost * scale, mostRise = settings.giveHeightMost * scale;
+            Vector3 flat = new Vector3(_trail.x, 0f, _trail.z), flatAt = new Vector3(at.x, 0f, at.z);
+            bool off = (settings.giveSeconds <= 0f || most <= 0f) && (settings.giveHeightSeconds <= 0f || mostRise <= 0f);
+            float far = Mathf.Max(4f * Mathf.Max(most, mostRise), 2f * scale);   // further than this in one frame is a warp, not a move
+            bool jumped = (flat - flatAt).sqrMagnitude > far * far || Mathf.Abs(_trail.y - at.y) > far;
+            if (off || !settled || !_trailReady || jumped || (shifter != null && shifter.Shifting))
+            {
+                _trail = at; _trailVelocity = Vector3.zero; _trailRiseVelocity = 0f; _trailReady = true;
+                return Vector3.zero;
+            }
+            flat = settings.giveSeconds > 0f && most > 0f ? Vector3.SmoothDamp(flat, flatAt, ref _trailVelocity, settings.giveSeconds, Mathf.Infinity, dt) : flatAt;
+            Vector3 behind = Vector3.ClampMagnitude(flat - flatAt, most);
+            float rise = settings.giveHeightSeconds > 0f && mostRise > 0f ? Mathf.SmoothDamp(_trail.y, at.y, ref _trailRiseVelocity, settings.giveHeightSeconds, Mathf.Infinity, dt) : at.y;
+            rise = Mathf.Clamp(rise, at.y - mostRise, at.y + mostRise);
+            _trail = new Vector3(flatAt.x + behind.x, rise, flatAt.z + behind.z);
+
+            float shown = _giveShare * (1f - _aimView);
+            float floor = shown * Mathf.Lerp(1f, settings.giveArmedShare, _armedView);
+            Vector3 give = new Vector3(behind.x * floor, (rise - at.y) * shown, behind.z * floor);
+            float length = give.magnitude;
+            if (length < 1e-5f) return Vector3.zero;
+            Vector3 way = give / length;
+            return way * Sweep(from, way, length, ball);
         }
 
         /// <summary>The share of the ball's radius a leg of the sweep stops short of what it meets. Without it the ball
@@ -567,6 +643,7 @@ namespace ShiftJam
             _yaw = yaw;
             _yawVelocity = 0f;
             _aimReady = false;
+            _trailReady = false; _blockShare = 1f; _followWeight = 0f;   // the give starts afresh where the player now is
             if (pitch.HasValue) _pitch = Mathf.Clamp(pitch.Value, settings.minPitch, settings.maxPitch);
         }
     }

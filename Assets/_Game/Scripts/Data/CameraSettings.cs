@@ -68,12 +68,30 @@ namespace ShiftJam
         public float followMaxAngle = 135f;
         [Range(0f, 1f), Tooltip("Below this share of the run speed it does not follow (shuffling about leaves the view alone).")]
         public float followMinSpeed = 0.15f;
+        [Min(0f), Tooltip("Seconds the turn takes to build up to its rate once it starts, and to die away as the player slows to a stop (D-0177). 0 = it starts and stops at full rate, as before.")]
+        public float followEaseSeconds = 0.4f;
+        [Range(0f, 90f), Tooltip("The turn slows over this many last degrees before it is lined up, so it settles instead of stopping dead (D-0177). 0 = full rate to the end, as before.")]
+        public float followSettleAngle = 30f;
+
+        [Header("The give in the follow (on foot, D-0177). 0 in a pair = that give is off and the camera is fixed to the body, as before")]
+        [Min(0f), Tooltip("Seconds the camera trails the body's height by: going up a step, taking off and landing, the view follows a moment later instead of jolting with the feet. Higher: softer and later.")]
+        public float giveHeightSeconds = 0.08f;
+        [Min(0f), Tooltip("The most the camera's height may trail the body's, units at scale 1. Higher: a longer float after a big drop.")]
+        public float giveHeightMost = 0.4f;
+        [Min(0f), Tooltip("Seconds the camera trails the body across the floor by: when the body starts, stops or turns, the picture eases after it instead of starting, stopping or turning with it. Higher: softer and later.")]
+        public float giveSeconds = 0.07f;
+        [Min(0f), Tooltip("The most the camera may trail across the floor, units at scale 1 (at a walk it sits about this far behind). Higher: more give, and the body drifts further from its place on screen.")]
+        public float giveMost = 0.35f;
+        [Range(0f, 1f), Tooltip("Share of the floor give kept with a weapon out (its height give is kept whole). With aim held there is none of either: the dot stays fixed to the hand. On a rope, on the glider and on a line there is none either.")]
+        public float giveArmedShare = 0.4f;
 
         [Header("Collision")]
         [Tooltip("Smallest radius of the ball the camera is swept with to keep it out of walls.")]
         public float collisionRadius = 0.2f;
         [Tooltip("The ball is never smaller than the reach of the near plane's corners times this: 1 just touches, less and the view cuts through a wall the camera rests against.")]
         public float wallGap = 1.15f;
+        [Min(0f), Tooltip("A wall takes the camera in at once; this is how many seconds it takes to come most of the way back out when the wall is gone (D-0177), so something thin passing behind the player is not a jump in and a jump out. 0 = it jumps back out, as before.")]
+        public float wallReturnSeconds = 0.45f;
 
         [Header("Own body")]
         [Tooltip("Pushed in by a wall the camera ends up inside the player. The body is hidden while the camera is closer than this to the body's middle line (feet to head). The test room: 0.6 m.")]

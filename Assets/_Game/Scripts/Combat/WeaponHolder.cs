@@ -265,6 +265,21 @@ namespace ShiftJam
         /// <summary>A recoil or impact kick for the first-person view; nothing in third person.</summary>
         public void Punch(Vector2 degrees) { if (_fpLook != null) _fpLook.Punch(degrees); }
 
+        private ShoulderCamera _kickRig;   // the third-person camera a shot kicks, found once
+
+        /// <summary>A shot's kick for the third-person camera (D-0177): the view widens a touch and rattles a little,
+        /// sized by the gun's <paramref name="recoil"/> (1 is the pistol's), then settles. How much and for how long:
+        /// WeaponHold > The kick of a shot. Nothing in first person (the view's own punch is its kick there), and
+        /// nothing for another player's copy on this PC.</summary>
+        public void Kick(float recoil)
+        {
+            if (FirstPerson || _puppet || recoil <= 0f || _hold == null || _hold.cameraKickSeconds <= 0f) return;
+            if (_kickRig == null) _kickRig = PlayerSlot.RigFor(this);
+            if (_kickRig == null || !_kickRig.isActiveAndEnabled) return;
+            if (_hold.cameraKickFov > 0f) _kickRig.PunchFov(_hold.cameraKickFov * recoil, _hold.cameraKickSeconds);
+            if (_hold.cameraKickShake > 0f) _kickRig.Shake(_hold.cameraKickShake * recoil, _hold.cameraKickSeconds);
+        }
+
         public void PlayClip(AudioClip clip, float pitch)
         {
             if (clip == null || _audio == null) return;

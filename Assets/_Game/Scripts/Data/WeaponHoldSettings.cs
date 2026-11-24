@@ -179,6 +179,12 @@ namespace ShiftJam
         public float recoilBack = 0.0297f;
         [Tooltip("How quickly the kick settles: each second it falls to 1 / e this many times over (the test room: 14). Higher: snappier.")]
         public float recoilSettle = 14f;
+        [Min(0f), Tooltip("Third person (D-0177): degrees the view widens on a shot and eases back, for a gun of recoil 1. The middle of the view does not move, so the aim is not touched. 0 = none.")]
+        public float cameraKickFov = 0.7f;
+        [Range(0f, 1f), Tooltip("Third person (D-0177): how hard a shot rattles the camera, as a share of the strongest shake (Resources/VehicleCamera > Shake: 2 degrees of tilt at 1), for a gun of recoil 1. It tilts the view a hair, and with it the aim: keep it small (0.05 is a tenth of a degree). 0 = none.")]
+        public float cameraKickShake = 0.05f;
+        [Min(0f), Tooltip("Third person (D-0177): seconds the camera's kick lasts. 0 = no kick at all, as before.")]
+        public float cameraKickSeconds = 0.14f;
 
         [Header("First person: the sight to the eye")]
         [Tooltip("Seconds for the gun's sight to come up to the eye when aim is held, and to go back down (the test room: 0.15).")]

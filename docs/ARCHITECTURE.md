@@ -17,7 +17,7 @@ Inspector reference or an event.
 1. `PlayerInput` reads the devices (the only script that knows about devices).
 2. `PlayerMotor.Update` moves the capsule and writes `Speed` (0..1), `Grounded`, `VerticalVelocity` and `AirPhase` (where the body is in a jump's arc, D-0169) to the Animator.
 3. The Animator picks the clip.
-4. `ShoulderCamera.LateUpdate` follows, after the player has moved. That order is why it never jitters. It asks `PlayerInput.ConsumeLook` for the frame's look there, once (first person: `FirstPersonLook.LateUpdate`).
+4. `ShoulderCamera.LateUpdate` follows, after the player has moved. That order is why it never jitters. It asks `PlayerInput.ConsumeLook` for the frame's look there, once (first person: `FirstPersonLook.LateUpdate`). On foot it trails the body by a moment, never far (the give, D-0177: `Data/CameraSettings` > Give ...): worked out on the body's true place first, then eased back and cut short by anything in the way; none with aim held, on a rope, the glider or a line.
 5. `Interactor.Update` finds the nearest `IInteractable` in reach; `InteractPrompt` shows its words.
 
 ## The shift

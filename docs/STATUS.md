@@ -2,6 +2,37 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 02:0x — A MORE BUTTERY FEEL, FIRST BATCH (D-0177): IN THE PROJECT, NOT PLAYED
+- His "proceed first back" (batch) to the plan in the entry below. Built by me, staged outside, compiled outside
+  both ways and in his open editor (not in Play, 0 errors). No reviewer.
+- **Camera (third person).** It now trails the body by a moment, never far: in height (steps, jumps and landings
+  no longer jolt the picture) and across the floor (when the toy starts, stops or turns, the picture eases after
+  it: at a stop the body halts in 0.14 s and the picture glides to rest in 0.23 s). Less with a weapon out, none
+  with aim held, none on a rope, the glider or a line. A wall takes the camera in at once and it eases back out.
+  The turn behind the player eases in and settles.
+- **First person.** It stops in 0.67 units from a walk (it was 1.39 since last night; third person 0.49) and its
+  bob is back at its old pace.
+- **Combat.** Each shot gives the third-person camera a small kick, sized by the gun.
+- HIS PLAYTEST (Greybox):
+  1. No gun, wide view: walk, stop, start, change direction. The picture should glide, not stop with the toy.
+  2. The book steps up and down, a jump on the flat, a drop: no jolt on the way up or at the landing.
+  3. Walk past a table leg or back into a wall and away: the camera comes in at once and eases back out.
+  4. Walk without touching the mouse: the turn behind eases in, and settles when lined up.
+  5. A gun out: fire (a small kick, more with the shotgun); hold aim and strafe (the dot must not swim).
+  6. V: stop from a walk and from a sprint in first person; the bob.
+  7. A rope and the glider: as before (no give there).
+- Numbers, all settings (0 = as before): `Data/CameraSettings` > Give Seconds 0.07 / Give Most 0.35 / Give Height
+  Seconds 0.08 / Give Height Most 0.4 / Give Armed Share 0.4 / Wall Return Seconds 0.45 / Follow Ease Seconds 0.4 /
+  Follow Settle Angle 30; `Resources/WeaponHold` > Camera Kick Fov 0.7 / Shake 0.05 / Seconds 0.14;
+  `Data/FirstPersonSettings` > Friction 8 / Accelerate 16 / Bob Per Unit 0.22.
+- Look for: too floaty (Give Seconds and Give Most down) or not enough (up); the body drifting from its place on
+  screen at a sprint; the kick too much on the SMG; first person now stopping too sharply (Friction down).
+- His to try, no code: the Game view's VSync box (frames are unpaced: 6 to 12 ms from one to the next).
+- **Found and fixed on the way: the editor log was being flooded** (76,836 errors, 243 MB since 01:20): the
+  rope's Scene view picture threw on every repaint after a script reload. Fixed in `Rope.cs` (D-0170 addendum);
+  no errors since. It will have slowed his Scene view while it lasted.
+- Still unplayed: D-0176 (the hit scan dart, F9). Batch 2 waits on his word (list in the entry below).
+
 ## 24 Nov 2026 01:4x — "A MORE BUTTERY FEEL": READ ONLY, A PLAN THAT WAITS FOR HIS "PROCEED". NOTHING BUILT
 - His words: "i want to improve movement feel a bit and aim for a more buttery feel and experience", then, asked
   which moments: "the camera and stopping, mostly, but also combat feel".

@@ -158,6 +158,7 @@ namespace ShiftJam
 
             _kick = 1f;
             Holder.Punch(new Vector2(-viewPunch.x, Random.Range(-viewPunch.y, viewPunch.y)) * recoil);
+            Holder.Kick(recoil);   // third person: the camera's own small kick (D-0177)
             // The sound: the loaded ammo's (the AmmoBelt: paint), else the shot's own (the foam dart), else this gun's.
             AudioClip ammoClip = _belt != null ? _belt.FireClip() : null;
             AudioClip own = ammoClip == null ? shot.FireClip() : null;

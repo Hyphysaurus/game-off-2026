@@ -2,6 +2,24 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 17:5x — HIS PLAY OF THE ROPE AND THE ROLL (17:40, 7:14): THE ROLL IS GOOD; THE ROPE NEEDS A ROUND; THE TOY BOX IS DARKER
+- His words: "roll looks and feels good btw, same as the new jump". And on the rope: "its too close to the books and
+  too high up so its a bit hard to start swings.. perhaps we set a series of ropes so we can jump between them,
+  also, adjust the hand grip on them" (his still: only the left hand on the rope, the right raised and open, the
+  body beside the rope). The play log agrees: "rope grabbed 13.6 up", let go after 68.5 s at speed 1.1.
+- **Rope round 2 (running, outside the project):** one fixer, staged in `%TEMP%\shiftjam-stage\rope\fix1`
+  (run `wf_dc284299-03a`): why the right hand ignores the rope and both hands on it; a catch in the air when
+  walking or running off the book's end; a grab at the top lets itself down to a usable length; `PlaceHallRopes`:
+  four ropes down the hallway, the first about 3.6 past the book's end. NOT in the project yet.
+- **Toy box darker (his "definitely make it a bit darker", to make the light read):** placed `ToyBoxDark` at the
+  top level of Greybox: a `DarkZone` over the inside of the box ((0, 14.6, -20), size 32 x 29.1 x 26.3), lights to
+  0.35, ambient to 0.30; the big flashlight and the core's glow keep their brightness (DarkZone's own rule). The
+  box's burst switches it off (`BoxBurst.onBurst` -> `ToyBoxDark.SetActive(false)`, wired in the scene), so the
+  bedroom opens up bright. No code. NOT SEEN. ⚠ The wiring sits on `Room/ToyBox`, which the bedroom builder
+  remakes: after a bedroom rebuild, wire it again. His to tune: the two sliders on `ToyBoxDark`.
+- Seen in that play's log, not looked into: a 2.10 s freeze "just after a shift to Toy began" at 0:52.
+- Still owed: the rope's review (his "after i playtest"), once this round is in.
+
 ## 23 Nov 2026 17:3x — THE FIRST ROPE (D-0170): IN THE PROJECT AND PLACED AT THE TOP OF THE HALLWAY'S BOOK STEPS. NOT PLAYED, NOT REVIEWED (his call: review after his play)
 - What it is: a rope hangs from the hallway ceiling just past the end of the last book at the top of the book
   steps. Toy only, third person. E at the edge grabs it; the stick pushes the swing; Shift climbs, C slides; Space

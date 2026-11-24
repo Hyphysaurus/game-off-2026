@@ -3010,7 +3010,8 @@
     `PlayerMotor.cs` (one read-only property). No new clip, no controller rebuild, third person only.
   - Made: written by the orchestrator, compiled outside both ways, one reviewer (no must; six shoulds, all applied:
     the six "gives way" and speed rules above), landed with his editor open and not in Play; it compiled there with
-    0 errors and the settings show their defaults. NOT PLAYED. For his eyes: the landing frame (straight into the
+    0 errors and the settings show their defaults. PLAYED 23 Nov 17:40, his words: "roll looks and feels good btw, same
+    as the new jump". Were for his eyes: the landing frame (straight into the
     dive, or a flash of the run first), the slip at 1.6, a drop onto something narrow.
 - **D-0170 (23 Nov, 17:3x) Ropes a toy swings on: a Rope part, a rider on the player, the first rope at the top of the hallway's book steps.**
   His words: "we need a purpose for climbing up the books at the start of it", "maybe we can set up a rope up there

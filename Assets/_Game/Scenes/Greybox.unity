@@ -43016,6 +43016,58 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7328759759584156428, guid: c500900ee2d205f489921d5f9adede2c, type: 3}
   m_PrefabInstance: {fileID: 614058737}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &614309007
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 614309009}
+  - component: {fileID: 614309008}
+  m_Layer: 0
+  m_Name: ToyBoxDark
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &614309008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 614309007}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5a702f50723466459bed99073663506, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.DarkZone
+  centre: {x: 0, y: 0, z: 0}
+  size: {x: 32, y: 29.119999, z: 26.265003}
+  lightsTo: 0.35
+  ambientTo: 0.3
+  fade: 0.6
+  reachingIn: 1
+  dimSun: 1
+  alsoDim: []
+--- !u!4 &614309009
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 614309007}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 14.559999, z: -19.987501}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &614804859
 GameObject:
   m_ObjectHideFlags: 0
@@ -153338,7 +153390,19 @@ MonoBehaviour:
   volume: 0.9
   onBurst:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 614309007}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   onWallLanded:
     m_PersistentCalls:
       m_Calls: []
@@ -160356,3 +160420,4 @@ SceneRoots:
   - {fileID: 708042746}
   - {fileID: 812307321}
   - {fileID: 567618326}
+  - {fileID: 614309009}

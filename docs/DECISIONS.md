@@ -3153,3 +3153,33 @@
     No reviewer. NOT PLAYED.
   - With it: `Data/RopeSettings.cs` defaults now say what `Resources/Rope.asset` has had since his verdict (Catch
     Reach 1.5, Leave Reach 1.9), so a freshly made asset agrees (owed from the D-0170 addendum).
+- **D-0176 (24 Nov, 01:2x) A shot decided at the click is seen as a flying dart: step 1 of ONE kind of shot.**
+  His words, after playing D-0174 and trying both kinds: "whjich optionm do ytou recommend to keep?", then "i want
+  to keep ONE but i love the look of the flying dart..", then "proceed" to: one rule where the hit is decided at
+  the click and a real dart flies to that spot and sticks; built into the Instant kind first (in place of the thin
+  line) so F9 compares it with the foam dart; if he likes it, the foam rule and the F9 switch go (step 2).
+  - **What a decided shot does now (`ShotRules` Instant, F9):** at the click each pellet finds the first thing on
+    its line, as before (`BlasterWeapon.Meets`, a ray). `Projectile.FireAt` then shows the dart leaving the gun's
+    end and carries it to that mark, straight, in `length / Flight Speed` seconds and never more than Flight Most
+    Seconds (`Resources/WeaponAmmo`: 110 units a second and 0.25 s; a gun's Shot Speed multiplies the speed): 10
+    units 0.09 s, 20 units 0.18 s, from 27 units on 0.25 s with a faster dart. The mark is kept in the hit thing's
+    own space, so the dart gets there however the thing moves. It is not swept and nothing in between stops it.
+    As it arrives everything a landing does happens (damage, the shove, the bits, the hit marker, the dart stuck in
+    the thing): the landing is the hit found at the click (the same `RaycastHit`, its point and facing put where the
+    thing now is), so it cannot miss. A thing that is gone by then (destroyed, switched off, carried more than the
+    flight's own length away) spends the dart with no landing.
+  - **A pellet with nothing under it** flies off as an ordinary swept shot at the same speed, straight (no drop).
+  - **The streak behind a dart** lasts at least 0.04 s now (`Projectile.LeastStreakSeconds`): at these speeds the
+    old rule (as long as the dart takes to fly 1.58) gave it less than a frame, which draws nothing. A foam dart of
+    the other kind is unchanged (0.047 s at its own speed).
+  - **Online:** the other PCs fly the same harmless copy from the gun's end along the same line at the same speed
+    (the `Fired` event carries it; no change to `NetCombat`). Hits still go through the same landing code.
+  - **Not used now:** `FX/ShotStreak.cs` (the thin line of D-0172) has no caller; kept until step 2 decides. Foam
+    darts (F9 off, the house's default) are as D-0174 left them, with the aimed-for-drop.
+  - **Left alone, his call:** toy soldiers still fire slow flying darts (seen coming, dodged). The F9 toast now
+    says "Shots: HIT SCAN (decided at the click; the dart flies to what was under the dot)" and the play log
+    records the flip.
+  - **Step 2 (on his verdict):** the decided shot becomes the only rule: no `ShotRules` kind, no F9, `ShotStreak`
+    and the drop aim for the player's guns removed, the Stadium's part with them.
+  - Made by the orchestrator, staged outside (`%TEMP%\shiftjam-stage\flydart`), compiled outside both ways and in
+    his open editor (not in Play, 0 errors). No reviewer. NOT PLAYED.

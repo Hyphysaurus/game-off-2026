@@ -159,10 +159,11 @@ namespace ShiftJam
                         Say("god " + (_god ? "ON (no fall rule)" : "off")); break;
                     case "shots":
                     {
-                        // D-0172: try both kinds of shot anywhere (a scene's own ShotRules sets it again when it loads).
+                        // D-0172, D-0176: try both kinds of shot anywhere (a scene's own ShotRules sets it again when it loads).
                         bool now = ShotRules.Flip();
-                        string what = now ? "Shots: INSTANT (land at once on what is under the dot)" : "Shots: FOAM DARTS (fly, fall and stick)";
+                        string what = now ? "Shots: HIT SCAN (decided at the click; the dart flies to what was under the dot)" : "Shots: FOAM DARTS (fly, fall and stick)";
                         Say(what); Toasts.Show(what);
+                        Playtest.PlayLog.Tell(what);   // so a play's log shows which kind its shots were
                         break;
                     }
                     case "next": case "prev": StepCheckpoint(cmd == "next" ? 1 : -1); break;

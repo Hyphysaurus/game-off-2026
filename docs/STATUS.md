@@ -2,6 +2,30 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 01:2x — ONE KIND OF SHOT, STEP 1 (D-0176): THE HIT SCAN SHOT IS NOW SEEN AS A FLYING DART. IN THE PROJECT, NOT PLAYED
+- His words after playing the aim fixes: "i want to keep ONE but i love the look of the flying dart..", then
+  "proceed". Plan agreed: one rule where the hit is decided at the click and a real dart flies to that spot and
+  sticks; first built into the hit scan kind so F9 compares it with the foam dart; if he likes it, the foam rule and
+  the F9 switch are removed (step 2).
+- What changed: with F9 on ("Shots: HIT SCAN ..."), a shot is still decided at the click, on what is under the
+  dot. In place of the thin line, the dart now leaves the gun, flies straight to that spot and sticks; the hit
+  (damage, marker, knock-down) counts as it arrives. It follows a target that moves meanwhile. 10 units takes
+  0.09 s, 20 units 0.18 s, anything past 27 units 0.25 s (the dart flies faster instead). Foam darts (F9 off) are
+  as they were.
+- HIS PLAYTEST (Greybox, the armory range): press F9 until the toast says HIT SCAN.
+  1. Shoot the targets from about 5, 10, 20 and 40 units: the dart should be seen leaving the gun and landing on
+     the dot, and stick there.
+  2. A walking soldier: the dart should land on it wherever it has walked to, and stay stuck in it.
+  3. The shotgun's spread and the SMG held down; first person through each sight.
+  4. F9 again (FOAM DARTS) and compare the two looks at the same targets.
+- Look for: is the dart easy enough to see, or too quick (Resources/WeaponAmmo > Flight Speed, 110: lower is
+  showier and the hit comes later; Flight Most Seconds, 0.25, is the longest any hit waits); does the hit feel late
+  at range; the streak behind the dart at long range (it is longer there); anything that should have stopped a dart
+  and did not (a decided shot is not stopped by what moves into its path after the click).
+- His calls: the two numbers; toy soldiers keep their slow flying darts (so theirs can be seen coming); step 2 on
+  his verdict (the decided shot becomes the only rule: no F9, no foam kind).
+- Landed with his editor open and not in Play; compiled there with 0 errors. No reviewer. Local commit, not pushed.
+
 ## 23 Nov 2026 23:3x — THE THREE AIM FIXES (D-0174) AND ONE SET OF SPEEDS FOR BOTH VIEWS (D-0175): IN THE PROJECT, NOT PLAYED
 - His word (18:46, the last before the usage limit cut the session): "lets go with the three aim fixes, proceed and
   push, and match speeds across fps and tps". Built at 23:1x with Unity closed: staged outside
@@ -44,6 +68,13 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   wider catch (no E) working. Also in it: 23 frames over 100 ms, where his other plays today had 0 to 4: a run of
   frames of about 118 ms at 6:28 (just after the window came back) and another from 6:51 to 6:56 near
   (552, 8, -113) with the pistol out. Not looked into.
+- **PLAYED 24 Nov 00:50 (13:56, about 5 of them at the keys; launched for him at his "launch the playtest"; on
+  `1fd5d25`), no verdict from him yet.** Unity's own first compile of the 12 scripts: 0 errors. The play: 0 errors.
+  From the log: rope to rope four times in a row (each next rope caught 0.1 to 0.2 s after the let-go, speeds 8 to
+  16), the pistol, the shotgun, the SMG and the foam finger out, first person three times, 29 shots landed, 255 darts
+  stuck, 7 knock-downs. 4 frames over 100 ms, the long one (1.04 s at 6:45) while the window was away. His
+  question during it: "which is th ehit scan version" -> F9 flips foam darts / instant shots, a toast says which
+  (the play log does not record the flip).
 - STILL OWED: the rope's review (his "after i playtest"; both plays went well: one reviewer on `RopeRider`, the
   motor's fling, every way a ride ends, on his word). TDM in the Stadium (teams, score, spawns) is not built.
   Then a v18 build mid-week.

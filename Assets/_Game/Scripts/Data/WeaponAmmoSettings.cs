@@ -66,8 +66,14 @@ namespace ShiftJam
         public Vector2 markerScales = new Vector2(1.25f, 1.7f);
 
         [Header("A shot's aim")]
-        [Min(0f), Tooltip("A shot that falls as it flies (the foam dart, the paint ball) is fired a little above the line to the point under the dot, so that its arc passes through that point (D-0174). This is as far as that is worked out for, units at scale 1: a target further off gets the lift for this distance and the shot lands under it (at 40, a pistol dart is 1.6 under the dot at 60 units; without the lift it was 4.7 under). Higher: exact further out, but a shot that just misses something near, with the dot on something far behind it, passes higher over the dot's line (at 40: up to 0.5 over it, at 20 units). 0 = off: every shot is fired straight at the point and lands under it, as before (the pistol's dart: 0.13 under at 10 units, 0.52 at 20). Shots that land at once (ShotRules: Instant) have no arc and never use it.")]
+        [Min(0f), Tooltip("A shot that falls as it flies (the foam dart, the paint ball) is fired a little above the line to the point under the dot, so that its arc passes through that point (D-0174). This is as far as that is worked out for, units at scale 1: a target further off gets the lift for this distance and the shot lands under it (at 40, a pistol dart is 1.6 under the dot at 60 units; without the lift it was 4.7 under). Higher: exact further out, but a shot that just misses something near, with the dot on something far behind it, passes higher over the dot's line (at 40: up to 0.5 over it, at 20 units). 0 = off: every shot is fired straight at the point and lands under it, as before (the pistol's dart: 0.13 under at 10 units, 0.52 at 20). Shots decided at the click (ShotRules: Instant) fly straight and never use it.")]
         public float dropAimWithin = 40f;
+
+        [Header("A shot decided at the click (ShotRules: Instant; D-0176)")]
+        [Min(1f), Tooltip("How fast the dart is seen flying from the gun to its mark, units per second at scale 1; a gun's own Shot Speed multiplies it. Where the shot lands was decided at the click and the hit counts as the dart arrives, so this number is how the shot looks and how long the hit waits: at 110 a target 10 units off is hit after 0.09 s, one 20 off after 0.18 s. Lower: showier, the dart is easier to follow and the hit comes later. Higher: snappier. (A foam dart of the other kind flies at 34.)")]
+        public float flightSpeed = 110f;
+        [Min(0f), Tooltip("No flight takes longer than this, seconds: a mark further off than Flight Speed covers in the time is reached by a faster dart instead (at 0.25 and 110: beyond 27 units), so the hit never waits longer. 0 = the hit lands at once and no dart is seen on the way.")]
+        public float flightMostSeconds = 0.25f;
 
         [Header("A shot leaving")]
         [Min(0), Tooltip("Small bits thrown from the barrel along the shot, so it is seen leaving (the test room: 6). 0 = none.")]

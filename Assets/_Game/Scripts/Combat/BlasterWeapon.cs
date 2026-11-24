@@ -6,7 +6,9 @@ namespace ShiftJam
     /// A toy blaster: fires pooled Projectiles at a set interval (tap or hold if automatic), several pellets with spread for
     /// a shotgun, aimed where the camera's centre ray lands (so third-person shots go to the crosshair; the holder's arm
     /// points the barrel at the same spot). A shot that falls as it flies leaves a little above that line, so its arc
-    /// passes through the point under the dot (D-0174; Resources/WeaponAmmo > Drop Aim Within).
+    /// passes through the point under the dot (D-0174; Resources/WeaponAmmo > Drop Aim Within). Where the scene's
+    /// ShotRules decide a shot at the click, each pellet lands on the first thing on its line and is seen flying there
+    /// from the gun (D-0176; Resources/WeaponAmmo > Flight Speed).
     /// Shots leave from the muzzle unless the muzzle has poked through a wall, in which case they leave from the chest and
     /// hit that wall. Each shot kicks the gun back (and the view, in first person): how hard is this gun's Recoil, and
     /// what a kick of 1 is (degrees, distance, how it settles) is the same for every gun, in WeaponHold (the test
@@ -130,7 +132,7 @@ namespace ShiftJam
             if (Vector3.Distance(Holder.AttackOrigin, target) < pointBlank * Scale)
                 from = target - Holder.AimForward * (0.2f * Scale);
 
-            bool instant = ShotRules.Instant;   // the scene's rule: shots land at once (D-0172)
+            bool instant = ShotRules.Instant;   // the scene's rule: a shot is decided at the click (D-0172, D-0176)
             if (_shared == null) _shared = WeaponAmmoSettings.Load();
             Vector3 dir = target - from;
             if (dir.sqrMagnitude < 1e-6f) dir = look;
@@ -138,19 +140,19 @@ namespace ShiftJam
             // point under the dot instead of under it (D-0174; WeaponAmmo > Drop Aim Within, the ammo's own Drop and speed).
             else if (!instant) dir = shot.AimFor(from, target, scale, shotSpeed, _shared.dropAimWithin);
             dir.Normalize();
-            // Where the scene's rule says shots land at once (ShotRules): each pellet is put just in front of the
-            // first thing on its line, so it lands there the next step with everything a landing does (damage, the shove,
-            // the stuck dart, the marker), and the gun draws the line it took. A pellet that meets nothing flies as a dart.
+            // Where the scene's rule decides a shot at the click (ShotRules; D-0176): each pellet lands on the first thing
+            // on its line, found now. It is seen flying there from the gun's end, fast and straight, and everything a
+            // landing does (damage, the shove, the stuck dart, the marker) happens as it arrives, however the thing moved
+            // meanwhile. A pellet that meets nothing flies off the same way, fast and straight, as an ordinary shot.
             Vector3 gunEnd = muzzle != null ? muzzle.position : transform.position;
+            float flight = _shared.flightSpeed * shotSpeed;   // how fast a decided shot is seen flying, units a second at scale 1
             for (int p = 0; p < pellets; p++)
             {
-                Vector3 way = Spread(dir), start = from;
-                if (instant && Meets(from, way, range * scale, out Vector3 mark, out float far))
-                {
-                    start = mark - way * Mathf.Min(InstantGap * scale, far * 0.5f);
-                    ShotStreak.Show(shot, gunEnd, mark, scale);
-                }
-                Projectile.Fire(shot, start, way, damage, knockback, scale, Holder.transform, Holder.FirstPersonBodyRoot, shotSpeed);
+                Vector3 way = Spread(dir);
+                if (!instant) Projectile.Fire(shot, from, way, damage, knockback, scale, Holder.transform, Holder.FirstPersonBodyRoot, shotSpeed);
+                else if (Meets(from, way, range * scale, out RaycastHit met))
+                    Projectile.FireAt(shot, gunEnd, from, met, damage, knockback, scale, Holder.transform, Holder.FirstPersonBodyRoot, flight, _shared.flightMostSeconds);
+                else Projectile.Fire(shot, from, way, damage, knockback, scale, Holder.transform, Holder.FirstPersonBodyRoot, shot.SpeedScaleFor(flight), true);
             }
             Magazine.Spend();   // one round a shot, however many pellets
 
@@ -168,21 +170,20 @@ namespace ShiftJam
             return true;
         }
 
-        private const float InstantGap = 0.2f;   // an instant shot starts this far in front of its mark (units at scale 1), as a point-blank shot does
-
         /// <summary>The first thing a shot from <paramref name="from"/> along <paramref name="way"/> would land on, within
         /// <paramref name="reach"/>: what the shot itself is stopped by (not the shooter, not this gun, not a figure's
-        /// walking capsule, no triggers). <paramref name="far"/> is how far along the line it is.</summary>
-        private bool Meets(Vector3 from, Vector3 way, float reach, out Vector3 mark, out float far)
+        /// walking capsule, no triggers). <paramref name="met"/> is that meeting: the thing, the point, how far.</summary>
+        private bool Meets(Vector3 from, Vector3 way, float reach, out RaycastHit met)
         {
-            mark = default; far = float.MaxValue;
+            met = default;
+            float far = float.MaxValue;
             int n = Physics.RaycastNonAlloc(from, way, _hits, reach, Layers.Seen(aimMask), QueryTriggerInteraction.Ignore);
             for (int i = 0; i < n; i++)
             {
                 if (_hits[i].distance >= far) continue;
                 if (Holder.IsSelf(_hits[i].transform) || _hits[i].transform.IsChildOf(transform)) continue;
                 if (HitShapes.BodyOnly(_hits[i].collider)) continue;
-                far = _hits[i].distance; mark = _hits[i].point;
+                far = _hits[i].distance; met = _hits[i];
             }
             return far < float.MaxValue;
         }

@@ -11,6 +11,8 @@ namespace ShiftJam
     /// shooter's size (the test room's rule: a crate slides as far as the square of the shove, so that carries it
     /// about as many kid sizes as a toy's shot carries it toy sizes; all of it threw crates across the room).
     /// The weapon that fires it can make it faster or slower (its Shot Speed).
+    /// Where a scene's rule decides a shot at the click (ShotRules), the shot is not swept: FireAt carries it, seen
+    /// flying, from the gun to the mark the gun found under the dot, and it lands there as it arrives (D-0176).
     /// Each kind of ammo carries its own feedback, as in the test room: the sounds of the shot and of the landing, and
     /// the small bits thrown off where it lands, and a bright streak behind it in flight. Whoever fired it is told when it lands on something with health
     /// (GameEvents.ShotLanded: the hit marker, the sound at the shooter's ear).
@@ -72,6 +74,21 @@ namespace ShiftJam
         private float _expires, _damage, _knock, _scale;
         private Vector3 _baseScale;
         private bool _flying;   // false once it has landed and stayed (a stuck dart): it no longer moves or hits
+        private bool _straight; // this shot does not fall on its way (a shot decided at the click that met nothing)
+        // A shot whose landing was decided as it was fired (FireAt, D-0176): what it lands on and where, and its flight there.
+        private bool _locked;
+        private RaycastHit _lockHit;        // the meeting the gun found at the click: the landing is this one, where the thing now is
+        private Collider _lockOn;           // the one thing it lands on
+        private Vector3 _lockLocal;         // the mark, in that thing's own space: it goes with the thing
+        private Vector3 _lockNormalLocal;   // the surface's facing there, in that thing's own space
+        private Vector3 _lockMark;          // the mark in the world now
+        private Vector3 _lockMarkAtFire;    // and as it was when the shot was fired
+        private Vector3 _lockFrom;          // where the shot was seen leaving
+        private Vector3 _lockDecided;       // where the line it was decided along starts
+        private float _lockSeconds, _lockTime, _lockLeash;
+
+        private const float LeastStreakSeconds = 0.04f;   // a streak shorter-lived than a couple of frames is not drawn at all: a fast shot's lasts at least this long (the foam dart's own, at its own speed, is 0.047)
+        private const float LockLeash = 6f;     // what it is on may carry the mark this far, units at scale 1 (or the flight's own length, if that is more): further is a warp, and the shot is spent
 
         /// <summary>Raised for every shot fired: (prefab, position, direction, scale, owner, speed scale). Online, the
         /// shooter's NetCombat sends it on so the other PCs fly a harmless copy (D-0117).</summary>
@@ -79,9 +96,66 @@ namespace ShiftJam
 
         /// <summary>Fires one shot from the pool. <paramref name="owner"/> and <paramref name="ownerAlt"/> (both optional)
         /// are never hit: the shooter's body, and the first-person body or car it is in. <paramref name="speedScale"/>
-        /// multiplies the shot's own speed (a weapon's Shot Speed).</summary>
+        /// multiplies the shot's own speed (a weapon's Shot Speed). <paramref name="straight"/>: it does not fall on
+        /// its way, whatever its Drop.</summary>
         public static Projectile Fire(Projectile prefab, Vector3 position, Vector3 direction, float damage, float knock, float scale,
-            Transform owner, Transform ownerAlt = null, float speedScale = 1f)
+            Transform owner, Transform ownerAlt = null, float speedScale = 1f, bool straight = false)
+        {
+            Projectile shot = Take(prefab);
+            if (shot == null) return null;
+            shot.Launch(position, direction, damage, knock, scale, owner, ownerAlt, speedScale, straight);
+            Fired?.Invoke(prefab, position, direction, scale, owner, speedScale);
+            return shot;
+        }
+
+        /// <summary>Fires one shot whose landing is already decided (D-0176; ShotRules: decided at the click): it will
+        /// land where <paramref name="met"/> says, the first thing on the line from <paramref name="decidedFrom"/>
+        /// that the gun found under the dot (a real cast's own result). The shot is seen leaving
+        /// <paramref name="shownFrom"/> (the gun's end) and flying to that mark at <paramref name="flightSpeed"/> (units
+        /// per second at scale 1), in no more than <paramref name="mostSeconds"/> however far the mark is; the mark
+        /// goes with the thing it is on, so the shot gets there however that thing moves meanwhile. It is not swept
+        /// on the way and nothing in between stops it. Everything a landing does (damage, the shove, the bits, the
+        /// stuck dart, the marker) happens as it arrives. The other PCs fly their harmless copy the same way and at
+        /// the same speed.</summary>
+        public static Projectile FireAt(Projectile prefab, Vector3 shownFrom, Vector3 decidedFrom, in RaycastHit met,
+            float damage, float knock, float scale, Transform owner, Transform ownerAlt, float flightSpeed, float mostSeconds)
+        {
+            Collider on = met.collider;
+            if (on == null) return null;
+            Projectile shot = Take(prefab);
+            if (shot == null) return null;
+            scale = Mathf.Max(0.001f, scale);
+            Vector3 mark = met.point;
+            Vector3 line = mark - shownFrom;
+            float length = line.magnitude;
+            float pace = Mathf.Max(0.01f, flightSpeed) * scale;
+            float seconds = Mathf.Min(length / pace, Mathf.Max(0f, mostSeconds));
+            if (seconds > 1e-5f) pace = length / seconds;   // further off than the speed covers in the time: faster instead
+            Vector3 way = length > 1e-4f ? line / length : mark - decidedFrom;
+            if (way.sqrMagnitude < 1e-8f) way = Vector3.forward;
+            float speedScale = pace / (Mathf.Max(0.01f, prefab.speed) * scale);
+            shot.Launch(shownFrom, way, damage, knock, scale, owner, ownerAlt, speedScale, true);
+            shot._locked = true;
+            shot._lockHit = met;
+            shot._lockOn = on;
+            shot._lockLocal = on.transform.InverseTransformPoint(mark);
+            shot._lockNormalLocal = on.transform.InverseTransformDirection(met.normal);
+            shot._lockMark = shot._lockMarkAtFire = mark;
+            shot._lockFrom = shownFrom;
+            shot._lockDecided = decidedFrom;
+            shot._lockSeconds = seconds;
+            shot._lockTime = 0f;
+            shot._lockLeash = Mathf.Max(length, LockLeash * scale);
+            Fired?.Invoke(prefab, shownFrom, way.normalized, scale, owner, speedScale);
+            return shot;
+        }
+
+        /// <summary>The share of this ammo's own speed that makes it fly at <paramref name="ownSpeed"/> (units per
+        /// second at scale 1): what to hand Fire as its speed scale.</summary>
+        public float SpeedScaleFor(float ownSpeed) => ownSpeed / Mathf.Max(0.01f, speed);
+
+        /// <summary>A shot of this kind from its pool, a new one when the pool is empty; null with no prefab.</summary>
+        private static Projectile Take(Projectile prefab)
         {
             if (prefab == null) return null;
             if (!Pools.TryGetValue(prefab, out var pool)) Pools[prefab] = pool = new Stack<Projectile>();
@@ -94,8 +168,6 @@ namespace ShiftJam
                 shot._prefab = prefab;
                 shot._baseScale = shot.transform.localScale;
             }
-            shot.Launch(position, direction, damage, knock, scale, owner, ownerAlt, speedScale);
-            Fired?.Invoke(prefab, position, direction, scale, owner, speedScale);
             return shot;
         }
 
@@ -150,13 +222,15 @@ namespace ShiftJam
             Live.Clear();
         }
 
-        private void Launch(Vector3 position, Vector3 direction, float damage, float knock, float scale, Transform owner, Transform ownerAlt, float speedScale)
+        private void Launch(Vector3 position, Vector3 direction, float damage, float knock, float scale, Transform owner, Transform ownerAlt, float speedScale, bool straight)
         {
             _scale = Mathf.Max(0.001f, scale);
             _velocity = direction.normalized * (speed * Mathf.Max(0.01f, speedScale) * _scale);
             _damage = damage; _knock = knock; _owner = owner; _ownerAlt = ownerAlt;
             _expires = Time.time + lifetime;
             _flying = true;
+            _straight = straight;
+            _locked = false; _lockOn = null;   // a shot from the pool may have been a decided one last time
             transform.SetPositionAndRotation(position, Quaternion.LookRotation(_velocity));
             transform.localScale = _baseScale * _scale;
             gameObject.SetActive(true);
@@ -168,7 +242,7 @@ namespace ShiftJam
                 float pace = _velocity.magnitude;
                 streak.Clear();
                 streak.emitting = true;
-                streak.time = pace > 1e-4f ? streakLength * _scale / pace : 0f;
+                streak.time = pace > 1e-4f ? Mathf.Max(streakLength * _scale / pace, LeastStreakSeconds) : 0f;
                 streak.widthMultiplier = streakWidth * _scale;
                 streak.startColor = streak.endColor = streakColour;
             }
@@ -250,8 +324,9 @@ namespace ShiftJam
             if (!_flying) return;   // it landed and stayed: whoever kept it looks after it now
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
+            if (_locked) { CarryToMark(dt); return; }   // its landing was decided as it was fired
             if (Time.time >= _expires) { Recycle(); return; }
-            _velocity += Vector3.down * (drop * _scale * dt);
+            if (!_straight) _velocity += Vector3.down * (drop * _scale * dt);
             BeforeMove(dt);
             Vector3 step = _velocity * dt;
             float distance = step.magnitude;
@@ -269,32 +344,80 @@ namespace ShiftJam
             if (best >= 0)
             {
                 var hit = _hits[best];
-                Vector3 point = hit.distance > 0f ? hit.point : transform.position;
-                if (Deflects(hit, point)) return;
-                // The shove, sized to the shooter; a loose thing takes the square root of that size, not all of it.
-                Vector3 shove = (dir + Vector3.up * 0.3f) * (_knock * _scale);
-                float loose = 1f / Mathf.Sqrt(_scale);
-                var health = Damageable.Find(hit.collider);
-                bool counted = false;
-                if (health != null) counted = health.Hit(new DamageInfo(_damage, shove, point, _owner, loose));
-                else Knockback.Apply(hit.collider.gameObject, shove, point, loose);
-                Landed(hit, point, dir, counted);
-                // Whoever fired it is told that it landed on something with health, and whether that finished it.
-                if (counted && _owner != null && _owner.TryGetComponent(out WeaponHolder holder)) GameEvents.RaiseShotLanded(holder, health.Dead);
-                OnLanded(hit, point);
-                if (Stays(hit, point, dir))
-                {
-                    // It stays where it landed: no longer moving, and it draws no more streak.
-                    _flying = false;
-                    _velocity = Vector3.zero;
-                    if (streak != null) streak.emitting = false;
-                    return;
-                }
-                Recycle();
+                Land(hit, dir);
                 return;
             }
             transform.position += step;
             if (faceTravel) transform.rotation = Quaternion.LookRotation(dir);
+        }
+
+        /// <summary>The shot lands on what <paramref name="hit"/> names, coming in along <paramref name="dir"/>: the
+        /// hit counts (unless the ammo glances off first), whoever fired it is told, and the shot stays there or goes
+        /// back to its pool.</summary>
+        private void Land(in RaycastHit hit, Vector3 dir)
+        {
+            Vector3 point = hit.distance > 0f ? hit.point : transform.position;
+            if (Deflects(hit, point)) return;
+            // The shove, sized to the shooter; a loose thing takes the square root of that size, not all of it.
+            Vector3 shove = (dir + Vector3.up * 0.3f) * (_knock * _scale);
+            float loose = 1f / Mathf.Sqrt(_scale);
+            var health = Damageable.Find(hit.collider);
+            bool counted = false;
+            if (health != null) counted = health.Hit(new DamageInfo(_damage, shove, point, _owner, loose));
+            else Knockback.Apply(hit.collider.gameObject, shove, point, loose);
+            Landed(hit, point, dir, counted);
+            // Whoever fired it is told that it landed on something with health, and whether that finished it.
+            if (counted && _owner != null && _owner.TryGetComponent(out WeaponHolder holder)) GameEvents.RaiseShotLanded(holder, health.Dead);
+            OnLanded(hit, point);
+            if (Stays(hit, point, dir))
+            {
+                // It stays where it landed: no longer moving, and it draws no more streak.
+                _flying = false;
+                _velocity = Vector3.zero;
+                if (streak != null) streak.emitting = false;
+                return;
+            }
+            Recycle();
+        }
+
+        /// <summary>One step of a shot whose landing was decided as it was fired (FireAt). It is not swept: it is carried
+        /// from where it was seen leaving to its mark in the time it was given, and the mark goes with the thing it
+        /// is on, so the shot gets there however that thing moved. The landing is the meeting the gun found at the
+        /// click, put where that thing now is, and everything a landing does follows; it cannot miss. A thing that
+        /// is gone by then (destroyed, switched off, carried away by a warp) leaves the shot nothing to land on, and
+        /// it is spent.</summary>
+        private void CarryToMark(float dt)
+        {
+            bool there = _lockOn != null && _lockOn.enabled && _lockOn.gameObject.activeInHierarchy;
+            if (there)
+            {
+                Vector3 now = _lockOn.transform.TransformPoint(_lockLocal);
+                if ((now - _lockMarkAtFire).sqrMagnitude <= _lockLeash * _lockLeash) _lockMark = now;
+                else there = false;
+            }
+            _lockTime += dt;
+            float share = _lockSeconds > 1e-5f ? Mathf.Clamp01(_lockTime / _lockSeconds) : 1f;
+            Vector3 next = Vector3.Lerp(_lockFrom, _lockMark, share);
+            Vector3 step = next - transform.position;
+            if (step.sqrMagnitude > 1e-12f)
+            {
+                _velocity = step / dt;   // what an ammo's own rules read as it lands (the paint ball's break or skip)
+                if (faceTravel) transform.rotation = Quaternion.LookRotation(step);
+            }
+            transform.position = next;
+            if (share < 1f) return;
+
+            _locked = false;
+            _straight = false;   // an ammo that glances off flies on as an ordinary shot, and falls like one
+            if (!there) { Recycle(); return; }
+            Vector3 flown = _lockMark - _lockFrom, decided = _lockMark - _lockDecided;
+            Vector3 dir = flown.sqrMagnitude > 1e-8f ? flown.normalized : decided.sqrMagnitude > 1e-8f ? decided.normalized : transform.forward;
+            Vector3 facing = _lockOn.transform.TransformDirection(_lockNormalLocal);
+            RaycastHit hit = _lockHit;   // the thing is the one found at the click; where, and how it faces, are as they are now
+            hit.point = _lockMark;
+            hit.normal = facing.sqrMagnitude > 1e-8f ? facing.normalized : -dir;
+            hit.distance = Mathf.Max(1e-4f, decided.magnitude);
+            Land(hit, dir);
         }
     }
 }

@@ -221,6 +221,10 @@ MonoBehaviour:
       NameHash: 526065662
       Synchronize: 1
       ParameterType: 1
+    - name: AirPhase
+      NameHash: 1854912052
+      Synchronize: 1
+      ParameterType: 1
   AnimatorParametersExpanded: 0
 --- !u!114 &8168770689280533047
 MonoBehaviour:

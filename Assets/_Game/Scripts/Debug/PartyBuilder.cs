@@ -180,6 +180,9 @@ namespace ShiftJam
             StadiumLayout.Build(scene, body);   // the stadium, the field, the play pieces and the spawns (D-0113)
             AddRaceway(scene, body);            // the race track beside it, its cars online (D-0116)
             HouseDoor(scene, new Vector3(-23.2f, 0f, -5f), Quaternion.Euler(0f, 90f, 0f), body);   // the arena's door to the house (D-0134): the race gate's twin across the middle
+            // Versus shots are decided at the click here (D-0172, D-0176). The rule is made with the scene: this scene is
+            // made afresh on every ship, and a rule placed in it by hand (as it first was) would be gone from the build.
+            new GameObject("ShotRules").AddComponent<ShotRules>();   // the part's own default is Instant
             Vector3 centre = Vector3.zero;
 
             var hudAsset = AssetDatabase.LoadAssetAtPath<GameObject>(HudPath);

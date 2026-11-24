@@ -3274,3 +3274,9 @@
     does not flinch.
   - Made by one builder (staged in `%TEMP%\shiftjam-stage\flinch`, 5 minutes), its changes read by me before landing,
     compiled outside both ways and in his open editor (0 errors). No reviewer. NOT PLAYED.
+- **D-0172 addendum (24 Nov, 02:3x): the Stadium's shot rule is made with the scene.** The ship command remakes
+  `Scenes/Stadium.unity` from code on every build (`PartyBuilder.MakeStadium` starts from an empty scene), and the
+  rule that makes the Stadium's shots hit scan had been placed in the saved scene by hand: v18 would have gone out
+  with foam darts there. `MakeStadium` now adds the `ShotRules` object itself (the part's default is Instant).
+  Checked in the scene v18's build wrote: one `ShotRules`, kind 1. Anything else placed by hand in the Stadium is
+  lost the same way: it has to go through `StadiumLayout` or `MakeStadium`.

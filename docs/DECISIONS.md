@@ -3085,3 +3085,8 @@
     "hold Shift to run, then jump" lesson holds; in third person a walking jump now carries 5.6 and clears it.
   - Side effect to decide: crouching in the air still lifts the feet 0.9, so a first-person crouch-jump clears 2.9
     where third person clears 2.0. NOT PLAYED after the change.
+- **D-0170 addendum (23 Nov, 18:5x): his verdict and the wider catch.** Played 18:27 (7 rides, rope to rope twice):
+  "ropes and hands feel and look good but id like to be able to jump into a rope and not need to press E to grab it,
+  jump into a rope should automatically grab". `Resources/Rope.asset`: Catch Reach 1 -> 1.5, Leave Reach 1.4 -> 1.9.
+  E in the air stays, and is no longer needed. Also his: "darker box looks good" (`ToyBoxDark`, lights 0.35, ambient
+  0.30).

@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 23 Nov 2026 18:5x — HIS VERDICTS: THE DARKER BOX, THE ROPES AND THE HANDS ARE GOOD; A ROPE NOW CATCHES WITHOUT E FROM FURTHER OFF
+- His words: "darker box looks good, ropes and hands feel and look good but id like to be able to jump into a rope
+  and not need to press E to grab it, jump into a rope should automatically grab".
+- Why E was needed: in the air a rope caught by itself only within 1.0 of the hands' point, while E reaches about
+  1.85 ahead. Now `Resources/Rope.asset`: Catch Reach 1 -> 1.5 (as far as E reaches in the air, and the whole body's
+  height from the hands' point), Leave Reach 1.4 -> 1.9 (it must stay above the catch). Changed in the FILE while he
+  was in Play (no editor command: the last one froze his game); it is live from his next play at the latest.
+- Still to do when he is out of Play: the same two defaults in `Data/RopeSettings.cs` (1f, 1.4f), so a freshly made
+  asset agrees. NOT PLAYED with the new reach.
+
 ## 23 Nov 2026 18:4x — FIRST PERSON CAN CLIMB THE BOOKS: ITS JUMP AND GRAVITY MATCH THIRD PERSON NOW (D-0173). LIVE IN HIS PLAY, NO VERDICT YET
 - His "i cant jump up the book shelf ladder in First Person". The first-person body jumped 0.55 (the test room's
   number) against risers of 1.1. Now `FirstPersonSettings`: Jump Height 2, Gravity 25, as the third-person toy.

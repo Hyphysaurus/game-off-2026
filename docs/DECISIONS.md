@@ -2984,4 +2984,5 @@
   - **Known, for his eyes:** a tap hop runs phase 0.27 to 0.71 (no push-off pose, lands with the legs partly tucked);
     a hop onto a higher step lands near 0.84, where the lower foot is still about 0.4 up for a moment. If either
     reads badly, the next step is to let the pose see the ground coming (time to landing instead of speed alone).
-    Squash and stretch: later, through `FX/Squash.cs`. NOT PLAYED.
+    Squash and stretch: later, through `FX/Squash.cs`.
+  - **Played 23 Nov 16:2x, his words: "the jump looks good".**

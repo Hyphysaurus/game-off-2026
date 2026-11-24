@@ -2,7 +2,10 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 23 Nov 2026 16:1x — THE JUMP'S POSE FOLLOWS THE JUMP (D-0169): IN THE PROJECT, CONTROLLERS REBUILT AND CHECKED IN A HIDDEN RUN, NOT PLAYED
+## 23 Nov 2026 16:1x — THE JUMP'S POSE FOLLOWS THE JUMP (D-0169): IN THE PROJECT, PLAYED 16:2x, HIS "the jump looks good"
+- His word after playing (16:2x, the play I launched for him at his "launch the playtest"): "the jump looks good". Then:
+  "are there any more animations we can include? perhaps a seamless jump from the top of the booksteps into a
+  roll?" -> plan given (a roll out of a real drop, as the Goblin game's `LandingRoll`), waits for his "proceed".
 - What changed: in the air the body used to hold one frozen tuck. Now it pushes off one foot, strides through the
   top and reaches down, and the frame is picked by how fast the body is rising or falling (the motor sets it), so a
   full jump, a cut jump and the book hops stay in step. Made from the old pack's running-jump clips (his "looks

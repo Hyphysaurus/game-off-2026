@@ -9,6 +9,9 @@ namespace ShiftJam
     /// Who is who online (D-0117), on the NetPlayer: over every other player's head their name (their PC's user name,
     /// sent once by them), in their colour (one of four, by join order), and a small health bar under it read from
     /// NetHealth. It faces this PC's camera and grows with the player (a kid's tag is high and big). Not over our own head.
+    /// In a team match (D-0182) the name wears the team's colour, and an ENEMY's tag shows only while this PC's player has
+    /// a clear line to them: a tag floats above its player's head, higher than the field's walls, and would give away
+    /// anyone standing behind one.
     /// </summary>
     public sealed class NetNameTag : NetworkBehaviour
     {
@@ -22,9 +25,15 @@ namespace ShiftJam
 
         private readonly NetworkVariable<FixedString32Bytes> _name = new NetworkVariable<FixedString32Bytes>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
+        [SerializeField, Tooltip("In a team match an enemy's tag is hidden while something solid stands between this PC's player and them. Off: enemies' tags always show, over walls too.")]
+        private bool hideEnemiesBehindCover = true;
+        [SerializeField, Range(0.1f, 1f), Tooltip("The height the line of sight is looked along, as a share of each player's height (0.85: about the eyes).")]
+        private float sightHeight = 0.85f;
+
         private TextMeshPro _tag;
         private NetHealth _health;
         private float _nextText;
+        private static readonly RaycastHit[] Hits = new RaycastHit[24];
 
         /// <summary>This player's name as their PC sent it.</summary>
         public string DisplayName => _name.Value.Length > 0 ? _name.Value.ToString() : "Player " + (OwnerClientId + 1);
@@ -37,11 +46,16 @@ namespace ShiftJam
             return "Player " + (clientId + 1);
         }
 
-        /// <summary>The colour of the player with this client id.</summary>
-        public static Color ColourOf(ulong clientId) => Colours[(int)(clientId % (ulong)Colours.Length)];
+        /// <summary>The colour of the player with this client id: their team's while a team match has teams (D-0182),
+        /// else one of the four by join order.</summary>
+        public static Color ColourOf(ulong clientId)
+        {
+            int team = TeamMatch.TeamOf(clientId);
+            return team != TeamMatch.NoTeam ? TeamMatch.Colour(team) : Colours[(int)(clientId % (ulong)Colours.Length)];
+        }
 
         /// <summary>This player's colour.</summary>
-        public Color Colour => Colours[(int)(OwnerClientId % (ulong)Colours.Length)];
+        public Color Colour => ColourOf(OwnerClientId);
 
         public override void OnNetworkSpawn()
         {
@@ -71,6 +85,9 @@ namespace ShiftJam
             if (cam != null) _tag.transform.rotation = Quaternion.LookRotation(_tag.transform.position - cam.transform.position, Vector3.up);
             if (Time.unscaledTime < _nextText) return;
             _nextText = Time.unscaledTime + 0.15f;
+            bool show = !EnemyBehindCover();
+            if (_tag.enabled != show) _tag.enabled = show;
+            if (!show) return;
             string name = DisplayName;
             string colour = ColorUtility.ToHtmlStringRGB(Colour);
             string bar = "";
@@ -82,6 +99,33 @@ namespace ShiftJam
                 if (_health.Shield > 0.5f) bar += " <color=#5AD8FF>+</color>";
             }
             _tag.text = "<color=#" + colour + ">" + name + "</color>" + bar;
+        }
+
+        /// <summary>True in a team match when this player is on the other team and something solid stands between this
+        /// PC's own player and them (D-0182). Their own two bodies do not count.</summary>
+        private bool EnemyBehindCover()
+        {
+            if (!hideEnemiesBehindCover || !TeamMatch.Running) return false;
+            int mine = TeamMatch.Mine, theirs = TeamMatch.TeamOf(OwnerClientId);
+            if (mine == TeamMatch.NoTeam || theirs == TeamMatch.NoTeam || mine == theirs) return false;
+            NetWorld own = NetWorld.Local;
+            if (own == null) return false;
+            Vector3 from = SightPoint(own.transform), to = SightPoint(transform);
+            Vector3 way = to - from; float far = way.magnitude;
+            if (far < 0.01f) return false;
+            int n = Physics.RaycastNonAlloc(from, way / far, Hits, far, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < n; i++)
+            {
+                Transform hit = Hits[i].collider.transform;
+                if (!hit.IsChildOf(own.transform) && !hit.IsChildOf(transform)) return true;
+            }
+            return n >= Hits.Length;   // more in the way than can be counted: call it cover
+        }
+
+        private Vector3 SightPoint(Transform player)
+        {
+            float height = player.TryGetComponent(out CharacterController cc) ? cc.height * player.lossyScale.y : 1.8f;
+            return player.position + Vector3.up * (height * sightHeight);
         }
 
         private float TagHeight()

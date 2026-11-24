@@ -14,6 +14,9 @@ namespace ShiftJam
     /// seconds) and, while Tab is held, a board of every player: knock-outs, times knocked out, and this PC's ping.
     /// Every PC hears every knock-out (NetHealth.KnockedOut), so each keeps the same tally with nothing more sent; a
     /// player who joins late counts from their joining. Made by NetSession; shows only in the party scene.
+    /// In a team match (D-0182): names wear their team's colour, a team's bot is named in the feed, the board lists the
+    /// players under their teams with the teams' scores, and the tally starts over at each match's countdown. The
+    /// teams' scores themselves are the host's (TeamMatch); the match's own screen is MatchHud.
     /// </summary>
     public sealed class NetScoreboard : MonoBehaviour
     {
@@ -25,6 +28,7 @@ namespace ShiftJam
         private GameObject _root, _board;
         private TextMeshProUGUI _feedText, _boardText, _travelText;
         private float _nextBoard;
+        private MatchPhase _lastPhase = MatchPhase.None;
 
         private void OnEnable() => NetHealth.KnockedOut += OnKnockedOut;
         private void OnDisable() => NetHealth.KnockedOut -= OnKnockedOut;
@@ -39,7 +43,7 @@ namespace ShiftJam
             string line;
             if (by != NetHealth.NoOne && by != victim)
             {
-                _kos[by] = (_kos.TryGetValue(by, out int k) ? k : 0) + 1;
+                if (!NetHealth.IsBot(by, out _)) _kos[by] = (_kos.TryGetValue(by, out int k) ? k : 0) + 1;   // a bot keeps no tally
                 line = Coloured(by) + " knocked out " + v;
             }
             else line = v + " was knocked out";
@@ -48,7 +52,14 @@ namespace ShiftJam
             RefreshFeed();
         }
 
-        private static string Coloured(ulong id) => "<color=#" + ColorUtility.ToHtmlStringRGB(NetNameTag.ColourOf(id)) + ">" + NetNameTag.NameOf(id) + "</color>";
+        /// <summary>A player's name in their colour (their team's while a match has teams), or a team's bot (D-0182).</summary>
+        private static string Coloured(ulong id)
+        {
+            if (NetHealth.IsBot(id, out int team)) return Tint(TeamMatch.Colour(team)) + TeamMatch.Name(team) + " bot</color>";
+            return Tint(NetNameTag.ColourOf(id)) + NetNameTag.NameOf(id) + "</color>";
+        }
+
+        private static string Tint(Color colour) => "<color=#" + ColorUtility.ToHtmlStringRGB(colour) + ">";
 
         private void Update()
         {
@@ -57,6 +68,13 @@ namespace ShiftJam
             if (_root == null) return;
             if (_root.activeSelf != show) _root.SetActive(show);
             if (!show) return;
+            // A team match's countdown started (D-0182): this match's tally starts from nothing.
+            MatchPhase phase = TeamMatch.Phase;
+            if (phase != _lastPhase)
+            {
+                if (phase == MatchPhase.Countdown) { _kos.Clear(); _downs.Clear(); }
+                _lastPhase = phase;
+            }
             if (_feed.Count > 0 && _feed[0].until < Time.unscaledTime) { _feed.RemoveAt(0); RefreshFeed(); }
             // A door is taking the party somewhere (D-0134): the countdown, top middle.
             string travel = NetTravel.Going ? $"Going to {NetTravel.Label} in {Mathf.CeilToInt(NetTravel.SecondsLeft)}" : "";
@@ -84,14 +102,31 @@ namespace ShiftJam
             var ids = new List<ulong>();
             foreach (var t in FindObjectsByType<NetNameTag>(FindObjectsSortMode.None)) if (t.IsSpawned) ids.Add(t.OwnerClientId);
             ids.Sort((a, b) => (_kos.TryGetValue(b, out int kb) ? kb : 0).CompareTo(_kos.TryGetValue(a, out int ka) ? ka : 0));
-            foreach (ulong id in ids)
+            bool teams = false;
+            foreach (ulong id in ids) if (TeamMatch.TeamOf(id) != TeamMatch.NoTeam) { teams = true; break; }
+            if (!teams) foreach (ulong id in ids) Row(sb, id, nm);
+            else
             {
-                int ko = _kos.TryGetValue(id, out int a1) ? a1 : 0, down = _downs.TryGetValue(id, out int a2) ? a2 : 0;
-                string me = nm != null && id == nm.LocalClientId ? "  <alpha=#88>(you)</alpha>" : "";
-                sb.AppendLine(Coloured(id).PadRight(0) + me + "<pos=55%>" + ko + "<pos=80%>" + down);
+                // A team match (D-0182): each team's score, its players under it, and the bots that fill it.
+                for (int team = TeamMatch.Blue; team <= TeamMatch.Orange; team++)
+                {
+                    sb.AppendLine("<b>" + Tint(TeamMatch.Colour(team)) + TeamMatch.Name(team).ToUpperInvariant() + "   " + TeamMatch.Score(team) + "</color></b>");
+                    foreach (ulong id in ids) if (TeamMatch.TeamOf(id) == team) Row(sb, id, nm);
+                    int bots = TeamMatch.BotsWanted(team);
+                    if (bots > 0) sb.AppendLine("<alpha=#88>+ " + bots + (bots == 1 ? " bot" : " bots") + "</alpha>");
+                }
+                foreach (ulong id in ids) if (TeamMatch.TeamOf(id) == TeamMatch.NoTeam) Row(sb, id, nm);   // joined during the card
             }
             sb.AppendLine("\n<alpha=#88>ping " + NetSession.PingMs + " ms</alpha>");
             _boardText.text = sb.ToString();
+        }
+
+        /// <summary>One player's line on the board: name, knock-outs, times knocked out.</summary>
+        private void Row(StringBuilder sb, ulong id, NetworkManager nm)
+        {
+            int ko = _kos.TryGetValue(id, out int a1) ? a1 : 0, down = _downs.TryGetValue(id, out int a2) ? a2 : 0;
+            string me = nm != null && id == nm.LocalClientId ? "  <alpha=#88>(you)</alpha>" : "";
+            sb.AppendLine(Coloured(id) + me + "<pos=55%>" + ko + "<pos=80%>" + down);
         }
 
         private void Build()

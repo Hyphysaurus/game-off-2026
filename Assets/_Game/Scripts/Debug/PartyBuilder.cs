@@ -185,7 +185,7 @@ namespace ShiftJam
             // made afresh on every ship, and a rule placed in it by hand (as it first was) would be gone from the build.
             new GameObject("ShotRules").AddComponent<ShotRules>();   // the part's own default is Instant
             // Team deathmatch (D-0182): the host's M starts a match here. Made with the scene for the same reason.
-            new GameObject("TeamMatch").AddComponent<TeamMatch>();
+            new GameObject("TeamMatch").AddComponent<TeamMatch>().gameObject.AddComponent<MatchHud>();   // and its screen: the scores, the countdown, the card
             Vector3 centre = Vector3.zero;
 
             var hudAsset = AssetDatabase.LoadAssetAtPath<GameObject>(HudPath);

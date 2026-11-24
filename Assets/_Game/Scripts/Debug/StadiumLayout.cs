@@ -91,23 +91,33 @@ namespace ShiftJam
             new Piece("Inflatable/tower_palm_001", 10f, -20f, 0f, 0.6f).By(0f, -17f),
 
             // ---- more cover for the wider field (D-0181), in the BUILT field's own units. Shots land at once in this
-            // scene, so open ground is dangerous ground: these break the long lines the spread layout would leave.
+            // scene, so open ground is dangerous ground: these break the long lines the spread layout would leave. Placed
+            // from the pieces' measured footprints (a wall is 4.8 long, 0.55 thick, 1.8 tall; a colour box 1.6 by 2.4,
+            // 0.8 tall), each at least a toy's width clear of its neighbours, the pickups and the two gates.
             // the middle lane, between the stage and the base
-            new Piece("Inflatable/wall_011", 0f, -15.5f, 0f).AsBuilt(),
-            // the approach to the base
-            new Piece("Inflatable/color_box_003", -9.5f, -23.5f, 20f).AsBuilt(),
-            new Piece("Inflatable/color_box_005", 9.5f, -23.5f, -20f).AsBuilt(),
-            // between the cover lines and the flank platforms
-            new Piece("Inflatable/wall_012", -20f, -21.5f, 30f).AsBuilt(),
-            new Piece("Inflatable/wall_013", 20f, -21.5f, -30f).AsBuilt(),
-            // the outer flanks, by the rim
-            new Piece("Inflatable/wall_014", -32.5f, -5f, 90f).AsBuilt(),
-            new Piece("Inflatable/wall_015", 32.5f, -5f, 90f).AsBuilt(),
-            new Piece("Inflatable/color_box_007", -25f, -29f, 45f).AsBuilt(),
-            new Piece("Inflatable/color_box_008", 25f, -29f, -45f).AsBuilt(),
-            // inside the cross tunnels' reach, toward the middle
-            new Piece("Inflatable/box_004", -9f, -7f, 0f).AsBuilt(),
-            new Piece("Inflatable/box_005", 9f, -7f, 0f).AsBuilt(),
+            new Piece("Inflatable/wall_011", 0f, -13.5f, 0f).AsBuilt(),
+            // across the two diagonals through the middle: the stage and its rails are too low to hide a toy
+            new Piece("Inflatable/wall_012", -9f, -6.5f, 50f).AsBuilt(),
+            new Piece("Inflatable/wall_013", 9f, -6.5f, -50f).AsBuilt(),
+            // north of each ammo box: something to stand behind while restocking
+            new Piece("Inflatable/wall_014", -19f, -17.8f, 30f).AsBuilt(),
+            new Piece("Inflatable/wall_015", 19f, -17.8f, -30f).AsBuilt(),
+            // a stall round each charge pickup on the outer flank (its twin comes with the other half). It also cuts
+            // the long line along the rim between the two halves' flank spawns.
+            new Piece("Inflatable/wall_009", -33.5f, -3f, 0f).AsBuilt(),
+            new Piece("Inflatable/wall_010", 33.5f, -3f, 0f).AsBuilt(),
+            // low boxes: a first hop of cover out of the base's side, and in the corners of the outer ring
+            new Piece("Inflatable/color_box_003", -17.5f, -27f, 20f).AsBuilt(),
+            new Piece("Inflatable/color_box_005", 17.5f, -27f, -20f).AsBuilt(),
+            new Piece("Inflatable/color_box_007", -24f, -28f, 45f).AsBuilt(),
+            new Piece("Inflatable/color_box_008", 24f, -28f, -45f).AsBuilt(),
+        };
+
+        /// <summary>The rook towers: the place the plan gives each, and the flank platform it stands against.</summary>
+        private static readonly (Vector2 At, Vector2 With)[] Towers =
+        {
+            (new Vector2(-21f, 9f), new Vector2(-17f, 9f)),
+            (new Vector2(21f, -9f), new Vector2(17f, -9f)),
         };
 
         /// <summary>Trampolines (with the game's LaunchPad): at the foot of each flank platform (the place the plan
@@ -134,9 +144,14 @@ namespace ShiftJam
                 Place("Stadium/stand_viewers_00" + (i % 2 + 1), backdrop, Vector3.zero, i * 60f, Back, true);
             }
             Place("Stadium/battle_stadium_003", backdrop, Vector3.zero, 0f, Back, true);
-            // what stands and floats round the field grows with the shell
-            Place("Inflatable/tower_016", backdrop, new Vector3(-21f, 0f, 9f) * Grow, 0f, 0.25f * Grow, true);
-            Place("Inflatable/tower_016", backdrop, new Vector3(21f, 0f, -9f) * Grow, 0f, 0.25f * Grow, true);
+            // The two rook towers stand against a flank platform each: part of that cluster, so they keep their first
+            // size and their distance from it (grown with the shell they swallowed half the platform's side).
+            foreach (var tower in Towers)
+            {
+                Vector2 at = Spread(tower.At, true, tower.With);
+                Place("Inflatable/tower_016", backdrop, new Vector3(at.x, 0f, at.y), 0f, 0.25f, true);
+            }
+            // what floats over the field grows with the shell
             Place("Other/air_balloon_001", backdrop, new Vector3(-38f, 34f, 18f) * Grow, 30f, 0.35f * Grow, false);
             Place("Other/air_balloon_001", backdrop, new Vector3(42f, 40f, -12f) * Grow, -40f, 0.3f * Grow, false);
             Place("Other/air_balloon_001", backdrop, new Vector3(10f, 46f, 44f) * Grow, 0f, 0.3f * Grow, false);
@@ -229,14 +244,56 @@ namespace ShiftJam
             var first = Spawn(spawns, new Vector3(0f, 0f, 0f), 0f);
             first.MarkFirst(true);
             Raise(first.transform);   // onto the stage
+            // Eight more round the field, four a half, each on open ground: a spot inside or against a piece slides out
+            // toward the rim, then in toward the middle, to the nearest free one, and faces the middle or the nearest
+            // open way beside it. (Until D-0181 these were lifted onto whatever stood there, as the stage's is, and two
+            // of them sat on top of the rook towers.)
             float r = FieldRadius - 4f;
             for (int i = 0; i < 8; i++)
             {
                 float a = i * 45f + 22.5f;
-                var pos = Quaternion.Euler(0f, a, 0f) * new Vector3(0f, 0f, r);
-                var s = Spawn(spawns, pos, a + 180f);   // facing the middle
-                Raise(s.transform);
+                Vector3 way = Quaternion.Euler(0f, a, 0f) * Vector3.forward;
+                Vector3 pos = way * r; bool free = false;
+                foreach (float slide in SpawnSlides)
+                    if (OpenGround(way * (r + slide))) { pos = way * (r + slide); free = true; break; }
+                if (!free) Debug.LogWarning($"StadiumLayout: no open ground for the spawn at {a:0.#} degrees; it stands at ({pos.x:0.#}, {pos.z:0.#}) all the same.");
+                Spawn(spawns, pos, Facing(pos, a + 180f));
             }
+        }
+
+        /// <summary>How far a ring spawn may slide along its own line from the middle to find open ground: out toward
+        /// the rim first (further from the fight), then in.</summary>
+        private static readonly float[] SpawnSlides = { 0f, 1f, 2f, 3f, -1f, -2f, -3f };
+        private const float SpawnRoom = 1.4f;   // open ground a spawn needs round it: a toy and a step to each side
+        private const float SpawnStep = 0.3f;   // ground no higher than this is the floor, not a piece
+
+        /// <summary>The ways a ring spawn may face, as turns from "toward the middle", in the order they are tried.</summary>
+        private static readonly float[] SpawnTurns = { 0f, -30f, 30f, -60f, 60f, -90f, 90f };
+        private const float SpawnView = 6f;     // open ground a spawn wants ahead of it
+        private const float SpawnEye = 1.2f;    // the height that is looked along: over a step, not over a wall
+
+        /// <summary>The way a ring spawn faces: toward the middle, unless something stands in the way within SpawnView;
+        /// then the nearest open way to either side, so nobody comes back with their nose against a wall.</summary>
+        private static float Facing(Vector3 at, float toMiddle)
+        {
+            Physics.SyncTransforms();
+            foreach (float turn in SpawnTurns)
+            {
+                Vector3 way = Quaternion.Euler(0f, toMiddle + turn, 0f) * Vector3.forward;
+                if (!Physics.SphereCast(at + Vector3.up * SpawnEye, 0.3f, way, out _, SpawnView, ~0, QueryTriggerInteraction.Ignore))
+                    return toMiddle + turn;
+            }
+            return toMiddle;
+        }
+
+        /// <summary>True when a toy can come back here: the floor under it, and nothing solid within SpawnRoom.</summary>
+        private static bool OpenGround(Vector3 at)
+        {
+            Physics.SyncTransforms();
+            if (!Physics.Raycast(at + Vector3.up * 30f, Vector3.down, out RaycastHit hit, 40f, ~0, QueryTriggerInteraction.Ignore)) return false;
+            if (hit.point.y > SpawnStep) return false;
+            // a capsule that starts just above the floor, so the floor itself does not count
+            return !Physics.CheckCapsule(at + Vector3.up * (SpawnRoom + SpawnStep), at + Vector3.up * 3f, SpawnRoom, ~0, QueryTriggerInteraction.Ignore);
         }
 
         // ---------------------------------------------------------------- pickups (D-0115)

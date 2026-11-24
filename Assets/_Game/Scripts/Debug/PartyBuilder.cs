@@ -272,7 +272,7 @@ namespace ShiftJam
             var backGate = Gate(scene, "ToStadium", arrive + arriveFacing * (Vector3.back * 4f * body), arriveFacing, body);
             var backPoint = new GameObject("StadiumArrive").transform;
             SceneManager.MoveGameObjectToScene(backPoint.gameObject, scene);
-            backPoint.SetPositionAndRotation(new Vector3(19f, 0.3f, 5f), Quaternion.Euler(0f, -90f, 0f));
+            backPoint.SetPositionAndRotation(new Vector3(StadiumLayout.FieldRadius - 6.4f, 0.3f, 5f), Quaternion.Euler(0f, -90f, 0f));   // 4.2 inside the gate it came through
             backGate.SetTarget(backPoint);
             Debug.Log($"PartyBuilder: Raceway copied {shiftX:0} east of the stadium, {cars} cars online.");
         }

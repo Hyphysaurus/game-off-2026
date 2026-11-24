@@ -3280,23 +3280,39 @@
   with foam darts there. `MakeStadium` now adds the `ShotRules` object itself (the part's default is Instant).
   Checked in the scene v18's build wrote: one `ShotRules`, kind 1. Anything else placed by hand in the Stadium is
   lost the same way: it has to go through `StadiumLayout` or `MakeStadium`.
-- **D-0181 (24 Nov, 04:1x) The Stadium is 1.6 times wider: the field 81 across (51 before), the play pieces kept toy-sized, more cover.**
+- **D-0181 (24 Nov, 04:2x) The Stadium is 1.6 times wider: the field 81 across (51 before), the play pieces kept toy-sized, more cover. Scene rebuilt.**
   His "that stadium was feeling a bit small and cramped last i had played it, lets expand it". (The toy is also
   faster than when the field was laid out on 21 Nov.) The layout is his to leave to me (D-0111: "optimize based on
   the assets").
   - `StadiumLayout`: one number, `Grow` 1.6. The plan stays written in the first layout's units and is spread from
-    the middle as it is built. The shell, the stands, the towers and what floats round the field grow with it
-    (`Back` 0.2 -> 0.32), so the field's radius is still the shell's inner edge: `FieldRadius` = 127 x Back = 40.6
-    (25.4 before; public now). The play pieces keep their size (Prop 0.4: a wall about one toy tall).
+    the middle as it is built. The shell, the stands and what floats over the field grow with it (`Back` 0.2 ->
+    0.32), so the field's radius is still the shell's inner edge: `FieldRadius` = 127 x Back = 40.6 (25.4 before;
+    public now). The play pieces keep their size (Prop 0.4: a wall is 4.8 long and 1.8 tall, about one toy).
   - Things that belong together keep their distances (`.By(x, z)`): each base's blocks, flags and palms with its
-    arch, each slide and trampoline with its platform, the stage's walls, the pistol and the supply crate with the
-    base, the knife, the foam finger and the shield with the stage, the practice soldiers beside their base.
-  - Eleven more cover pieces a half for the wider ground (`.AsBuilt()`, given in the built field's own units): a
-    wall across the middle lane, boxes on the approach to the base, walls between the cover lines and the flank
-    platforms, walls and boxes by the rim, boxes by the cross tunnels. Shots land at once in this scene, so open
-    ground is dangerous ground. PROVISIONAL places: not yet checked against the pieces' real footprints.
-  - `PartyBuilder`: the house door and the race gate stand on the rim by the field's radius, not at fixed numbers.
-  - The ring spawns follow by themselves (radius - 4).
-  - NOT DONE YET: `Scenes/Stadium.unity` is not rebuilt (it needs a Unity run: the menu Shift Jam > Party > Build Net
-    Player + Stadium, or the next ship, which remakes the scene anyway), so nothing of this shows until then, and
-    the new cover has not been looked at from above. Compiled outside; landed with Unity closed. NOT PLAYED.
+    arch, each slide and trampoline with its platform, the stage's rails, the pistol and the supply crate with the
+    base, the knife, the foam finger and the shield with the stage, the practice soldiers beside their base, and the
+    two rook towers against their flank platforms (at their first size: grown with the shell they swallowed the
+    platform's side).
+  - Eleven more cover pieces a half for the wider ground (`.AsBuilt()`, given in the built field's own units),
+    placed from the pieces' MEASURED footprints, each at least a toy's width clear of its neighbours, the pickups
+    and the two gates: a wall across the middle lane, a wall across each diagonal through the middle (the stage and
+    its rails are too low to hide a toy), a wall north of each ammo box, a stall of two walls round each charge
+    pickup on the outer flank (it also cuts the 29-unit line along the rim between the two halves' flank spawns),
+    low boxes beside each base and in the corners of the outer ring. Shots land at once in this scene, so open
+    ground is dangerous ground.
+  - Ring spawns stand on OPEN GROUND now and look at it. Before, a spawn was lifted onto whatever stood under it
+    (meant for the stage's), and two of the eight sat on top of the rook towers: in v18 too, where the old ring
+    passed through them. Now a ring spawn that is inside or against a piece slides out toward the rim, then in
+    (`OpenGround`: the floor under it, nothing solid within 1.4), and it faces the middle or, when a piece stands
+    in the way within 6, the nearest open way beside it (`Facing`). The stage's First point is still lifted onto
+    the stage.
+  - `PartyBuilder`: the house door, the race gate and the point where a player comes back from the race track stand
+    by the field's radius, not at fixed numbers.
+  - CHECKED with three hidden Unity runs (each rebuilt the scene as the menu does, then listed every placed thing
+    with its footprint and took stills from above and from a toy's eye): no piece within 1.2 of another except the
+    clusters that are meant to touch; all eight ring spawns on the floor, 1.4 or more clear; the floor check 5057
+    spots, 0 without ground. The first run showed what the numbers alone had hidden: a wall on each ammo box, a box
+    against a heal, two "boxes" that are slabs 0.4 high (no cover: replaced by walls), a wall straight in front of
+    the race gate's arrival point, and the towers grown over two spawns.
+  - `Scenes/Stadium.unity` is rebuilt and saved (checked whole: no cut save). Nothing else changed in the rebuild
+    (the NetPlayer, the camera and the HUD came out the same). NOT PLAYED.

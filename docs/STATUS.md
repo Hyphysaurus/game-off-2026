@@ -16,9 +16,12 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   cover pieces a half for the wider ground (given in the built field's units, `AsBuilt`): PROVISIONAL places, to be
   checked against a top-down still once the scene is rebuilt. `PartyBuilder`: the house door and the race gate sit
   on the rim by the field's radius, not at fixed numbers.
-- 04:1x: the two scripts are LANDED (Unity was closed) and committed (D-0181). The scene is NOT rebuilt: he is in
-  another game, so no Unity run until he says so or is off it. Still to do with one hidden Unity run: rebuild the
-  Stadium, measure the pieces, look at it from above, move what overlaps or leaves a hole.
+- 04:2x: **THE WIDER STADIUM IS BUILT (D-0181), NOT PLAYED.** Scripts landed, the scene rebuilt in three hidden Unity
+  runs and checked from above and from a toy's eye: the field 81 across, 11 more cover pieces a half placed from
+  measured footprints, the rook towers back against their platforms, every ring spawn on open ground and facing
+  it (two of them sat on top of the towers before, in v18 too). Stills: `%TEMP%\shiftjam-stage\stadium2\out`
+  (`top.png`, `oblique.png`, `eye_base.png`...). To see it: Play from the title > Online (or open
+  `Scenes/Stadium.unity`). His to judge: is 1.6 times the right size (one number, `Grow`), and the cover's density.
 - His 03:14 play (33 min, about 2.5 at the keys): the FIRST SHIFT OF THE PLAY TOOK 0.11 s (it was 1.4 to 2.1 s
   before D-0178): the freeze is gone. Two rope rides, a grenade knock-down. No word from him on the corners or the
   soldier's flinch.

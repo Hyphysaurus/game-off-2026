@@ -3219,7 +3219,7 @@
     and landings; the first-person gun's sway; a soldier's flinch; legs' playback; the hip shot leaving at once;
     the first shift's freeze paid at load; lamp shadows by room; vSync (his to try in the Game view first).
   - Made by the orchestrator, staged outside (`%TEMP%\shiftjam-stage\feel1`), compiled outside both ways and in his
-    open editor (not in Play, 0 errors). No reviewer. NOT PLAYED.
+    open editor (not in Play, 0 errors). No reviewer. PLAYED 02:03 (3:04, 0 errors): his "feels good".
 - **D-0170 addendum (24 Nov, 02:0x): the rope's Scene view picture threw on every repaint.** Found while landing
   D-0177: 76,836 `IndexOutOfRangeException` at `Rope.OnDrawGizmos` in the editor log (243 MB) since the first
   script reload of this editor session (01:20). Cause: the editor's reload hands a private array back EMPTY, not

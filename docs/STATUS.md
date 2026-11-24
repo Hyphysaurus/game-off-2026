@@ -2,7 +2,11 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 24 Nov 2026 02:0x — A MORE BUTTERY FEEL, FIRST BATCH (D-0177): IN THE PROJECT, NOT PLAYED
+## 24 Nov 2026 02:0x — A MORE BUTTERY FEEL, FIRST BATCH (D-0177): IN THE PROJECT, PLAYED 02:03, HIS "feels good"
+- **His verdict after the 02:03 play (3:04, on `f7b4726`): "feels good".** The play: 0 errors, four ropes in a row
+  again, first person twice, the pistol out (8 shots landed, 47 darts stuck). No F9 in it (the flip is logged now),
+  so the hit scan dart (D-0176) is still not tried. Two long frames in its first 8 s (3.6 s as the scene came up,
+  0.7 s at 0:07), none after.
 - His "proceed first back" (batch) to the plan in the entry below. Built by me, staged outside, compiled outside
   both ways and in his open editor (not in Play, 0 errors). No reviewer.
 - **Camera (third person).** It now trails the body by a moment, never far: in height (steps, jumps and landings

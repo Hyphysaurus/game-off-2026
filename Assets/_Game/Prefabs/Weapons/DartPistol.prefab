@@ -114,6 +114,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.BlasterWeapon
   displayName: Dart Pistol
+  howTo: 
   handEuler: {x: 0, y: 0, z: 0}
   handOffset: {x: 0, y: 0.016, z: 0}
   viewOffset: {x: 0.139, y: -0.228, z: 0.265}
@@ -128,6 +129,7 @@ MonoBehaviour:
   sightRoll: 0
   sightFieldOfView: 72
   sightDistance: 0.55
+  reticle: {fileID: 0}
   icon: {fileID: 2800000, guid: f331b4ae90c64d841bd8e22cc36dde6c, type: 3}
   worn: 0
   moveSpeed: 1
@@ -144,6 +146,8 @@ MonoBehaviour:
   aimMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  pointBlank: 1.5
+  closeRange: 4
   recoil: 1
   viewPunch: {x: 1.2, y: 0.4}
   fireClip: {fileID: 0}

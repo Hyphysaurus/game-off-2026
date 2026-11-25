@@ -114,6 +114,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.BlasterWeapon
   displayName: Dart SMG
+  howTo: 
   handEuler: {x: 0, y: 0, z: 0}
   handOffset: {x: -0.006, y: 0, z: 0}
   viewOffset: {x: 0.119, y: -0.218, z: 0.206}
@@ -145,6 +146,8 @@ MonoBehaviour:
   aimMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  pointBlank: 1.5
+  closeRange: 4
   recoil: 0.85
   viewPunch: {x: 1.2, y: 0.4}
   fireClip: {fileID: 0}

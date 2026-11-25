@@ -3571,3 +3571,26 @@
   - The setting lives in the models' .meta files under `_Imports` (not in git): a fresh pack import loses it and
     the next build puts it back. Why not bake the map: BotGround stays a drop-in that maps whatever the scene is.
   - NOT checked in a built game. His next Stadium play should show 0 of those errors in the play log.
+- **D-0193 (24 Nov 2026, 17:1x) Two more guns: the Dart Rifle and the Dart Sniper, the test room's own.** His "theres
+  only a few of the weapons in there" after the bot match, then "follow the logical plan for the rifle and sniper".
+  The game had five weapons; the weapons pack has AR, SR, MG and GL families it did not use.
+  - **From the test room** (`testing-zone/_Actors/weapons/rifle.tres`, `sniper.tres`, on the same AR1 and SR1 presets):
+    Rifle = automatic, 9 shots a second, 30 / 90 / 180, reload 1.8 s, push 6, kick 0.7, shots 1.2 times as fast, strays
+    0.6 degrees, walks at 0.92. Sniper = 0.8 shots a second, damage 3 (45 here: the pistol's 1 is 15), 5 / 15 / 30,
+    reload 2.4 s, push 20, kick 2.6, shots 4 times as fast, walks at 0.82, a 22 degree scope. Both in two hands.
+  - **Measured on the models** (a temporary batch probe, deleted): the grip by the test room's own rule on the Base
+    mesh (it gives the pistol, shotgun and SMG their typed grips to 2 mm): rifle (0, -0.0299, 0.004), sniper
+    (0, -0.0344, -0.0515). The muzzle reaches 0.1707 and 0.163 past the marker (their compensators). The support hand
+    goes under the handguard, clear of the magazine, 5 cm below the underside as on the shotgun and SMG.
+  - **Guessed, to be judged in play:** the gun's slide in the palm (Hand), the trigger finger's bend (GripCurl) and
+    the rifle's aimed field of view (65). No still of the hands on either gun was made.
+  - `WorkshopPieces.BuildMissingWeapons` (Shift Jam > Workshop > Build Missing Weapons): builds only the rows that
+    have no prefab yet, so the three tuned guns were not rebuilt. To add a gun: a row, that menu, Build Catalog (its
+    picture), Fit Weapon Holds (the icon), Armory > Bake Parts List, and the Stadium's remake (the online list).
+  - **In the Stadium** (remade 17:09): the rifle in the east lane beside its ammo box (and its twin), the sniper up
+    on the far flank platform beside the grenades (and its twin). Checked by numbers out of Play: each stands on
+    its ground with nothing solid within 0.45 of it (the rifle's first place was against a cover wall: moved).
+    The online player's weapon list has all seven. NOT in the house's armory corner yet (its builder was not run).
+  - Balance, not judged: the rifle does the SMG's damage at a higher rate with a bigger magazine (the test room's
+    numbers, kept as they are).
+  - Compiled outside and in three hidden batch runs (Unity was closed). NOT played, not seen in the hands.

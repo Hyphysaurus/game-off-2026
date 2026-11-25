@@ -91,6 +91,14 @@ namespace ShiftJam
             new WeaponSpec { Name = "DartPistol", Label = "Dart Pistol", Model = CW + "Weapon_Presets/Pistol/Pistol1.prefab", Kind = Kind.Blaster, Length = 0.4f, Damage = 15f, Interval = 0.2f, Spread = 0f, Pellets = 1, Knock = 8f, Recoil = 1f, ShotSpeed = 1f, Walk = 1f, PackSize = true, Grip = new Vector3(0f, -0.0412f, -0.0258f), MuzzleReach = 0.1726f, Hand = new Vector3(0f, 0.016f, 0f), GripCurl = new Vector3(0f, 20f, 0f), SightDistance = 0.55f, SightFieldOfView = 72f, Rounds = 12, Reserve = 48, ReserveMost = 96, ReloadSeconds = 1.3f },   // the test room's pistol: 5 shots a second, damage 1 (15 here), push 8
             new WeaponSpec { Name = "DartShotgun", Label = "Dart Shotgun", Model = CW + "Weapon_Presets/Shotgun/Shotgun1.prefab", Kind = Kind.Blaster, Length = 0.85f, Damage = 7.5f, Interval = 0.8333f, Spread = 2.5f, Pellets = 8, Knock = 2.5f, Recoil = 2.2f, ShotSpeed = 0.9f, Walk = 0.9f, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0305f, -0.006f), Hand = new Vector3(0.006f, 0.016f, 0f), GripCurl = new Vector3(0f, 8f, 0f), Support = new Vector3(0f, 0.026f, 0.286f), SupportRoll = 50f, SightFieldOfView = 75f, Rounds = 6, Reserve = 24, ReserveMost = 48, ReloadSeconds = 2.2f },   // the test room's shotgun: 1.2 shots a second, 8 pellets of damage 0.5 (7.5 here) and push 2.5 within 2.5 degrees
             new WeaponSpec { Name = "DartSMG", Label = "Dart SMG", Model = CW + "Weapon_Presets/SMG/SMG1.prefab", Kind = Kind.Blaster, Length = 0.55f, Damage = 15f, Interval = 0.1429f, Spread = 0.3f, Pellets = 1, Knock = 7f, Recoil = 0.85f, ShotSpeed = 1.1f, Walk = 0.96f, Auto = true, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0556f, -0.0267f), MuzzleReach = 0.0985f, SightRoll = 45f, Hand = new Vector3(-0.006f, 0f, 0f), GripCurl = new Vector3(0f, 20f, 1f), Support = new Vector3(-0.02f, 0.065f, 0.2731f), SupportRoll = 90f, SightDistance = 0.46f, SightFieldOfView = 68f, Reticle = "Assets/_Game/Data/Sights/Reticle_RingDot.mat", Rounds = 20, Reserve = 60, ReserveMost = 120, ReloadSeconds = 1.5f },   // no SMG in the test room: every number half way between its pistol (12 / 48 / 96, 1.3 s; 5 a second, push 8, kick 1) and its rifle (30 / 90 / 180, 1.8 s; 9 a second, push 6, spread 0.6, speed 1.2, kick 0.7, walk 0.92)
+            // The test room's Rifle (AR1) and Sniper (SR1), its own numbers (D-0193): 9 shots a second, 30 / 90 / 180, 1.8 s, push 6,
+            // kick 0.7; and 0.8 shots a second, damage 3 (45 here, the pistol's 1 being 15), 5 / 15 / 30, 2.4 s, push 20, kick 2.6, a
+            // 22 degree scope. Grip by the test room's rule on the Base mesh (it gives the three guns above their typed grips
+            // to 2 mm); MuzzleReach = the compensator's length past the muzzle marker; Support = under the handguard, clear of
+            // the magazine, 5 cm below the underside as on the shotgun and the SMG. Hand, GripCurl and the rifle's field of
+            // view are first guesses from the nearest gun above: NOT yet checked on the body in a still or in play.
+            new WeaponSpec { Name = "DartRifle", Label = "Dart Rifle", Model = CW + "Weapon_Presets/AR/AR1.prefab", Kind = Kind.Blaster, Length = 0.8f, Damage = 15f, Interval = 0.1111f, Spread = 0.6f, Pellets = 1, Knock = 6f, Recoil = 0.7f, ShotSpeed = 1.2f, Walk = 0.92f, Auto = true, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0299f, 0.004f), MuzzleReach = 0.1707f, Hand = new Vector3(0f, 0.016f, 0f), GripCurl = new Vector3(0f, 14f, 0f), Support = new Vector3(0f, 0.039f, 0.306f), SupportRoll = 50f, SightFieldOfView = 65f, Rounds = 30, Reserve = 90, ReserveMost = 180, ReloadSeconds = 1.8f },
+            new WeaponSpec { Name = "DartSniper", Label = "Dart Sniper", Model = CW + "Weapon_Presets/SR/SR1.prefab", Kind = Kind.Blaster, Length = 1.2f, Damage = 45f, Interval = 1.25f, Spread = 0f, Pellets = 1, Knock = 20f, Recoil = 2.6f, ShotSpeed = 4f, Walk = 0.82f, TwoHands = true, PackSize = true, Grip = new Vector3(0f, -0.0344f, -0.0515f), MuzzleReach = 0.163f, Hand = new Vector3(0f, 0.01f, 0f), GripCurl = new Vector3(0f, 14f, 0f), Support = new Vector3(0f, 0.048f, 0.332f), SupportRoll = 50f, SightFieldOfView = 22f, Rounds = 5, Reserve = 15, ReserveMost = 30, ReloadSeconds = 2.4f },
         };
 
         private static readonly (string name, string model, float height)[] Targets =
@@ -142,6 +150,26 @@ namespace ShiftJam
             Debug.Log($"[Workshop] Built {made.Count} pieces: {string.Join(", ", made)}. Settings: {AssetDatabase.GetAssetPath(fp)}, {AssetDatabase.GetAssetPath(car)}.");
             if (MissingFields.Count > 0)
                 Debug.LogWarning($"[Workshop] ArcadeCar has no {string.Join(", ", MissingFields)} yet (the boost change adds them), so the cars were built without them. Run Shift Jam > Workshop > Build Combat & Vehicle Pieces again once it has landed.");
+        }
+
+        /// <summary>Builds only the weapons in the list above that have no held prefab yet (and their pickup stands), with
+        /// the foam dart as it is. Nothing that exists is rebuilt, so a tuned prefab keeps its ids and its numbers: the
+        /// way to add a gun (D-0193). Batch: -executeMethod ShiftJam.WorkshopPieces.BuildMissingWeapons -quit.</summary>
+        [MenuItem("Shift Jam/Workshop/Build Missing Weapons")]
+        public static void BuildMissingWeapons()
+        {
+            foreach (var f in new[] { PieceWeapons, HeldWeapons }) EnsureFolder(f);
+            var dart = AssetDatabase.LoadAssetAtPath<Projectile>(DartPieces.PrefabPath);
+            if (dart == null) { Debug.LogError("[Workshop] no foam dart at " + DartPieces.PrefabPath + ": run Build Combat & Vehicle Pieces once first."); return; }
+            var made = new List<string>();
+            foreach (WeaponSpec w in Weapons)
+            {
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(HeldWeapons + "/" + w.Name + ".prefab") != null) continue;
+                if (BuildWeapon(w, dart)) made.Add(w.Name); else Debug.LogError("[Workshop] " + w.Name + " was not built: is its model there? " + w.Model);
+            }
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log(made.Count > 0 ? $"[Workshop] Built {made.Count} new weapon(s): {string.Join(", ", made)}." : "[Workshop] Every weapon in the list is built already.");
         }
 
         [MenuItem("Shift Jam/Workshop/Build Car Cannon")]

@@ -486,6 +486,34 @@ MonoBehaviour:
       walkPercent: 0
       magazineRounds: 0
   guns:
+  - id: AR1
+    display: {fileID: 6657452799197330692, guid: 5ad88c31b2764edc947ec886cf1591e2, type: 3}
+    skin: ColorSet_04
+    parts:
+    - Attachment_Common_Charm_01
+    - Attachment_Common_Charm_02
+    - Attachment_Common_Charm_03
+    - Attachment_Common_Charm_04
+    - Attachment_Common_Charm_05
+    - Attachment_Common_Charm_06
+    - Attachment_Common_Charm_07
+    - Attachment_Common_Charm_08
+    - Attachment_Common_Charm_09
+    - Attachment_Common_Charm_10
+    - Attachment_Common_Charm_11
+    - Attachment_Common_Charm_12
+    - Attachment_Common_Charm_13
+    - Attachment_Common_Charm_14
+    - Attachment_Common_Charm_15
+    - Attachment_Common_Charm_16
+    - Attachment_Common_Charm_17
+    - Attachment_Common_Charm_18
+    - Attachment_Common_Charm_19
+    - Attachment_Common_Charm_20
+    - Attachment_Common_Charm_21
+    - Attachment_Common_Charm_22
+    - Attachment_Common_Charm_23
+    - Attachment_Common_Charm_24
   - id: Pistol1
     display: {fileID: 3265787461906697658, guid: 1a64cbe4046047f3b3fdd4f89dbdfaa3, type: 3}
     skin: ColorSet_01
@@ -517,6 +545,34 @@ MonoBehaviour:
   - id: SMG1
     display: {fileID: 4059480239087553165, guid: 748f7b75089e498bbb9389bfd48c4768, type: 3}
     skin: ColorSet_04
+    parts:
+    - Attachment_Common_Charm_01
+    - Attachment_Common_Charm_02
+    - Attachment_Common_Charm_03
+    - Attachment_Common_Charm_04
+    - Attachment_Common_Charm_05
+    - Attachment_Common_Charm_06
+    - Attachment_Common_Charm_07
+    - Attachment_Common_Charm_08
+    - Attachment_Common_Charm_09
+    - Attachment_Common_Charm_10
+    - Attachment_Common_Charm_11
+    - Attachment_Common_Charm_12
+    - Attachment_Common_Charm_13
+    - Attachment_Common_Charm_14
+    - Attachment_Common_Charm_15
+    - Attachment_Common_Charm_16
+    - Attachment_Common_Charm_17
+    - Attachment_Common_Charm_18
+    - Attachment_Common_Charm_19
+    - Attachment_Common_Charm_20
+    - Attachment_Common_Charm_21
+    - Attachment_Common_Charm_22
+    - Attachment_Common_Charm_23
+    - Attachment_Common_Charm_24
+  - id: SR1
+    display: {fileID: 6129903773306724690, guid: 220658a8681e427a9c8b5c70eae7ea28, type: 3}
+    skin: ColorSet_02
     parts:
     - Attachment_Common_Charm_01
     - Attachment_Common_Charm_02

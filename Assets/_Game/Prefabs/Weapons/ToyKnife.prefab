@@ -83,6 +83,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.MeleeWeapon
   displayName: Toy Knife
+  howTo: 
   handEuler: {x: 0, y: 0, z: 0}
   handOffset: {x: 0, y: 0, z: 0}
   viewOffset: {x: 0.3, y: -0.32, z: 0.5}
@@ -97,6 +98,7 @@ MonoBehaviour:
   sightRoll: 0
   sightFieldOfView: 0
   sightDistance: 0
+  reticle: {fileID: 0}
   icon: {fileID: 2800000, guid: bea40031fb425014dab7415d451b1bab, type: 3}
   worn: 0
   moveSpeed: 1

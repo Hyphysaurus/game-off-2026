@@ -429,8 +429,8 @@ namespace ShiftJam
         private const string Weapons = "Assets/_Game/Prefabs/Pieces/Weapons/";
 
         /// <summary>Weapon stands and ammo, south half (turned half round for the north). Pistols at the bases, the SMG
-        /// up on the flank platforms (trampoline up), shotguns in the cross tunnels, melee near the middle, ammo boxes in
-        /// the lanes, a supply crate at each base.</summary>
+        /// up on the flank platforms (trampoline up), the sniper up on the other flank's, shotguns in the cross tunnels, a
+        /// rifle in a lane by its ammo box, melee near the middle, ammo boxes in the lanes, a supply crate at each base.</summary>
         private static readonly StandSpot[] Stands =
         {
             new StandSpot("DartPistolPickup", 0f, -15f).By(0f, -17f),    // inside the base arch: you run through it
@@ -439,6 +439,8 @@ namespace ShiftJam
             new StandSpot("DartShotgunPickup", 9f, 0f, 90f, false),
             new StandSpot("ToyKnifePickup", 0f, -9f).By(0f, 0f),         // by the stage
             new StandSpot("FoamFingerPickup", 3.5f, 0f).By(0f, 0f),
+            new StandSpot("DartRiflePickup", 10f, -13f),                 // in the east lane beside its ammo box, on the open side of the restocking wall (D-0193)
+            new StandSpot("DartSniperPickup", 17f, -10.2f, 0f, true, true),   // up on the far flank platform, beside the grenades: the long view (D-0193)
             new StandSpot("AmmoBox", -12f, -13f),
             new StandSpot("AmmoBox", 12f, -13f),
             new StandSpot("SupplyCrate", 0f, -19.5f).By(0f, -17f),       // at the back of the base arch

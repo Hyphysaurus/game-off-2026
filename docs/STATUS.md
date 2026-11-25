@@ -2,6 +2,22 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 17:1x — THE DART RIFLE AND THE DART SNIPER (D-0193): BUILT, IN THE STADIUM, NOT PLAYED. FIRST PERSON: HE PICKED THE BIG CHANGE, PLAN GIVEN
+- **His words (17:0x):** "3, and yes, follow the logical plan for the rifle and sniper".
+- **Built (Unity was closed: three hidden batch runs):** `Prefabs/Weapons/DartRifle` and `DartSniper`, their pickup
+  stands, their pictures, the armory's list, the online player's weapon list (7), and the Stadium remade with a
+  rifle stand in each lane by the ammo box and a sniper stand up on each far flank platform.
+- **HIS TO TRY:** Stadium: take each; how the hands sit on them (the grip is measured, the fingers and the slide in
+  the palm are guesses), the sniper's scope in first person (V, right mouse), the rifle's rate against the SMG's.
+  In the house: drag `Prefabs/Pieces/Weapons/DartRiflePickup` or `DartSniperPickup` into the scene at the top level.
+- **NOT DONE:** the machine gun and the grenade launcher; the two new stands in the house's armory corner.
+- **FIRST PERSON (his pick: option 3, first person as a camera on the normal player, so ropes, the glider and the
+  moves work in it).** Plan given, waiting for his "proceed": behind a switch in FirstPersonSettings (the old
+  first-person body stays until the new one is played), in three steps: (1) the normal motor moves the player in
+  first person and the view follows it; (2) the rope, the glider and the moves accept first person; (3) carrying
+  and the hands, then the old body is retired. What changes in feel: first person moves like third person (the
+  Half-Life-style speeding up and slowing down goes).
+
 ## 24 Nov 2026 16:5x — HIS "proceed": THE GRAB TRAP (D-0190), PICKUPS THAT TELL (D-0191), THE BOTS' FLOOR FOR BUILDS (D-0192). IN HIS EDITOR, NOT PLAYED
 - **Landed, compiled outside (editor + player) and in his editor (out of Play):**
   - **D-0190** no grab while standing on a thing ("Step off to grab it"); its collision comes back only once the

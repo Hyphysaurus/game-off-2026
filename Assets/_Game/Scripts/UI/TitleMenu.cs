@@ -261,8 +261,10 @@ namespace ShiftJam
         {
             var middle = new Vector2(0.5f, 0.5f);
             Vector2 at;
+            // The title: five solid letters on the model itself when it has them (MenuTitle, D-0200); else the flat art over it.
+            bool letters = _model.TryGetComponent(out MenuTitle title) && title.Make();
             if (!_model.Point("Anchor_Title", out at)) at = new Vector2(0f, 400f);
-            if (TitleArt.Place(_root.transform, middle, at, _model.TitleBox, 40f, TitleArt.MenuPrefabPath, true) == null)
+            if (!letters && TitleArt.Place(_root.transform, middle, at, _model.TitleBox, 40f, TitleArt.MenuPrefabPath, true) == null)
             {
                 var t = At("Title", "SHIFT", 120f, at, _model.TitleBox, TextAlignmentOptions.Center);
                 t.fontStyle = FontStyles.Bold; t.characterSpacing = 18f;

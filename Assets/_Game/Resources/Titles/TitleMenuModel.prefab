@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7757157847921535357}
   - component: {fileID: 7202952454233237636}
   - component: {fileID: 8361287138707671019}
+  - component: {fileID: 247480454306628813}
   m_Layer: 0
   m_Name: TitleMenuModel
   m_TagString: Untagged
@@ -78,6 +79,22 @@ MonoBehaviour:
   neighbourShare: 0.3
   brushPower: 1
   mostTip: 16
+  letGoSound:
+    clip: {fileID: 8300000, guid: 7dce4e9db45f4b04a8a3e26233896f03, type: 3}
+    volume: 0.45
+    pitchSpread: 0.08
+  shiftSound:
+    clip: {fileID: 8300000, guid: 751d0f0ab5a38864dba0b07ea86cb1f8, type: 3}
+    volume: 0.5
+    pitchSpread: 0
+  shiftBackSound:
+    clip: {fileID: 8300000, guid: 82b04a0b86358dc448a14ac7f92b7bab, type: 3}
+    volume: 0.5
+    pitchSpread: 0
+  pageSound:
+    clip: {fileID: 8300000, guid: 6b29f35331951234db3c7b2952b10eca, type: 3}
+    volume: 0.35
+    pitchSpread: 0.05
   font: {fileID: 0}
   wordColour: {r: 1, g: 0.9411765, b: 0.9882353, a: 1}
   wordsShare: 0.72
@@ -150,6 +167,49 @@ MonoBehaviour:
   - {fileID: 8300000, guid: afb21726e85b4b14979f4d615ca7bff8, type: 3}
   - {fileID: 8300000, guid: e4fc2a58db194a22b96e74a0761e0e42, type: 3}
   landVolume: 0.45
+--- !u!114 &247480454306628813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8085825475719980909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 733dbb86605447042b40e60bbe3115cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.MenuTitle
+  letters:
+  - {fileID: 4300000, guid: 82cb6de1dbac4d94badf388fdc7f98da, type: 2}
+  - {fileID: 4300000, guid: ab4b3bdf5a8442849a69d247d8a09b4d, type: 2}
+  - {fileID: 4300000, guid: 2cc685b1f4669b04ebf01ddaddb327e7, type: 2}
+  - {fileID: 4300000, guid: 8190156b2b2114d479066ea665f97f07, type: 2}
+  - {fileID: 4300000, guid: 9edd5595f96f6fd4cb3802a2b981c8b0, type: 2}
+  letterAt:
+  - {x: -0.48, y: 0}
+  - {x: -0.19999999, y: 0}
+  - {x: 0, y: 0}
+  - {x: 0.19999999, y: 0}
+  - {x: 0.48, y: 0}
+  anchor: Anchor_Title
+  colourSets:
+  - {fileID: 2800000, guid: 9218eabf06bb81f48aea81ebb892a7d7, type: 3}
+  - {fileID: 2800000, guid: 6b90df76f06b43f41a78c06491e0c383, type: 3}
+  - {fileID: 2800000, guid: 90572fd855343e0479cdee27fc644f25, type: 3}
+  - {fileID: 2800000, guid: 03adec5f75a406647a3af17a0f7066d2, type: 3}
+  - {fileID: 2800000, guid: 868508ebc952b71419f7732295de4ac1, type: 3}
+  frames: 64
+  framesPerSecond: 16
+  sideShade: 0.62
+  changeFrom: 0.3
+  changeEvery: 0.18
+  flash: 0.6
+  flashSeconds: 0.25
+  changeSound:
+    clip: {fileID: 8300000, guid: e979a016e23ccb440b206242974a5d1e, type: 3}
+    volume: 0.4
+    pitchSpread: 0.2
+  changeSoundGap: 0.07
 --- !u!1001 &8171065679109353955
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -60,6 +60,8 @@ flashlight.
 - **AI-assisted:** the pixel title on the menu (D-0189). Its letter design comes from a mock-up Claude drew by
   script; he drew it into Aseprite from that ✍ (say how the pink and purple colours and the light sweep were made:
   by hand, by a script, or with another AI tool).
+  On the menu each letter is now a block shape made from that sheet by a script Claude wrote (one box a pixel), and
+  its four other colour sets are the same sheet with every hue turned by that script (D-0200): none of it is painted.
 - **Not AI:** the graffiti title drawing (on the end card) and the portal and orb drawings are his. Every other model, character, animation and
   sound comes from the licensed packs in the credits.
 

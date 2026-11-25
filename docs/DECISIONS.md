@@ -3713,7 +3713,7 @@
   brushing over it stirs it, a press that pulls away stretches it after the pointer and lets it fly home (play, not a
   choice), and its neighbours feel a knock. `MenuDriver` does the pull and the brush. Numbers on the prefab under
   "A control as a soft toy". Compiled in his editor; **NOT SEEN.**
-  - **Step 3 is WRITTEN AND PARKED, not in the game:** `docs/parked/menu-step3/` holds the dart blaster and dart LMG
+  - **Step 3 [LANDED 24 Nov 19:4x, commit a230991, see D-0200; the parked folder is gone] was written and parked:** `docs/parked/menu-step3/` held the dart blaster and dart LMG
     (`MenuDarts.cs`), the prefab maker (`MenuPieces.cs`) and the three menu scripts changed for them. It compiled
     outside Unity against the project. To land: copy the five files to the paths in its `manifest.tsv`, let the editor
     compile, run **Shift Jam > Menu > Build Title Menu Model** (it adds the guns and the dart to the prefab), Play.
@@ -3722,3 +3722,45 @@
     I 34-40, F 40-54, T 54-68 (they share their outline columns). Colours by pointing each pixel's cube at its own
     pixel of the sheet and sliding along it for the animation; other colour sets as hue-turned copies of the sheet
     that he can repaint; a letter is a toy on the model (no frame, cannot be chosen) and changes set when knocked.
+- **D-0200 (24 Nov 2026, 21:3x) The playable menu, steps 3 and 4: the dart guns are in, and the title is five solid toy
+  letters.** His go: "proceed" (the menu first, then the Flat Zone).
+  - **Step 3, the guns (landed 19:4x, commit a230991).** `UI/MenuDarts.cs` on the menu prefab: the dart blaster, whose
+    dart flies to a button and CHOOSES it when it lands, and the dart LMG, which only plays (G, the right mouse button
+    or pad west swaps; hold to spray). A click on nothing is a dart in the wall; a press that pulls away still
+    stretches the slab and chooses nothing; Enter and pad A fire the choosing dart at the selected button. The gun
+    is held at one place of the view and points from where it is at the aim: flat, a gun seen from its side turning
+    in the picture; deep, a gun in the hand pointing into it. Without the weapon pack there is no gun and a click
+    chooses the plain way. Read back in the editor: both pack guns have their barrel along +Z by their own sockets
+    (`Place_..._Muzzle`, `Place_..._Magazine`); 3 firing and 3 landing sounds from the foam dart. Fixed after the
+    read-back: the dart is drawn at 0.45 of the game's (it was nearly as long as the pistol), darts leave from the
+    front of whatever is fitted on the barrel, and a gun's see-through parts (glass, the sight's picture) are left
+    out (the slab's flat look has no see-through). **He played it at 19:53 (1:30, 0 errors) and got through the
+    title; no word from him yet on how it feels.**
+  - **Step 4, the title (built 21:3x).** `UI/MenuTitle.cs` on the menu prefab: S, H, I, F, T as five solid letters
+    standing where the flat title art stood, each a small box for every pixel of his title sheet, 0.02 m a pixel
+    (12 screen pixels at 1080 high, the size the flat title had) and 0.08 m thick. Each is a PLAYTHING of the
+    model (`MenuModel.AddToy`): on every page, brushed, pulled, knocked and shot like a slab, never selected or
+    chosen. Every box shows its own pixel of the sheet and the sheet's 64 frames are stepped through at 16 a
+    second, so his animation plays on the letters. A hit flashes a letter; a hard enough hit takes it to its next
+    COLOUR SET: his own sheet, then four copies with every hue turned (70, 150, 215, 290 degrees) in
+    `Art/Title/Sets/title_set_N.png`. A set's file is written only when it is missing, so he can repaint one. The
+    letters' shapes are baked by the maker into `Art/Title/Letters/Title_X.asset` at every run (they are worked out
+    from the sheet; the letters' columns are constants in `MenuPieces`: redraw the lettering = measure again).
+    Without the letters the menu shows the flat title as before.
+  - **The menu's own sounds** (optional slots, silent when empty): a let-go, the shift in and out, a page, a letter's
+    colour change. Given by the maker from the playroom sound pack, **chosen by their file names, unheard**:
+    Spring_Boing, Star_Light_On, Star_Light_Off, Book_Page_Turn_v1, Toy_Squeak_Single_v1. `UiAudio.Play(Cue)` plays
+    them (nothing sounds outside Play).
+  - **Checked without Play, against numbers worked out from the sheet by a separate script:** each letter's pixel,
+    corner and face counts (S 194 pixels, H 186, I 91, F 156, T 134), no face the wrong way round, a known pixel at
+    its own place in the sheet; the four set pictures are the expected hue turns (to one step of a channel) and
+    import at 4800 by 35, point filter, no mip maps, uncompressed; the real code run on the prefab (read the model,
+    stand the letters, show a page): the letters stand at x -288, -120, 0, 120, 288 and y 426 (pixels at 1080
+    high), 180 by 156 (the I 84 by 156), first in the order, kept through a page change, and the keys' first
+    selection is still Continue. The maker run three times: the third changes nothing.
+  - **NOT SEEN IN PLAY:** the letters on screen at all (their colours through the slab's material, the animation,
+    the sides in 3D), the flash and the colour change, every sound, darts on letters.
+  - **Known:** a dart can stick in the empty part of a letter's box (the H's gap): darts land on rectangles.
+  - **The pauses of the 19:01 play** (four of about 1.5 s at the title) did not come back at 19:53 (worst frame
+    119 ms in 1:30, a minute of it at the title). Most likely the Unity assistant working in the editor during
+    that play; not traced further.

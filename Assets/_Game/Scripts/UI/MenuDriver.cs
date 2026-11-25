@@ -115,7 +115,8 @@ namespace ShiftJam
                     MenuModel.Control was = _pressedOn; was.Pressed = false; _pressedOn = null;
                     if (_pulling) { _pulling = false; _model.Release(was); }
                     else if (under == was && was.Usable) { Choose(was, onPlane); return; }
-                    else if (under == was && gun != null) { gun.Aim = onPlane; gun.AimOn = was; gun.Fire(onPlane, was, false, null); }   // a slab that cannot be used still takes a dart
+                    else if (under == was && gun != null) { gun.Aim = onPlane; gun.AimOn = was; gun.Fire(onPlane, was, false, null); }   // a slab that cannot be used, or a plaything, still takes a dart
+                    else if (under == was) _model.Knock(was, onPlane - _model.Middle(was), 0.6f);   // with no gun a tap still knocks it
                 }
             }
 

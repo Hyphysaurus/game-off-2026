@@ -2,6 +2,25 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 21:3x — THE TITLE IS FIVE TOY LETTERS (D-0200, playable menu step 4). In his editor, checked without Play, NOT SEEN.
+- **IN:** `UI/MenuTitle.cs` (S, H, I, F, T as solid letters on the menu model: brush, pull, shoot them; a hit flashes a
+  letter and a hard one changes its colour set), four hue-turned colour sets in `Art/Title/Sets/`, the letters' shapes
+  in `Art/Title/Letters/`, five optional menu sounds (picked by file name, UNHEARD), and the dart guns from 19:4x.
+- **HE PLAYED the dart guns at 19:53** (1:30, 0 errors, got through the title). No word yet on how they feel.
+- **HIS PLAYTEST (title):** (1) is the title there, the right colours, animated as before? (2) Shift: do the letters get
+  sides and lean with the rest? (3) sweep the mouse over them, drag one, shoot one: does it wobble, flash, change
+  colour? (4) the sounds: a boing on let-go, a chime on Shift, a page turn, a squeak on a letter: too much, too loud,
+  wrong? (5) the dart: its size, where it leaves the gun, the pistol without its glass sight.
+- **IF THE LETTERS LOOK WRONG:** remove the `MenuTitle` component from `Resources/Titles/TitleMenuModel.prefab` and the
+  flat title is back. If the whole menu misbehaves: rename that prefab and the title draws itself the old way.
+- **To change things:** a colour set = repaint `Art/Title/Sets/title_set_N.png` (never overwritten); sounds, flash,
+  thresholds = on the prefab; the lettering itself redrawn = measure its columns again in `Debug/MenuPieces.cs` and
+  run **Shift Jam > Menu > Build Title Menu Model**.
+- **RUNNING NOW:** one builder on Flat Zone cut A (workflow wf_33e59908-90d), staged in
+  `%TEMP%\shiftjam-stage\flat-cutA` (BRIEF.md + NOTES.md), nothing of it in the project yet.
+- **NEXT:** land Flat Zone cut A when its builder is done (its builder script into Greybox, he plays); his word on
+  the menu; cuts B (letters to collect) and C (pixel look) only after he has played A.
+
 ## 24 Nov 2026 19:4x — CHECKPOINT AT THE USAGE LIMIT. The dart guns are IN (D-0199 step 3); two builders were cut mid-work.
 - **IN, compiled in his editor, NOT SEEN IN PLAY:** the dart blaster and the dart LMG on the title menu (`UI/MenuDarts.cs`,
   maker `Debug/MenuPieces.cs`, menu **Shift Jam > Menu > Build Title Menu Model**, run once: it added the two guns, the

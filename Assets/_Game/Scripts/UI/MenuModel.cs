@@ -23,7 +23,9 @@ namespace ShiftJam
     /// keeps its size on the screen while its depth appears, and the view leans a little with the pointer. A metre of
     /// model is Pixels Per Metre on a 1080-high screen in both, at the model's own plane.
     /// Every control is a soft toy (D-0199): Knock squashes and tips it, Brush stirs it, Hold and Release pull it on an
-    /// elastic and let it fly home; its neighbours feel a knock too.
+    /// elastic and let it fly home; its neighbours feel a knock too. Knocked tells whoever listens that one was hit.
+    /// A plaything (AddToy, D-0200) is all of that and never a button: a thing of no page, on show on every page, that
+    /// is not selected, chosen or painted (the title's letters, MenuTitle).
     /// Everything moves on real time: a menu holds the game's.
     /// </summary>
     public sealed class MenuModel : MonoBehaviour
@@ -50,6 +52,10 @@ namespace ShiftJam
             /// <summary>Its middle and its size on the screen while flat, canvas pixels from the middle of a 1080-high screen.</summary>
             public Vector2 Centre, Size;
             public bool Usable = true, Active, Pressed, Shown;
+            /// <summary>A plaything, not a button (the title's letters, D-0200): of no page, on show on every page; it takes
+            /// the brush, a pull, knocks and darts like a slab and is never selected, chosen or painted.</summary>
+            public bool Toy;
+            internal bool Stays;     // of no page and already on show: a page change leaves it as it is
             internal float Grow = 1f, GrowSpeed, Drop, DropSpeed, Squash, SquashSpeed, Wait;
             // A soft toy (D-0199): knocked or let go of, it swings about its place and settles. Metres and radians.
             internal Vector3 Off, OffSpeed;          // across, up, toward the viewer
@@ -95,6 +101,11 @@ namespace ShiftJam
         [SerializeField, Range(0f, 1f), Tooltip("How much of a knock its neighbours on the page feel.")] private float neighbourShare = 0.3f;
         [SerializeField, Min(0f), Tooltip("How much the pointer brushing over a slab stirs it.")] private float brushPower = 1f;
         [SerializeField, Range(0f, 45f), Tooltip("The most a slab tips, degrees (deep only: flat, a slab does not tip).")] private float mostTip = 16f;
+        [Header("Its sounds (each: a clip, its loudness, how much its pitch varies; no clip = silent)")]
+        [SerializeField, Tooltip("A pulled slab or letter let go.")] private CourseSounds.Cue letGoSound;
+        [SerializeField, Tooltip("The shift from flat to deep (2D to 3D).")] private CourseSounds.Cue shiftSound;
+        [SerializeField, Tooltip("The shift back to flat.")] private CourseSounds.Cue shiftBackSound;
+        [SerializeField, Tooltip("A page's slabs dropping in (not the first page shown).")] private CourseSounds.Cue pageSound;
         [Header("Its words")]
         [SerializeField, Tooltip("The words' font. Empty = TextMesh Pro's own.")] private TMP_FontAsset font;
         [SerializeField] private Color wordColour = new Color32(0xff, 0xf0, 0xfc, 0xff);
@@ -123,7 +134,12 @@ namespace ShiftJam
         private Vector3 _origin, _right, _up, _look;
         private MaterialPropertyBlock _paint;
         private float _depth, _depthSpeed;
-        private bool _read;
+        private bool _read, _paged, _deep;
+        // Reading order: top to bottom, and left to right within a row (half a pixel apart counts as the same row).
+        private static readonly System.Comparison<Control> ReadingOrder = (a, b) => Mathf.Abs(b.Centre.y - a.Centre.y) > 0.5f ? b.Centre.y.CompareTo(a.Centre.y) : a.Centre.x.CompareTo(b.Centre.x);
+
+        /// <summary>A control was knocked (by a dart, a tap, or being let go after a pull): which one, and how hard.</summary>
+        public event System.Action<Control, float> Knocked;
 
         /// <summary>The room left for the title, canvas pixels.</summary>
         public Vector2 TitleBox => titleMetres * pixelsPerMetre;
@@ -134,7 +150,11 @@ namespace ShiftJam
         /// <summary>The control the owner's pointer or keys are on; null for none.</summary>
         public Control Selected { get; set; }
         /// <summary>The shift: false = flat (2D), true = deep (3D).</summary>
-        public bool Deep { get; set; }
+        public bool Deep
+        {
+            get => _deep;
+            set { if (value == _deep) return; _deep = value; UiAudio.Play(value ? shiftSound : shiftBackSound); }
+        }
         /// <summary>How deep it is now, 0 flat to 1 deep.</summary>
         public float Depth => _depth;
         /// <summary>Where the pointer is on the screen, -1 to 1 across and up: the deep view leans with it.</summary>
@@ -208,29 +228,37 @@ namespace ShiftJam
                 frame.TryGetComponent(out c.FrameRenderer);
                 c.BodyColours = Unlit(body);
                 if (c.FrameRenderer != null) Unlit(c.FrameRenderer);
-                float most = -1f, mostAcross = -1f, mostUp = -1f;
-                for (int axis = 0; axis < 3; axis++)
-                {
-                    Vector3 way = axis == 0 ? slab.right : axis == 1 ? slab.up : slab.forward;
-                    float along = Mathf.Abs(Vector3.Dot(way, _look)), across = Mathf.Abs(Vector3.Dot(way, _right)), upward = Mathf.Abs(Vector3.Dot(way, _up));
-                    if (along > most) { most = along; c.DepthAxis = axis; }
-                    if (across > mostAcross) { mostAcross = across; c.AcrossAxis = axis; }
-                    if (upward > mostUp) { mostUp = upward; c.UpAxis = axis; }
-                }
-                Vector2 low = new Vector2(float.MaxValue, float.MaxValue), high = new Vector2(float.MinValue, float.MinValue);
-                for (int i = 0; i < 8; i++)
-                {
-                    Vector3 corner = c.Box.center + Vector3.Scale(c.Box.extents, new Vector3((i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f));
-                    Vector2 at = OnScreen(slab.TransformPoint(corner));
-                    low = Vector2.Min(low, at); high = Vector2.Max(high, at);
-                }
-                c.Centre = (low + high) * 0.5f; c.Size = high - low;
+                Measure(c);
                 c.LabelPlace = _named.TryGetValue("Label_" + pair.Key, out Transform text) ? text.position : slab.position - _look * (0.02f * enlarge);
                 _controls[pair.Key] = c;
             }
             if (needed != null) foreach (string name in needed) if (!_controls.ContainsKey(name)) return "the model has no control called " + name;
             _read = true;
             return null;
+        }
+
+        /// <summary>Reads off a control's own shape which of its axes run toward the viewer, across the screen and up it, and
+        /// where it is on the screen while flat (its middle and its size). The same for a slab and for a plaything.</summary>
+        private void Measure(Control c)
+        {
+            Transform slab = c.Body;
+            float most = -1f, mostAcross = -1f, mostUp = -1f;
+            for (int axis = 0; axis < 3; axis++)
+            {
+                Vector3 way = axis == 0 ? slab.right : axis == 1 ? slab.up : slab.forward;
+                float along = Mathf.Abs(Vector3.Dot(way, _look)), across = Mathf.Abs(Vector3.Dot(way, _right)), upward = Mathf.Abs(Vector3.Dot(way, _up));
+                if (along > most) { most = along; c.DepthAxis = axis; }
+                if (across > mostAcross) { mostAcross = across; c.AcrossAxis = axis; }
+                if (upward > mostUp) { mostUp = upward; c.UpAxis = axis; }
+            }
+            Vector2 low = new Vector2(float.MaxValue, float.MaxValue), high = new Vector2(float.MinValue, float.MinValue);
+            for (int i = 0; i < 8; i++)
+            {
+                Vector3 corner = c.Box.center + Vector3.Scale(c.Box.extents, new Vector3((i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f));
+                Vector2 at = OnScreen(slab.TransformPoint(corner));
+                low = Vector2.Min(low, at); high = Vector2.Max(high, at);
+            }
+            c.Centre = (low + high) * 0.5f; c.Size = high - low;
         }
 
         /// <summary>The camera that draws it over the game, and the dark wash behind the slabs (a canvas on that camera,
@@ -306,24 +334,52 @@ namespace ShiftJam
         /// another. The first control that can be used is selected.</summary>
         public void ShowPage(string page)
         {
+            bool first = !_paged;
+            _paged = true;
             Page = page ?? "";
             _shown.Clear();
             foreach (Control c in _controls.Values)
             {
                 bool on = c.Page.Length == 0 || c.Page == Page;
+                c.Stays = on && c.Shown && c.Page.Length == 0;       // of no page and already here: it stays as it is
                 c.Shown = on; c.Pressed = false;
                 c.Body.gameObject.SetActive(on);
                 if (on) _shown.Add(c);
             }
-            _shown.Sort((a, b) => b.Centre.y != a.Centre.y ? b.Centre.y.CompareTo(a.Centre.y) : a.Centre.x.CompareTo(b.Centre.x));
-            for (int i = 0; i < _shown.Count; i++)
+            _shown.Sort(ReadingOrder);
+            int arriving = 0;
+            foreach (Control c in _shown)
             {
-                Control c = _shown[i];
-                c.Drop = pageDrop; c.DropSpeed = 0f; c.Wait = i * pageStagger; c.Grow = 1f; c.GrowSpeed = 0f;
+                if (c.Stays) continue;
+                c.Drop = pageDrop; c.DropSpeed = 0f; c.Wait = arriving++ * pageStagger; c.Grow = 1f; c.GrowSpeed = 0f;
                 c.Off = c.OffSpeed = c.Lean = c.LeanSpeed = Vector3.zero; c.Pull = Vector2.zero; c.Held = false; c.Squash = c.SquashSpeed = 0f;
             }
             Selected = null;
             foreach (Control c in _shown) if (c.Usable) { Selected = c; break; }
+            if (!first) UiAudio.Play(pageSound);
+        }
+
+        /// <summary>Adds a plaything to the model (the title's letters): a thing of no page that is on show on every page,
+        /// takes the pointer's brush, a pull, knocks and darts like a slab, and is never selected, chosen or painted.
+        /// <paramref name="body"/> stands under the model where it rests; <paramref name="box"/> is its shape's box in its
+        /// own space. Null before the model is read, or when a control of that name is there already.</summary>
+        public Control AddToy(string name, Transform body, Bounds box)
+        {
+            if (!_read || body == null || string.IsNullOrEmpty(name) || _controls.ContainsKey(name)) return null;
+            var c = new Control
+            {
+                Name = name, Page = "", Body = body, Box = box, Toy = true, Usable = false,
+                RestScale = body.localScale, RestPlace = body.position, RestTurn = body.rotation, LabelPlace = body.position, BodyColours = new Color[0],
+            };
+            Measure(c);
+            _controls[name] = c;
+            if (_paged)      // a page is already up: it joins it now, dropping in (before the first page, that page brings it in)
+            {
+                c.Shown = true; c.Drop = pageDrop;
+                _shown.Add(c);
+                _shown.Sort(ReadingOrder);
+            }
+            return c;
         }
 
         /// <summary>What a control reads: a line, and a smaller second line under it (null for none).</summary>
@@ -417,7 +473,7 @@ namespace ShiftJam
                 c.Body.rotation = turn * c.RestTurn;
                 c.Body.position = c.RestPlace + (_right * (c.Off.x + pull.x) + _up * (c.Off.y + pull.y + c.Drop)
                     - _look * (((selected ? selectedLift : 0f) + (c.Held ? selectedLift * 2f : 0f) + c.Off.z) * deep)) * enlarge;
-                Paint(c, !c.Usable ? State.Disabled : selected ? State.Selected : c.Active ? State.Active : State.Normal);
+                if (!c.Toy) Paint(c, !c.Usable ? State.Disabled : selected ? State.Selected : c.Active ? State.Active : State.Normal);
             }
         }
 
@@ -448,9 +504,15 @@ namespace ShiftJam
             {
                 int n = here + step;
                 if (n < 0 || n >= _shown.Count) continue;
-                _shown[n].SquashSpeed -= 9f * p * neighbourShare;
-                _shown[n].OffSpeed.y -= step * 0.25f * p * neighbourShare;   // the one above is nudged up, the one below down
+                Control near = _shown[n];
+                near.SquashSpeed -= 9f * p * neighbourShare;
+                // One beside it (the title's letters stand in a row) is nudged sideways, away from the one hit; one above it is
+                // nudged up, one below it down.
+                bool beside = Mathf.Abs(near.Centre.y - c.Centre.y) < Mathf.Min(near.Size.y, c.Size.y) * 0.5f;
+                if (beside) near.OffSpeed.x += Mathf.Sign(near.Centre.x - c.Centre.x) * 0.25f * p * neighbourShare;
+                else near.OffSpeed.y -= step * 0.25f * p * neighbourShare;
             }
+            Knocked?.Invoke(c, p);
         }
 
         /// <summary>The pointer brushed over a control: it is stirred the way the pointer went (a share of the screen a second).</summary>
@@ -478,10 +540,13 @@ namespace ShiftJam
             c.Held = false; c.Pull = Vector2.zero;
             c.Off.x += was.x; c.Off.y += was.y;
             c.LeanSpeed.x += was.x * 14f; c.LeanSpeed.z -= was.x * 6f;
+            UiAudio.Play(letGoSound);
             Knock(c, Vector2.zero, Mathf.Clamp(was.magnitude / pullReach, 0.2f, 1.2f));
         }
 
         // ---- for what plays on the model (its guns and darts, D-0199)
+        /// <summary>The model has been read: its controls, pages and places are known (its camera may not be up yet).</summary>
+        public bool IsRead => _read;
         /// <summary>The camera is up: the model is on a screen.</summary>
         public bool Staged => _view != null;
         /// <summary>It is being drawn now (false while another panel has the screen).</summary>

@@ -47,6 +47,17 @@ namespace ShiftJam
             s.PlayOneShot(cue.clip, cue.volume);
         }
 
+        /// <summary>Plays one cue of a part's own (the title menu's toys, D-0200) from the same source: heard with the game
+        /// held and the listener paused. A cue with no clip is silent, and so is everything outside Play (an editor check
+        /// may run a menu's code: the source cannot be made there).</summary>
+        public static void Play(CourseSounds.Cue cue)
+        {
+            if (cue.clip == null || cue.volume <= 0f || !Application.isPlaying) return;
+            var s = Source();
+            s.pitch = 1f + Random.Range(-cue.pitchSpread, cue.pitchSpread);
+            s.PlayOneShot(cue.clip, cue.volume);
+        }
+
         private static AudioSource Source()
         {
             if (_source != null) return _source;

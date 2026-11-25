@@ -169,3 +169,13 @@ Packages/packages-lock.json linguist-generated
 
 # Exceptions for .asset files such as lightning pre-baking
 LightingData.asset     binary
+
+# Grabbit 2 writes its licence key into the Jungle registry address (a "k" path segment plus the key, after the host)
+# on every editor load. The junglekey filter strips the key when these files are staged, so a commit carries the plain
+# address only.
+# Set it once per clone: git config filter.junglekey.clean "sed -E 's#registry\.jungleteam\.org/k/[A-Za-z0-9_=-]+#registry.jungleteam.org#g'"
+#                        git config filter.junglekey.smudge cat
+# The pre-commit hook (.git/hooks/pre-commit) refuses any commit that would still add the key.
+Packages/manifest.json                        filter=junglekey
+Packages/packages-lock.json                   filter=junglekey
+ProjectSettings/PackageManagerSettings.asset  filter=junglekey

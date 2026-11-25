@@ -10,7 +10,9 @@ namespace ShiftJam
     /// holding R (or the right mouse button) turns it with the mouse. Jammed behind a wall, or when a shift starts, it
     /// drops. E on anything else does what E does in third person (a switch, a weapon pickup); vehicles and the kid's
     /// carried things (a carried prop, the flashlight) are left to on-foot play, as they seat or fill the parked player's
-    /// hands. Also draws the crosshair and the E hint.
+    /// hands. On the player itself (D-0194, D-0195) the player is not parked: E on a vehicle leaves first person and
+    /// gets in, a kid may pick the flashlight up, E lets go of a heavy thing that is held (a turntable), and nothing
+    /// is grabbed or used mid-move, as in third person. Also draws the crosshair and the E hint.
     /// </summary>
     public sealed class PhysicsGrabber : MonoBehaviour
     {
@@ -58,9 +60,19 @@ namespace ShiftJam
 
         private float Scale => _body != null ? _body.Scale : 1f;
 
+        private bool Riding => _body != null && _body.Riding;
+
         private void OnInteract()
         {
             if (Held != null) { Release(); _busyFrame = Time.frameCount; return; }
+            if (Riding && _body.Owner != null)
+            {
+                // The third-person Interactor's rules, for the player that is really there (D-0195): mid-move the hands
+                // are busy, and E lets go of a heavy thing that is held.
+                var moves = _body.Owner.GetComponent<PlayerMoves>();   // plain form: Fast Script Reload breaks `TryGetComponent(out ...) &&`
+                if (moves != null && !moves.Free) return;
+                if (Grabbable.Release(_body.Owner.gameObject)) { _busyFrame = Time.frameCount; return; }
+            }
             if (!Look(out RaycastHit hit)) return;
             var col = hit.collider;
             var pickup = col.GetComponentInParent<WeaponPickup>();
@@ -68,7 +80,10 @@ namespace ShiftJam
             var rb = col.attachedRigidbody;
             if (rb != null && !rb.isKinematic && CanLift(rb, out _)) { Grab(rb, hit.point); return; }
             var use = Usable(col);
-            if (use != null) use.Interact(_interactor);
+            if (use == null) return;
+            // A vehicle seats the player and has its own camera: first person is left first, then E is the on-foot E.
+            if (use is CarSeat || use is ToyCar) GameMode.Set(GameMode.Mode.Play);
+            use.Interact(_interactor);
         }
 
         private void OnAttack()
@@ -103,8 +118,10 @@ namespace ShiftJam
         {
             if (_interactor == null) return null;
             var thing = col.GetComponentInParent<IInteractable>();
-            if (thing == null || thing is CarSeat || thing is ToyCar || thing is Carried) return null;
-            if (thing is Flashlight && _shifter != null && _shifter.Size == ShiftSize.Kid) return null;   // a toy's E still switches it
+            if (thing == null || thing is Carried) return null;   // a carried prop is lifted by these hands (the spring), not carried in the arms
+            // Parked (the old body): no vehicle and no kid's flashlight. On the player itself both are the player's own (D-0195).
+            if (!Riding && (thing is CarSeat || thing is ToyCar)) return null;
+            if (!Riding && thing is Flashlight && _shifter != null && _shifter.Size == ShiftSize.Kid) return null;   // a toy's E still switches it
             return string.IsNullOrEmpty(thing.PromptFor(_interactor)) ? null : thing;
         }
 

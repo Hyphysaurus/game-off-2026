@@ -93,12 +93,14 @@ namespace ShiftJam
 
         /// <summary>Both hands on something (a prop in the arms, a tool): no roll, punch, kick or block until it is set down.</summary>
         // A left-hand tool (the flashlight) leaves the moves free: roll, block (D-0144).
-        public bool HandsFull => (_carrier != null && _carrier.Held != null && !_carrier.InLeftHand) || (_grab != null && _grab.Holding);
+        // First person's own hands with a prop in them count as the third-person grab does (D-0195).
+        public bool HandsFull => (_carrier != null && _carrier.Held != null && !_carrier.InLeftHand) || (_grab != null && _grab.Holding) || (_holder != null && _holder.HandsBusyInView);
         /// <summary>True with no weapon drawn: left and right mouse punch and kick.</summary>
         public bool EmptyHanded => (_holder == null || !_holder.Armed) && (_carrier == null || _carrier.Held == null);   // a click with the light out is the light's
 
-        /// <summary>On foot and in control: the motor runs, in Play, not paused.</summary>
-        private bool OnFoot => settings != null && _motor.enabled && _cc != null && _cc.enabled && GameMode.Current == GameMode.Mode.Play && Time.timeScale > 0f;
+        /// <summary>On foot and in control: the motor runs, in Play or in first person on the player itself (D-0195; the
+        /// old first-person body parks the motor, so nothing starts there), not paused.</summary>
+        private bool OnFoot => settings != null && _motor.enabled && _cc != null && _cc.enabled && GameMode.OnFoot && Time.timeScale > 0f;
         private bool MayStart => Free && OnFoot && _motor.Grounded && !HandsFull;
         /// <summary>A click belongs to the game only while the mouse is captured (the click that captures it is not a punch).</summary>
         private static bool Captured => Cursor.lockState == CursorLockMode.Locked;
@@ -141,8 +143,11 @@ namespace ShiftJam
             _rollPressedAt = Never;
             if (Rolling) { End(); Orders(); }
         }
-        private void OnAttack() { if (Captured && EmptyHanded && !(_grab != null && _grab.BusyThisFrame)) TryPunch(); }
-        private void OnAim() { if (Captured && EmptyHanded) TryKick(); }
+        // A click that belongs to the hands is no strike: the third-person grab's, or first person's own hands with a
+        // prop in them or having just thrown one (D-0195: the left mouse throws it, the right turns it).
+        private bool HandsTookTheClick => (_grab != null && _grab.BusyThisFrame) || (_holder != null && _holder.ViewHandsBusy);
+        private void OnAttack() { if (Captured && EmptyHanded && !HandsTookTheClick) TryPunch(); }
+        private void OnAim() { if (Captured && EmptyHanded && !HandsTookTheClick) TryKick(); }
 
         /// <summary>Starts a dodge roll the way the stick points (the way the body faces with the stick at rest). False if it may not start.</summary>
         public bool TryRoll() => TryRoll(false);
@@ -210,7 +215,7 @@ namespace ShiftJam
             else Begin(Move.HitLight, PlayerAnimation.HitLight, profile.hitLight, settings.hitLightPlayback);
         }
 
-        /// <summary>Falls and stays down until Revive. False when not on foot (driving, first person): no clip then.</summary>
+        /// <summary>Falls and stays down until Revive. False when not on foot (driving, the old first-person body): no clip then.</summary>
         public bool Die()
         {
             var profile = _body != null ? _body.Profile : null;

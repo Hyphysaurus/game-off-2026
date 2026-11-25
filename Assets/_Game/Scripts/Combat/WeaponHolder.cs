@@ -58,6 +58,7 @@ namespace ShiftJam
         private float _raise;                // 0 the arm is the animation's (a long gun: carried), 1 it is up and on the crosshair
         private float _hands;                // a long gun, and any gun in first person: 0 the arms are the animation's, 1 the hands are on the gun
         private ViewBody _viewBody;          // first person: the player's own body under the eye, head hidden
+        private PlayerMoves _strikes;        // the player's moves: a punch, a kick or a block in first person is drawn too (D-0195)
         private float _sight;                // first person: 0 the gun is at the hip, 1 its sight is at the eye
         private FingerCurl _fist, _support;  // the fingers of the gun hand, and of the hand under a long gun
         private float _grip;                 // 0 the gun hand is the animation's open hand, 1 it is closed round the grip
@@ -112,6 +113,8 @@ namespace ShiftJam
         public bool Full => _inventory != null ? _inventory.Full : _weapons.Count >= maxWeapons;
         /// <summary>First person with a prop in the hands: the wheel moves it, the keys are its.</summary>
         public bool HandsBusyInView => _fpHands != null && _fpHands.Held != null;
+        /// <summary>First person's hands hold a prop, or let one go or threw one this frame: this frame's click was theirs.</summary>
+        public bool ViewHandsBusy => _fpHands != null && _fpHands.BusyThisFrame;
         // Another player's copy: their Shifter does not run here, but the network scales the body with their shift.
         public float Scale => shifter != null && !_puppet ? shifter.Scale : Mathf.Max(0.001f, transform.lossyScale.y);
         public bool FirstPerson => _fpView != null;
@@ -153,6 +156,7 @@ namespace ShiftJam
             _motor = GetComponent<PlayerMotor>();
             _armAim = new ArmAim(animator, transform);   // here, before the Animator poses the arm: it reads the rest pose
             _viewBody = new ViewBody(animator, transform);
+            TryGetComponent(out _strikes);
             _fist = new FingerCurl(animator, right: true);
             _support = new FingerCurl(animator, right: false);
             _audio = gameObject.AddComponent<AudioSource>();
@@ -619,7 +623,11 @@ namespace ShiftJam
             bool inView = visible && InView(w);
             // First person with a tool up and no gun: the body is drawn under the eye too, for the hand holding it (D-0144).
             bool toolInView = FirstPerson && carrier != null && carrier.ToolUp && _armAim != null && _armAim.Ready && _viewBody.Ready;
-            _viewBody.Show(inView || toolInView);
+            // First person, empty-handed, mid punch, kick or block (D-0195): the body is drawn under the eye for as long as
+            // the move lasts, so the fist, the foot or the guard is seen. Pose stands it there (as for a tool).
+            bool strikeInView = FirstPerson && _strikes != null && _armAim != null && _armAim.Ready && _viewBody.Ready
+                && (_strikes.Current == PlayerMoves.Move.Punch || _strikes.Current == PlayerMoves.Move.Kick || _strikes.Current == PlayerMoves.Move.Block);
+            _viewBody.Show(inView || toolInView || strikeInView);
             bool sighting = inView && AimHeld && w.AimsWithView;   // melee has no sight
             _sight = !inView ? 0f : _hold.sightTime > 0f ? Mathf.MoveTowards(_sight, sighting ? 1f : 0f, Time.deltaTime / _hold.sightTime) : sighting ? 1f : 0f;
             // A long gun: both hands come onto it as it is drawn and stay there; a move (a roll, a hit) takes them off.

@@ -3621,3 +3621,22 @@
     to the rope's heading there while the eyes look freely; the paper plane's model may show in the view), the gun
     and arms while strafing, a shift in first person, a launch pad, online. Off switch: untick Ride Player.
   - Compiled outside (editor and player) and by Unity in a hidden batch run. NOT played.
+- **D-0195 (24 Nov 2026, 17:3x) The rest of the player's verbs in first person (step 3's first half): the moves, the fists
+  in view, vehicles, the heavy grab, the kid's flashlight.** His "lets get all of those other verbs in as well", on
+  the list D-0194 left out. All of it applies only with Ride Player on (the old body parks the motor, so nothing
+  below starts there).
+  - **The moves:** `PlayerMoves.OnFoot` asks `GameMode.OnFoot`. So in first person: the roll (and the roll out of a
+    landing), punch and kick with empty hands (left and right mouse), block (Q), the hit reactions and the death
+    clip, each with the motor's same orders as in third person (a hit reaction stops the stick for its length).
+  - **Whose click:** first person's own hands holding a prop count as full hands (no roll or block), and a click
+    while they hold one, or on the frame they threw or let go of one, is theirs: no punch, no kick
+    (`WeaponHolder.ViewHandsBusy`). With a gun or a tool out a click is the gun's or the tool's, as before.
+  - **Seen:** the body is drawn under the eye for as long as a punch, a kick or a block lasts (`WeaponHolder`,
+    beside the rule that draws it for a gun or a tool), stood there by the same `StandForTool`.
+  - **The hands' E, on the player that is really there (`PhysicsGrabber`):** nothing is grabbed or used mid-move; E
+    lets go of a heavy thing that is held (a turntable; Jump did already); E on a vehicle leaves first person and
+    then gets in (driving stays third person); a kid may pick the flashlight up (D-0144 already drew a tool in the
+    view body's hand). A `Carried` prop is still lifted by the first-person hands on their spring, not in the arms.
+  - **Not done:** the old first-person body is still there behind the switch (it goes after his play); a rolling
+    view (the eye rides level through a roll and a death).
+  - Compiled outside (editor and player) and by Unity in a hidden batch run. NOT played: none of it has been seen.

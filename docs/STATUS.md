@@ -2,6 +2,18 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 17:3x — THE OTHER VERBS IN FIRST PERSON (D-0195): COMPILED BY UNITY, NOT PLAYED
+- **His words (17:2x):** "lets get all of those other verbs in as well". Built on D-0194 (Ride Player on):
+  roll, punch, kick, block, hit reactions and the death clip in first person; the body drawn under the eye while a
+  punch, a kick or a block lasts; E lets go of a heavy thing; E on a car leaves first person and gets in; a kid may
+  pick the flashlight up. First person's hands with a prop in them keep the mouse (no punch, no kick, no roll).
+- **HIS TO TRY (V, empty hands):** left mouse (punch: is the fist seen, does it land), right mouse (kick), Q held
+  (block), the dodge key (roll: the view stays level), take a hit from a soldier (the stagger), fall to a death;
+  with a prop in the hands: left mouse throws it and does not punch; E on the turntable from the floor then E again;
+  E on a car; as a kid, E on the flashlight. F12 on anything odd.
+- **STILL TO DO after his play:** retire the old first-person body (or keep it, his call); the machine gun and the
+  grenade launcher; the two new guns in the house's armory corner.
+
 ## 24 Nov 2026 17:2x — FIRST PERSON ON THE PLAYER ITSELF, STEPS 1 AND 2 (D-0194): COMPILED BY UNITY, NOT PLAYED. 🔴 IT IS ON
 - **His "proceed" (17:1x).** Built: `FirstPersonSettings > Ride Player` (on by default): in first person the player's
   own motor and capsule stay on and move as in third person, the body facing wherever the eyes look; the old
@@ -12,8 +24,7 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   does the view do on it; Space lets go); jump off the bed's edge and press Space in the air (the paper plane);
   a gun out, aim, fire, reload while strafing (do the arms and the gun sit as before); E on a thing and carrying a
   prop; V back out anywhere, also on a rope; the Stadium online. Anything odd: F12.
-- **NOT DONE (step 3, after his play):** the special moves in first person (roll, dive, punch, kick), carrying and
-  prompts through the player's own Interactor, retiring the old body.
+- **Step 3's first half followed at 17:3x (D-0195, the entry above).** Left: retiring the old body.
 
 ## 24 Nov 2026 17:1x — THE DART RIFLE AND THE DART SNIPER (D-0193): BUILT, IN THE STADIUM, NOT PLAYED. FIRST PERSON: HE PICKED THE BIG CHANGE, PLAN GIVEN
 - **His words (17:0x):** "3, and yes, follow the logical plan for the rifle and sniper".

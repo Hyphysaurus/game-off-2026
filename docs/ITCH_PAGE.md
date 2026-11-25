@@ -70,7 +70,9 @@ flashlight.
 - **Code:** written with Claude Code (Anthropic), directed and reviewed by ✍ [name].
 - **3D art, characters, animation and most sound effects:** ithappy packs (Playroom, Battle Stadium, Cartoon Weapons,
   Funny Characters, Modular Cyber Racing Cars, and the free Christmas, Cute Furniture and Food packs).
-- **Interface sounds:** Case Portman ✍ (check the pack names).
+- **Interface sounds:** Case Portman Audio, Cute & Cozy UI Audio Pack (the menus' clicks, D-0202) and Forge & Fantasy
+  ✍ (check), plus some ithappy Playroom UI sounds. **Shift whooshes and thuds:** GameBurp, 2000 Game Sound FX Collection
+  ("Sound Effects by GameBurp.com": the credit is optional and asked for).
 - **Effects:** Polygon Arsenal (Archanor VFX).
 - **3D lettering:** Modular 3D Text (Tiny Giant Studio). **Text effects:** Text Animator for Unity (Febucci).
 - **Fonts:** Fredoka and Teko (SIL Open Font License). **Key icons:** Kenney (CC0).

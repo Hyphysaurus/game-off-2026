@@ -81,20 +81,20 @@ MonoBehaviour:
   brushPower: 1
   mostTip: 16
   letGoSound:
-    clip: {fileID: 8300000, guid: 7dce4e9db45f4b04a8a3e26233896f03, type: 3}
-    volume: 0.45
+    clip: {fileID: 8300000, guid: 395ec2849bab7c94e98b511866f04e6b, type: 3}
+    volume: 0.20249999
     pitchSpread: 0.08
   shiftSound:
-    clip: {fileID: 8300000, guid: 751d0f0ab5a38864dba0b07ea86cb1f8, type: 3}
-    volume: 0.5
+    clip: {fileID: 8300000, guid: e411ac92fa784ed4ea3245dbd6dec6ef, type: 3}
+    volume: 0.24
     pitchSpread: 0
   shiftBackSound:
-    clip: {fileID: 8300000, guid: 82b04a0b86358dc448a14ac7f92b7bab, type: 3}
-    volume: 0.5
+    clip: {fileID: 8300000, guid: 95b3b6fd60c500b4aadc02cfeba6e8a8, type: 3}
+    volume: 0.13
     pitchSpread: 0
   pageSound:
-    clip: {fileID: 8300000, guid: 6b29f35331951234db3c7b2952b10eca, type: 3}
-    volume: 0.35
+    clip: {fileID: 8300000, guid: 0b8bb30d1a9f0154896c9a5adc46132c, type: 3}
+    volume: 0.658
     pitchSpread: 0.05
   font: {fileID: 0}
   wordColour: {r: 1, g: 0.9411765, b: 0.9882353, a: 1}
@@ -249,8 +249,8 @@ MonoBehaviour:
   flash: 0.6
   flashSeconds: 0.25
   changeSound:
-    clip: {fileID: 8300000, guid: e979a016e23ccb440b206242974a5d1e, type: 3}
-    volume: 0.4
+    clip: {fileID: 8300000, guid: 08b87bede15f8844fb410238a27923f1, type: 3}
+    volume: 0.52800006
     pitchSpread: 0.2
   changeSoundGap: 0.07
   cast: 0.55

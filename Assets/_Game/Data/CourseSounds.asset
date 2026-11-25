@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: CourseSounds
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.CourseSounds
   grow:
-    clip: {fileID: 8300000, guid: 751d0f0ab5a38864dba0b07ea86cb1f8, type: 3}
-    volume: 0.7
+    clip: {fileID: 8300000, guid: e411ac92fa784ed4ea3245dbd6dec6ef, type: 3}
+    volume: 0.336
     pitchSpread: 0
   shrink:
-    clip: {fileID: 8300000, guid: 82b04a0b86358dc448a14ac7f92b7bab, type: 3}
-    volume: 0.7
+    clip: {fileID: 8300000, guid: 95b3b6fd60c500b4aadc02cfeba6e8a8, type: 3}
+    volume: 0.182
     pitchSpread: 0
   coreAwake:
     clip: {fileID: 8300000, guid: a2b134b6ba514c545b2e98e76e28fff6, type: 3}

@@ -3827,3 +3827,20 @@
     sorting order -1 to prevent it); when there are two ammo kinds, D-pad up loads ammo and no longer moves the
     selection up (the stick still does); splats on buttons are about 0.10 m, smaller than a button is tall.
   - **NOT SEEN IN PLAY.**
+- **D-0202 (24 Nov 2026, 23:0x) Fewer whimsical sounds: the menus' clicks and the shift.** His words: "we definitely need to
+  improve some of the sound effects we are using, a lot of them are very whimsical", then "proceed with all outstanding
+  tasks" without picking from the audition folder, so these are my picks (by measurement; I cannot hear them).
+  - **Why they sounded whimsical (measured):** the playroom pack's menu sounds are pure tones that slide 10 to 25
+    semitones and ring 0.6 to 0.8 s; the menu's let-go was a 2 s boing, a letter's colour change a squeak, and the
+    shift (the menu's 2D/3D and the game's own toy/kid) a 2 to 3 s star chime.
+  - **Now:** menu hover / click / confirm / back = Case Portman Cute & Cozy style 08 (Highlight_08, Clicked_In_08,
+    Confirm_08, Cancel_08: 0.05 to 0.27 s, no slide); the shift = GameBurp SWIPE Whoosh Double 02 (grow, and the menu
+    into 3D) and SWIPE Whoosh 01 (shrink, and the menu back to flat): ONE shift sound for both kinds of shift; the
+    menu's let-go = IMPACT Thump Thud 04; page = Menu_Open_01; a letter's colour change = Highlight_12. Each volume
+    was set so its peak matches the sound it replaced (old volume x the peak difference).
+  - **Not changed yet (still the playroom pack):** select, denied, menu open, toast, win, and a core lighting up (a
+    3 s chime). Candidates for these come next in the audition folder.
+  - **Where:** the files are in `Assets/_Imports/CasePortman/UI/` and `Assets/_Imports/GameBurp/` (gitignored: neither
+    licence allows sharing the raw files; a clone has empty slots, which are silent). The audition folder, with the
+    other candidates by folder number and letter: `%TEMP%\shiftjam-stage\sound-audition`.
+  - **NOT HEARD by anyone yet.**

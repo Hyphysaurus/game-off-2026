@@ -13,20 +13,20 @@ MonoBehaviour:
   m_Name: UiSounds
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.UiSounds
   move:
-    clip: {fileID: 8300000, guid: c417e80aa7d4fee4ca655595521e3ca7, type: 3}
-    volume: 0.3
+    clip: {fileID: 8300000, guid: 750eb4ec11358aa47ab188e98faed675, type: 3}
+    volume: 0.18900001
     pitchSpread: 0.06
   click:
-    clip: {fileID: 8300000, guid: bf4382c05a219e446b112d110c7c5d27, type: 3}
-    volume: 0.5
+    clip: {fileID: 8300000, guid: 3f4dfffb6fa045e4b8784d3a00f6b198, type: 3}
+    volume: 0.37
     pitchSpread: 0.03
   confirm:
-    clip: {fileID: 8300000, guid: 93d34b91992495f4ab913e8a55c06f26, type: 3}
-    volume: 0.6
+    clip: {fileID: 8300000, guid: 509c6ba0d90782e419837a428a689905, type: 3}
+    volume: 0.456
     pitchSpread: 0
   back:
-    clip: {fileID: 8300000, guid: c236882a7e20bc44e9929a2cc9e76669, type: 3}
-    volume: 0.5
+    clip: {fileID: 8300000, guid: 1aafadcd3abe3544bb34d1cb4bc59dcf, type: 3}
+    volume: 0.705
     pitchSpread: 0
   select:
     clip: {fileID: 8300000, guid: 3b5aaf1fe9211594d87360fe7f7a4ebb, type: 3}

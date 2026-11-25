@@ -186,6 +186,15 @@ Logs/
 **/Stylized Water 3.meta
 **/Distant Lands/
 **/Distant Lands.meta
+# Packs added 25 Nov (Asset Store EULA: no redistribution). DOTween Pro and Grabbit 2 sit under /Assets/Plugins/ (above).
+**/Artificer/
+**/Artificer.meta
+**/AssetInventory/
+**/AssetInventory.meta
+**/KINEMATION/
+**/KINEMATION.meta
+**/MagicaCloth2/
+**/MagicaCloth2.meta
 # Embedded Asset Store packages (no redistribution)
 /Packages/com.febucci.text-animator-unity/
 /Packages/com.heath.lattice/

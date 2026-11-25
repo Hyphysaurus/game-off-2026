@@ -19,15 +19,25 @@ namespace ShiftJam
     /// events on every PC) nothing is marked, and batch runs leave the saves alone. Made at run time, nothing in a scene.
     /// OFF SWITCH: untick On on Resources/ObjectiveSet: nothing is marked or awarded and the HUD stays hidden (the hooks
     /// in Greybox then call into nothing).
+    /// ZONES (D-0224, the Sticker Chart): the set's zone rows, the steps and stars of each (by their Room word), which zone
+    /// this PC's player is in now (<see cref="CurrentZone"/>, <see cref="ZoneEntered"/>: the smallest zone box holding the
+    /// player in the house, or the whole scene for the Raceway and the Colour Corner) and which this save slot has visited
+    /// (zone:&lt;id&gt; in the seen list: Continue keeps it, New Game clears it; the bedroom counts from the start).
+    /// ObjectiveHelpers calls <see cref="TrackZones"/> once a frame; it allocates nothing.
     /// </summary>
     public static class Objectives
     {
-        public const string StepPrefix = "step:", StarPrefix = "star:";
+        public const string StepPrefix = "step:", StarPrefix = "star:", ZonePrefix = "zone:";
+        private const string PlayerName = "Player";   // this PC's player in the house (the title menu finds it the same way)
+        private const float PlayerLookSeconds = 0.5f;  // while there is no player yet, how often it is looked for
 
         /// <summary>A step finished or a star earned, and whenever the state was read afresh (a load, New Game, another slot).</summary>
         public static event System.Action Changed;
         /// <summary>A star was just earned: its id and title.</summary>
         public static event System.Action<string, string> StarAwarded;
+        /// <summary>This PC's player came into a zone (D-0224): its row on the set's Zones. Also the first zone found after
+        /// a scene loads, the title closes or the opening ends.</summary>
+        public static event System.Action<int> ZoneEntered;
 
         /// <summary>One rule, ready to match: its object paths split once.</summary>
         private sealed class Compiled
@@ -48,15 +58,27 @@ namespace ShiftJam
         // CurrentTarget's cache: which step and which scene it was found for.
         private static Transform _target;
         private static int _targetStep = -2, _targetScene = -1;
+        // Zones (D-0224): each zone's save key and visit, the rows in chart order, each zone's steps and stars, each step's
+        // and star's zone; the zone now, the scene it was found for, that scene's whole-scene zone and start zone.
+        private static string[] _zoneKeys;
+        private static bool[] _zoneSeen;
+        private static int[] _zoneOrder, _stepZone, _starZone;
+        private static int[][] _zoneSteps, _zoneStars;
+        private static int _zone = -1, _zoneScene = -1, _sceneZone = -1, _startZone = -1;
+        private static bool _boxesHere;
+        private static Transform _player;
+        private static float _lookAt;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics()
         {
-            Changed = null; StarAwarded = null;
+            Changed = null; StarAwarded = null; ZoneEntered = null;
             _set = null; _stepRules = _starRules = null; _stepKeys = _starKeys = null; _stepDone = _starHeld = null;
             _current = -1; _starCount = 0; _readSlot = -1; _writing = false;
             StepScenes.Clear(); Corners.Clear();
             _target = null; _targetStep = -2; _targetScene = -1;
+            _zoneKeys = null; _zoneSeen = null; _zoneOrder = _stepZone = _starZone = null; _zoneSteps = _zoneStars = null;
+            _zone = _zoneScene = _sceneZone = _startZone = -1; _boxesHere = false; _player = null; _lookAt = 0f;
         }
 
         // After SubsystemRegistration: RaceState and SaveGame clear their own events there, which would take these off.
@@ -255,6 +277,7 @@ namespace ShiftJam
                 _starKeys[i] = StarPrefix + (s != null ? s.id : "");
                 _starRules[i] = Compile(s != null ? s.doneWhen : null);
             }
+            CompileZones(nSteps, nStars);
             Read();
         }
 
@@ -292,6 +315,11 @@ namespace ShiftJam
                 bool held = SaveGame.Seen(slot, _starKeys[i]);
                 if (held != _starHeld[i]) { _starHeld[i] = held; changed = true; }
                 if (held) _starCount++;
+            }
+            for (int i = 0; i < _zoneSeen.Length; i++)
+            {
+                bool seen = SaveGame.Seen(slot, _zoneKeys[i]);
+                if (seen != _zoneSeen[i]) { _zoneSeen[i] = seen; changed = true; }
             }
             _current = FirstOpen();
             return changed;
@@ -369,6 +397,181 @@ namespace ShiftJam
             }
             if (sceneName.Length > 0 && sceneName != scene.name) return null;
             return Resolve(scene, path);
+        }
+
+        // ------------------------------------------------------------------------------------------------ zones (D-0224)
+
+        /// <summary>How many zone rows the set has.</summary>
+        public static int ZoneCount { get { Ensure(); return _zoneSeen.Length; } }
+
+        /// <summary>Zone row <paramref name="zone"/>, or null.</summary>
+        public static ChartZone ZoneAt(int zone) { Ensure(); return zone >= 0 && zone < _zoneSeen.Length ? _set.zones[zone] : null; }
+
+        /// <summary>The zone rows in the chart's order (by their Order, then as listed). Read only.</summary>
+        public static IReadOnlyList<int> ZoneOrder { get { Ensure(); return _zoneOrder; } }
+
+        /// <summary>The main steps (indices into the set's steps) that happen in zone <paramref name="zone"/>, in route order. Read only.</summary>
+        public static IReadOnlyList<int> ZoneSteps(int zone) { Ensure(); return zone >= 0 && zone < _zoneSteps.Length ? _zoneSteps[zone] : System.Array.Empty<int>(); }
+
+        /// <summary>The gold stars (indices into the set's stars) of zone <paramref name="zone"/>. Read only.</summary>
+        public static IReadOnlyList<int> ZoneStars(int zone) { Ensure(); return zone >= 0 && zone < _zoneStars.Length ? _zoneStars[zone] : System.Array.Empty<int>(); }
+
+        /// <summary>The zone this PC's player is in now (a row of the set's Zones), or -1: none here (the Workshop), the title,
+        /// the opening, online, or no player yet.</summary>
+        public static int CurrentZone { get { Ensure(); return _zone; } }
+
+        /// <summary>True once this save slot has been in zone <paramref name="zone"/> (a From Start zone always).</summary>
+        public static bool ZoneVisited(int zone)
+        {
+            Ensure();
+            if (zone < 0 || zone >= _zoneSeen.Length) return false;
+            ChartZone z = _set.zones[zone];
+            return _zoneSeen[zone] || (z != null && z.fromStart);
+        }
+
+        /// <summary>The stars held in zone <paramref name="zone"/>; <paramref name="total"/> = how many it has.</summary>
+        public static int ZoneStarCount(int zone, out int total)
+        {
+            IReadOnlyList<int> stars = ZoneStars(zone);
+            total = stars.Count;
+            int held = 0;
+            for (int i = 0; i < stars.Count; i++) if (_starHeld[stars[i]]) held++;
+            return held;
+        }
+
+        /// <summary>The zone (a row of Zones) step <paramref name="step"/> belongs to, or -1.</summary>
+        public static int ZoneOfStep(int step) { Ensure(); return step >= 0 && step < _stepZone.Length ? _stepZone[step] : -1; }
+
+        /// <summary>The zone (a row of Zones) star <paramref name="star"/> belongs to, or -1.</summary>
+        public static int ZoneOfStar(int star) { Ensure(); return star >= 0 && star < _starZone.Length ? _starZone[star] : -1; }
+
+        /// <summary>The set's step <paramref name="step"/> (by its place in the route), or null.</summary>
+        public static ObjectiveStep StepAt(int step) { Ensure(); return step >= 0 && step < _stepDone.Length ? _set.steps[step] : null; }
+        public static bool StepDoneAt(int step) { Ensure(); return step >= 0 && step < _stepDone.Length && _stepDone[step]; }
+        /// <summary>The current step's place in the route (the first unfinished), or -1.</summary>
+        public static int CurrentStepIndex { get { Ensure(); return _current; } }
+
+        /// <summary>The set's star <paramref name="star"/> (by its place in the list), or null.</summary>
+        public static ObjectiveStar StarAt(int star) { Ensure(); return star >= 0 && star < _starHeld.Length ? _set.stars[star] : null; }
+        public static bool StarHeldAt(int star) { Ensure(); return star >= 0 && star < _starHeld.Length && _starHeld[star]; }
+
+        /// <summary>The gold stars save slot <paramref name="slot"/> holds (the title's slot rows). Reads the save: call it on a
+        /// change, not every frame.</summary>
+        public static int StarsInSlot(int slot)
+        {
+            Ensure();
+            int held = 0;
+            for (int i = 0; i < _starKeys.Length; i++) if (SaveGame.Seen(slot, _starKeys[i])) held++;
+            return held;
+        }
+
+        /// <summary>
+        /// Which zone this PC's player is in, once a frame (ObjectiveHelpers): the whole scene's zone in the Raceway and the
+        /// Colour Corner; in the house the smallest zone box holding the player, else the nearest box's zone the first time
+        /// (a save point between boxes), else the zone it was in. A zone found for the first time on this save slot is
+        /// saved as visited. Nothing online, in batch runs, with the set's On unticked, under the title or during the
+        /// opening (the zone is found afresh after them, so the card shows where the game starts). Allocates nothing.
+        /// </summary>
+        public static void TrackZones()
+        {
+            if (!Live) { _zone = -1; return; }
+            Ensure();
+            if (TitleMenu.IsOpen || Opening.Playing) { _zone = -1; return; }
+            Scene scene = SceneManager.GetActiveScene();
+            if (scene.handle != _zoneScene) LookAtScene(scene);
+            int found;
+            if (_sceneZone >= 0) found = _sceneZone;
+            else if (_boxesHere)
+            {
+                if (_player == null)
+                {
+                    if (Time.unscaledTime < _lookAt) return;
+                    _lookAt = Time.unscaledTime + PlayerLookSeconds;
+                    GameObject player = GameObject.Find(PlayerName);
+                    if (player == null || player.scene.handle != scene.handle) return;
+                    _player = player.transform;
+                }
+                Vector3 at = _player.position;
+                found = ZoneBox.ZoneAt(at, scene.handle, _set.zones);
+                if (found < 0) found = _zone >= 0 ? _zone : ZoneBox.Nearest(at, scene.handle, _set.zones);
+                if (found < 0) found = _startZone;   // no box in the scene (the chart maker not run): the start zone
+            }
+            else return;
+            if (found < 0 || found == _zone) return;
+            _zone = found;
+            if (!_zoneSeen[found])
+            {
+                _writing = true;
+                try { SaveGame.MarkSeen(SaveGame.Slot, _zoneKeys[found]); }
+                finally { _writing = false; }
+                _zoneSeen[found] = true;
+                Debug.Log("Objectives: zone '" + _set.zones[found].id + "' visited");
+            }
+            ZoneEntered?.Invoke(found);
+        }
+
+        /// <summary>A new scene: its whole-scene zone, whether it has zone boxes, and the zone it starts in.</summary>
+        private static void LookAtScene(Scene scene)
+        {
+            _zoneScene = scene.handle;
+            _zone = _sceneZone = _startZone = -1;
+            _boxesHere = false;
+            _player = null; _lookAt = 0f;
+            int firstHere = -1;
+            for (int o = 0; o < _zoneOrder.Length; o++)
+            {
+                int i = _zoneOrder[o];
+                ChartZone z = _set.zones[i];
+                if (z == null || (z.scene ?? "").Trim() != scene.name) continue;
+                if (z.wholeScene) { if (_sceneZone < 0) _sceneZone = i; continue; }
+                _boxesHere = true;
+                if (firstHere < 0) firstHere = i;
+                if (z.fromStart && _startZone < 0) _startZone = i;
+            }
+            if (_startZone < 0) _startZone = firstHere;
+        }
+
+        /// <summary>Each step's and star's zone by its Room word, each zone's steps and stars, and the chart's order.</summary>
+        private static void CompileZones(int nSteps, int nStars)
+        {
+            ChartZone[] zones = _set.zones ?? new ChartZone[0];
+            int n = zones.Length;
+            _zoneKeys = new string[n]; _zoneSeen = new bool[n];
+            for (int i = 0; i < n; i++) _zoneKeys[i] = ZonePrefix + (zones[i] != null ? zones[i].id : "");
+            _stepZone = new int[nSteps]; _starZone = new int[nStars];
+            var steps = new List<int>[n]; var stars = new List<int>[n];
+            for (int i = 0; i < n; i++) { steps[i] = new List<int>(); stars[i] = new List<int>(); }
+            for (int i = 0; i < nSteps; i++)
+            {
+                _stepZone[i] = ZoneOfRoom(zones, ChartWords.StepRoom(_set.steps[i]));
+                if (_stepZone[i] >= 0) steps[_stepZone[i]].Add(i);
+            }
+            for (int i = 0; i < nStars; i++)
+            {
+                _starZone[i] = ZoneOfRoom(zones, _set.stars[i] != null ? _set.stars[i].room : "");
+                if (_starZone[i] >= 0) stars[_starZone[i]].Add(i);
+            }
+            _zoneSteps = new int[n][]; _zoneStars = new int[n][];
+            for (int i = 0; i < n; i++) { _zoneSteps[i] = steps[i].ToArray(); _zoneStars[i] = stars[i].ToArray(); }
+            // The chart's order: by Order, and as listed where two are the same (an insertion sort keeps that).
+            _zoneOrder = new int[n];
+            int count = 0;
+            for (int i = 0; i < n; i++)
+            {
+                if (zones[i] == null) continue;
+                int at = count++;
+                while (at > 0 && zones[_zoneOrder[at - 1]].order > zones[i].order) { _zoneOrder[at] = _zoneOrder[at - 1]; at--; }
+                _zoneOrder[at] = i;
+            }
+            if (count < n) System.Array.Resize(ref _zoneOrder, count);
+            _zoneScene = -1;   // the scene's zones are looked at again
+            ZoneBox.Forget();
+        }
+
+        private static int ZoneOfRoom(ChartZone[] zones, string room)
+        {
+            for (int i = 0; i < zones.Length; i++) if (zones[i] != null && ChartWords.SameRoom(zones[i].room, room)) return i;
+            return -1;
         }
 
         // ------------------------------------------------------------------------------------------------ hearing it

@@ -19,6 +19,11 @@ namespace ShiftJam
     /// not show (only the title stands them). Options is its page "Options" on the same model (MenuOptions), Back
     /// returns to the pause page. Esc, Start and the pad's B are still read here, first in the frame, so its driver is
     /// told they are not its own. Without the model (no prefab, or a slab missing) it is the old menu, as before.
+    /// THE STICKER CHART (D-0224): a "Sticker Chart" slab above Resume (a copy of the model's own wide slab made here,
+    /// ObjectiveSet > Chart Slab Up; on the old menu a button above Resume) opens the chart as a page over the paused game
+    /// (StickerChart.OpenPage); Esc, Start and the pad's East button come back to the pause page with the slab
+    /// selected. Its second line is the stars held of all. Left off the menu where the chart cannot open (online, a team
+    /// match, ObjectiveSet > Chart On unticked). Resume stays the one selected when the menu opens.
     /// </summary>
     [DefaultExecutionOrder(-100)]
     public sealed class PauseMenu : MonoBehaviour
@@ -26,11 +31,15 @@ namespace ShiftJam
         private const string CourseScene = "Greybox";
         private const string Page = "Pause";
         private const string Resume_ = "Pause_Resume", Options_ = "Pause_Options", Title_ = "Pause_Title", Quit_ = "Pause_Quit";
+        private const string Chart_ = "Pause_Chart", ChartLike = "Btn_NewGame";   // D-0224: the chart's slab, a copy of the plain wide one
 
         public static bool IsOpen { get; private set; }
 
         private GameObject _root;
-        private Button _resume, _optionsButton;
+        private Button _resume, _optionsButton, _chartButton;
+        // D-0224: the chart is the page now, and whether it was opened from the model (else from the old menu); whether
+        // this scene's model has the chart's slab.
+        private bool _chartPage, _chartFromModel, _chartOnModel;
         private OptionsPanel _options;
 
         private PlayerInput _input; private ShoulderCamera _camera;
@@ -71,8 +80,9 @@ namespace ShiftJam
             if (_options.IsOpen) _options.Close();
             _root.SetActive(false);
             HideModel();
+            StickerChart.ClosePage(); _chartPage = false;
             if (_model != null) Destroy(_model.gameObject);
-            _model = null; _modelOptions = null; _modelFailed = false;
+            _model = null; _modelOptions = null; _modelFailed = false; _chartOnModel = false;
             IsOpen = false;
             AudioListener.pause = false;
             _input = null; _camera = null;
@@ -84,6 +94,19 @@ namespace ShiftJam
             bool press = (k != null && k.escapeKey.wasPressedThisFrame) || (pad != null && pad.startButton.wasPressedThisFrame);
             if (IsOpen)
             {
+                // The Sticker Chart's page (D-0224): Esc, Start or B come back to the pause page. (Not Backspace: the model's
+                // driver, on again in this same frame, would read it as its own Back and resume the game.)
+                if (_chartPage)
+                {
+                    if (!StickerChart.OnPage) { BackFromChart(); return; }   // it closed itself (a party began)
+                    if (press || (pad != null && pad.buttonEast.wasPressedThisFrame))
+                    {
+                        UiAudio.Play(UiAudio.Kind.Back);
+                        StickerChart.ClosePage();
+                        BackFromChart();
+                    }
+                    return;
+                }
                 // Options handles its own way back; B steps back from the pause menu too.
                 if (_options.IsOpen) return;
                 if (press || (pad != null && pad.buttonEast.wasPressedThisFrame))
@@ -123,12 +146,14 @@ namespace ShiftJam
             UiAudio.Hush();
             if (_onModel) { ShowModel(); return; }
             if (_backLabel != null) _backLabel.text = NetSession.Online ? "Leave Party" : "Back to Title";
+            ChartButton();
             _root.SetActive(true);
             EventSystem.current?.SetSelectedGameObject(_resume.gameObject);
         }
 
         private void Resume()
         {
+            if (_chartPage) { StickerChart.ClosePage(); _chartPage = false; }
             _root.SetActive(false);
             HideModel();
             IsOpen = false;
@@ -189,6 +214,9 @@ namespace ShiftJam
             string missing = null;
             if (_model != null && !_model.MakePage(Page, out missing)) { Debug.LogWarning("PauseMenu: the old pause menu shows (" + missing + ").", _model); Destroy(_model.gameObject); _model = null; }
             if (_model == null) { _modelFailed = true; return false; }
+            // The Sticker Chart's slab (D-0224), above Resume: made here, so the prefab's Made Controls need no new row.
+            _chartOnModel = _model.AddSlab(Chart_, ChartLike, Page, new Vector2(0f, Objectives.Set.chartSlabUp)) != null;
+            if (!_chartOnModel && Objectives.Set.chartOn) Debug.LogWarning("PauseMenu: no Sticker Chart slab (the model has no " + ChartLike + " to copy); the chart still opens with Tab.", _model);
             _modelOptions = MenuOptions.Make(_model);      // null: Options opens the old panel over the paused game
             _model.Show(false);
             if (_driver == null)
@@ -209,9 +237,17 @@ namespace ShiftJam
             return true;
         }
 
-        /// <summary>The model on the screen with the pause page, its words as they are now.</summary>
-        private void ShowModel()
+        /// <summary>The model on the screen with the pause page, its words as they are now, <paramref name="select"/>
+        /// selected (null: Resume).</summary>
+        private void ShowModel(string select = null)
         {
+            if (_chartOnModel)
+            {
+                ObjectiveSet set = Objectives.Set;
+                string stars = Objectives.Format(set.endCardFormat, Objectives.StarCount, Objectives.StarTotal);
+                _model.SetWords(Chart_, set.chartSlabWords, string.IsNullOrEmpty(stars) ? null : stars);
+                _model.SetHidden(Chart_, !StickerChart.CanOpen(true));
+            }
             _model.SetWords(Resume_, "Resume");
             _model.SetWords(Options_, "Options");
             _model.SetWords(Title_, NetSession.Online ? "Leave Party" : "Back to Title", NetSession.Online ? null : "progress keeps from the last save point");
@@ -219,7 +255,7 @@ namespace ShiftJam
             _model.Show(true);
             _modelCanvas.SetActive(true);
             _driver.enabled = true;
-            ToPause(null);
+            ToPause(select);
         }
 
         private void HideModel()
@@ -229,11 +265,13 @@ namespace ShiftJam
             if (_modelCanvas != null) _modelCanvas.SetActive(false);
         }
 
-        /// <summary>The pause page, with <paramref name="select"/> selected (null: the first, Resume).</summary>
+        /// <summary>The pause page, with <paramref name="select"/> selected (null: Resume; the Sticker Chart's slab is above
+        /// it, D-0224, so the page's own first pick is no longer Resume).</summary>
         private void ToPause(string select)
         {
             _model.ShowPage(Page);
-            if (select != null && _model.TryGet(select, out MenuModel.Control c) && c.Shown) _model.Selected = c;
+            if (select == null) select = Resume_;
+            if (_model.TryGet(select, out MenuModel.Control c) && c.Shown) _model.Selected = c;
             _heading.text = "<b>PAUSED</b>";
             ShowHint();
         }
@@ -261,6 +299,7 @@ namespace ShiftJam
             switch (control)
             {
                 case Resume_: Resume(); break;      // Resume plays Back itself (Esc too)
+                case Chart_: OpenChart(true); break;
                 case Options_:
                     UiAudio.Play(UiAudio.Kind.Click);
                     if (_modelOptions != null) { ToOptions(); break; }
@@ -282,6 +321,39 @@ namespace ShiftJam
         {
             if (_model != null && _model.Page != Page) { UiAudio.Play(UiAudio.Kind.Back); ToPause(Options_); }
             else Resume();
+        }
+
+        // ------------------------------------------------------------------ the Sticker Chart's page (D-0224)
+
+        /// <summary>The Sticker Chart as the page over the paused game: the menu (the model, or the old canvas) goes while
+        /// it is up. Nothing when the chart cannot open now.</summary>
+        private void OpenChart(bool fromModel)
+        {
+            if (!StickerChart.OpenPage()) return;
+            UiAudio.Play(UiAudio.Kind.Click);
+            if (fromModel) HideModel();
+            else _root.SetActive(false);
+            _chartPage = true;
+            _chartFromModel = fromModel;
+        }
+
+        /// <summary>Back from the chart: the pause page again, the chart's slab (or button) selected.</summary>
+        private void BackFromChart()
+        {
+            _chartPage = false;
+            if (_chartFromModel && _model != null) { ShowModel(Chart_); return; }
+            ChartButton();
+            _root.SetActive(true);
+            EventSystem.current?.SetSelectedGameObject(_chartButton != null && _chartButton.gameObject.activeSelf ? _chartButton.gameObject : _resume.gameObject);
+        }
+
+        /// <summary>The old menu's chart button: there only while the chart can open, its words the asset's.</summary>
+        private void ChartButton()
+        {
+            if (_chartButton == null) return;
+            _chartButton.gameObject.SetActive(StickerChart.CanOpen(true));
+            var label = _chartButton.GetComponentInChildren<TMPro.TMP_Text>();
+            if (label != null) label.text = Objectives.Set.chartSlabWords;
         }
 
         /// <summary>The heading and the hint over the model, at its Anchor_Title and Anchor_Hint (canvas pixels from the
@@ -315,6 +387,9 @@ namespace ShiftJam
             MenuKit.Text("Title", _root.transform, "<b>PAUSED</b>", 72, new Vector2(0.5f, 0.7f), new Vector2(900, 100));
 
             float y = 0.55f;
+            // The Sticker Chart (D-0224) above Resume; the rest a row lower than before.
+            _chartButton = MenuKit.Button(_root.transform, "Sticker Chart", new Vector2(0.5f, y), 0f, 380f, 40f, () => OpenChart(false)); y -= 0.075f;
+            UiSound.On(_chartButton).Press = UiAudio.Kind.None;   // OpenChart plays Click itself
             _resume = MenuKit.Button(_root.transform, "Resume", new Vector2(0.5f, y), 0f, 380f, 40f, Resume); y -= 0.075f;
             UiSound.On(_resume).Press = UiAudio.Kind.None;   // Resume plays Back itself (Esc too)
             _optionsButton = MenuKit.Button(_root.transform, "Options", new Vector2(0.5f, y), 0f, 380f, 40f, OpenOptions); y -= 0.075f;

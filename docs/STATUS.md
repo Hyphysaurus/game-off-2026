@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 15:2x — THE STICKER CHART (D-0224) LANDED, Greybox saved. NOT PLAYED. HIS IMPORTS MADE SAFE (D-0225).
+- **HIS TEST:** New Game: the card slides in after the opening (goal, step, "0 / 1 Bedroom", "Tab: Sticker Chart"), then
+  hides after 5 s. Hold Tab: the chart (the Bedroom row open, the rest "???"). The hallway: its arrival card and the card
+  with "0 / 2 Hallway"; the chart's Hallway row opens. A star: the card pops and hides. Esc: the "Sticker Chart" slab
+  above Resume; Esc / B back. Title: each slot ends with "n / 10 stars". Continue keeps visited zones; New Game resets.
+- **HIS CALL:** the pad's peek. D-pad up is the flashlight (hold) and next ammo (tap), so a pad opens the chart from the
+  pause menu; ObjectiveSet > Pad Peek turns D-pad up on anyway (the light then comes on in a long peek).
+- **Imports (D-0225):** the new packs are git-ignored; Grabbit's licence key is stripped from commits by the junglekey
+  filter and blocked by a local pre-commit hook; DOTween Pro's missing-asset add-ons are off (Unity compiles again).
+  C: 6.2 GB free.
+- **Next build:** the menu and button icons (his "proceed"): at-icons (MIT) and Kenney Input Prompts (CC0) from his
+  Asset Library, in his pixel menu mockup's style.
+
 ## 25 Nov 2026 14:4x — HELPERS + DOWNSTAIRS FIX (D-0221), MONSTERS UNDER THE BED (D-0222), CLAW MACHINE PRIZES (D-0223), LANDED, Greybox saved. NOT PLAYED.
 - **HIS TEST, bedroom:** New Game, walk from the toy box toward the bed: warm blinking eye glints under it. Step toward
   one: it creeps at you and bumps you back with a hop (no damage). Grab the flashlight (L) and shine it at one: a squeak,

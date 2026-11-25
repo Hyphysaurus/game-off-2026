@@ -14,6 +14,8 @@ namespace ShiftJam
     ///   pulses and one tip repeats the current step. Progress (a step, a star, a load) starts the clock again. The clock
     ///   stops (it does not restart) under menus, the opening, a big card, a reveal, a Flat Zone and Build Mode; nothing
     ///   after the Goal (no step left).
+    /// - THE ZONE (D-0224): once a frame it asks Objectives which zone this PC's player is in (Objectives.TrackZones: the
+    ///   Sticker Chart's rows and the objective card's zone line; nothing allocated).
     /// Online, in batch runs and with ObjectiveSet's On unticked: nothing (Objectives.Live, as D-0220). Words and numbers on
     /// Resources/ObjectiveSet. One for the whole game, made at the first scene, kept across loads; nothing allocates per frame.
     /// OFF SWITCHES: ObjectiveSet > Arrivals On, Nudge On.
@@ -116,6 +118,7 @@ namespace ShiftJam
         private void Update()
         {
             float now = Time.unscaledTime;
+            Objectives.TrackZones();   // D-0224: the zone first, so the card shown below names the right one
             ShowCard(now);
             Nudge(now);
         }
@@ -173,11 +176,12 @@ namespace ShiftJam
 
         // ---------- when to keep quiet ----------
 
-        /// <summary>A menu, the key sheet or the console is open, the opening plays, Build Mode, a team match, or a Flat
-        /// Zone holds the player (its camera swings and its own cards show).</summary>
+        /// <summary>A menu, the key sheet or the console is open, the opening plays, Build Mode, a team match, a Flat
+        /// Zone holds the player (its camera swings and its own cards show), or the Sticker Chart is up (D-0224).</summary>
         private static bool Held() =>
             PauseMenu.IsOpen || TitleMenu.IsOpen || KeyHelp.IsOpen || DebugConsole.IsOpen || Opening.Playing
-            || GameMode.Current == GameMode.Mode.Build || TeamMatch.Running || FlatZone.Current != null;
+            || GameMode.Current == GameMode.Mode.Build || TeamMatch.Running || FlatZone.Current != null
+            || StickerChart.IsOpen;   // D-0224: the player is reading the chart
 
         /// <summary>A room's reveal camera has the screen (the playroom's first look).</summary>
         private bool RevealRunning()

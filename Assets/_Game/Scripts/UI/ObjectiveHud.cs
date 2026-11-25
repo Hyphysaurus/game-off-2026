@@ -14,9 +14,17 @@ namespace ShiftJam
     /// opening, in Build Mode, in a team match (its score sits in this corner), online, and in the house once every step is
     /// done (after the Goal). While the Flat Zone letters' strip (FlatHud) shows in the same corner, the card slides down
     /// under it. The stall nudge (ObjectiveHelpers, D-0221) makes the whole card pulse (<see cref="Pulse"/>).
+    /// HIDDEN UNTIL THERE IS NEWS (D-0224, his "hidden until it's toasted or prompted within each specific zone"): in play
+    /// the card stays off the screen and slides in for Show Seconds when there is something to say: the player comes into
+    /// a zone (with its arrival card where it has one), New Game's goal (the opening ends), a step done (its tick, then the
+    /// next step slides in, then Show Seconds), a gold star (the counter pops), the stall nudge, and Gap, Pit or Dab saying
+    /// the step (<see cref="Show"/>). While it shows, its star line is the CURRENT ZONE's ("1 / 2  Hallway"; all the stars
+    /// outside every zone) and a small last line says where the Sticker Chart is ("Tab: Sticker Chart", or the pad's way,
+    /// by the device used last). Hidden while the chart is open.
     /// It only reads Objectives. One for the whole game, made at the first scene; built in code like the other
     /// HUDs; nothing is made or changed per frame unless something moves.
-    /// Words and timings: Resources/ObjectiveSet. OFF SWITCH: untick On there.
+    /// Words and timings: Resources/ObjectiveSet. OFF SWITCHES: untick On there (no card at all); tick Card Always On (the
+    /// D-0220 card, always shown).
     /// </summary>
     public sealed class ObjectiveHud : MonoBehaviour
     {
@@ -25,6 +33,7 @@ namespace ShiftJam
         // the rows' letters, the tick box and the star, and the room the letters' strip takes above it.
         private const float Left = 28f, Top = 26f, Pad = 16f, MinWide = 200f, MaxWide = 560f, RowGap = 6f;
         private const float GoalLetters = 17f, StepLetters = 25f, CountLetters = 26f, Box = 28f, BoxGap = 10f, Icon = 30f, IconGap = 10f;
+        private const float HintLetters = 17f, HintFade = 0.75f;   // the chart's line (D-0224): small, a little faded
         private const float Outline = 4f, Shadow = 6f, Round = 20f, SlideFrom = 46f, PopFrom = 1.8f, FlatStrip = 84f + 14f + 6f;
         private static readonly Color Ink = new Color32(0x1f, 0x1b, 0x2e, 0xff);
         private static readonly Color Card = new Color32(0xff, 0xf7, 0xe0, 0xff);        // the "got it" toast's cream
@@ -37,15 +46,20 @@ namespace ShiftJam
         private static ObjectiveHud _instance;
         private static Sprite _star;
         private CanvasGroup _group;
-        private RectTransform _card, _goalRt, _stepRow, _stepRt, _starRow, _starIcon;
-        private TextMeshProUGUI _goal, _step, _count;
+        private RectTransform _card, _goalRt, _stepRow, _stepRt, _starRow, _starIcon, _hintRt;
+        private TextMeshProUGUI _goal, _step, _count, _hint;
         private Image _tick;
         private ObjectiveStep _shown, _pending;
         private Phase _phase;
         private float _phaseAt, _popAt = float.NegativeInfinity, _flatUntil = float.NegativeInfinity, _y = -1f;
         private float _pulseAt = float.NegativeInfinity;   // the stall nudge's pulse (D-0221)
         private bool _stepsHere;
-        private int _shownCount = -1, _shownTotal = -1;
+        private int _shownCount = -1, _shownTotal = -1, _shownZone = -2;
+        // D-0224: until when the card shows (news), whether the opening was playing last frame, the chart line shown.
+        private float _showUntil = float.NegativeInfinity;
+        private bool _wasOpening;
+        private string _shownHint = "";
+        private float _hintAt;   // the next time the chart line looks at the device used last, while the card shows
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics() => _instance = null;
@@ -123,15 +137,18 @@ namespace ShiftJam
         {
             Objectives.Changed += OnChanged;
             Objectives.StarAwarded += OnStar;
+            Objectives.ZoneEntered += OnZone;
             SceneManager.activeSceneChanged += OnActiveScene;
             _stepsHere = Objectives.StepsIn(SceneManager.GetActiveScene().name);
             Snap();
+            Hint();
         }
 
         private void OnDisable()
         {
             Objectives.Changed -= OnChanged;
             Objectives.StarAwarded -= OnStar;
+            Objectives.ZoneEntered -= OnZone;
             SceneManager.activeSceneChanged -= OnActiveScene;
         }
 
@@ -142,14 +159,63 @@ namespace ShiftJam
             Snap();
         }
 
-        private void OnStar(string id, string title) => _popAt = Time.unscaledTime;
+        /// <summary>A star: the card slides in and its counter pops (once the card is in, if it was hidden).</summary>
+        private void OnStar(string id, string title)
+        {
+            float now = Time.unscaledTime;
+            _popAt = _group.alpha >= 1f ? now : now + (1f - _group.alpha) * Objectives.Set.fadeSeconds;
+            Counter();
+            Request(0f);
+        }
 
-        /// <summary>The stall nudge (D-0221): the whole card swells a few beats (ObjectiveSet > Pulse Seconds, Swell, Beats)
-        /// so the eye goes to the step. Nothing if the card is not made.</summary>
+        /// <summary>This PC's player came into a zone (D-0224): the card slides in, its star line that zone's.</summary>
+        private void OnZone(int zone)
+        {
+            Counter();
+            Request(0f);
+        }
+
+        /// <summary>The stall nudge (D-0221): the card slides in and swells a few beats (ObjectiveSet > Pulse Seconds,
+        /// Swell, Beats) so the eye goes to the step. Nothing if the card is not made.</summary>
         public static void Pulse()
         {
-            if (_instance != null) _instance._pulseAt = Time.unscaledTime;
+            if (_instance == null) return;
+            _instance._pulseAt = Time.unscaledTime;
+            _instance.Request(Objectives.Set.pulseSeconds);
         }
+
+        /// <summary>News (D-0224): the card slides in for ObjectiveSet's Show Seconds (Gap, Pit and Dab call it when they
+        /// say the step). Nothing if the card is not made.</summary>
+        public static void Show()
+        {
+            if (_instance != null) _instance.Request(0f);
+        }
+
+        /// <summary>The card shows until Show Seconds (and <paramref name="extra"/> seconds more) from now, or longer if it was
+        /// already asked to; the chart line is read again for the device used last.</summary>
+        private void Request(float extra)
+        {
+            ObjectiveSet set = Objectives.Set;
+            _showUntil = Mathf.Max(_showUntil, Time.unscaledTime + set.showSeconds + Mathf.Max(0f, extra));
+            Hint();
+        }
+
+        /// <summary>The chart line: the keyboard's or the pad's way to the Sticker Chart, or nothing with the chart off.</summary>
+        private void Hint()
+        {
+            ObjectiveSet set = Objectives.Set;
+            string text = !set.chartOn ? "" : DrivingHud.UsingPad() ? (set.padPeek ? set.hintPad : set.hintPadPause) : set.hintKeys;
+            text = text ?? "";
+            if (text == _shownHint) return;
+            _shownHint = text;
+            Layout();
+        }
+
+        /// <summary>The card may be on the screen now: no menu, key sheet or console, in play (not online, not a batch run,
+        /// the set On), not the opening, not Build Mode, not a team match.</summary>
+        private static bool CanShow() =>
+            !(PauseMenu.IsOpen || TitleMenu.IsOpen || KeyHelp.IsOpen || DebugConsole.IsOpen) && Objectives.Live
+            && !Opening.Playing && GameMode.Current != GameMode.Mode.Build && !TeamMatch.Running;
 
         /// <summary>A step finished or the save was read again. A step finished while the card shows: tick, then slide.
         /// Anything else (a load, New Game, another slot): the card shows the new state at once.</summary>
@@ -158,8 +224,9 @@ namespace ShiftJam
             ObjectiveStep now = Objectives.Current;
             if (_phase == Phase.Tick) { _pending = now; Counter(); return; }   // the tick runs on; the slide brings the newest
             if (now == _shown) { Counter(); Layout(); return; }
-            bool finished = _shown != null && Objectives.StepDone(_shown.id) && _group.alpha > 0.5f;
+            bool finished = _shown != null && Objectives.StepDone(_shown.id) && CanShow();
             if (!finished) { Snap(); return; }
+            Request(Objectives.Set.tickSeconds + Objectives.Set.slideSeconds);   // the tick and the slide, then Show Seconds
             _phase = Phase.Tick; _phaseAt = Time.unscaledTime; _pending = now;
             _tick.enabled = true;
             _step.alpha = 0.55f;
@@ -176,12 +243,22 @@ namespace ShiftJam
             Layout();
         }
 
+        /// <summary>The star line: the current zone's stars and its name (D-0224), or all the stars outside every zone (or in
+        /// a zone with none).</summary>
         private void Counter()
         {
-            int count = Objectives.StarCount, total = Objectives.StarTotal;
-            if (count == _shownCount && total == _shownTotal) return;
-            _shownCount = count; _shownTotal = total;
-            _count.text = Objectives.Format(Objectives.Set.counterFormat, count, total);
+            int zone = Objectives.CurrentZone, count = 0, total = 0;
+            if (zone >= 0) { count = Objectives.ZoneStarCount(zone, out total); if (total == 0) zone = -1; }
+            if (zone < 0) { count = Objectives.StarCount; total = Objectives.StarTotal; }
+            if (count == _shownCount && total == _shownTotal && zone == _shownZone) return;
+            _shownCount = count; _shownTotal = total; _shownZone = zone;
+            ObjectiveSet set = Objectives.Set;
+            if (zone < 0) _count.text = Objectives.Format(set.counterFormat, count, total);
+            else
+            {
+                ChartZone z = Objectives.ZoneAt(zone);
+                _count.text = ChartWords.Format(set.zoneCounterFormat, count, total, string.IsNullOrWhiteSpace(z.title) ? z.room : z.title);
+            }
             Layout();
         }
 
@@ -198,11 +275,17 @@ namespace ShiftJam
                 else _phase = Phase.Still;
             }
 
+            // New Game's goal (D-0224): the opening has just ended.
+            bool opening = Opening.Playing;
+            if (_wasOpening && !opening) Request(0f);
+            _wasOpening = opening;
+
             bool content = _stepsHere ? _shown != null || _phase == Phase.Tick : Objectives.StarTotal > 0;
-            bool menus = PauseMenu.IsOpen || TitleMenu.IsOpen || KeyHelp.IsOpen || DebugConsole.IsOpen;
-            bool want = content && !menus && Objectives.Live && !Opening.Playing && GameMode.Current != GameMode.Mode.Build && !TeamMatch.Running;
+            bool news = set.cardAlwaysOn || now < _showUntil || _phase != Phase.Still;
+            bool want = content && news && CanShow() && !StickerChart.IsOpen;
             _group.alpha = Mathf.MoveTowards(_group.alpha, want ? 1f : 0f, dt / Mathf.Max(0.01f, set.fadeSeconds));
             if (_group.alpha <= 0f) { _y = -1f; return; }   // placed afresh when it shows again
+            if (now >= _hintAt) { _hintAt = now + 0.5f; Hint(); }   // the keyboard or the pad, twice a second while it shows
 
             // The letters' strip shares the corner: while it can show (in a zone with letters, and its seconds after),
             // the card sits under it.
@@ -272,7 +355,20 @@ namespace ShiftJam
             Vector2 countSize = _count.GetPreferredValues(_count.text, maxText, 0f);
             inner = Mathf.Max(inner, Icon + IconGap + countSize.x + 2f);
             _starRow.anchoredPosition = new Vector2(Pad, -y); _starRow.sizeDelta = new Vector2(maxText, Icon);
-            y += Icon + Pad;
+            y += Icon;
+            // The chart line (D-0224) under the stars.
+            bool hint = !string.IsNullOrWhiteSpace(_shownHint);
+            _hintRt.gameObject.SetActive(hint);
+            if (hint)
+            {
+                _hint.text = _shownHint;
+                Vector2 hintSize = _hint.GetPreferredValues(_hint.text, maxText, 0f);
+                inner = Mathf.Max(inner, Mathf.Min(hintSize.x + 2f, maxText));
+                y += RowGap;
+                _hintRt.anchoredPosition = new Vector2(Pad, -y); _hintRt.sizeDelta = new Vector2(maxText, hintSize.y);
+                y += hintSize.y;
+            }
+            y += Pad;
             _card.sizeDelta = new Vector2(Mathf.Clamp(inner + Pad * 2f, MinWide, MaxWide), y);
         }
 
@@ -320,6 +416,11 @@ namespace ShiftJam
             var countRt = BuildUiKit.Rect("Count", _starRow, Vector2.zero, Vector2.one, middle, new Vector2((Icon + IconGap) * 0.5f, 0f), new Vector2(-(Icon + IconGap), 0f));
             _count = Text(countRt, font, CountLetters, Ink, FontStyles.Bold, false);
             _count.alignment = TextAlignmentOptions.MidlineLeft;
+
+            // The chart line (D-0224): small, in the label brown, a little faded.
+            _hintRt = BuildUiKit.Rect("ChartHint", _card, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(MaxWide - Pad * 2f, 20f));
+            _hint = Text(_hintRt, font, HintLetters, new Color(Label.r, Label.g, Label.b, HintFade), FontStyles.Bold, false);
+            _hintRt.gameObject.SetActive(false);
         }
 
         private static TextMeshProUGUI Text(RectTransform rt, TMP_FontAsset font, float size, Color colour, FontStyles style, bool wrap)

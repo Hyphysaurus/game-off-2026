@@ -73,6 +73,8 @@ namespace ShiftJam
         [Tooltip("Where it happens (a path in its scene): Objectives.CurrentTarget. Empty = the first object of the first rule.")]
         public string target = "";
         [Tooltip("Any one of these finishes it.")] public ObjectiveRule[] doneWhen = new ObjectiveRule[0];
+        [Tooltip("The zone it happens in (a Zones row's Room word): its row on the Sticker Chart (D-0224). Empty = the default for its id (wake-box, little-door, through-door: Bedroom; tall-end: Hallway; core-a, safe, core-b, wardrobe: Playroom; core-c: Wardrobe; sill: Window).")]
+        public string room = "";
     }
 
     /// <summary>A gold star (D-0220): optional, never needed for the ending.</summary>
@@ -81,7 +83,7 @@ namespace ShiftJam
     {
         [Tooltip("Saved per save slot as star:<id>. Never reuse one for a different star.")] public string id = "";
         [Tooltip("Its name: the toast's title when it is earned. Placeholder wording: his to rewrite.")] public string title = "";
-        [Tooltip("The room it belongs to (for a chart or a hint later; not shown yet).")] public string room = "";
+        [Tooltip("The zone it belongs to (a Zones row's Room word): its row on the Sticker Chart and the objective card's zone count (D-0224).")] public string room = "";
         [Tooltip("Any one of these earns it.")] public ObjectiveRule[] doneWhen = new ObjectiveRule[0];
     }
 
@@ -172,6 +174,48 @@ namespace ShiftJam
         [Tooltip("The light's height over the floor, in the world.")] [Min(0f)] public float landingLightHeight = 22f;
         [Tooltip("The light's reach, in the world.")] [Min(0f)] public float landingLightRange = 70f;
         [Tooltip("The light's brightness (the room's own lamps are 700 to 2600, much higher up).")] [Min(0f)] public float landingLightIntensity = 250f;
+
+        // ---- D-0224: the Sticker Chart (the journal / quest guide) and the objective card hidden until there is news. Words
+        // are PLACEHOLDERS for him to rewrite. The chart maker (Shift Jam > Objectives > Land Sticker Chart) adds a missing
+        // zone by its id and fills an empty step Room, and never overwrites what he wrote.
+
+        [Header("The objective card: hidden until there is news (D-0224)")]
+        [Tooltip("OFF SWITCH: ticked, the card is the always-on card of D-0220 (shown all the time in play, outside menus).")]
+        public bool cardAlwaysOn;
+        [Tooltip("Seconds the card stays once it slides in: entering a zone, New Game's goal, a step done (counted after its tick and the next step's slide), a star, the stall nudge, Gap, Pit or Dab saying the step.")]
+        [Min(0.5f)] public float showSeconds = 5f;
+        [Tooltip("The card's star line in a zone: {0} = its stars held, {1} = how many it has, {2} = the zone's name. Outside every zone the Counter Format (all the stars) shows.")]
+        public string zoneCounterFormat = "{0} / {1}  {2}";
+        [Tooltip("The card's small last line on the keyboard: where the chart is. Empty = no line.")] public string hintKeys = "Tab: Sticker Chart";
+        [Tooltip("The same on a pad while Pad Peek is ticked. Empty = no line.")] public string hintPad = "D-pad up: Sticker Chart";
+        [Tooltip("The same on a pad while Pad Peek is unticked (the pause menu's Sticker Chart). Empty = no line.")] public string hintPadPause = "Start: Sticker Chart";
+
+        [Header("The Sticker Chart (D-0224)")]
+        [Tooltip("OFF SWITCH: unticked, no chart (no Tab peek, no pause menu slab, no hint line on the card); zones are still tracked and saved.")]
+        public bool chartOn = true;
+        [Tooltip("Hold the pad's D-pad up to peek, as Tab does. OFF by default: D-pad up held past 0.35 s is the LIGHT key (takes the flashlight out, or flips it; PlayerInput), and a quick tap is the next ammo where a gun has two kinds (the Colour Corner's paint; AmmoBelt). Ticked, a peek longer than 0.35 s also works the light. The pause menu's Sticker Chart works on a pad either way.")]
+        public bool padPeek;
+        [Tooltip("The chart's heading.")] public string chartTitle = "STICKER CHART";
+        [Tooltip("The chart's last line when it is the pause menu's page. Empty = no line.")] public string chartBackHint = "Esc / B: back";
+        [Tooltip("Said in place of a star's name until its zone is visited, and in place of the zone's name when Hide Unvisited Names is ticked.")]
+        public string unknownWord = "???";
+        [Tooltip("Ticked: a zone not visited yet shows the Unknown Word as its name too. Unticked: its name shows, its stars say the Unknown Word.")]
+        public bool hideUnvisitedNames;
+        [Tooltip("The pause menu's slab that opens the chart. Its second line is the End Card Format (stars held of all).")] public string chartSlabWords = "Sticker Chart";
+        [Tooltip("Where that slab sits on the pause menu's model, metres up from the menu's middle (Resume is at 0.24, the slabs 0.16 apart).")]
+        public float chartSlabUp = 0.40f;
+        [Tooltip("The title's save slot line adds this after the room, size and date. {0} = that slot's stars, {1} = how many there are. Empty = nothing added.")]
+        public string slotStarsFormat = "{0} / {1} stars";
+
+        [Header("Zones (D-0224)")]
+        [Tooltip("The chart's rows, in Order. A house zone's box is its arrival card's trigger (same id) or a ZoneBox the chart maker places; a Whole Scene zone is its scene. Visited is saved per save slot as zone:<id>.")]
+        public ChartZone[] zones = ChartWords.DefaultZones();
+        [Tooltip("The chart maker's window zone: room left round the sill's own box, across and in depth, in the world.")]
+        [Min(0f)] public float windowZoneMargin = 4f;
+        [Tooltip("The chart maker's window zone: how far over the sill's top the box reaches (a kid stands about 60 high).")]
+        [Min(1f)] public float windowZoneHeadroom = 70f;
+        [Tooltip("The chart maker's bedroom zone: how much bigger than the bedroom's walls, floor and ceiling the box is, all round.")]
+        [Min(0f)] public float bedroomZoneGrow = 1f;
 
         /// <summary>True for the kinds the maker wires to an ObjectiveHook.</summary>
         public static bool IsHook(ObjectiveEvent e) => e >= ObjectiveEvent.CoreUsed && e <= ObjectiveEvent.LampWoken;

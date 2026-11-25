@@ -8,6 +8,7 @@ namespace ShiftJam
     /// of what to do, words on ObjectiveSet > Arrivals under this Id); ObjectiveHelpers shows it once the way is clear
     /// (no other big card, menu, camera move or Flat Zone). Another player's copy online never asks, and nothing shows
     /// online (as D-0220). On the Ignore Raycast layer, so aim and sight never stop on the box.
+    /// Its box is also its room's ZONE box (D-0224, the Sticker Chart): the zone on ObjectiveSet > Zones with the same id.
     /// </summary>
     [RequireComponent(typeof(BoxCollider))]
     public sealed class ArrivalCard : MonoBehaviour
@@ -21,6 +22,8 @@ namespace ShiftJam
 
         private void Reset() => GetComponent<BoxCollider>().isTrigger = true;
         private void Awake() => GetComponent<BoxCollider>().isTrigger = true;
+        private void OnEnable() => ZoneBox.Track(this, id, GetComponent<BoxCollider>());   // its room's zone box (D-0224)
+        private void OnDisable() => ZoneBox.Untrack(this);
 
         private void OnTriggerEnter(Collider other)
         {

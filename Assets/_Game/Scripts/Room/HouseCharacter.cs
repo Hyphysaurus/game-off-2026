@@ -190,6 +190,8 @@ namespace ShiftJam
             UpdateMark();
             if (line == null) return;
             Toasts.ShowFor(who, line, ToastKind.Tip, string.IsNullOrWhiteSpace(characterName) ? null : characterName);
+            // Saying the step brings the objective card in (D-0224), on that player's own screen only.
+            if (line == StepLine(out _) && who.GetComponentInParent<ShiftCharge>() is ShiftCharge charge && charge.HasHud) ObjectiveHud.Show();
             Gesture(TalkHash);
             float now = Time.time;
             _talker = who.transform;

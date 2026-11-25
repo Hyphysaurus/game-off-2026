@@ -4142,3 +4142,30 @@
   measured the case from every glass material (the chute's cap and the lamps too) and skipped the body that holds the
   floor; it now uses the body's own glass and keeps the body for the floor. Maker for D-0222 and D-0223: Shift Jam >
   House > Land Bedroom Monsters; re-run it after Land Start Room Toys. **NOT PLAYED.**
+- **D-0224 (25 Nov 2026, 15:2x) The Sticker Chart (the journal / quest guide) and the objective card hidden until there is
+  news.** His "make sure its hidden until its toasted or prompted within each specific zone" and "it should be linked to
+  a journal or quest guide"; the chart is the objectives brainstorm's Sticker Chart (Mario lens: the progress screen).
+  - **Zones** (`Room/ChartWords.cs`, `Room/ZoneBox.cs`): Bedroom, Hallway, Playroom, Wardrobe, Window, Downstairs (Greybox
+    boxes: the four arrival triggers plus two no-card boxes the maker places for the bedroom and the window sill; the
+    smallest box holding the player wins), Raceway and Colour Corner (their whole scenes). Steps gained a room. A zone is
+    visited when first entered, saved per slot (`zone:<id>`); the bedroom from the start.
+  - **The chart** (`UI/StickerChart.cs`): a row per zone with its name and count, its steps (ticked, an arrow on the
+    current one) and its gold stars (filled when earned, empty with the name once visited, "???" before). Hold **Tab** to
+    peek (the game keeps running), or the new **Sticker Chart** slab above Resume in the pause menu (Esc / B back). Not on
+    the title, in the opening, Build Mode, a team match or online (Tab stays the online scoreboard).
+  - **The card** (`UI/ObjectiveHud.cs`): hidden until news (a zone entered, New Game's goal line, a step done, a star, the
+    nudge, Gap / Pit / Dab giving the step), 5 s each time; it shows the current zone's stars and the hint "Tab: Sticker
+    Chart" ("Start: Sticker Chart" on a pad). The title's save slots end with "n / 10 stars". The H sheet lists Tab.
+  - **The pad:** D-pad up was NOT free (a 0.35 s hold is the flashlight, a tap the next ammo), so Pad Peek is off by
+    default and a pad reaches the chart through the pause menu. His call: keep that, or tick ObjectiveSet > Pad Peek (the
+    light then also comes on during a long peek).
+  - The HUD font has no star character: stars are the HUD's star sprite. Maker: Shift Jam > Objectives > Land Sticker
+    Chart (D-0224). Off: ObjectiveSet > Chart On; Card Always On brings back the always-shown card. **NOT PLAYED.**
+- **D-0225 (25 Nov 2026, 15:2x) His Asset Store imports kept safe in the public repo.** Artificer, Asset Inventory 4,
+  KINEMATION (Magic Animation Blend) and Magica Cloth 2 are git-ignored (DOTween Pro and Grabbit 2 sit under the ignored
+  /Assets/Plugins/). Grabbit 2's bootstrap writes his licence key into the Jungle registry address in
+  `Packages/manifest.json`, `Packages/packages-lock.json` and `ProjectSettings/PackageManagerSettings.asset` on every
+  editor load, so the key cannot be kept out of those files: the `junglekey` clean filter (.gitattributes + .git/config)
+  stores the plain address in commits, and a local pre-commit hook refuses any commit that would still add the key
+  (tested). DOTween Pro's import switched on every add-on; EPO Outline, 2D Toolkit, DeAudio and DeUnityExtended (none
+  installed) broke compiling and are off again on every platform.

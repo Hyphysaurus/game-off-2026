@@ -163,7 +163,7 @@ namespace ShiftJam
             {
                 bool has = SaveGame.TryLoad(i, out var d);
                 var label = _slots[i].GetComponentInChildren<TMP_Text>();
-                label.text = $"<b>Slot {i + 1}</b>   " + (has ? $"{Pretty(d.room)} · {(d.size == ShiftSize.Toy ? "toy" : "kid")} · {d.when}" : "<alpha=#88>empty");
+                label.text = $"<b>Slot {i + 1}</b>   " + (has ? $"{Pretty(d.room)} · {(d.size == ShiftSize.Toy ? "toy" : "kid")} · {d.when}{SlotStars(i)}" : "<alpha=#88>empty");
                 _slots[i].GetComponent<Image>().color = i == SaveGame.Slot ? new Color(0.35f, 0.85f, 1f, 0.35f) : new Color(1f, 1f, 1f, 0.08f);
             }
             _continue.interactable = SaveGame.Has(SaveGame.Slot);
@@ -364,11 +364,21 @@ namespace ShiftJam
             _model.SetWords("Btn_PlaygroundBack", "Back");
         }
 
-        /// <summary>A save slot's line: the room, the size and when ("Bedroom · toy · 24 Nov 13:46"); "empty" without a save.</summary>
+        /// <summary>A save slot's line: the room, the size and when ("Bedroom · toy · 24 Nov 13:46"), then its gold stars
+        /// (D-0224); "empty" without a save.</summary>
         private static string SlotLine(int slot)
         {
             if (slot < 0 || !SaveGame.TryLoad(slot, out var d)) return "empty";
-            return Pretty(d.room) + " · " + (d.size == ShiftSize.Toy ? "toy" : "kid") + " · " + d.when;
+            return Pretty(d.room) + " · " + (d.size == ShiftSize.Toy ? "toy" : "kid") + " · " + d.when + SlotStars(slot);
+        }
+
+        /// <summary>" · 3 / 10 stars" for a slot (ObjectiveSet > Slot Stars Format, in words: the HUD font has no star
+        /// letter, and the menu's own font is not sure to), or "" when the format is empty or the objectives are off (D-0224).</summary>
+        private static string SlotStars(int slot)
+        {
+            ObjectiveSet set = Objectives.Set;
+            if (!set.on || string.IsNullOrWhiteSpace(set.slotStarsFormat) || Objectives.StarTotal == 0) return "";
+            return " · " + Objectives.Format(set.slotStarsFormat, Objectives.StarsInSlot(slot), Objectives.StarTotal);
         }
 
         /// <summary>The model's driver says a control was chosen.</summary>

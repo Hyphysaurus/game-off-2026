@@ -32,6 +32,7 @@ MonoBehaviour:
       - Room/ToyBox/ShiftCore
       scene: Greybox
       needed: 1
+    room: Bedroom
   - id: little-door
     text: 'Open the little door: the switch on the shelf'
     target: 
@@ -41,6 +42,7 @@ MonoBehaviour:
       - Room/Bedroom/ShelfSwitch
       scene: Greybox
       needed: 1
+    room: Bedroom
   - id: through-door
     text: Go through the little door
     target: Room/Bedroom/Goal
@@ -55,6 +57,7 @@ MonoBehaviour:
       - Room/Course/R3_SkirtingRun/CP_start
       scene: Greybox
       needed: 1
+    room: Bedroom
   - id: tall-end
     text: Follow the hallway to its tall end
     target: 
@@ -64,6 +67,7 @@ MonoBehaviour:
       - Room/Course/R3_SkirtingRun/CP_tall
       scene: Greybox
       needed: 1
+    room: Hallway
   - id: core-a
     text: 'Grow: the core in the army fort'
     target: 
@@ -73,6 +77,7 @@ MonoBehaviour:
       - Room/Course/R4_Playroom/CoreA_Grow
       scene: Greybox
       needed: 1
+    room: Playroom
   - id: safe
     text: Lift the safe off the wardrobe hole
     target: 
@@ -82,6 +87,7 @@ MonoBehaviour:
       - Room/Course/R4_Playroom/Safe
       scene: Greybox
       needed: 1
+    room: Playroom
   - id: core-b
     text: 'Shrink: the core on the desk'
     target: 
@@ -91,6 +97,7 @@ MonoBehaviour:
       - Room/Course/R4_Playroom/CoreB_Shrink
       scene: Greybox
       needed: 1
+    room: Playroom
   - id: wardrobe
     text: Go into the hole under the wardrobe
     target: Room/Course/R4_Playroom/WardrobeHole
@@ -105,6 +112,7 @@ MonoBehaviour:
       - Room/Course/R5_Wardrobe/CP_start
       scene: Greybox
       needed: 1
+    room: Playroom
   - id: core-c
     text: 'Grow: the core at the top'
     target: Room/Course/R5_Wardrobe/CoreC_Grow
@@ -119,6 +127,7 @@ MonoBehaviour:
       - Room/Course/R5_Wardrobe/TopPortal
       scene: Greybox
       needed: 1
+    room: Wardrobe
   - id: sill
     text: Get onto the window sill
     target: 
@@ -128,6 +137,7 @@ MonoBehaviour:
       - Room/Course/R6_Window/Goal
       scene: Greybox
       needed: 1
+    room: Window
   stars:
   - id: light-bedroom
     title: Light up the bedroom
@@ -330,3 +340,78 @@ MonoBehaviour:
   landingLightHeight: 22
   landingLightRange: 70
   landingLightIntensity: 250
+  cardAlwaysOn: 0
+  showSeconds: 5
+  zoneCounterFormat: '{0} / {1}  {2}'
+  hintKeys: 'Tab: Sticker Chart'
+  hintPad: 'D-pad up: Sticker Chart'
+  hintPadPause: 'Start: Sticker Chart'
+  chartOn: 1
+  padPeek: 0
+  chartTitle: STICKER CHART
+  chartBackHint: 'Esc / B: back'
+  unknownWord: ???
+  hideUnvisitedNames: 0
+  chartSlabWords: Sticker Chart
+  chartSlabUp: 0.4
+  slotStarsFormat: '{0} / {1} stars'
+  zones:
+  - id: bedroom
+    title: Bedroom
+    room: Bedroom
+    order: 0
+    scene: Greybox
+    wholeScene: 0
+    fromStart: 1
+  - id: hallway
+    title: Hallway
+    room: Hallway
+    order: 1
+    scene: Greybox
+    wholeScene: 0
+    fromStart: 0
+  - id: playroom
+    title: Playroom
+    room: Playroom
+    order: 2
+    scene: Greybox
+    wholeScene: 0
+    fromStart: 0
+  - id: wardrobe
+    title: Wardrobe
+    room: Wardrobe
+    order: 3
+    scene: Greybox
+    wholeScene: 0
+    fromStart: 0
+  - id: window
+    title: Window
+    room: Window
+    order: 4
+    scene: Greybox
+    wholeScene: 0
+    fromStart: 0
+  - id: downstairs
+    title: Downstairs
+    room: Downstairs
+    order: 5
+    scene: Greybox
+    wholeScene: 0
+    fromStart: 0
+  - id: raceway
+    title: Raceway
+    room: Raceway
+    order: 6
+    scene: Raceway
+    wholeScene: 1
+    fromStart: 0
+  - id: colour-corner
+    title: Colour Corner
+    room: Colour Corner
+    order: 7
+    scene: ColourCorner
+    wholeScene: 1
+    fromStart: 0
+  windowZoneMargin: 4
+  windowZoneHeadroom: 70
+  bedroomZoneGrow: 1

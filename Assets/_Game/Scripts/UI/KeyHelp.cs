@@ -130,7 +130,7 @@ namespace ShiftJam
             Line(sb, Kb("Block"), "Block (hold)", Pad("Block"));
             Line(sb, Kb("Holster"), "Put down what you hold; holster or draw the weapon", Pad("Holster"));
             Line(sb, "V", "First person on / off");
-            Line(sb, "Tab", "Online: scores (hold)");   // D-0118
+            Line(sb, "Tab", "Sticker Chart (hold); online: scores (hold)");   // D-0118, D-0224 (a pad opens the chart from the pause menu)
             if (!Application.isEditor) Line(sb, "F12", "Save a bug note with a screenshot (to send the developer)");
             sb.Append('\n');
             Header(sb, "GRAB (aim at a prop)");

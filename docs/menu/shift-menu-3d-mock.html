@@ -1,0 +1,460 @@
+<title>Shift Menu in 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Inter:wght@400;600&display=swap">
+<style>
+  /* Layout: one 3D stage (16:9) with a strip of switches above and four short notes below. */
+  :root {
+    color-scheme: dark;
+    --ink: #0a0812;
+    --room: #14101c;
+    --panel: #1d1730;
+    --line: #3a2d63;
+    --slab: #492393;
+    --cyan: #73f1ff;
+    --pink: #ff72cc;
+    --pale: #fff0fc;
+    --muted: #a99fc8;
+    --display: "Silkscreen", "Courier New", monospace;
+    --data: "VT323", "Courier New", monospace;
+    --body: "Inter", system-ui, sans-serif;
+  }
+  body {
+    background: var(--room); color: var(--pale); font-family: var(--body); font-size: 15px; line-height: 1.5;
+    padding-block: 20px 40px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(18px, 2.6vw, 26px); margin: 0; text-wrap: balance; }
+  .lede { margin: 0; color: var(--muted); max-width: 70ch; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .btn { font-family: var(--display); font-size: 13px; color: var(--pale); background: var(--panel); border: 2px solid var(--line); padding: 9px 14px; cursor: pointer; }
+  .btn[aria-pressed="true"] { background: var(--slab); box-shadow: inset 0 0 0 2px var(--cyan); }
+  .btn:focus-visible, canvas:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+  .keys { font-family: var(--data); font-size: 19px; color: var(--muted); }
+  .stage { position: relative; border: 2px solid var(--line); background: var(--ink); line-height: 0; }
+  canvas { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; touch-action: none; cursor: crosshair; }
+  .hint, .toast, .fail { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; line-height: 1.2; }
+  .hint { bottom: 2.2%; font-family: var(--data); font-size: clamp(13px, 1.7vw, 22px); color: var(--muted); }
+  .toast { top: 37%; font-family: var(--display); font-weight: 700; font-size: clamp(12px, 1.6vw, 20px); color: var(--pale); }
+  .toast span { background: var(--ink); border: 2px solid var(--pink); padding: 6px 14px; display: inline-block; }
+  .fail { top: 45%; font-family: var(--body); color: var(--pale); padding: 0 16px; }
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+  .note { border-left: 4px solid var(--line); padding: 2px 0 2px 12px; min-width: 0; }
+  .note h2 { font-family: var(--display); font-size: 13px; font-weight: 700; margin: 0 0 4px; color: var(--cyan); }
+  .note p { margin: 0; color: var(--muted); }
+  .fine { color: var(--muted); font-size: 13px; margin: 0; }
+</style>
+
+<div class="wrap">
+  <h1>The menu that shifts from 2D to 3D</h1>
+  <p class="lede">Second mock-up for the Shift Jam title menu. It opens flat, like the pixel title. Press F (or the Shift button) and the same menu pops out into 3D: the title turns out to be made of little blocks, the buttons are slabs hanging in the room, and darts stick where they land. Nothing here is in the game yet.</p>
+
+  <div class="bar">
+    <button id="gunBtn" class="btn" type="button" aria-pressed="false">Gun: Blaster (G)</button>
+    <button id="shiftBtn" class="btn" type="button" aria-pressed="false">Shift 2D / 3D (F)</button>
+    <button id="clearBtn" class="btn" type="button">Clear darts</button>
+    <button id="soundBtn" class="btn" type="button" aria-pressed="false">Sound off</button>
+    <span class="keys">click fires · drag stretches · arrows move · Enter fires · Esc goes back</span>
+  </div>
+
+  <div class="stage">
+    <canvas id="stage" tabindex="0" aria-label="3D menu mock-up"></canvas>
+    <div class="toast" id="toast" hidden><span id="toastText"></span></div>
+    <div class="hint" id="hint">click fires a dart · hold and pull to stretch · G swaps the gun · F shifts 2D / 3D</div>
+    <div class="fail" id="fail" hidden>This browser could not start 3D drawing here, so the scene cannot be shown.</div>
+  </div>
+
+  <div class="notes">
+    <div class="note"><h2>Room for the gun</h2><p>The gun sits in the bottom right corner and turns to follow your aim, so it never covers a button. The six buttons keep the middle to themselves.</p></div>
+    <div class="note"><h2>Shift is 2D to 3D</h2><p>It is one scene the whole time. In 2D it is seen dead flat through a very long lens. The shift pulls the camera in while the lens widens, so the menu keeps its size on screen and the depth appears around it.</p></div>
+    <div class="note"><h2>Depth you can see</h2><p>Buttons tilt and show their sides when hit, cast shadows on the wall, and the scene leans a little as you move the mouse. Missed darts stick in the wall.</p></div>
+    <div class="note"><h2>What the game would use</h2><p>Your Blender slabs, the game's own foam dart and the weapon pack's gun models. The shapes here are stand-ins made of boxes.</p></div>
+  </div>
+  <p class="fine">Lettering shapes and colours are the game's pixel title. Captions use a stand-in pixel font. Sounds are placeholders made in the browser.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var cv = document.getElementById("stage");
+  if (!window.THREE) { document.getElementById("fail").hidden = false; return; }
+  var renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true }); } catch (e) { document.getElementById("fail").hidden = false; return; }
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  var scene = new THREE.Scene(); scene.background = new THREE.Color(0x0d0916); scene.fog = new THREE.Fog(0x0d0916, 16, 34);
+  var camera = new THREE.PerspectiveCamera(40, 16 / 9, 0.1, 400); scene.add(camera);
+  function fit() { var w = cv.clientWidth || 960, h = cv.clientHeight || 540; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", fit);
+
+  // ---------- light and the room
+  var hemi = new THREE.HemisphereLight(0xcdbfff, 0x1a1030, 0.75); scene.add(hemi);
+  var flat = new THREE.AmbientLight(0xffffff, 0.9); scene.add(flat);   // 2D: everything lit evenly, as drawn
+  var sun = new THREE.DirectionalLight(0xfff0e0, 0.9); sun.position.set(-5, 8, 12); sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024); sun.shadow.camera.left = -12; sun.shadow.camera.right = 12; sun.shadow.camera.top = 9; sun.shadow.camera.bottom = -9; sun.shadow.camera.far = 40; sun.shadow.bias = -0.002;
+  scene.add(sun);
+  var wall = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), new THREE.MeshStandardMaterial({ color: 0x1c1430, roughness: 1 }));
+  wall.position.z = -2.6; wall.receiveShadow = true; scene.add(wall);
+  var floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), new THREE.MeshStandardMaterial({ color: 0x241836, roughness: 1 }));
+  floor.rotation.x = -Math.PI / 2; floor.position.y = -5.6; floor.receiveShadow = true; scene.add(floor);
+  // a few toy blocks standing about, for depth
+  [[-9.5, -4.6, -1.2, 2, 2, 2, 0x2d1f55], [-7.4, -5.0, -0.2, 1.2, 1.2, 1.2, 0x3a2470], [9.2, -4.4, -1.4, 2.4, 2.4, 2.4, 0x2a1c4e], [7.3, -5.05, 0.1, 1.1, 1.1, 1.1, 0x402a7a], [10.4, 2.2, -2.2, 1.6, 4, 0.6, 0x231740]].forEach(function (b) {
+    var m = new THREE.Mesh(new THREE.BoxGeometry(b[3], b[4], b[5]), new THREE.MeshStandardMaterial({ color: b[6], roughness: 0.9 }));
+    m.position.set(b[0], b[1], b[2]); m.rotation.y = b[0] * 0.13; m.castShadow = true; m.receiveShadow = true; scene.add(m);
+  });
+
+  // ---------- springs
+  function Spring(k, d) { this.x = 0; this.v = 0; this.t = 0; this.k = k; this.d = d; }
+  Spring.prototype.step = function (dt) { this.v += (-this.k * (this.x - this.t) - this.d * this.v) * dt; this.x += this.v * dt; };
+  function body() { return { ox: new Spring(240, 14), oy: new Spring(240, 14), oz: new Spring(200, 13), sq: new Spring(420, 14), tx: new Spring(190, 11), ty: new Spring(190, 11), rot: new Spring(210, 10), drop: new Spring(130, 15) }; }
+  function stepBody(b, dt) { for (var k in b) b[k].step(dt); }
+
+  // ---------- the title: every pixel of the game's lettering as a little block
+  var G = {
+    S: [".##########", "###########", "###........", "###........", "###########", "........###", "........###", "###########", "##########."],
+    H: ["###.....###", "###.....###", "###.....###", "###########", "###########", "###########", "###.....###", "###.....###", "###.....###"],
+    I: ["###", "###", "###", "###", "###", "###", "###", "###", "###"],
+    F: ["###########", "###########", "###........", "###........", "########...", "########...", "###........", "###........", "###........"],
+    T: ["###########", "###########", "....###....", "....###....", "....###....", "....###....", "....###....", "....###....", "....###...."]
+  };
+  var ROWS = [[5, 5], [5, 4], [4, 4], [4, 4], [4, 3], [3, 3], [3, 2], [2, 2], [2, 2]];
+  function ramp(c2, c3, c4, c5) { return { 2: c2, 3: c3, 4: c4, 5: c5 }; }
+  var R = {
+    rift: ramp(0x492393, 0xb24dff, 0xff72cc, 0xfff0fc), orb: ramp(0x6d28d9, 0x2896ff, 0x4dd9ff, 0xebfcff),
+    bounce: ramp(0xdc286e, 0xff8c26, 0xffc144, 0xfff4aa), wood: ramp(0x8c5a32, 0xcda064, 0xeece96, 0xfff4d6),
+    sunset: ramp(0x9000f0, 0xf00060, 0xff9678, 0xfff078), pink: ramp(0xaa145a, 0xff408c, 0xff8cb9, 0xffdce8),
+    cyan: ramp(0x0a6eb4, 0x33ccff, 0x96e6ff, 0xe6faff), yellow: ramp(0xc88200, 0xffd926, 0xffec82, 0xfffad7),
+    lime: ramp(0x288c1e, 0x80e640, 0xb9f582, 0xebffd2), orange: ramp(0xb0460a, 0xff8c26, 0xffbe64, 0xffecc8),
+    blue: ramp(0x183caa, 0x408cff, 0x8cc3ff, 0xe1f0ff), cream: ramp(0xbeaa78, 0xf5edd1, 0xfcf6e4, 0xffffff)
+  };
+  var PALS = [
+    { r: [R.rift, R.rift, R.rift, R.rift, R.rift], ink: 0x0a0812, rim: 0x73f1ff },
+    { r: [R.orb, R.orb, R.orb, R.orb, R.orb], ink: 0x0a0812, rim: 0xffd64d },
+    { r: [R.pink, R.cyan, R.yellow, R.lime, R.orange], ink: 0x0a0812, rim: 0xf5edd1 },
+    { r: [R.sunset, R.sunset, R.sunset, R.sunset, R.sunset], ink: 0x0a0812, rim: 0x10e0f0 },
+    { r: [R.blue, R.blue, R.cream, R.orange, R.orange], ink: 0x0a0812, rim: 0xf5edd1 },
+    { r: [R.bounce, R.bounce, R.bounce, R.bounce, R.bounce], ink: 0x0a0812, rim: 0x408cff },
+    { r: [R.wood, R.wood, R.wood, R.wood, R.wood], ink: 0x321c10, rim: 0xd63038 }
+  ];
+  var WORD = ["S", "H", "I", "F", "T"], V = 0.14, GAP = 3;
+  var things = [], letters = [], slabs = [], leaving = [];
+
+  function makeLetter(i, cxWorld, cyWorld) {
+    var g = G[WORD[i]], w = g[0].length, fill = {}, x, y, q;
+    for (y = 0; y < 9; y++) for (x = 0; x < w; x++) if (g[y].charAt(x) === "#") fill[x + "," + y] = y;
+    function ring(set) { var o = {}; for (var k in set) { var a = k.split(","), X = +a[0], Y = +a[1]; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var n = (X + dx) + "," + (Y + dy); if (!(n in set)) o[n] = 1; } } return o; }
+    var o1 = ring(fill), both = {}; for (q in fill) both[q] = 1; for (q in o1) both[q] = 1;
+    var o2 = ring(both), vox = [];
+    for (q in o2) vox.push({ k: q, role: "rim", d: 0.22 });
+    for (q in o1) vox.push({ k: q, role: "ink", d: 0.36 });
+    for (q in fill) vox.push({ k: q, role: "fill", row: fill[q], d: 0.52 });
+    var pos = [], nor = [], col = [], ranges = [];
+    vox.forEach(function (v) {
+      var a = v.k.split(","), X = +a[0], Y = +a[1];
+      var b = new THREE.BoxGeometry(V, V, v.d).toNonIndexed();
+      b.translate((X - (w - 1) / 2) * V, ((8 - Y) - 4) * V, v.d / 2 - 0.26);
+      var p = b.attributes.position.array, n = b.attributes.normal.array;
+      ranges.push({ start: pos.length / 3, count: p.length / 3, v: v, X: X, Y: Y });
+      for (var j = 0; j < p.length; j++) { pos.push(p[j]); nor.push(n[j]); col.push(1); }
+      b.dispose();
+    });
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
+    geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+    var mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, flatShading: true }));
+    mesh.castShadow = true;
+    var group = new THREE.Group(); group.add(mesh);
+    var box = new THREE.Mesh(new THREE.BoxGeometry((w + 4) * V, 13 * V, 0.6), new THREE.MeshBasicMaterial({ visible: false })); group.add(box);
+    scene.add(group);
+    var L = { kind: "letter", i: i, group: group, mesh: mesh, hitMesh: box, ranges: ranges, pal: 0, b: body(), rest: new THREE.Vector3(cxWorld, cyWorld, 0), w: (w + 4) * V, h: 13 * V, darts: [], flash: 0 };
+    box.userData.thing = L; paint(L); letters.push(L); things.push(L); return L;
+  }
+  var tmpC = new THREE.Color();
+  function paint(L) {
+    var p = PALS[L.pal], col = L.mesh.geometry.attributes.color, arr = col.array;
+    L.ranges.forEach(function (r) {
+      var hex = r.v.role === "rim" ? p.rim : r.v.role === "ink" ? p.ink : p.r[L.i][(r.X + r.Y) % 2 === 0 ? ROWS[r.v.row][0] : ROWS[r.v.row][1]];
+      tmpC.setHex(hex);
+      for (var j = r.start; j < r.start + r.count; j++) { arr[j * 3] = tmpC.r; arr[j * 3 + 1] = tmpC.g; arr[j * 3 + 2] = tmpC.b; }
+    });
+    col.needsUpdate = true;
+  }
+  (function () {
+    var total = 0, i; for (i = 0; i < 5; i++) total += G[WORD[i]][0].length; total += GAP * 4;
+    var x = -total * V / 2;
+    for (i = 0; i < 5; i++) { var w = G[WORD[i]][0].length; makeLetter(i, x + w * V / 2, 3.85); x += (w + GAP) * V; }
+  })();
+
+  // ---------- the buttons: slabs with cut corners, a plate behind for the frame, the caption on the face
+  var PAGES = {
+    main: [
+      { cap: "Continue", sub: "Slot 1 · Bedroom · toy · 24 Nov 13:46", say: "Continue: back into the bedroom as the toy" },
+      { cap: "New Game", go: "saves" }, { cap: "Online", go: "online" }, { cap: "Playground", go: "playground" },
+      { cap: "Options", say: "Options: the game's own options panel opens here" }, { cap: "Quit", say: "Quit" }
+    ],
+    saves: [
+      { cap: "Slot 1", sub: "Bedroom · toy · 24 Nov 13:46", active: true, say: "Slot 1 chosen" }, { cap: "Slot 2", sub: "empty", say: "Slot 2 chosen: a new game starts here" },
+      { cap: "Slot 3", sub: "empty", say: "Slot 3 chosen: a new game starts here" }, { cap: "Back", go: "main", small: true }
+    ],
+    online: [
+      { cap: "Quick Play", sub: "join a friend's world, or start one", say: "Quick Play" }, { cap: "Parties", sub: "the list of open worlds", say: "Parties: the party list opens here" },
+      { cap: "Name: Player", sub: "what others see online", say: "Your name online is typed here" }, { cap: "Back", go: "main", small: true }
+    ],
+    playground: [
+      { cap: "Workshop", sub: "build and test", say: "Workshop" }, { cap: "Raceway", sub: "cars", say: "Raceway" },
+      { cap: "Colours", sub: "paint darts", say: "Colour Corner" }, { cap: "Back", go: "main", small: true }
+    ]
+  };
+  function cutShape(w, h, c) { var s = new THREE.Shape(); s.moveTo(-w / 2 + c, -h / 2); s.lineTo(w / 2 - c, -h / 2); s.lineTo(w / 2, -h / 2 + c); s.lineTo(w / 2, h / 2 - c); s.lineTo(w / 2 - c, h / 2); s.lineTo(-w / 2 + c, h / 2); s.lineTo(-w / 2, h / 2 - c); s.lineTo(-w / 2, -h / 2 + c); s.closePath(); return s; }
+  function caption(it, w, h) {
+    var c = document.createElement("canvas"); c.width = 1024; c.height = Math.round(1024 * h / w);
+    var k = c.getContext("2d"); k.textAlign = "center"; k.textBaseline = "middle"; k.fillStyle = "#fff0fc";
+    k.font = "700 " + Math.round(c.height * (it.sub ? 0.36 : 0.44)) + "px Silkscreen, 'Courier New', monospace"; k.fillText(it.cap, c.width / 2, c.height * (it.sub ? 0.36 : 0.52));
+    if (it.sub) { k.font = Math.round(c.height * 0.27) + "px VT323, 'Courier New', monospace"; k.fillStyle = "#cfc3f2"; k.fillText(it.sub, c.width / 2, c.height * 0.74); }
+    var t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
+  }
+  var now = 0, page = "main", selected = 0;
+  function makeSlab(it, y, order, dir) {
+    var h = it.sub ? 1.0 : 0.82, w = it.small ? 3.4 : 6.4, depth = 0.34;
+    var group = new THREE.Group();
+    var faceGeo = new THREE.ExtrudeGeometry(cutShape(w, h, 0.1), { depth: depth, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 1 });
+    faceGeo.translate(0, 0, -depth / 2);
+    var face = new THREE.Mesh(faceGeo, new THREE.MeshStandardMaterial({ color: 0x492393, roughness: 0.5, emissive: 0x2a0e6e, emissiveIntensity: 0.25 }));
+    face.castShadow = true; face.receiveShadow = true; group.add(face);
+    var plate = new THREE.Mesh(new THREE.ExtrudeGeometry(cutShape(w + 0.4, h + 0.4, 0.22), { depth: 0.1, bevelEnabled: false }), new THREE.MeshStandardMaterial({ color: 0x0a0812, roughness: 0.6 }));
+    plate.position.z = -depth / 2 - 0.12; plate.castShadow = true; group.add(plate);
+    var words = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.94, h * 0.94), new THREE.MeshBasicMaterial({ map: caption(it, w, h), transparent: true, depthWrite: false }));
+    words.position.z = depth / 2 + 0.07; group.add(words);
+    scene.add(group);
+    var s = { kind: "slab", it: it, group: group, face: face, plate: plate, words: words, hitMesh: face, b: body(), rest: new THREE.Vector3(0, y - h / 2, 0), w: w, h: h, darts: [], born: now + order * 0.05 };
+    s.b.drop.x = dir * 9; s.b.drop.t = s.b.drop.x; face.userData.thing = s; things.push(s); return { s: s, h: h };
+  }
+  function build(name, dir) {
+    var list = PAGES[name], y = 2.3, out = [];
+    for (var i = 0; i < list.length; i++) { var m = makeSlab(list[i], y, i, dir); out.push(m.s); y -= m.h + 0.2; }
+    return out;
+  }
+  function retire(s) { scene.remove(s.group); var at = things.indexOf(s); if (at >= 0) things.splice(at, 1); s.group.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
+  function goTo(name) {
+    if (!PAGES[name]) return;
+    slabs.forEach(function (s, i) { s.gone = now + i * 0.03; leaving.push(s); });
+    page = name; slabs = build(name, 1); selected = 0;
+  }
+
+  // ---------- darts and the two guns
+  function makeDart(small) {
+    var g = new THREE.Group(), k = small ? 0.7 : 1;
+    var shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.075 * k, 0.075 * k, 0.62 * k, 10), new THREE.MeshStandardMaterial({ color: 0xff8c26, roughness: 0.8 }));
+    shaft.rotation.x = Math.PI / 2; shaft.position.z = 0.31 * k; shaft.castShadow = true; g.add(shaft);
+    var tip = new THREE.Mesh(new THREE.CylinderGeometry(0.11 * k, 0.09 * k, 0.12 * k, 10), new THREE.MeshStandardMaterial({ color: 0x33ccff, roughness: 0.5 }));
+    tip.rotation.x = Math.PI / 2; tip.position.z = -0.04 * k; g.add(tip);
+    return g;   // it points along -Z
+  }
+  function boxAt(parent, w, h, d, x, y, z, color) { var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: color, roughness: 0.6 })); m.position.set(x, y, z); parent.add(m); return m; }
+  var gunRig = new THREE.Group(); camera.add(gunRig);
+  var blaster = new THREE.Group(), lmg = new THREE.Group(); gunRig.add(blaster); gunRig.add(lmg);
+  boxAt(blaster, 0.34, 0.42, 1.25, 0, 0, 0.5, 0x33ccff); boxAt(blaster, 0.3, 0.6, 0.34, 0, -0.42, 0.12, 0x0a6eb4); boxAt(blaster, 0.4, 0.48, 0.2, 0, 0, 1.2, 0xff8c26); boxAt(blaster, 0.12, 0.12, 0.5, 0, 0.27, 0.5, 0xfff0fc);
+  boxAt(lmg, 0.46, 0.5, 1.5, 0, 0, 0.4, 0xffd926); boxAt(lmg, 0.24, 0.24, 1.3, 0, 0.02, 1.75, 0x33ccff); boxAt(lmg, 0.34, 0.34, 0.18, 0, 0.02, 2.45, 0xff8c26);
+  boxAt(lmg, 0.56, 0.5, 0.56, 0, -0.5, 0.55, 0xff408c); boxAt(lmg, 0.3, 0.56, 0.3, 0, -0.44, -0.1, 0xc88200); boxAt(lmg, 0.5, 0.14, 0.14, 0, 0.32, 0.3, 0xfff0fc);
+  boxAt(lmg, 0.07, 0.6, 0.07, 0.22, -0.32, 1.7, 0x0a6eb4); boxAt(lmg, 0.07, 0.6, 0.07, -0.22, -0.32, 1.7, 0x0a6eb4);
+  var muzzleB = new THREE.Object3D(); muzzleB.position.set(0, 0, 1.35); blaster.add(muzzleB);
+  var muzzleL = new THREE.Object3D(); muzzleL.position.set(0, 0.02, 2.6); lmg.add(muzzleL);
+  lmg.visible = false;
+  var gun = "blaster", spraying = false, sprayAt = 0, kick = 0, flying = [];
+
+  // ---------- state, sound, helpers
+  var shifted = false, view = new Spring(60, 12), pulse = 0, sweep = 0, depthNow = 0.06;   // view: 0 = 2D, 1 = 3D
+  var mouse = { nx: 0, ny: -0.3, on: false, down: false }, press = null, drag = null, aim = new THREE.Vector3(0, 0, 0);
+  var ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
+  var sound = false, ac = null, toastUntil = 0;
+  function tone(f0, f1, dur, type, vol) {
+    if (!sound) return;
+    try {
+      if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+      var o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime;
+      o.type = type || "sine"; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
+      g.gain.setValueAtTime(vol || 0.12, t); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) { sound = false; }
+  }
+  function say(text) { document.getElementById("toastText").textContent = text; document.getElementById("toast").hidden = false; toastUntil = now + 2.2; }
+  function pick() {
+    ndc.set(mouse.nx, mouse.ny); ray.setFromCamera(ndc, camera);
+    var meshes = things.filter(function (t) { return !t.gone; }).map(function (t) { return t.hitMesh; });
+    var hits = ray.intersectObjects(meshes, false);
+    if (hits.length) return { thing: hits[0].object.userData.thing, point: hits[0].point.clone() };
+    var w = ray.intersectObject(wall, false);
+    return { thing: null, point: w.length ? w[0].point.clone() : ray.ray.at(14, new THREE.Vector3()) };
+  }
+  function choose(s) { tone(700, 1200, 0.09, "square", 0.05); if (s.it.go) goTo(s.it.go); else if (s.it.say) say(s.it.say); }
+  function knock(o, lx, ly, power) {
+    var b = o.b;
+    b.sq.v -= 9 * power; b.ty.v += (lx / (o.w / 2)) * 8 * power; b.tx.v += (ly / (o.h / 2)) * 6 * power; b.oz.v -= 5 * power;
+    b.rot.v += (lx / (o.w / 2)) * 1.5 * power * (o.kind === "letter" ? 1 : 0.2);
+    var list = o.kind === "letter" ? letters : slabs, at = list.indexOf(o);
+    for (var d = -1; d <= 1; d += 2) { var n = list[at + d]; if (n) { n.b.sq.v -= 3 * power; if (o.kind === "letter") n.b.ox.v += d * 1.6 * power; else n.b.oz.v -= 1.6 * power; } }
+  }
+  function shiftLetter(L) { L.pal = (L.pal + 1) % PALS.length; paint(L); L.flash = 1; }
+  function fire(target, isLmg) {
+    var m = isLmg ? muzzleL : muzzleB, from = m.getWorldPosition(new THREE.Vector3());
+    var d = makeDart(isLmg); scene.add(d);
+    flying.push({ mesh: d, from: from, to: target.point.clone(), t: 0, dur: (isLmg ? 0.07 : 0.11) + from.distanceTo(target.point) / 160, thing: target.thing, lmg: !!isLmg });
+    kick = 1; if (isLmg) tone(520, 240, 0.045, "square", 0.03); else tone(900, 300, 0.07, "square", 0.04);
+  }
+  function land(f) {
+    var dir = tmp.copy(f.to).sub(f.from).normalize(), o = f.thing;
+    if (o && !o.gone) {
+      var local = o.group.worldToLocal(f.to.clone());
+      o.group.add(f.mesh); f.mesh.position.copy(local); f.mesh.position.z += 0.02;
+      var q = o.group.getWorldQuaternion(new THREE.Quaternion()).invert();
+      f.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), dir.clone().applyQuaternion(q));
+      o.darts.push(f.mesh); if (o.darts.length > 14) { var old = o.darts.shift(); o.group.remove(old); }
+      knock(o, local.x, local.y, f.lmg ? 0.4 : 1);
+      if (f.lmg) { tone(150, 80, 0.05, "triangle", 0.08); if (o.kind === "letter") shiftLetter(o); return; }   // the LMG only plays
+      tone(190, 70, 0.14, "triangle", 0.2);
+      if (o.kind === "letter") { shiftLetter(o); tone(320, 560, 0.18, "sine", 0.1); }
+      else setTimeout(function () { if (slabs.indexOf(o) >= 0) choose(o); }, 170);
+    } else {
+      f.mesh.position.copy(f.to); f.mesh.lookAt(tmp2.copy(f.to).sub(dir));
+      wallDarts.push(f.mesh); if (wallDarts.length > 40) scene.remove(wallDarts.shift());
+      tone(120, 60, 0.08, "triangle", 0.1);
+    }
+  }
+  var wallDarts = [];
+  function swapGun() {
+    gun = gun === "blaster" ? "lmg" : "blaster"; spraying = false; press = null; drag = null;
+    blaster.visible = gun === "blaster"; lmg.visible = gun === "lmg";
+    var b = document.getElementById("gunBtn"); b.textContent = gun === "lmg" ? "Gun: Dart LMG (G)" : "Gun: Blaster (G)"; b.setAttribute("aria-pressed", gun === "lmg" ? "true" : "false");
+    document.getElementById("hint").textContent = gun === "lmg" ? "hold to spray · G back to the blaster · F shifts 2D / 3D" : "click fires a dart · hold and pull to stretch · G swaps the gun · F shifts 2D / 3D";
+    say(gun === "lmg" ? "Dart LMG: hold to spray" : "Blaster: one dart a click");
+  }
+  function doShift() {
+    shifted = !shifted; view.t = shifted ? 1 : 0; pulse = 1; tone(180, 880, 0.35, "sawtooth", 0.06);
+    letters.forEach(function (L, i) { setTimeout(function () { shiftLetter(L); L.b.sq.v -= 8; L.b.oy.v += 3; }, i * 70); });
+    slabs.forEach(function (s) { s.b.sq.v -= 5; });
+    document.getElementById("shiftBtn").setAttribute("aria-pressed", shifted ? "true" : "false");
+    say(shifted ? "Shifted to 3D" : "Back to 2D");
+  }
+
+  // ---------- input
+  function setMouse(e) { var r = cv.getBoundingClientRect(); mouse.nx = ((e.clientX - r.left) / r.width) * 2 - 1; mouse.ny = -(((e.clientY - r.top) / r.height) * 2 - 1); mouse.on = true; }
+  function onPlane(z) { ndc.set(mouse.nx, mouse.ny); ray.setFromCamera(ndc, camera); plane.constant = -z; return ray.ray.intersectPlane(plane, new THREE.Vector3()); }
+  cv.addEventListener("pointermove", function (e) {
+    var px = mouse.nx, py = mouse.ny; setMouse(e);
+    var p = pick(); if (p.thing && p.thing.kind === "slab" && !drag) selected = slabs.indexOf(p.thing);
+    var speed = Math.hypot(mouse.nx - px, mouse.ny - py);
+    if (p.thing && !drag && speed > 0.02) { p.thing.b.ox.v += (mouse.nx - px) * 26; p.thing.b.rot.v += (mouse.nx - px) * 6; p.thing.b.sq.v -= 0.5; }   // a brush with the cursor
+    if (press && press.thing) {
+      var at = onPlane(0);
+      if (at) { press.dx = at.x - press.sx; press.dy = at.y - press.sy; if (!drag && Math.hypot(press.dx, press.dy) > 0.12) { drag = press; press.thing.b.sq.v -= 5; cv.style.cursor = "grabbing"; } }
+    }
+  });
+  cv.addEventListener("pointerleave", function () { mouse.on = false; });
+  cv.addEventListener("pointerdown", function (e) {
+    cv.focus(); setMouse(e); mouse.down = true;
+    try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+    if (gun === "lmg") { spraying = true; sprayAt = 0; return; }
+    var p = pick(), at = onPlane(0);
+    press = { thing: p.thing, point: p.point, sx: at ? at.x : 0, sy: at ? at.y : 0, dx: 0, dy: 0 };
+  });
+  function release() {
+    mouse.down = false; spraying = false; cv.style.cursor = "crosshair";
+    if (drag) {
+      var far = Math.hypot(drag.dx, drag.dy), o = drag.thing;
+      o.b.ox.x += rubber(drag.dx); o.b.oy.x += rubber(drag.dy); o.b.ox.v -= drag.dx * 4; o.b.oy.v -= drag.dy * 4;
+      tone(320, 560, 0.18, "sine", 0.1); knock(o, 0, 0, Math.min(1.3, 0.3 + far / 3));
+      if (o.kind === "letter" && far > 0.7) shiftLetter(o);
+    } else if (press) fire(pick(), false);
+    press = null; drag = null;
+  }
+  cv.addEventListener("pointerup", release);
+  cv.addEventListener("pointercancel", function () { mouse.down = false; spraying = false; press = null; drag = null; });
+  cv.addEventListener("keydown", function (e) {
+    var k = e.key;
+    if (k === "ArrowDown" || k === "ArrowUp") { selected = (selected + (k === "ArrowDown" ? 1 : slabs.length - 1)) % slabs.length; slabs[selected].b.sq.v -= 3; e.preventDefault(); }
+    else if (k === "Enter" || k === " ") { var s = slabs[selected]; fire({ thing: s, point: s.group.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0, 0.2)) }, false); e.preventDefault(); }
+    else if (k === "Escape" || k === "Backspace") { if (page !== "main") goTo("main"); e.preventDefault(); }
+    else if (k === "f" || k === "F") { doShift(); e.preventDefault(); }
+    else if (k === "g" || k === "G") { swapGun(); e.preventDefault(); }
+  });
+  document.getElementById("shiftBtn").addEventListener("click", doShift);
+  document.getElementById("gunBtn").addEventListener("click", swapGun);
+  document.getElementById("clearBtn").addEventListener("click", function () {
+    things.forEach(function (t) { t.darts.forEach(function (d) { t.group.remove(d); }); t.darts = []; });
+    wallDarts.forEach(function (d) { scene.remove(d); }); wallDarts = [];
+  });
+  document.getElementById("soundBtn").addEventListener("click", function () { sound = !sound; this.setAttribute("aria-pressed", sound ? "true" : "false"); this.textContent = sound ? "Sound on" : "Sound off"; if (sound) tone(700, 1200, 0.09, "square", 0.05); });
+  function rubber(v) { return 1.9 * Math.tanh(v / 1.9); }
+
+  // ---------- each frame
+  function place(o, i) {
+    var b = o.b, g = o.group, isDrag = drag && drag.thing === o;
+    var sel = o.kind === "slab" && !o.gone && slabs.indexOf(o) === selected;
+    var bob = reduce ? 0 : Math.sin(now * 1.5 + i * 0.8) * 0.035;
+    g.position.set(o.rest.x + b.ox.x + (isDrag ? rubber(drag.dx) : 0), o.rest.y + b.oy.x + b.drop.x + bob + (isDrag ? rubber(drag.dy) : 0), o.rest.z + (b.oz.x + (sel ? 0.28 : 0) + (isDrag ? 0.5 : 0)) * depthNow);
+    g.rotation.set(-b.tx.x * 0.1, b.ty.x * 0.1 + (isDrag ? drag.dx * 0.08 : 0), b.rot.x * 0.06 + (isDrag ? -drag.dx * 0.04 : 0));
+    var grow = sel ? 1.04 : 1, sx = isDrag ? 1 + Math.abs(drag.dx) * 0.06 : 1, sy = isDrag ? 1 + Math.abs(drag.dy) * 0.08 : 1;
+    g.scale.set(grow * sx * (1 + b.sq.x * 0.05), grow * sy * (1 - b.sq.x * 0.07), (1 - b.sq.x * 0.1) * depthNow);
+    if (o.kind === "slab") {
+      o.words.position.z = 0.22 + 0.03 / depthNow;   // the caption stays a hair in front of the face however thin the slab is pressed
+      o.face.material.color.setHex(sel ? 0x6a33d5 : 0x492393); o.face.material.emissiveIntensity = sel ? 0.6 : 0.25;
+      o.plate.material.color.setHex(sel ? 0x73f1ff : o.it.active ? 0xff72cc : 0x0a0812);
+      o.plate.material.emissive.setHex(sel ? 0x1a6a74 : 0x000000);
+      g.traverse(function (m) { if (m.material) { m.material.transparent = m === o.words || !!o.gone; if (o.gone) m.material.opacity = Math.max(0, 1 - b.drop.x / -8); } });
+    } else {
+      o.mesh.material.emissive.setHex(0xffffff); o.mesh.material.emissiveIntensity = o.flash * 0.5;
+    }
+  }
+  var last = performance.now();
+  function frame(t) {
+    var dt = Math.min(0.033, (t - last) / 1000); last = t; now += dt; sweep += dt;
+    var i, n;
+    for (n = 0; n < 2; n++) {
+      view.step(dt / 2);
+      for (i = 0; i < slabs.length; i++) { if (now >= slabs[i].born) slabs[i].b.drop.t = 0; stepBody(slabs[i].b, dt / 2); }
+      for (i = 0; i < leaving.length; i++) { if (now >= leaving[i].gone) leaving[i].b.drop.t = -9; stepBody(leaving[i].b, dt / 2); }
+      for (i = 0; i < letters.length; i++) stepBody(letters[i].b, dt / 2);
+    }
+    for (i = leaving.length - 1; i >= 0; i--) if (leaving[i].b.drop.x < -8.2) { retire(leaving[i]); leaving.splice(i, 1); }
+    for (i = 0; i < letters.length; i++) { letters[i].flash = Math.max(0, letters[i].flash - dt * 3); place(letters[i], i); }
+    for (i = 0; i < slabs.length; i++) place(slabs[i], i);
+    for (i = 0; i < leaving.length; i++) place(leaving[i], i);
+
+    // the camera: 2D is the same scene seen flat (a very long lens from far away, no lean, no shadows, everything pressed
+    // thin); the shift pulls the camera in while the lens widens, so the menu keeps its size and the depth appears.
+    var v = Math.max(0, Math.min(1.12, view.x)), mx = mouse.on ? mouse.nx : 0, my = mouse.on ? mouse.ny : 0;
+    depthNow = 0.06 + 0.94 * Math.min(1, v);
+    camera.fov = Math.max(4, 6 + 44 * v + pulse * 4);
+    var dist = 5.31 / Math.tan(camera.fov * Math.PI / 360);
+    camera.near = Math.max(0.1, dist * 0.25); camera.far = dist + 60; camera.updateProjectionMatrix();
+    scene.fog.near = dist + 1.5; scene.fog.far = dist + 22;
+    camera.position.set(mx * 1.0 * v, -0.25 - 1.3 * v + my * 0.5 * v, dist);
+    camera.lookAt(mx * 0.25 * v, -0.35 + 0.45 * v, 0);
+    sun.intensity = 0.9 * Math.min(1, v); hemi.intensity = 0.35 + 0.4 * Math.min(1, v); flat.intensity = 0.95 * (1 - Math.min(1, v));
+    pulse = Math.max(0, pulse - dt * 2.4);
+
+    // the gun: bottom right, turned to the aim
+    var p = pick(); aim.lerp(p.point, 0.4);
+    kick = Math.max(0, kick - dt * 12);
+    var gd = dist * 0.36, hh = Math.tan(camera.fov * Math.PI / 360) * gd, gs = hh / 1.9;   // the same place and size on the screen, whatever the lens
+    gunRig.scale.setScalar(gs);
+    gunRig.position.set(0.9 * hh * camera.aspect * 0.62, -0.74 * hh, -gd + kick * 0.22 * gs);
+    gunRig.lookAt(aim);
+    if (spraying && mouse.on) { sprayAt -= dt; while (sprayAt <= 0) { sprayAt += 0.07; var q = pick(); q.point.x += (Math.random() - 0.5) * 0.5; q.point.y += (Math.random() - 0.5) * 0.36; fire(q, true); } }
+    for (i = flying.length - 1; i >= 0; i--) {
+      var f = flying[i]; f.t += dt; var k = Math.min(1, f.t / f.dur);
+      f.mesh.position.lerpVectors(f.from, f.to, k); f.mesh.lookAt(tmp.copy(f.from).multiplyScalar(2).sub(f.to).add(f.mesh.position).sub(f.from));
+      if (k >= 1) { flying.splice(i, 1); land(f); }
+    }
+    if (toastUntil && now > toastUntil) { document.getElementById("toast").hidden = true; toastUntil = 0; }
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  function start() { fit(); slabs = build("main", 0); requestAnimationFrame(frame); }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+})();
+</script>

@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 19:1x — THE PLAYABLE MENU, STEP 1 (D-0197): ONE COLUMN ON PAGES + THE SHIFT FROM 2D TO 3D. IN HIS EDITOR, NOTHING OF IT SEEN
+- **Design settled by him on two mock-ups** (links in the session; sources `docs/menu/shift-playable-menu-mock.html`
+  and `shift-menu-3d-mock.html`): click = a dart that chooses, hold and pull = stretch, G = a dart LMG that only
+  plays, Shift = the menu goes from flat to 3D, the title's letters shift colours when hit.
+- **Built (step 1):** the paged model and its prefab; Main page = Continue, New Game, Online, Playground, Options,
+  Quit; Saves, Online and Playground one step in; captions drawn on the slabs; wide frames; Shift (or F, or the
+  pad's north button) takes the menu from flat to deep and back.
+- **HIS TO LOOK AT (Play from the title):** are the words on the slabs, the right way round and a good size; press
+  Shift: does the menu keep its size while the depth appears, does it lean with the mouse; mouse over and arrows;
+  New Game > the slots > Back; Online (the name field on its slab); Playground; Options and Parties over it; Esc.
+- **KNOWN:** the title art does not lean with the 3D view yet (it becomes five letters in the scene in step 4).
+- **NEXT (his order):** step 2 springy slabs and the grab; 3 darts and the two guns; 4 the title's letters; 6 sounds.
+
 ## 24 Nov 2026 18:2x — THE TITLE MENU WEARS THE BLENDER MODEL (D-0196): COMPILED BY UNITY, LAYOUT CHECKED IN BATCH, NOT PLAYED
 - **His "wire now, proceed".** `TitleMenu` now lays its buttons and text over the model's slabs, drawn by a camera
   of their own over the live room. Same actions and words. The old code-drawn menu is the fallback (delete
@@ -10,6 +23,11 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   keys and the stick (one bright, slightly larger slab at a time); Continue dim with an empty slot and plain with a
   save; the pink frame on the slot in use; Options and Parties open and come back; the title art, now half its old
   size (the model leaves it 600 by 280).
+- **18:19 SEEN IN PLAY (his "launch for me": I opened the editor and started Play; a capture of his screen,
+  `docs/stills/menu_model_in_play_1819.png`):** the slabs are drawn over the dimmed room and sit under the game's own
+  words; Continue is dim with the slot empty; Slot 1 has the pink frame; the button under the mouse (Online) is
+  bright with the cyan frame; the title, the name field, the hint and the version are in their places. NOT seen:
+  the arrow keys and the stick, Options and Parties over it, a narrow window, his verdict.
 - **For the next export (ChatGPT):** every control in its PLAIN look (Continue came with a black face; worked round
   with `MenuModel > Drawn Like`); frames thick enough to read (now 1 to 2 pixels); icons if wanted. Same names: no
   code change.

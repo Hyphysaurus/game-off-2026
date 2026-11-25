@@ -3668,3 +3668,31 @@
   - **NOT checked:** the camera stacked on the real game camera in Play, the real text, the mouse and the stick, the
     Options and Parties panels over it, a window narrower than 4:3.
   - Provenance: the menu meshes were made by ChatGPT through Blender Python (ITCH_PAGE says so).
+- **D-0197 (24 Nov 2026, 19:1x) The title menu, step 1 of the playable menu: one column on pages, and the shift from 2D to
+  3D.** His words on the first model menu: "we should enlarge the main title font, and im feeling its too cluttered";
+  on my two mock-ups "i like A but i do want something to make it stand out ... inspired by Mario 64 menu screen - the
+  interactivity is key", then "we should be distinct from mario 64 ... lets mockup first"; on the playable mock-ups
+  "lets do a combination of all three", "even cooler if we can switch into an LMG gun for the darts", "bonus if we
+  can make it 2.5D or 3D", "maybe we go from 2D to 3D when we hit Shift?", "this is great, let's go with this".
+  - **The whole design (mock-ups: `docs/menu/shift-menu-3d-mock.html`, the flat one beside it):** a click fires a
+    foam dart and the blaster's dart chooses a button; hold and pull stretches a button or a letter and never
+    chooses; G swaps to a dart LMG that only plays; Shift takes the menu from flat (2D) to deep (3D); the title's
+    letters shift colour sets when hit. Ours, not that game's: the darts and the shift are this game's own.
+  - **Built now (step 1):** the paged model `Art/Menu/Exports/ShiftJam_Menu_Pages.fbx`, made from ChatGPT's export by
+    `docs/tools/menu_pages.py` (Blender, headless): the same slabs three times as thick, a wide plate behind each as
+    its frame (the hairline frames could not show a selection), grouped under `Page_Main`, `Page_Saves`,
+    `Page_Online`, `Page_Playground`. `MenuModel` reads pages, draws each control's words itself (TextMesh Pro in
+    the world, riding the slab), and has the shift: FLAT, its camera is far off with a 4 degree lens and the slabs
+    are pressed to 8 % thick; DEEP, the camera comes in as the lens widens to 42 degrees, so the menu keeps its
+    size while its depth appears, and the view leans with the pointer. `MenuDriver` (new) is the mouse, keys and
+    pad on it. `TitleMenu` says what each control reads and does. `MenuSlab` is gone.
+  - **The menu's new order:** Main = Continue (its second line says which save), New Game, Online, Playground,
+    Options, Quit. Continue with one save loads it; with several it opens Saves to choose. New Game opens Saves to
+    choose the slot it starts in (a used slot says "starts over"). Online = Quick Play, Parties, the name field.
+    Playground = Workshop, Raceway, Colours. Esc / B goes back. The title art has 900 by 420 (12 pixels a pixel).
+  - **Checked:** compiled outside (editor and player) and in his editor; the prefab rebuilt; every control read back
+    through `MenuModel.Read` at the script's own places (Continue 0, 180, 600 by 78; Quit -300; pages right).
+  - **NOT checked: anything on the screen.** The words in the world (their size, which way they face), the shift's
+    camera, the mouse and the pad, the name field riding its slab: all unseen until Play.
+  - **Not built yet:** springy slabs and the grab (step 2), darts and the two guns (3), the title as five soft
+    letters that shift colour (4: until then the title art lies flat over the scene and does not lean), sounds (6).

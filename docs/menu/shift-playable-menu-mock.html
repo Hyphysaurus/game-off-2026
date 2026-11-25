@@ -1,0 +1,412 @@
+<title>Shift Playable Menu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Inter:wght@400;600&display=swap">
+<style>
+  /* Layout: one stage (the menu, 16:9) with a strip of switches above it and three short notes below. */
+  :root {
+    color-scheme: dark;
+    --ink: #0a0812;
+    --room: #14101c;
+    --panel: #1d1730;
+    --line: #3a2d63;
+    --slab: #492393;
+    --cyan: #73f1ff;
+    --pink: #ff72cc;
+    --pale: #fff0fc;
+    --muted: #a99fc8;
+    --display: "Silkscreen", "Courier New", monospace;
+    --data: "VT323", "Courier New", monospace;
+    --body: "Inter", system-ui, sans-serif;
+  }
+  body {
+    background: var(--room);
+    color: var(--pale);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.5;
+    padding-block: 20px 40px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(18px, 2.6vw, 26px); margin: 0; letter-spacing: 0.02em; text-wrap: balance; }
+  .lede { margin: 0; color: var(--muted); max-width: 70ch; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .seg { display: inline-flex; border: 2px solid var(--line); }
+  .seg button, .btn {
+    font-family: var(--display); font-size: 13px; color: var(--pale); background: var(--panel);
+    border: 0; padding: 9px 14px; cursor: pointer;
+  }
+  .btn { border: 2px solid var(--line); }
+  .seg button[aria-pressed="true"], .btn[aria-pressed="true"] { background: var(--slab); color: var(--pale); box-shadow: inset 0 0 0 2px var(--cyan); }
+  .seg button:focus-visible, .btn:focus-visible, canvas:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+  .keys { font-family: var(--data); font-size: 19px; color: var(--muted); }
+  .stage { border: 2px solid var(--line); background: var(--ink); line-height: 0; }
+  canvas { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; touch-action: none; cursor: none; }
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .note { border-left: 4px solid var(--line); padding: 2px 0 2px 12px; min-width: 0; }
+  .note h2 { font-family: var(--display); font-size: 13px; font-weight: 700; margin: 0 0 4px; color: var(--cyan); }
+  .note p { margin: 0; color: var(--muted); }
+  .fine { color: var(--muted); font-size: 13px; margin: 0; }
+</style>
+
+<div class="wrap">
+  <h1>A menu you can play with</h1>
+  <p class="lede">Mock-up for the Shift Jam title menu, layout A. Nothing here is in the game yet. Try each way of playing with it, then say what to keep.</p>
+
+  <div class="bar">
+    <button id="gunBtn" class="btn" type="button" aria-pressed="false">Gun: Blaster (G)</button>
+    <button id="shiftBtn" class="btn" type="button" aria-pressed="false">Shift (F)</button>
+    <button id="clearBtn" class="btn" type="button">Clear darts</button>
+    <button id="soundBtn" class="btn" type="button" aria-pressed="false">Sound off</button>
+    <span class="keys">click fires · drag stretches · G swaps the gun · arrows move · Enter fires · Esc goes back</span>
+  </div>
+
+  <div class="stage"><canvas id="stage" width="1920" height="1080" tabindex="0" aria-label="Playable menu mock-up"></canvas></div>
+
+  <div class="notes">
+    <div class="note"><h2>Click: a dart</h2><p>A click fires a foam dart at that spot. A button it hits thunks, squashes and is chosen, and the dart stays stuck. Hit a letter of the title and it shifts to another colour set.</p></div>
+    <div class="note"><h2>Drag: a stretch</h2><p>Hold and pull a button or a letter and it stretches on an elastic, then snaps home and bumps its neighbours. Pulling never chooses, so it is safe to play with.</p></div>
+    <div class="note"><h2>G: the dart LMG</h2><p>Swap the blaster for a dart LMG and hold the button to spray. It knocks everything about and sends the title's colours spinning, but it never chooses a button: that takes the blaster, or Enter.</p></div>
+    <div class="note"><h2>Shift</h2><p>F swaps the whole menu between toy view and kid view, with the title's colours rippling as it goes. The game's own idea, used on its menu.</p></div>
+  </div>
+  <p class="fine">Lettering shapes and colours are the game's pixel title. Button captions use a stand-in pixel font. Sounds are placeholders made in the browser.</p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var cv = document.getElementById("stage"), cx = cv.getContext("2d");
+  var W = 1920, H = 1080;
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- the title's letters: the same 9-row shapes and row plan as the game's pixel title
+  var G = {
+    S: [".##########", "###########", "###........", "###........", "###########", "........###", "........###", "###########", "##########."],
+    H: ["###.....###", "###.....###", "###.....###", "###########", "###########", "###########", "###.....###", "###.....###", "###.....###"],
+    I: ["###", "###", "###", "###", "###", "###", "###", "###", "###"],
+    F: ["###########", "###########", "###........", "###........", "########...", "########...", "###........", "###........", "###........"],
+    T: ["###########", "###########", "....###....", "....###....", "....###....", "....###....", "....###....", "....###....", "....###...."]
+  };
+  var ROWS = [[5, 5], [5, 4], [4, 4], [4, 4], [4, 3], [3, 3], [3, 2], [2, 2], [2, 2]];
+  function ramp(c2, c3, c4, c5) { return { 2: c2, 3: c3, 4: c4, 5: c5 }; }
+  var INK = "#0a0812";
+  var R = {
+    rift: ramp("#492393", "#b24dff", "#ff72cc", "#fff0fc"), orb: ramp("#6d28d9", "#2896ff", "#4dd9ff", "#ebfcff"),
+    bounce: ramp("#dc286e", "#ff8c26", "#ffc144", "#fff4aa"), wood: ramp("#8c5a32", "#cda064", "#eece96", "#fff4d6"),
+    sunset: ramp("#9000f0", "#f00060", "#ff9678", "#fff078"), pink: ramp("#aa145a", "#ff408c", "#ff8cb9", "#ffdce8"),
+    cyan: ramp("#0a6eb4", "#33ccff", "#96e6ff", "#e6faff"), yellow: ramp("#c88200", "#ffd926", "#ffec82", "#fffad7"),
+    lime: ramp("#288c1e", "#80e640", "#b9f582", "#ebffd2"), orange: ramp("#b0460a", "#ff8c26", "#ffbe64", "#ffecc8"),
+    blue: ramp("#183caa", "#408cff", "#8cc3ff", "#e1f0ff"), cream: ramp("#beaa78", "#f5edd1", "#fcf6e4", "#ffffff")
+  };
+  var PALS = [
+    { name: "title", r: [R.rift, R.rift, R.rift, R.rift, R.rift], ink: INK, rim: "#73f1ff" },
+    { name: "orb", r: [R.orb, R.orb, R.orb, R.orb, R.orb], ink: INK, rim: "#ffd64d" },
+    { name: "paint", r: [R.pink, R.cyan, R.yellow, R.lime, R.orange], ink: INK, rim: "#f5edd1" },
+    { name: "sunset", r: [R.sunset, R.sunset, R.sunset, R.sunset, R.sunset], ink: INK, rim: "#10e0f0" },
+    { name: "teams", r: [R.blue, R.blue, R.cream, R.orange, R.orange], ink: INK, rim: "#f5edd1" },
+    { name: "inflatables", r: [R.bounce, R.bounce, R.bounce, R.bounce, R.bounce], ink: INK, rim: "#408cff" },
+    { name: "wood", r: [R.wood, R.wood, R.wood, R.wood, R.wood], ink: "#321c10", rim: "#d63038" }
+  ];
+  var WORD = ["S", "H", "I", "F", "T"], PX = 16, PAD = 2, GAP = 3;
+  var cache = {};
+  function letterArt(i, pal) {
+    var key = i + ":" + pal;
+    if (cache[key]) return cache[key];
+    var g = G[WORD[i]], p = PALS[pal], w = g[0].length + PAD * 2, h = 9 + PAD * 2;
+    var c = document.createElement("canvas"); c.width = w; c.height = h;
+    var k = c.getContext("2d"), fill = {}, x, y;
+    for (y = 0; y < 9; y++) for (x = 0; x < g[y].length; x++) if (g[y].charAt(x) === "#") fill[(x + PAD) + "," + (y + PAD)] = y;
+    function ring(set) { var o = {}; for (var q in set) { var a = q.split(","), X = +a[0], Y = +a[1]; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var n = (X + dx) + "," + (Y + dy); if (!(n in set)) o[n] = 1; } } return o; }
+    var o1 = ring(fill), both = {}, q;
+    for (q in fill) both[q] = 1; for (q in o1) both[q] = 1;
+    var o2 = ring(both);
+    k.fillStyle = p.rim; for (q in o2) { var a2 = q.split(","); k.fillRect(+a2[0], +a2[1], 1, 1); }
+    k.fillStyle = p.ink; for (q in o1) { var a1 = q.split(","); k.fillRect(+a1[0], +a1[1], 1, 1); }
+    for (q in fill) { var a = q.split(","), X = +a[0], Y = +a[1], t = ROWS[fill[q]]; k.fillStyle = p.r[i][(X + Y) % 2 === 0 ? t[0] : t[1]]; k.fillRect(X, Y, 1, 1); }
+    cache[key] = c; return c;
+  }
+
+  // ---------- springs
+  function Spring(k, d) { this.x = 0; this.v = 0; this.t = 0; this.k = k; this.d = d; }
+  Spring.prototype.step = function (dt) { var a = -this.k * (this.x - this.t) - this.d * this.v; this.v += a * dt; this.x += this.v * dt; };
+  function body() { return { ox: new Spring(260, 15), oy: new Spring(260, 15), sq: new Spring(420, 14), tx: new Spring(200, 12), ty: new Spring(200, 12), rot: new Spring(220, 11), drop: new Spring(140, 16) }; }
+  function stepBody(b, dt) { b.ox.step(dt); b.oy.step(dt); b.sq.step(dt); b.tx.step(dt); b.ty.step(dt); b.rot.step(dt); b.drop.step(dt); }
+
+  // ---------- the pages (layout A: one column on the main page)
+  var PAGES = {
+    main: [
+      { id: "continue", cap: "Continue", sub: "Slot 1 · Bedroom · toy · 24 Nov 13:46", say: "Continue: back into the bedroom as the toy" },
+      { id: "new", cap: "New Game", go: "saves" }, { id: "online", cap: "Online", go: "online" },
+      { id: "play", cap: "Playground", go: "playground" }, { id: "options", cap: "Options", say: "Options: the game's own options panel opens here" },
+      { id: "quit", cap: "Quit", say: "Quit" }
+    ],
+    saves: [
+      { id: "s1", cap: "Slot 1", sub: "Bedroom · toy · 24 Nov 13:46", active: true, say: "Slot 1 chosen" },
+      { id: "s2", cap: "Slot 2", sub: "empty", say: "Slot 2 chosen: a new game starts here" },
+      { id: "s3", cap: "Slot 3", sub: "empty", say: "Slot 3 chosen: a new game starts here" }, { id: "back", cap: "Back", go: "main", small: true }
+    ],
+    online: [
+      { id: "quick", cap: "Quick Play", sub: "join a friend's world, or start one", say: "Quick Play" },
+      { id: "parties", cap: "Parties", sub: "the list of open worlds", say: "Parties: the party list opens here" },
+      { id: "name", cap: "Name: Player", sub: "what others see online", say: "Your name online is typed here" }, { id: "back", cap: "Back", go: "main", small: true }
+    ],
+    playground: [
+      { id: "workshop", cap: "Workshop", sub: "build and test", say: "Workshop" }, { id: "raceway", cap: "Raceway", sub: "cars", say: "Raceway" },
+      { id: "colours", cap: "Colours", sub: "paint darts", say: "Colour Corner" }, { id: "back", cap: "Back", go: "main", small: true }
+    ]
+  };
+  var page = "main", slabs = [], leaving = [], selected = 0;
+  function build(name, dir) {
+    var list = PAGES[name], y = 470, out = [];
+    for (var i = 0; i < list.length; i++) {
+      var it = list[i], h = it.sub ? 92 : 76, w = it.small ? 320 : 620;
+      var s = { it: it, x: W / 2, y: y + h / 2, w: w, h: h, b: body(), born: now + i * 0.045, darts: [] };
+      s.b.drop.x = dir * 700; s.b.drop.v = 0;
+      out.push(s); y += h + 16;
+    }
+    return out;
+  }
+  function goTo(name) {
+    if (!PAGES[name]) return;
+    for (var i = 0; i < slabs.length; i++) { slabs[i].gone = now + i * 0.03; leaving.push(slabs[i]); }
+    page = name; slabs = build(name, -1); selected = 0;
+  }
+
+  // ---------- state
+  var now = 0, last = performance.now();
+  var letters = [], lx = 0;
+  (function () {
+    var total = 0, i; for (i = 0; i < 5; i++) total += G[WORD[i]][0].length; total += GAP * 4;
+    var x = W / 2 - total * PX / 2;
+    for (i = 0; i < 5; i++) { var w = G[WORD[i]][0].length; letters.push({ i: i, cx: x + w * PX / 2, cy: 230, w: (w + PAD * 2) * PX, h: (9 + PAD * 2) * PX, pal: 0, b: body(), darts: [], flash: 0 }); x += (w + GAP) * PX; }
+  })();
+  slabs = build("main", 0);
+  var shifted = false, zoom = new Spring(90, 13), ring = 0, sweep = 0;
+  // The gun in hand: the blaster (one dart a click, it chooses) or the LMG (a spray while held, for fun: it never chooses).
+  var gun = "blaster", spraying = false, sprayAt = 0, kick = 0;
+  // One button does both: a press that lets go where it started fires a dart; a press that pulls becomes a grab.
+  var mouse = { x: W / 2, y: H * 0.7, vx: 0, vy: 0, down: false, on: false }, press = null, drag = null, flying = [], toast = { text: "", until: 0 };
+  var sound = false, ac = null;
+
+  // ---------- sounds (placeholders)
+  function tone(f0, f1, dur, type, vol) {
+    if (!sound) return;
+    try {
+      if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+      var o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime;
+      o.type = type || "sine"; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
+      g.gain.setValueAtTime(vol || 0.12, t); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) { sound = false; }
+  }
+  var sfx = { thunk: function () { tone(190, 70, 0.14, "triangle", 0.2); }, boing: function () { tone(320, 560, 0.18, "sine", 0.1); }, pop: function () { tone(700, 1200, 0.09, "square", 0.05); }, shift: function () { tone(180, 880, 0.35, "sawtooth", 0.06); } };
+
+  // ---------- what is under a point
+  function hit(x, y) {
+    var z = 1 + zoom.x, px = (x - W / 2) / z + W / 2, py = (y - H / 2) / z + H / 2, i;
+    for (i = 0; i < slabs.length; i++) { var s = slabs[i]; if (Math.abs(px - s.x) <= s.w / 2 && Math.abs(py - s.y) <= s.h / 2) return { kind: "slab", o: s, i: i, lx: px - s.x, ly: py - s.y }; }
+    for (i = 0; i < letters.length; i++) { var L = letters[i]; if (Math.abs(px - L.cx) <= L.w / 2 && Math.abs(py - L.cy) <= L.h / 2) return { kind: "letter", o: L, i: i, lx: px - L.cx, ly: py - L.cy }; }
+    return null;
+  }
+  function say(text) { toast.text = text; toast.until = now + 2.2; }
+  function choose(s) {
+    sfx.pop();
+    if (s.it.go) goTo(s.it.go); else if (s.it.say) say(s.it.say);
+  }
+  function knock(o, lx, ly, power, kind) {
+    var b = o.b, w = o.w || 200, h = o.h || 200;
+    b.sq.v -= 9 * power; b.ty.v += (lx / (w / 2)) * 7 * power; b.tx.v -= (ly / (h / 2)) * 5 * power;
+    b.oy.v += 160 * power; b.rot.v += (lx / (w / 2)) * 1.6 * power * (kind === "letter" ? 1 : 0.25);
+    var list = kind === "letter" ? letters : slabs, at = list.indexOf(o);
+    for (var d = -1; d <= 1; d += 2) { var n = list[at + d]; if (n) { n.b.sq.v -= 3 * power; if (kind === "letter") n.b.ox.v += d * 120 * power; else n.b.oy.v += 60 * power; } }
+  }
+  function shiftLetter(L) { L.pal = (L.pal + 1) % PALS.length; L.flash = 1; }
+
+  function fire(x, y, lmg) {
+    var h = hit(x, y);
+    flying.push({ x0: W / 2, y0: H + 40, x1: x, y1: y, t: 0, dur: (lmg ? 0.08 : 0.12) + Math.hypot(x - W / 2, y - H) / 9000, target: h, lmg: !!lmg });
+    if (lmg) { tone(520, 240, 0.045, "square", 0.03); kick = 1; } else tone(900, 300, 0.07, "square", 0.04);
+  }
+  function land(d) {
+    var h = d.target;
+    if (h) {
+      h.o.darts.push({ lx: h.lx, ly: h.ly, a: Math.atan2(d.y1 - d.y0, d.x1 - d.x0), born: now, small: d.lmg });
+      if (h.o.darts.length > 16) h.o.darts.shift();
+      knock(h.o, h.lx, h.ly, d.lmg ? 0.4 : 1, h.kind);
+      if (d.lmg) { tone(150, 80, 0.05, "triangle", 0.08); if (h.kind === "letter") shiftLetter(h.o); return; }   // the LMG only plays
+      sfx.thunk();
+      if (h.kind === "letter") { shiftLetter(h.o); sfx.boing(); }
+      else if (!h.o.gone) { var s = h.o; setTimeout(function () { if (slabs.indexOf(s) >= 0) choose(s); }, 170); }
+    }
+  }
+  function swapGun() {
+    gun = gun === "blaster" ? "lmg" : "blaster"; spraying = false; press = null; drag = null;
+    var b = document.getElementById("gunBtn"); b.textContent = gun === "lmg" ? "Gun: Dart LMG (G)" : "Gun: Blaster (G)"; b.setAttribute("aria-pressed", gun === "lmg" ? "true" : "false");
+    say(gun === "lmg" ? "Dart LMG: hold to spray" : "Blaster: one dart a click");
+  }
+
+  // ---------- input
+  function toStage(e) { var r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; }
+  cv.addEventListener("pointermove", function (e) {
+    var p = toStage(e); mouse.vx = p.x - mouse.x; mouse.vy = p.y - mouse.y; mouse.x = p.x; mouse.y = p.y; mouse.on = true;
+    var h = hit(p.x, p.y);
+    if (h && h.kind === "slab") selected = h.i;
+    if (h && !drag) { var sp = Math.hypot(mouse.vx, mouse.vy); if (sp > 14) { h.o.b.ox.v += mouse.vx * 2.2; h.o.b.rot.v += mouse.vx * 0.004; h.o.b.sq.v -= 0.6; } }   // a brush with the cursor
+    if (press) {
+      press.dx = p.x - press.sx; press.dy = p.y - press.sy;
+      if (!drag && press.h && Math.hypot(press.dx, press.dy) > 14) { drag = press; press.h.o.b.sq.v -= 5; }
+    }
+  });
+  cv.addEventListener("pointerleave", function () { mouse.on = false; });
+  cv.addEventListener("pointerdown", function (e) {
+    cv.focus(); var p = toStage(e); mouse.x = p.x; mouse.y = p.y; mouse.down = true; mouse.on = true;
+    try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+    if (gun === "lmg") { spraying = true; sprayAt = 0; return; }
+    press = { h: hit(p.x, p.y), sx: p.x, sy: p.y, dx: 0, dy: 0 };
+  });
+  cv.addEventListener("pointerup", function () {
+    mouse.down = false; spraying = false;
+    if (drag) {
+      var far = Math.hypot(drag.dx, drag.dy), o = drag.h.o;
+      o.b.ox.v += -drag.dx * 3; o.b.oy.v += -drag.dy * 3; sfx.boing();
+      knock(o, drag.h.lx, drag.h.ly, Math.min(1.4, 0.3 + far / 260), drag.h.kind);
+      if (drag.h.kind === "letter" && far > 60) shiftLetter(o);
+    } else if (press) fire(press.sx, press.sy);
+    press = null; drag = null;
+  });
+  cv.addEventListener("pointercancel", function () { mouse.down = false; spraying = false; press = null; drag = null; });
+  cv.addEventListener("keydown", function (e) {
+    var k = e.key;
+    if (k === "ArrowDown" || k === "ArrowUp") { selected = (selected + (k === "ArrowDown" ? 1 : slabs.length - 1)) % slabs.length; slabs[selected].b.sq.v -= 3; e.preventDefault(); }
+    else if (k === "Enter" || k === " ") { var s = slabs[selected]; fire(s.x, s.y); e.preventDefault(); }
+    else if (k === "Escape" || k === "Backspace") { if (page !== "main") goTo("main"); e.preventDefault(); }
+    else if (k === "f" || k === "F") { doShift(); e.preventDefault(); }
+    else if (k === "g" || k === "G") { swapGun(); e.preventDefault(); }
+  });
+  function doShift() {
+    shifted = !shifted; zoom.t = shifted ? 0.22 : 0; ring = 1; sfx.shift();
+    for (var i = 0; i < letters.length; i++) (function (L, i) { setTimeout(function () { shiftLetter(L); L.b.sq.v -= 8; L.b.oy.v -= 260; }, i * 70); })(letters[i], i);
+    for (var j = 0; j < slabs.length; j++) slabs[j].b.sq.v -= 5;
+    document.getElementById("shiftBtn").setAttribute("aria-pressed", shifted ? "true" : "false");
+    say(shifted ? "Toy view: everything looms larger" : "Kid view");
+  }
+  document.getElementById("shiftBtn").addEventListener("click", doShift);
+  document.getElementById("gunBtn").addEventListener("click", swapGun);
+  document.getElementById("clearBtn").addEventListener("click", function () { var i; for (i = 0; i < slabs.length; i++) slabs[i].darts = []; for (i = 0; i < letters.length; i++) letters[i].darts = []; });
+  document.getElementById("soundBtn").addEventListener("click", function () {
+    sound = !sound; this.setAttribute("aria-pressed", sound ? "true" : "false"); this.textContent = sound ? "Sound on" : "Sound off"; if (sound) sfx.pop();
+  });
+
+  // ---------- drawing
+  function dart(x, y, a, s) {
+    cx.save(); cx.translate(x, y); cx.rotate(a); cx.scale(s, s);
+    cx.fillStyle = "#ff8c26"; cx.fillRect(-46, -7, 40, 14);
+    cx.fillStyle = "#c85f10"; cx.fillRect(-46, 3, 40, 4);
+    cx.fillStyle = "#33ccff"; cx.fillRect(-8, -10, 12, 20);
+    cx.fillStyle = "#0a6eb4"; cx.fillRect(2, -10, 4, 20);
+    cx.restore();
+  }
+  function cut(w, h, c) { cx.beginPath(); cx.moveTo(-w / 2 + c, -h / 2); cx.lineTo(w / 2 - c, -h / 2); cx.lineTo(w / 2, -h / 2 + c); cx.lineTo(w / 2, h / 2 - c); cx.lineTo(w / 2 - c, h / 2); cx.lineTo(-w / 2 + c, h / 2); cx.lineTo(-w / 2, h / 2 - c); cx.lineTo(-w / 2, -h / 2 + c); cx.closePath(); }
+  function drawSlab(s, i, alpha) {
+    var b = s.b, sel = i === selected && !s.gone, sq = b.sq.x, par = (shifted ? 0.05 : 0.025);
+    var px = mouse.on ? (mouse.x - W / 2) * par * (s.y / H) : 0, py = mouse.on ? (mouse.y - H / 2) * par * 0.5 : 0;
+    cx.save(); cx.globalAlpha = alpha;
+    cx.translate(s.x + b.ox.x + px + (drag && drag.h.o === s ? rubber(drag.dx) : 0), s.y + b.oy.x + b.drop.x + py + (drag && drag.h.o === s ? rubber(drag.dy) : 0) + (reduce ? 0 : Math.sin(now * 1.6 + i * 0.9) * 2.5));
+    cx.rotate(b.rot.x * 0.06);
+    var grow = sel ? 1.045 : 1;
+    cx.scale(grow * (1 + sq * 0.05) * Math.cos(b.ty.x * 0.12), grow * (1 - sq * 0.07) * Math.cos(b.tx.x * 0.12));
+    var depth = 12, sx = -Math.sin(b.ty.x * 0.12) * 26, sy = depth + Math.sin(b.tx.x * 0.12) * 20;
+    cx.save(); cx.translate(sx, sy); cut(s.w, s.h, 10); cx.fillStyle = "#1b0d3d"; cx.fill(); cx.restore();
+    cut(s.w, s.h, 10); cx.fillStyle = sel ? "#6a33d5" : "#492393"; cx.fill();
+    cx.fillStyle = sel ? "#8b5cf0" : "#5b2fb0"; cx.fillRect(-s.w / 2 + 10, -s.h / 2, s.w - 20, 5);
+    cx.lineWidth = sel ? 5 : 3; cx.strokeStyle = sel ? "#73f1ff" : s.it.active ? "#ff72cc" : "#0a0812"; cut(s.w, s.h, 10); cx.stroke();
+    cx.textAlign = "center"; cx.textBaseline = "middle"; cx.fillStyle = "#fff0fc";
+    cx.font = "700 " + (s.it.small ? 26 : 32) + "px Silkscreen, 'Courier New', monospace"; cx.fillText(s.it.cap, 0, s.it.sub ? -14 : 1);
+    if (s.it.sub) { cx.font = "26px VT323, 'Courier New', monospace"; cx.fillStyle = "#cfc3f2"; cx.fillText(s.it.sub, 0, 22); }
+    for (var d = 0; d < s.darts.length; d++) dart(s.darts[d].lx, s.darts[d].ly, s.darts[d].a, s.darts[d].small ? 0.6 : 0.9);
+    cx.restore();
+  }
+  function rubber(v) { return 190 * Math.tanh(v / 190); }
+  function drawLetter(L) {
+    var b = L.b, art = letterArt(L.i, L.pal), sq = b.sq.x;
+    var dx = drag && drag.h.o === L ? rubber(drag.dx) : 0, dy = drag && drag.h.o === L ? rubber(drag.dy) : 0;
+    cx.save();
+    cx.translate(L.cx + b.ox.x + dx, L.cy + b.oy.x + dy + (reduce ? 0 : Math.sin(now * 1.3 + L.i * 0.7) * 4));
+    cx.rotate(b.rot.x * 0.09 + dx * 0.0006);
+    cx.scale((1 + sq * 0.07) * (1 + Math.abs(dx) * 0.0016), (1 - sq * 0.09) * (1 + Math.abs(dy) * 0.0016));
+    cx.imageSmoothingEnabled = false;
+    cx.drawImage(art, -L.w / 2, -L.h / 2, L.w, L.h);
+    // the light sweep, kept inside the letter's own pixels
+    var band = ((sweep * 1500) % 2600) - 500 - (L.cx - (W / 2 - 520));
+    if (band > -L.w && band < L.w) {
+      var t = document.createElement("canvas"); t.width = art.width; t.height = art.height; var k = t.getContext("2d");
+      k.drawImage(art, 0, 0); k.globalCompositeOperation = "source-atop"; k.fillStyle = "rgba(255,255,255,0.55)";
+      var bx = Math.round((band + L.w / 2) / PX); k.fillRect(bx, PAD, 2, 9);
+      cx.drawImage(t, -L.w / 2, -L.h / 2, L.w, L.h);
+    }
+    if (L.flash > 0) { cx.globalAlpha = L.flash * 0.6; cx.globalCompositeOperation = "lighter"; cx.drawImage(art, -L.w / 2, -L.h / 2, L.w, L.h); cx.globalCompositeOperation = "source-over"; cx.globalAlpha = 1; }
+    for (var d = 0; d < L.darts.length; d++) dart(L.darts[d].lx, L.darts[d].ly, L.darts[d].a, L.darts[d].small ? 0.6 : 0.9);
+    cx.restore();
+  }
+
+  function frame(t) {
+    var dt = Math.min(0.033, (t - last) / 1000); last = t; now += dt; sweep += dt * 0.25;
+    var i;
+    for (var n = 0; n < 2; n++) {
+      zoom.step(dt / 2);
+      for (i = 0; i < slabs.length; i++) { var s = slabs[i]; if (now >= s.born) s.b.drop.t = 0; stepBody(s.b, dt / 2); }
+      for (i = 0; i < leaving.length; i++) { var g = leaving[i]; if (now >= g.gone) g.b.drop.t = 900; stepBody(g.b, dt / 2); }
+      for (i = 0; i < letters.length; i++) stepBody(letters[i].b, dt / 2);
+    }
+    for (i = leaving.length - 1; i >= 0; i--) if (leaving[i].b.drop.x > 760) leaving.splice(i, 1);
+    for (i = 0; i < letters.length; i++) letters[i].flash = Math.max(0, letters[i].flash - dt * 3);
+    for (i = flying.length - 1; i >= 0; i--) { var d = flying[i]; d.t += dt; if (d.t >= d.dur) { land(d); flying.splice(i, 1); } }
+    if (spraying && mouse.on) { sprayAt -= dt; while (sprayAt <= 0) { sprayAt += 0.07; fire(mouse.x + (Math.random() - 0.5) * 70, mouse.y + (Math.random() - 0.5) * 50, true); } }
+    kick = Math.max(0, kick - dt * 14);
+    ring = Math.max(0, ring - dt * 1.6);
+
+    // the room behind, dimmed
+    cx.setTransform(1, 0, 0, 1, 0, 0);
+    var bg = cx.createRadialGradient(W / 2, H * 0.42, 80, W / 2, H * 0.5, W * 0.75); bg.addColorStop(0, "#241a3a"); bg.addColorStop(1, "#0b0812");
+    cx.fillStyle = bg; cx.fillRect(0, 0, W, H);
+    cx.fillStyle = "rgba(255,240,252,0.035)"; for (i = 0; i < 9; i++) cx.fillRect(0, 700 + i * i * 6, W, 2);
+
+    var z = 1 + zoom.x;
+    cx.translate(W / 2, H / 2); cx.scale(z, z); cx.translate(-W / 2, -H / 2);
+    for (i = 0; i < leaving.length; i++) drawSlab(leaving[i], -1, Math.max(0, 1 - leaving[i].b.drop.x / 700));
+    for (i = 0; i < slabs.length; i++) drawSlab(slabs[i], i, 1);
+    for (i = 0; i < letters.length; i++) drawLetter(letters[i]);
+    cx.setTransform(1, 0, 0, 1, 0, 0);
+
+    if (ring > 0) { cx.strokeStyle = "rgba(115,241,255," + ring * 0.8 + ")"; cx.lineWidth = 10 * ring + 2; cx.beginPath(); cx.arc(W / 2, H / 2, (1 - ring) * 1100 + 60, 0, Math.PI * 2); cx.stroke(); }
+    for (i = 0; i < flying.length; i++) { var f = flying[i], k = f.t / f.dur; dart(f.x0 + (f.x1 - f.x0) * k, f.y0 + (f.y1 - f.y0) * k, Math.atan2(f.y1 - f.y0, f.x1 - f.x0), f.lmg ? 0.75 : 1.1); }
+
+    // the toy blaster's muzzle at the bottom, and the cursor
+    {
+      var a = Math.atan2(mouse.y - (H + 20), mouse.x - W / 2);
+      cx.save(); cx.translate(W / 2, H + 20); cx.rotate(a); cx.translate(-kick * 14, 0);
+      if (gun === "lmg") {
+        cx.fillStyle = "#ffd926"; cx.fillRect(-10, -34, 150, 68); cx.fillStyle = "#c88200"; cx.fillRect(-10, 18, 150, 16);
+        cx.fillStyle = "#33ccff"; cx.fillRect(140, -18, 120, 36); cx.fillStyle = "#0a6eb4"; cx.fillRect(140, 8, 120, 10);
+        cx.fillStyle = "#ff408c"; cx.fillRect(40, 34, 60, 44); cx.fillStyle = "#ff8c26"; cx.fillRect(250, -24, 20, 48);
+      } else { cx.fillStyle = "#33ccff"; cx.fillRect(0, -26, 130, 52); cx.fillStyle = "#0a6eb4"; cx.fillRect(0, 12, 130, 14); cx.fillStyle = "#ff8c26"; cx.fillRect(116, -30, 22, 60); }
+      cx.restore();
+    }
+    if (mouse.on) {
+      cx.save(); cx.translate(mouse.x, mouse.y); cx.lineWidth = 4;
+      if (!drag) { cx.strokeStyle = "#fff0fc"; cx.beginPath(); cx.arc(0, 0, 18, 0, Math.PI * 2); cx.stroke(); cx.fillStyle = "#ff72cc"; cx.fillRect(-3, -3, 6, 6); cx.fillStyle = "#fff0fc"; cx.fillRect(-30, -2, 10, 4); cx.fillRect(20, -2, 10, 4); cx.fillRect(-2, -30, 4, 10); cx.fillRect(-2, 20, 4, 10); }
+      else { var r = 12; cx.strokeStyle = "#73f1ff"; cx.beginPath(); cx.arc(0, 0, r, 0, Math.PI * 2); cx.stroke(); cx.fillStyle = "#73f1ff"; for (var q = 0; q < 4; q++) { var an = q * Math.PI / 2 + Math.PI / 4; cx.fillRect(Math.cos(an) * (r + 8) - 4, Math.sin(an) * (r + 8) - 4, 8, 8); } }
+      cx.restore();
+    }
+    // the hint line and what a choice would do
+    cx.textAlign = "center"; cx.textBaseline = "middle";
+    cx.font = "28px VT323, 'Courier New', monospace"; cx.fillStyle = "rgba(207,195,242,0.7)";
+    cx.fillText(gun === "lmg" ? "hold to spray · G back to the blaster · F shifts" : "click fires a dart · hold and pull to stretch · G swaps the gun · F shifts", W / 2, H - 34);
+    if (now < toast.until) { var al = Math.min(1, (toast.until - now) * 2); cx.globalAlpha = al; cx.font = "700 26px Silkscreen, 'Courier New', monospace"; var tw = cx.measureText(toast.text).width + 60; cx.fillStyle = "#0a0812"; cx.fillRect(W / 2 - tw / 2, 372, tw, 52); cx.strokeStyle = "#ff72cc"; cx.lineWidth = 3; cx.strokeRect(W / 2 - tw / 2, 372, tw, 52); cx.fillStyle = "#fff0fc"; cx.fillText(toast.text, W / 2, 399); cx.globalAlpha = 1; }
+    cx.font = "24px VT323, 'Courier New', monospace"; cx.textAlign = "right"; cx.fillStyle = "rgba(207,195,242,0.5)"; cx.fillText("v18 · mock-up", W - 30, H - 34);
+    requestAnimationFrame(frame);
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { requestAnimationFrame(frame); }); else requestAnimationFrame(frame);
+})();
+</script>

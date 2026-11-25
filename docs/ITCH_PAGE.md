@@ -55,7 +55,8 @@ flashlight.
   generator: the shift orb, the portal ring and the nitro star models, a spark particle texture, and the arms-carry
   pose ✍ (drop any you replaced).
 - **Made by AI through a script:** the title menu's 3D slabs (D-0196): made by ChatGPT writing Blender Python, to a
-  layout he directed. No AI image or texture is in them.
+  layout he directed, then regrouped into pages and given their frames by a script Claude wrote (D-0197). No AI
+  image or texture is in them.
 - **AI-assisted:** the pixel title on the menu (D-0189). Its letter design comes from a mock-up Claude drew by
   script; he drew it into Aseprite from that ✍ (say how the pink and purple colours and the light sweep were made:
   by hand, by a script, or with another AI tool).

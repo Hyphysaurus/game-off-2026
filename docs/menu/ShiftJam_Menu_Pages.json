@@ -1,0 +1,169 @@
+{
+ "source": "the first menu export, regrouped by docs/tools/menu_pages.py",
+ "objects": 62,
+ "triangles": 4176,
+ "controls": [
+  {
+   "name": "Btn_Continue",
+   "page": "Page_Main",
+   "x": 0.0,
+   "z": 0.3,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Btn_NewGame",
+   "page": "Page_Main",
+   "x": 0.0,
+   "z": 0.14,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Btn_Online",
+   "page": "Page_Main",
+   "x": 0.0,
+   "z": -0.02,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Btn_Playground",
+   "page": "Page_Main",
+   "x": 0.0,
+   "z": -0.18,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Btn_Options",
+   "page": "Page_Main",
+   "x": 0.0,
+   "z": -0.34,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Btn_Quit",
+   "page": "Page_Main",
+   "x": 0.0,
+   "z": -0.5,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Slot_1",
+   "page": "Page_Saves",
+   "x": 0.0,
+   "z": 0.28,
+   "w": 1.7200000286102295,
+   "h": 0.11999999731779099,
+   "depth": 0.066
+  },
+  {
+   "name": "Slot_2",
+   "page": "Page_Saves",
+   "x": 0.0,
+   "z": 0.11,
+   "w": 1.7200000286102295,
+   "h": 0.11999999731779099,
+   "depth": 0.066
+  },
+  {
+   "name": "Slot_3",
+   "page": "Page_Saves",
+   "x": 0.0,
+   "z": -0.06,
+   "w": 1.7200000286102295,
+   "h": 0.11999999731779099,
+   "depth": 0.066
+  },
+  {
+   "name": "Btn_SavesBack",
+   "page": "Page_Saves",
+   "x": 0.0,
+   "z": -0.25,
+   "w": 0.46000000834465027,
+   "h": 0.10999999940395355,
+   "depth": 0.066
+  },
+  {
+   "name": "Btn_QuickPlay",
+   "page": "Page_Online",
+   "x": 0.0,
+   "z": 0.28,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Btn_Parties",
+   "page": "Page_Online",
+   "x": 0.0,
+   "z": 0.12,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Slab_Name",
+   "page": "Page_Online",
+   "x": 0.0,
+   "z": -0.04,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Btn_OnlineBack",
+   "page": "Page_Online",
+   "x": 0.0,
+   "z": -0.22,
+   "w": 0.46000000834465027,
+   "h": 0.10999999940395355,
+   "depth": 0.066
+  },
+  {
+   "name": "Btn_Workshop",
+   "page": "Page_Playground",
+   "x": 0.0,
+   "z": 0.28,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Btn_Raceway",
+   "page": "Page_Playground",
+   "x": 0.0,
+   "z": 0.12,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Btn_Colours",
+   "page": "Page_Playground",
+   "x": 0.0,
+   "z": -0.04,
+   "w": 1.0,
+   "h": 0.12999999523162842,
+   "depth": 0.072
+  },
+  {
+   "name": "Btn_PlaygroundBack",
+   "page": "Page_Playground",
+   "x": 0.0,
+   "z": -0.22,
+   "w": 0.46000000834465027,
+   "h": 0.10999999940395355,
+   "depth": 0.066
+  }
+ ]
+}

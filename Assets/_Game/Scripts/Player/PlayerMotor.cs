@@ -92,6 +92,10 @@ namespace ShiftJam
         public Vector3? Drive { get; set; }
         /// <summary>The body turns to this heading instead of the way it travels (aiming: it steps sideways and backwards).</summary>
         public float? FaceYaw { get; set; }
+        /// <summary>The body IS at this heading, at once, every step: first person on the player itself (D-0194), where the
+        /// body faces wherever the eyes look and steps sideways and backwards under them. Before Face Yaw; after a grip's
+        /// Hold Yaw. A line that has the body (a rope) still turns it its own way.</summary>
+        public float? ViewYaw { get; set; }
         /// <summary>Share of the top speed kept while aiming (D-0141; PlayerMoves sets it). 1 = full speed.</summary>
         public float AimShare { get; set; } = 1f;
 
@@ -294,6 +298,8 @@ namespace ShiftJam
 
             if (HoldAt.HasValue)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0f, HoldYaw, 0f), settings.turnSpeed * dt);
+            else if (ViewYaw.HasValue)
+                transform.rotation = Quaternion.Euler(0f, ViewYaw.Value, 0f);
             else if (FaceYaw.HasValue)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0f, FaceYaw.Value, 0f), settings.turnSpeed * dt);
             else if (Glide != null && _planar.sqrMagnitude > 1e-6f * scale * scale)   // on the plane: facing the way it flies

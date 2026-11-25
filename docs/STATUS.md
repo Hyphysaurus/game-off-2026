@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 17:2x — FIRST PERSON ON THE PLAYER ITSELF, STEPS 1 AND 2 (D-0194): COMPILED BY UNITY, NOT PLAYED. 🔴 IT IS ON
+- **His "proceed" (17:1x).** Built: `FirstPersonSettings > Ride Player` (on by default): in first person the player's
+  own motor and capsule stay on and move as in third person, the body facing wherever the eyes look; the old
+  first-person body only stands in for the view and the hands. The rope and the glider accept first person.
+- **🔴 Before a ship:** this is ON and unplayed. If it is not played by then, untick `Data/FirstPersonSettings` >
+  Ride Player (the old first person comes back exactly as it was).
+- **HIS TO TRY (Greybox, toy size, V):** walk, strafe, sprint, crouch, jump; run into a rope (does it grab; what
+  does the view do on it; Space lets go); jump off the bed's edge and press Space in the air (the paper plane);
+  a gun out, aim, fire, reload while strafing (do the arms and the gun sit as before); E on a thing and carrying a
+  prop; V back out anywhere, also on a rope; the Stadium online. Anything odd: F12.
+- **NOT DONE (step 3, after his play):** the special moves in first person (roll, dive, punch, kick), carrying and
+  prompts through the player's own Interactor, retiring the old body.
+
 ## 24 Nov 2026 17:1x — THE DART RIFLE AND THE DART SNIPER (D-0193): BUILT, IN THE STADIUM, NOT PLAYED. FIRST PERSON: HE PICKED THE BIG CHANGE, PLAN GIVEN
 - **His words (17:0x):** "3, and yes, follow the logical plan for the rifle and sniper".
 - **Built (Unity was closed: three hidden batch runs):** `Prefabs/Weapons/DartRifle` and `DartSniper`, their pickup

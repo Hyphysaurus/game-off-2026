@@ -14,6 +14,10 @@ namespace ShiftJam
 
         public static Mode Current { get; private set; } = Mode.Play;
 
+        /// <summary>True in the modes where the player is on foot in the world: Play and FirstPerson (not Build). What the
+        /// player can do on foot (a rope, the glider) asks this, so it works in either view (D-0194).</summary>
+        public static bool OnFoot => Current != Mode.Build;
+
         /// <summary>Raised after Current changes: (from, to).</summary>
         public static event Action<Mode, Mode> Changed;
 

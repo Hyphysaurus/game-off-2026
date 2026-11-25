@@ -30,6 +30,12 @@ namespace ShiftJam
         private Vector3 _velocity;
         private float _scale = -1f, _jumpPressed = -10f;
         private bool _crouched;
+        // D-0194, first person on the player itself: the player's own motor moves, and this body only stands where the
+        // player is and tells the view and the hands the player's state. Its capsule is off, so hits, pads, winds and
+        // triggers find the player and not a stand-in.
+        private bool _riding;
+        private PlayerStance _stance;
+        private CharacterController _ownerCapsule;
 
         /// <summary>The player this body stands in for: hits on the body are the player's.</summary>
         public Transform Owner { get; private set; }
@@ -42,9 +48,33 @@ namespace ShiftJam
         public Vector3 Velocity => _velocity;
         /// <summary>Eye height above the feet right now (eases through crouches).</summary>
         public float EyeHeight { get; private set; }
-        /// <summary>Middle of the capsule, world space.</summary>
-        public Vector3 Centre => transform.position + Vector3.up * (_cc != null ? _cc.height * 0.5f : 0.9f * Scale);
-        public CharacterController Capsule => _cc;
+        /// <summary>Middle of the capsule, world space (the player's own while it rides the player, D-0194).</summary>
+        public Vector3 Centre => _riding && _ownerCapsule != null ? _ownerCapsule.bounds.center : transform.position + Vector3.up * (_cc != null ? _cc.height * 0.5f : 0.9f * Scale);
+        public CharacterController Capsule => _riding && _ownerCapsule != null ? _ownerCapsule : _cc;
+        /// <summary>True while the player's own motor moves and this body only rides along (D-0194).</summary>
+        public bool Riding => _riding;
+
+        /// <summary>First person on the player itself (D-0194), or back to moving by itself. Riding needs the player's
+        /// motor; without one it stays as it was. Call before Place.</summary>
+        public void Ride(bool on)
+        {
+            _riding = on && _third != null && Owner != null;
+            if (_riding) { Owner.TryGetComponent(out _stance); Owner.TryGetComponent(out _ownerCapsule); }
+            if (_cc != null) _cc.enabled = !_riding;
+        }
+
+        /// <summary>Riding: what the view and the hands ask of this body is the player's own state, and the eye eases
+        /// through the player's crouch (never above its crouched capsule).</summary>
+        private void RideAlong(float scale, float dt)
+        {
+            _crouched = _stance != null && _stance.Crouched;
+            Grounded = _third.Grounded;
+            _velocity = _third.Velocity;
+            float crouchEye = _stance != null ? Mathf.Min(_s.crouchEye, _s.standEye * _stance.HeightShare) : _s.crouchEye;
+            float eyeTarget = (_crouched ? crouchEye : _s.standEye) * scale;
+            float eyeRate = (_s.standEye - _s.crouchEye) * scale / Mathf.Max(0.01f, _s.duckTime);
+            EyeHeight = Mathf.MoveTowards(EyeHeight, eyeTarget, eyeRate * dt);
+        }
 
         // While matched (D-0175) the third-person toy's numbers stand in for this body's own.
         private bool Matched => _s.matchThirdPerson && _third != null;
@@ -103,6 +133,7 @@ namespace ShiftJam
         /// <summary>A shove from a hit or an explosion, world units per second.</summary>
         public void AddVelocity(Vector3 v)
         {
+            if (_riding) return;   // nothing shoves a body that rides the player: its capsule is off, the player is shoved
             _velocity += v;
             if (v.y > 0f) Grounded = false;
         }
@@ -190,6 +221,7 @@ namespace ShiftJam
             if (dt <= 0f || _s == null) return;
             if (!Mathf.Approximately(Scale, _scale)) ApplySize();
             float scale = _scale;
+            if (_riding) { RideAlong(scale, dt); return; }   // the player's own motor moves (D-0194)
 
             Crouch(scale);
             float eyeTarget = (_crouched ? _s.crouchEye : _s.standEye) * scale;

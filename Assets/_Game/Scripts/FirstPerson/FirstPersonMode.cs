@@ -10,6 +10,10 @@ namespace ShiftJam
     /// where the player stands, at the player's size, looking where the shoulder camera looked; the third-person player is
     /// parked (motor, capsule, interactor, carrier and camera off, renderers hidden) and follows the body invisibly, so
     /// whatever asks "where is the player" still gets the right answer. Leaving puts the player where the body stands.
+    /// Since D-0194 that separate body moves only while FirstPersonSettings > Ride Player is OFF. With it on (as it
+    /// ships) first person is a view on the player itself: the player's own motor and capsule stay on and move as in
+    /// third person, facing wherever the eyes look, and the first-person body only stands where the player is for the
+    /// view and the hands. So a rope, the glider, a launch pad or a line work in first person as they do out of it.
     /// Lives on the Player, next to PlayerMotor.
     /// </summary>
     [DefaultExecutionOrder(-50)]
@@ -39,6 +43,7 @@ namespace ShiftJam
         private readonly List<Renderer> _hidden = new List<Renderer>();
         private readonly List<Behaviour> _parked = new List<Behaviour>();
         private bool _inside, _enterPending;
+        private bool _riding;   // this stay in first person is on the player itself (D-0194): read from the settings on entering
 
         public FirstPersonBody Body => _inside ? _body : null;
         public bool InFirstPerson => _inside;
@@ -114,6 +119,10 @@ namespace ShiftJam
                 else if (_inside && !BenchScreen.TookEsc && k.escapeKey.wasPressedThisFrame) GameMode.Set(GameMode.Mode.Play);
             }
 
+            // On the player itself (D-0194): the body faces wherever the eyes look, at once. Told every frame before the
+            // motor moves (this script runs first).
+            if (_inside && _riding && _motor != null) _motor.ViewYaw = _look.Yaw;
+
             if (_inside && _holder != null)
             {
                 // Aim held with a weapon out (not while the hands hold a prop: right mouse turns that): the view narrows.
@@ -164,9 +173,14 @@ namespace ShiftJam
             // A tool in one hand stays in it: first person holds it in the view body's hand (D-0144). Only something in both
             // hands (a plank) is set down: first person's own hands carry props.
             if (_carrier != null && _carrier.Held != null && _carrier.Held.TwoHanded) _carrier.PutDown();
+            // On the player itself (D-0194) the motor and the capsule stay on: the player moves, the body rides.
+            _riding = settings.ridePlayer && _motor != null;
+            _body.Ride(_riding);
+            _riding = _body.Riding;
             _parked.Clear();
-            Park(_motor); Park(_interactor); Park(shoulderCamera);
-            if (_cc.enabled) { _cc.enabled = false; }
+            if (!_riding) Park(_motor);
+            Park(_interactor); Park(shoulderCamera);
+            if (!_riding && _cc.enabled) { _cc.enabled = false; }
 
             _hidden.Clear();
             foreach (var r in GetComponentsInChildren<Renderer>())
@@ -203,11 +217,20 @@ namespace ShiftJam
 
             foreach (var r in _hidden) if (r != null) r.forceRenderingOff = false;
             _hidden.Clear();
-            _cc.enabled = true;
             foreach (var b in _parked) if (b != null) b.enabled = true;
             _parked.Clear();
-            if (_motor != null) _motor.Warp(feet, Quaternion.Euler(0f, yaw, 0f));
-            else transform.SetPositionAndRotation(feet, Quaternion.Euler(0f, yaw, 0f));
+            if (_riding)
+            {
+                // The player never left: it is where it stands and keeps its speed (it may be on a rope or the glider).
+                if (_motor != null) _motor.ViewYaw = null;
+                _riding = false;
+            }
+            else
+            {
+                _cc.enabled = true;
+                if (_motor != null) _motor.Warp(feet, Quaternion.Euler(0f, yaw, 0f));
+                else transform.SetPositionAndRotation(feet, Quaternion.Euler(0f, yaw, 0f));
+            }
             if (shoulderCamera != null) shoulderCamera.Warp(yaw, pitch);
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -215,8 +238,11 @@ namespace ShiftJam
 
         private void LateUpdate()
         {
+            if (!_inside) return;
+            // On the player itself (D-0194): the body stands where the player is, for the view (which runs after this).
+            if (_riding) { _rig.transform.position = transform.position; return; }
             // The parked player rides along invisibly: prompts, enemies, saves and the weapon holder read its transform.
-            if (_inside) transform.SetPositionAndRotation(_body.transform.position, Quaternion.Euler(0f, _look.Yaw, 0f));
+            transform.SetPositionAndRotation(_body.transform.position, Quaternion.Euler(0f, _look.Yaw, 0f));
         }
     }
 }

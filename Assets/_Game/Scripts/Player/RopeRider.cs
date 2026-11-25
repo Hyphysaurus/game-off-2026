@@ -170,7 +170,7 @@ namespace ShiftJam
         {
             if (Riding || Parked || !_input.isActiveAndEnabled) return false;   // input off: a cutscene or a menu has it, no new grab
             if (!IsToy) return false;   // a rope is a toy's
-            if (GameMode.Current != GameMode.Mode.Play || Time.timeScale <= 0f) return false;
+            if (!GameMode.OnFoot || Time.timeScale <= 0f) return false;   // on foot in either view (D-0194); the old first-person body is Parked above
             if (_moves != null && (!_moves.Free || _moves.HandsFull)) return false;
             if (Grabbable.Holds(gameObject)) return false;
             if (_motor.Pull.HasValue) return false;   // another line has the body (the Dart Line)
@@ -313,7 +313,7 @@ namespace ShiftJam
             if (Parked) { End(Leave.Drop, "parked"); return; }
             if (rope == null || !rope.isActiveAndEnabled) { End(Leave.Drop, "rope gone"); return; }
             if (!_motor.Pull.HasValue) { End(Leave.Taken, "line"); return; }   // someone else ended the pull
-            if (GameMode.Current != GameMode.Mode.Play) { End(Leave.Keep, "mode"); return; }
+            if (!GameMode.OnFoot) { End(Leave.Keep, "mode"); return; }
             if (!IsToy) { End(Leave.Keep, "shift"); return; }
             if (_moves != null && !_moves.Free) { End(Leave.Keep, "hit"); return; }   // a hit reaction, a death: its clip plays
             if ((_moves != null && _moves.HandsFull) || Grabbable.Holds(gameObject)) { End(Leave.Keep, "hands"); return; }

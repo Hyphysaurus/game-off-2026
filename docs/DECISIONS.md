@@ -3594,3 +3594,30 @@
   - Balance, not judged: the rifle does the SMG's damage at a higher rate with a bigger magazine (the test room's
     numbers, kept as they are).
   - Compiled outside and in three hidden batch runs (Unity was closed). NOT played, not seen in the hands.
+- **D-0194 (24 Nov 2026, 17:2x) First person is a view on the player itself (steps 1 and 2 of 3); the old body stays behind
+  a switch.** His words: "my FPS modes dont register some events, such as running into the ropes and grabbing them
+  automatically or when jumping off a surface and activating the glider plane"; offered three ways, he picked the
+  third ("3"), then "proceed" on its plan. I had advised it as the riskiest of the three in jam week: first
+  person's aim and sights were tuned on the separate body.
+  - **Cause:** first person was its own Half-Life-style body (`FirstPersonBody`) while the real player was parked
+    (motor and capsule off). The rope, the glider and the moves live on the parked player, and each also refused
+    any mode but Play.
+  - **Step 1, `FirstPersonSettings > Ride Player` (on):** entering first person no longer parks the motor or the
+    capsule. The player's own motor moves, against the same camera the first-person view turns, and
+    `PlayerMotor.ViewYaw` (new, set every frame by `FirstPersonMode`) has the body face wherever the eyes look, at
+    once, so it steps sideways and backwards under them. `FirstPersonBody.Ride` turns the first-person body into a
+    stand-in: its capsule is off (hits, launch pads, winds and triggers find the player, through the code they
+    already had for third person), it stands where the player is, and it tells the view and the hands the player's
+    grounded state, speed, crouch (the eye never above the crouched capsule) and capsule. Leaving first person no
+    longer warps the player: it is where it stands and keeps its speed.
+  - **Step 2:** `GameMode.OnFoot` (Play or FirstPerson). `RopeRider` and `Glider` ask it in place of "Play". With
+    Ride Player off they are still stopped by the parked motor, as before.
+  - **Not in this step:** the special moves (roll, dive, punch, kick) still need Play: in first person the left
+    mouse belongs to the hands that pick up props. Carrying and E prompts are still the first-person hands' (the
+    third-person Interactor stays parked). Step 3 (after his play): those, then the old body is retired.
+  - **What changes in feel:** first person speeds up, slows down, turns corners and jumps exactly as third person
+    does (the Half-Life friction and air-strafing are the old body's). Crouch is the player's own crouch.
+  - **What I could not check:** anything in Play. Not seen: the view on a rope and under the glider (the body turns
+    to the rope's heading there while the eyes look freely; the paper plane's model may show in the view), the gun
+    and arms while strafing, a shift in first person, a launch pad, online. Off switch: untick Ride Player.
+  - Compiled outside (editor and player) and by Unity in a hidden batch run. NOT played.

@@ -98,7 +98,7 @@ namespace ShiftJam
         {
             if (!Owned || _settings == null || !_motor.isActiveAndEnabled || _motor.Grounded) return false;
             if (_shifter != null && _shifter.Size != ShiftSize.Toy) return false;   // a kid is too heavy for paper
-            if (GameMode.Current != GameMode.Mode.Play || PauseMenu.IsOpen || TitleMenu.IsOpen || Time.timeScale <= 0f) return false;
+            if (!GameMode.OnFoot || PauseMenu.IsOpen || TitleMenu.IsOpen || Time.timeScale <= 0f) return false;   // on foot in either view (D-0194)
             if (_moves != null && !_moves.Free) return false;
             // Not this near the ground: the press stays a jump on landing (the jump buffer).
             float scale = Mathf.Max(1e-4f, _motor.Scale), reach = _settings.minOpenHeight * scale;
@@ -150,7 +150,7 @@ namespace ShiftJam
             {
                 // Folded by what happens to the body: growing (a kid is too heavy), parked (driving, first person, a menu), a hit.
                 if (_shifter != null && _shifter.Size != ShiftSize.Toy) Fold("grew", false, false);
-                else if (!_motor.isActiveAndEnabled || GameMode.Current != GameMode.Mode.Play || (_moves != null && !_moves.Free)) Fold("stopped", false, true);
+                else if (!_motor.isActiveAndEnabled || !GameMode.OnFoot || (_moves != null && !_moves.Free)) Fold("stopped", false, true);
             }
             if (_wind == null || _settings == null) return;
             float scale = Mathf.Max(1e-4f, _motor.Scale);

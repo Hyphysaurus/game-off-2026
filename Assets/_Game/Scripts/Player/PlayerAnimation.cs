@@ -151,7 +151,7 @@ namespace ShiftJam
             }
             _animator.SetFloat(Pace, LegPlayback);
 
-            if (stand != null) Busy();   // no look-around under the eye
+            if (mode != null && mode.gameObject == gameObject) Busy();   // first person, on either body: no look-around under the eye
             else Idle(speed, crouched, profile, dt);
         }
 

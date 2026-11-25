@@ -23,6 +23,10 @@ namespace ShiftJam
         [Tooltip("Highest step walked up without jumping (HL2: 18 units).")] public float stepHeight = 0.45f;
         [Range(0f, 89f)] public float slopeLimit = 45f;
 
+        [Header("First person on the player itself (D-0194)")]
+        [Tooltip("On: first person is a view on the player itself. The player's own motor moves it, so everything the player does on foot works in first person too: ropes, the glider, launch pads, lines, crouching. It moves exactly as in third person. Off: the separate Half-Life-style body moves instead, as before D-0194 (it has its own way of speeding up and slowing down; ropes and the glider do not work in it). Read when first person is entered.")]
+        public bool ridePlayer = true;
+
         [Header("The same speeds in both views (D-0175)")]
         [Tooltip("On: first person moves at the third-person toy's numbers, read from where third person keeps them, so the two views cannot drift apart: the walk, the sprint, the jump's height, gravity, the fastest fall and the shove on a loose thing (Data/MovementSettings), the crouched speed and the slower walk with no sprint while aim is held (Resources/PlayerMoves: Crouch Speed, Aim Move Share). The body's own Run Speed, Sprint Speed, Crouch Speed Multiplier, Gravity, Jump Height and Max Fall Speed below are then not used. Off: the body's own numbers below.")]
         public bool matchThirdPerson = true;

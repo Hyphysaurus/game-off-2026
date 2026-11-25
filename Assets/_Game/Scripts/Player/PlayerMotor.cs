@@ -117,6 +117,12 @@ namespace ShiftJam
         public float PushSpeed => settings.pushSpeed;
         /// <summary>The camera the stick is read against.</summary>
         public Transform View => cameraTransform;
+        /// <summary>A Flat Zone holds the body to a plane: the stick's depth part, the sideways speed along the plane's
+        /// normal and any drift off it are taken away. Null = free, as always.</summary>
+        public FlatLock? Flat { get; set; }
+        /// <summary>The stick, in world space on the ground, as the motor reads it (relative to its camera), with a Flat
+        /// Zone's depth part taken away. A rope reads the stick the same way.</summary>
+        public Vector3 FlatWish(Vector3 wish) => Flat.HasValue ? Flat.Value.Flatten(wish) : wish;
 
         private const float SteerLeastSpeed = 0.5f;   // own units a second: slower than this the body is starting, not turning
 
@@ -246,10 +252,12 @@ namespace ShiftJam
                 // On the line: it moves the body, nothing else does. Facing the heading its owner asks for (a rope), or
                 // the way it travels, across the ground.
                 Vector3 v = Pull.Value;
+                Vector3 pullFix = Vector3.zero;
+                if (Flat.HasValue) { v = Flat.Value.Flatten(v); pullFix = Flat.Value.Correction(transform.position, dt); }
                 _planar = new Vector3(v.x, 0f, v.z); _vertical = v.y;
                 if (PullYaw.HasValue) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0f, PullYaw.Value, 0f), settings.turnSpeed * dt);
                 else if (_planar.sqrMagnitude > 1e-4f * scale * scale) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(_planar, Vector3.up), settings.turnSpeed * dt);
-                _controller.Move(v * dt + Vector3.up * pivot);
+                _controller.Move(v * dt + Vector3.up * pivot + pullFix);
                 Grounded = false;
                 _jumping = false; _jumpCut = true; _lastGroundedTime = -10f; _jumpPressedTime = -10f;
                 if (animator != null)
@@ -342,7 +350,11 @@ namespace ShiftJam
                 if (_vertical > 0f) { _jumping = false; _jumpCut = true; _lastGroundedTime = -10f; }
             }
 
-            CollisionFlags flags = _controller.Move((_planar + Vector3.up * _vertical) * dt + Vector3.up * pivot);
+            // A Flat Zone: nothing moves the body along the plane's normal (a knock, a fling, wind, the glider's heading),
+            // and any drift off the plane is eased away.
+            Vector3 flatFix = Vector3.zero;
+            if (Flat.HasValue) { _planar = Flat.Value.Flatten(_planar); flatFix = Flat.Value.Correction(transform.position, dt); }
+            CollisionFlags flags = _controller.Move((_planar + Vector3.up * _vertical) * dt + Vector3.up * pivot + flatFix);
             if ((flags & CollisionFlags.Above) != 0 && _vertical > 0f) _vertical = 0f;
             // A fling that meets a wall keeps only what the wall let through (the walk re-aims its speed every frame; a
             // fling does not, and would push into the wall all the way down).

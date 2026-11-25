@@ -71,6 +71,12 @@ namespace ShiftJam
         private float _shakeAmount, _shakeTime, _shakeLeft;
         private float _punchDegrees, _punchTime, _punchLeft;
         private float _leave; private Vector3 _leavePos; private Quaternion _leaveRot;   // blending back to the shoulder
+        private float _leaveBlend = -1f, _leaveFov = -1f;   // that blend's seconds and the field of view it starts from (-1: the car's blend, no change of view)
+        // the rail (D-0198, a Flat Zone): side-on, along a lane, the look ignored
+        private FlatRail _rail;
+        private float _railHeightGoal;   // where the height is headed (it waits in the air, D-0198)
+        private float _railIn; private Vector3 _railFromPos; private Quaternion _railFromRot; private float _railFromFov;   // the swing in, 0..1
+        private float _railAlong, _railAlongVelocity, _railLead, _railLeadVelocity, _railHeight, _railHeightVelocity; private bool _railReady;
 
         private VehicleCameraSettings Vehicle
         {
@@ -261,6 +267,7 @@ namespace ShiftJam
             Vector2 look = input != null ? input.ConsumeLook(settings.mouseSensitivity * PlayerOptions.LookScale, settings.padSensitivity * PlayerOptions.LookScale, dt) : Vector2.zero;
             if (look.sqrMagnitude > 0.0001f) _lastLookTime = Time.unscaledTime;
             if (_chase != null) { InsideBody = false; _viewReady = false; VehicleView(look, fov, dt); return; }
+            if (_rail != null) { InsideBody = false; RailView(scale, dt); return; }   // a Flat Zone (D-0198): the look is read and dropped
             if (_cursorLocked && Time.timeScale > 0f)
             {
                 // With aim held the view is narrower, so the same turn carries a target further across the screen: the
@@ -329,12 +336,13 @@ namespace ShiftJam
 
             Vector3 position = pivot + back * distance;
             position += Give(position, scale, ball, settled, dt);
+            float leaveK = 0f;
             if (_leave > 0f)
             {
-                // just got out: ease from the car's framing to the shoulder instead of cutting
-                _leave = Mathf.Max(0f, _leave - dt / Mathf.Max(0.01f, Vehicle.leaveBlend));
-                float k = _leave * _leave * (3f - 2f * _leave);
-                position = Vector3.Lerp(position, _leavePos, k); rotation = Quaternion.Slerp(rotation, _leaveRot, k);
+                // just got out (of a car, or off a Flat Zone's rail): ease from that framing to the shoulder instead of cutting
+                _leave = Mathf.Max(0f, _leave - dt / Mathf.Max(0.01f, _leaveBlend > 0f ? _leaveBlend : Vehicle.leaveBlend));
+                leaveK = _leave * _leave * (3f - 2f * _leave);
+                position = Vector3.Lerp(position, _leavePos, leaveK); rotation = Quaternion.Slerp(rotation, _leaveRot, leaveK);
             }
             // a shake still running (thrown out of a wreck) dies away on foot too; tilt only while a wall or the blend
             // from the car decides where the camera is
@@ -348,7 +356,7 @@ namespace ShiftJam
             float limit = settings.hideBodyWithin * scale;
             InsideBody = gap < (InsideBody ? limit * (1f + settings.hideBodySlack) : limit);
             if (_punchLeft > 0f) _punchLeft = Mathf.Max(0f, _punchLeft - dt);
-            _camera.fieldOfView = fov + FovOffset + PunchNow;
+            _camera.fieldOfView = (_leaveFov > 0f ? Mathf.Lerp(fov, _leaveFov, leaveK) : fov) + FovOffset + PunchNow;
             _camera.nearClipPlane = near;
         }
 
@@ -463,12 +471,107 @@ namespace ShiftJam
             return Mathf.Max(0f, free);
         }
 
+        /// <summary>The rail in use (a Flat Zone, D-0198), or null.</summary>
+        public FlatRail Rail => _rail;
+
+        /// <summary>Side-on along a Flat Zone's lane (D-0198) until ClearRail: the camera swings out from wherever it is to
+        /// the rail over the zone's blend, then follows the player along the lane with a lead the way it runs, and its
+        /// height only past a dead zone while in the air. Mouse look is dropped meanwhile. A car's chase wins over it.</summary>
+        public void SetRail(FlatRail rail)
+        {
+            if (rail == null) { ClearRail(); return; }
+            if (_rail == null)
+            {
+                _railIn = 0f; _railFromPos = transform.position; _railFromRot = transform.rotation;
+                _railFromFov = _camera != null ? _camera.fieldOfView : settings.fieldOfView;
+                _leave = 0f;
+            }
+            _rail = rail; _railReady = false;
+        }
+
+        /// <summary>Off the rail: back behind the player (the way it faces), eased from the side view over the zone's blend,
+        /// the field of view with it.</summary>
+        public void ClearRail()
+        {
+            if (_rail == null) return;
+            FlatViewSettings view = _rail.view;
+            _leave = 1f; _leavePos = transform.position; _leaveRot = transform.rotation;
+            _leaveBlend = view != null ? view.blendSeconds : 0.6f;
+            _leaveFov = _camera != null ? _camera.fieldOfView : -1f;
+            _rail = null;
+            if (target != null) _yaw = target.eulerAngles.y;
+            _pitch = settings.startPitch;
+            _viewReady = false; _trailReady = false; _followWeight = 0f; _blockShare = 1f;
+        }
+
+        /// <summary>The rail camera (D-0198): a long lens on the lane's plane, framing Frame Height of the world, leading the
+        /// player the way it runs, kept between the rail's ends and (where it fits) its floor and ceiling.</summary>
+        private void RailView(float scale, float dt)
+        {
+            FlatRail r = _rail;
+            FlatViewSettings v = r.view != null ? r.view : (r.view = ScriptableObject.CreateInstance<FlatViewSettings>());
+            Vector3 along = r.Along;
+            float frame = Mathf.Max(0.1f, v.frameHeight * scale);
+            float fov = Mathf.Clamp(v.fieldOfView, 1f, 120f);
+            Quaternion rotation = Quaternion.LookRotation(-r.normal, Vector3.up) * Quaternion.Euler(v.pitch, 0f, 0f);
+            float distance = frame * 0.5f / Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad);
+
+            Vector3 feet = target.position;
+            float at = Vector3.Dot(feet - r.point, along);
+            float run = _motor != null ? Vector3.Dot(_motor.PlanarVelocity, along) : 0f;
+            float leadWant = Mathf.Abs(run) > 0.5f * scale ? Mathf.Sign(run) * v.lead * scale : _railLead;   // standing: the lead stays where it was
+            float heightWant = feet.y + frame * (0.5f - v.feetInFrame);
+            bool settledHeight = _motor == null || _motor.Grounded || _motor.Pull.HasValue || RopeRider.Holds(target.gameObject);
+            if (!_railReady || dt <= 0f)
+            {
+                _railLead = 0f; _railAlong = at; _railHeight = heightWant; _railHeightGoal = heightWant;
+                _railAlongVelocity = _railLeadVelocity = _railHeightVelocity = 0f; _railReady = true;
+            }
+            else
+            {
+                _railLead = Mathf.SmoothDamp(_railLead, leadWant, ref _railLeadVelocity, v.leadSeconds, Mathf.Infinity, dt);
+                float want = at + _railLead;
+                _railAlong = v.followSeconds > 0f ? Mathf.SmoothDamp(_railAlong, want, ref _railAlongVelocity, v.followSeconds, Mathf.Infinity, dt) : want;
+                // Super Mario World's rule: in the air the height waits, unless the player leaves the band round it.
+                float band = v.heightDeadZone * scale;
+                if (settledHeight || band <= 0f) _railHeightGoal = heightWant;
+                else if (heightWant > _railHeightGoal + band) _railHeightGoal = heightWant - band;
+                else if (heightWant < _railHeightGoal - band) _railHeightGoal = heightWant + band;
+                _railHeight = v.heightSeconds > 0f ? Mathf.SmoothDamp(_railHeight, _railHeightGoal, ref _railHeightVelocity, v.heightSeconds, Mathf.Infinity, dt) : _railHeightGoal;
+            }
+            float lo = Mathf.Min(r.start, r.end), hi = Mathf.Max(r.start, r.end);
+            float alongNow = Mathf.Clamp(_railAlong, lo, hi);
+            float height = _railHeight;
+            if (r.ceiling > r.floor)
+            {
+                float bottom = r.floor + frame * 0.5f, top = r.ceiling - frame * 0.5f;
+                height = bottom <= top ? Mathf.Clamp(height, bottom, top) : (r.floor + r.ceiling) * 0.5f;
+            }
+            Vector3 centre = r.point + along * alongNow;
+            centre.y = height;
+            Vector3 position = centre - rotation * Vector3.forward * distance;
+
+            if (_railIn < 1f)
+            {
+                _railIn = Mathf.Min(1f, _railIn + dt / Mathf.Max(0.01f, v.blendSeconds));
+                float k = _railIn * _railIn * (3f - 2f * _railIn);
+                position = Vector3.Lerp(_railFromPos, position, k);
+                rotation = Quaternion.Slerp(_railFromRot, rotation, k);
+                fov = Mathf.Lerp(_railFromFov, fov, k);
+            }
+            AddShake(ref position, ref rotation, scale, 0f, dt);
+            transform.SetPositionAndRotation(position, rotation);
+            if (_punchLeft > 0f) _punchLeft = Mathf.Max(0f, _punchLeft - dt);
+            _camera.fieldOfView = fov + FovOffset + PunchNow;
+            _camera.nearClipPlane = Mathf.Max(0.001f, settings.nearClip * scale);
+        }
+
         /// <summary>Chase a vehicle while it is driven (null stops): the camera frames the car by its own size
         /// (VehicleCameraSettings). <paramref name="yawOffset"/> turns the vehicle's yaw into its nose's yaw.
         /// <paramref name="distanceMultiplier"/> is from before the vehicle camera and is no longer used.</summary>
         public void SetChase(Transform vehicle, float yawOffset = 0f, float distanceMultiplier = 1.6f)
         {
-            if (vehicle == null && _chase != null) { _leave = 1f; _leavePos = transform.position; _leaveRot = transform.rotation; }
+            if (vehicle == null && _chase != null) { _leave = 1f; _leavePos = transform.position; _leaveRot = transform.rotation; _leaveBlend = -1f; _leaveFov = -1f; }
             if (vehicle != null) _leave = 0f;
             _chase = vehicle; _chaseYawOffset = yawOffset;
             _lastLookTime = -10f; _aimReady = false; _yawVelocity = 0f;

@@ -429,7 +429,7 @@ namespace ShiftJam
             if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
             forward.Normalize();
             Vector3 right = Vector3.Cross(Vector3.up, forward);
-            return forward * move.y + right * move.x;
+            return _motor.FlatWish(forward * move.y + right * move.x);   // a Flat Zone: no push along its depth
         }
 
         // ---------- letting go ----------

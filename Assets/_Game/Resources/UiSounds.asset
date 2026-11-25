@@ -29,23 +29,23 @@ MonoBehaviour:
     volume: 0.705
     pitchSpread: 0
   select:
-    clip: {fileID: 8300000, guid: 3b5aaf1fe9211594d87360fe7f7a4ebb, type: 3}
-    volume: 0.5
+    clip: {fileID: 8300000, guid: 029f9c97941014b4c815d43223111774, type: 3}
+    volume: 0.4255
     pitchSpread: 0.03
   denied:
-    clip: {fileID: 8300000, guid: 7bbd522f4cffd9143bdb85c94ab74399, type: 3}
-    volume: 0.3
+    clip: {fileID: 8300000, guid: edbf202dcea1c5d40b99c9dc19635e1a, type: 3}
+    volume: 0.2199
     pitchSpread: 0.04
   open:
-    clip: {fileID: 8300000, guid: 6e75ff16fd8079b4e86c76ac752ead67, type: 3}
-    volume: 0.45
+    clip: {fileID: 8300000, guid: 6a0b82ef7540456438e0b6c63754ee57, type: 3}
+    volume: 0.3042
     pitchSpread: 0
   toast:
-    clip: {fileID: 8300000, guid: 216bd37612dd3424abfbc5116204f279, type: 3}
-    volume: 0.5
+    clip: {fileID: 8300000, guid: fe8f936a006320b439269392fe43a1cb, type: 3}
+    volume: 0.1945
     pitchSpread: 0
   win:
-    clip: {fileID: 8300000, guid: 2d07935f2515fd443a12eb21d8576a8d, type: 3}
-    volume: 0.65
+    clip: {fileID: 8300000, guid: ef7414140e5139d46a73313cc047c57c, type: 3}
+    volume: 0.55965
     pitchSpread: 0
   moveGap: 0.05

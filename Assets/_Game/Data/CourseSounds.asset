@@ -21,8 +21,8 @@ MonoBehaviour:
     volume: 0.182
     pitchSpread: 0
   coreAwake:
-    clip: {fileID: 8300000, guid: a2b134b6ba514c545b2e98e76e28fff6, type: 3}
-    volume: 0.6
+    clip: {fileID: 8300000, guid: 307c99bf3ed7fd74f957800dafbe2e19, type: 3}
+    volume: 0.1374
     pitchSpread: 0
   switchPress:
     clip: {fileID: 8300000, guid: 08d2f3a8ee58217419c578604d28a530, type: 3}

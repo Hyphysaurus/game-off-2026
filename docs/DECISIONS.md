@@ -3838,8 +3838,9 @@
     into 3D) and SWIPE Whoosh 01 (shrink, and the menu back to flat): ONE shift sound for both kinds of shift; the
     menu's let-go = IMPACT Thump Thud 04; page = Menu_Open_01; a letter's colour change = Highlight_12. Each volume
     was set so its peak matches the sound it replaced (old volume x the peak difference).
-  - **Not changed yet (still the playroom pack):** select, denied, menu open, toast, win, and a core lighting up (a
-    3 s chime). Candidates for these come next in the audition folder.
+  - **Then the rest (23:1x):** pick a save slot = Button_Pressed_09; not allowed = Error_06; the pause menu opens =
+    Pause_05; a hint on the HUD = GameBurp SUCCESS BEEPS Multiple Tone 05; a win = Success_08; a core lights up (was
+    a 3 s chime) = GameBurp TECH CHARGER Power Up 01. Audition folders 9 to 14 hold the other candidates for these.
   - **Where:** the files are in `Assets/_Imports/CasePortman/UI/` and `Assets/_Imports/GameBurp/` (gitignored: neither
     licence allows sharing the raw files; a clone has empty slots, which are silent). The audition folder, with the
     other candidates by folder number and letter: `%TEMP%\shiftjam-stage\sound-audition`.

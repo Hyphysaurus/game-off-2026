@@ -6,20 +6,24 @@ namespace ShiftJam
 {
     /// <summary>
     /// A Flat Zone's gate (D-0203): the way in (Entrance) or the way out (Exit, "a portal to shift back"), standing
-    /// across the lane. In the hallway both are his portal drawing (the car portal's own look, D-0073: the swirl turns
-    /// in its material all the time, the small marks go out as a ripple), in a colour of each gate's own: the glow on
-    /// the floor under it and its flash.
-    /// - ENTRANCE: when its zone takes a player (the camera swings side-on), the gate flashes, the ripple goes out and
-    ///   its sound plays. It does nothing else: the zone's box, which starts just past it, is what takes the player.
+    /// across the lane. In the hallway both are rifts (D-0207: a pixel rift in, a 3D rift out), in a colour of each
+    /// gate's own: the glow on the floor under it and its flash.
+    /// - ENTRANCE: when its zone takes a player (the camera swings side-on), the gate flashes, its ripple goes out and
+    ///   its sound plays. Its trigger (D-0212): a player who walks through it moving on (along the gate's forward, the
+    ///   blue arrow) is invited in (FlatZone.Invite): for FlatView > Rift Window seconds the zone's box may take it.
+    ///   Once the save slot has done the stretch that is the only way in; before, the box takes anyone who walks in
+    ///   across its way-in side anyway (the first run stays mandatory). Walking through it the other way does nothing.
     /// - EXIT: a player the zone holds runs into its trigger and is let go at once (FlatZone.Clear: the camera swings
-    ///   back behind it, the stretch is 3D again), and the gate flashes, ripples and sounds. WHEN IT COUNTS: only for a
-    ///   player the zone is holding at that moment; the zone then leaves that player alone until its body has left the
-    ///   box, so each visit goes out once. Anyone else (first person, a kid, a player walking in from the far side)
-    ///   runs through it and nothing happens. An entrance's trigger is switched off.
+    ///   back behind it, the stretch is 3D again, and the stretch is DONE for the save slot), and the gate flashes,
+    ///   ripples and sounds. THE LINK BACK (D-0212): a player the zone does NOT hold who walks into it moving toward its
+    ///   Link (the way in) is carried to just behind the way in (FlatZone.CarryBack, with the shift warp); both gates
+    ///   flash and sound, and both rest for FlatView > Link Cooldown (no carry back, no invitation; letting a held
+    ///   player go is never held up). Done or not. Anyone else (moving away from the way in, a kid, a car) runs through.
     /// The body has no collider: the toy runs straight through. It lives under its zone's object, so the zone's
-    /// cutaway never hides it. Its LOOK is all in its prefab (Prefabs/Flat/FlatGate_Portal, made by Shift Jam > Flat >
-    /// Land Hallway Scroller): another look (a rift) is another prefab with this script and its own parts in these
-    /// fields, put where this one stands; no code changes.
+    /// cutaway never hides it. Its LOOK is all in its prefab (Prefabs/Flat/FlatGate_Portal, FlatGate_RiftIn,
+    /// FlatGate_RiftOut, made by Shift Jam > Flat > Land Hallway Scroller): another look is another prefab with this
+    /// script and its own parts in these fields, put where this one stands; no code changes.
+    /// OFF SWITCHES: an exit's Link empty = no carry back; untick a gate's object = that gate gone.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class FlatGate : MonoBehaviour
@@ -29,7 +33,8 @@ namespace ShiftJam
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
         [SerializeField, Tooltip("The zone this gate belongs to. Found on a parent if empty.")] private FlatZone zone;
-        [SerializeField, Tooltip("Entrance: plays when the zone takes a player. Exit: its trigger lets a held player go (the zone's Clear) and plays.")] private Role role = Role.Entrance;
+        [SerializeField, Tooltip("Entrance: plays when the zone takes a player; its trigger invites a player who walks through it moving on (its forward). Exit: its trigger lets a held player go (the zone's Clear) and plays, and carries a player the zone does not hold who walks into it toward Link back to Link.")] private Role role = Role.Entrance;
+        [SerializeField, Tooltip("Exit only (D-0212): the way in a player the zone does not hold is carried back to when it walks into this gate moving toward it. Empty: no carry back (the gate is a plain way out). The maker sets the hallway's exit to its entrance.")] private FlatGate link;
         [SerializeField, Tooltip("The gate's own colour: the glow on the floor under it, its flash light, and the wash over the drawing in a flash. Keep it apart from the car portals' red, green and blue.")] private Color colour = new Color32(0xFF, 0x4F, 0xA3, 0xFF);
 
         [Header("Its look (the prefab's parts)")]
@@ -50,6 +55,7 @@ namespace ShiftJam
         private MaterialPropertyBlock _block;
         private Collider _touch;
         private float _flashUntil;
+        private float _readyAt = float.NegativeInfinity;   // resting until then after a carry back (D-0212)
         private bool _flashing;
 
         private void Awake()
@@ -62,8 +68,8 @@ namespace ShiftJam
                     if (r != null && r.sharedMaterial != null && r.sharedMaterial.HasProperty(BaseColorId))
                         _slots.Add((r, r.sharedMaterial.GetColor(BaseColorId)));
             _touch = GetComponent<Collider>();
-            if (_touch != null) _touch.enabled = role == Role.Exit;   // only the way out is touched
-            else if (role == Role.Exit) Debug.LogWarning("FlatGate '" + name + "' is an exit with no trigger on its own object: nobody can go out through it.", this);
+            if (_touch != null) _touch.enabled = true;   // both are touched (D-0212): the way out lets go and carries back, the way in invites
+            else Debug.LogWarning("FlatGate '" + name + "' has no trigger on its own object: " + (role == Role.Exit ? "nobody can go out through it." : "once the stretch is done nobody can walk in through it."), this);
             if (flashLight != null) { flashLight.enabled = false; flashLight.intensity = 0f; }
             Tint();
         }
@@ -95,13 +101,48 @@ namespace ShiftJam
             if (flashLight != null) flashLight.color = colour;
         }
 
-        private void OnTriggerEnter(Collider other)
+        /// <summary>The way in (D-0212) is also asked while the body stays in it: a player who stood in the rift and then
+        /// walks on is still invited.</summary>
+        private void OnTriggerEnter(Collider other) => Touched(other, true);
+        private void OnTriggerStay(Collider other) { if (role == Role.Entrance) Touched(other, false); }
+
+        private void Touched(Collider other, bool entered)
         {
-            if (role != Role.Exit || zone == null) return;
-            Shifter who = PlayerTouch.Find(other, out _);
-            if (who == null || !zone.Clear(who)) return;   // not a player, or not one the zone holds: nothing
-            Play();
+            if (zone == null) return;
+            Shifter who = PlayerTouch.Find(other, out FirstPersonBody body);
+            if (who == null) return;   // not a player
+            if (role == Role.Entrance)
+            {
+                if (Time.time >= _readyAt && Moving(who, body, transform.forward)) zone.Invite(who);
+                return;
+            }
+            if (!entered) return;
+            if (zone.Clear(who)) { Play(); return; }   // a held player goes out: always, resting or not
+            if (link == null || Time.time < _readyAt) return;
+            Vector3 toLink = link.transform.position - transform.position; toLink.y = 0f;
+            if (!Moving(who, body, toLink) || !zone.CarryBack(who, link)) return;
+            float rest = zone.Settings.linkCooldown;
+            Rest(rest); link.Rest(rest);
+            Play(); link.Play();
         }
+
+        /// <summary>True when the player's body (the first-person body when that is what touched) moves along
+        /// <paramref name="way"/> (flat): standing still is not moving.</summary>
+        private static bool Moving(Shifter who, FirstPersonBody body, Vector3 way)
+        {
+            Vector3 velocity = body != null ? body.Velocity : who.TryGetComponent(out PlayerMotor motor) ? motor.Velocity : Vector3.zero;
+            way.y = 0f; velocity.y = 0f;
+            return Vector3.Dot(velocity, way) > 0f;
+        }
+
+        /// <summary>This gate takes no carry back and gives no invitation for <paramref name="seconds"/> (after a carry
+        /// back, on both gates). Letting a held player go is never held up.</summary>
+        public void Rest(float seconds) => _readyAt = Mathf.Max(_readyAt, Time.time + Mathf.Max(0f, seconds));
+
+        /// <summary>The way in or the way out.</summary>
+        public Role Kind => role;
+        /// <summary>Exit: the way in it carries a player back to (null: none).</summary>
+        public FlatGate Link => link;
 
         /// <summary>The gate's moment: a flash, the ripple, its sound. The zone calls it for the entrance (Entered); the
         /// exit calls it itself. Safe to call at any time.</summary>

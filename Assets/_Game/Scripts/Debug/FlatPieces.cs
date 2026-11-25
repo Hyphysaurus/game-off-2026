@@ -46,6 +46,14 @@ namespace ShiftJam
     /// to Assets/Settings/PC_Renderer when it has none (made the way the renderer's own Inspector adds one, as
     /// PaintBuilder adds the Decal feature; off, after post-processing, after the shift warp's). Land Hallway Scroller
     /// then hands that feature to the zone, with Pixel Look OFF (his choice on an older FlatZone_Hall is kept).
+    /// THE 3D ROUTE (D-0212: the stretch is optional once done, and walked in 3D both ways): Land Hallway Scroller also
+    /// places ONE more top-level object, FlatRoute_Hall (taken out and made again on every run; nothing else touched):
+    /// steps up the StepBox's east face (a wooden bar from the Playroom pack per step, each rise at most 0.6 of the toy's
+    /// jump, as the book stairs' 1.2) and a plank over the sprint gap (a ruler from the pack, found by name, at least 3
+    /// across), both wholly between the lane and the side camera, past Cut From, so the side view's cutaway hides them
+    /// in the flat run. NOT under FlatZone_Hall: the zone's own pieces are never cut away. The report gives every piece's
+    /// place and height, what each touches, the book stairs going down west, the floor under the ropes, the take rule's
+    /// answers, and where the exit's link back lands.
     /// <see cref="LandHallway"/> does the same as the menu and hands the report back as text.
     /// "Rebuild Portal Gate (its look)" makes the gate's piece again in place (its ids stay, so the gates in the scene
     /// follow): run it after the car portals change; a number changed by hand on the piece's parts is written over.
@@ -155,6 +163,24 @@ namespace ShiftJam
         private const float GapFromCheckpoint = 6f;       // CourseBuilder.House: CP_beforeSprint stands 6 before the gap, CP_afterSprint 6 after
         private const float FallbackJump = 2f, FallbackHang = 5f;   // the toy's jump and the ropes' Hang Hold as on 24 Nov, if the assets are not found
         private static readonly Color AllFoundColour = new Color32(0xFF, 0xD1, 0x66, 0xFF);   // the toasts' gold ("got it")
+
+        // ---- the 3D route (D-0212): steps up the StepBox's east face and a plank over the sprint gap, beside the lane
+        public const string RouteName = "FlatRoute_Hall";
+        private const string PackPath = "Assets/_Imports/ithappy/Playroom";
+        private const string PlayerPath = "Assets/_Game/Prefabs/Player/Player.prefab";
+        private static readonly string[] StepPieces = { "Wooden_Bar_01", "Wooden_Bar_02" };   // a plain wooden block, sized to each step
+        private static readonly string[] PlankPieces = { "Ruler_Small_01", "Ruler_01", "Ruler_Big_01", "Pencil_01" };   // the first one found is the plank
+        private const float StepRiseShare = 0.6f;         // a step's rise is at most this share of the toy's full jump (the books' 1.2 of 2.0, D-0081)
+        private const float StepTread = 1.6f;             // each step's top along the hallway: the toy is 0.6 round, a walking jump 4.4 long
+        private const float StepsAcross = 2.6f;           // across the hallway, from the route's edge nearest the lane toward the near wall:
+                                                          // the dressing against the near wall at x 28 reaches about z -156.3, the steps stop short of it
+        private const float StepGap = 0.02f;              // the top step stands this far off the box's east face (no two faces in one place)
+        private const float RouteCutClear = 0.3f;         // the route's edge nearest the lane stands this much past Cut From: wholly cut away side-on
+        private const float PlankAcross = 3.2f;           // the plank's width (at least 3)
+        private const float PlankBite = 1.5f;             // the plank lies at least this far onto the floor at each side of the gap
+        private const float PlankWallGap = 0.6f;          // its far edge this far off the near wall's face: as far from the lane (and the exit rift's 9-wide trigger) as it goes
+        private const float ToyRound = 0.3f;              // the toy capsule's radius (the Player prefab)
+        private const float FallbackStepOffset = 0.3f;    // the toy capsule's step offset, if the Player prefab is not found
 
         // ---- the pixel look (D-0209)
         private const string RendererPath = "Assets/Settings/PC_Renderer.asset";
@@ -317,7 +343,7 @@ namespace ShiftJam
             // ---- 4. the object: an old one out (what he chose on it kept), the new one in
             const string UndoName = "Land Hallway Scroller";
             string keptCard = null, keptClear = null; Color keptCardColour = default, keptClearColour = default; bool hadOld = false;
-            string keptAllFound = null; Color keptAllFoundColour = AllFoundColour; bool keptPixelLook = false;
+            string keptAllFound = null; Color keptAllFoundColour = AllFoundColour; bool keptPixelLook = false, keptOptional = true;
             Color entranceColour = EntranceColour, exitColour = ExitColour; bool keptEntrance = false, keptExit = false;
             int removed = 0;
             foreach (GameObject root in scene.GetRootGameObjects())
@@ -333,6 +359,8 @@ namespace ShiftJam
                     if (allFound != null) { keptAllFound = allFound.stringValue; keptAllFoundColour = so.FindProperty("allFoundColour").colorValue; }
                     SerializedProperty pixel = so.FindProperty("pixelLook");   // his tick, if he gave it (before D-0209 there is none)
                     if (pixel != null) keptPixelLook = pixel.boolValue;
+                    SerializedProperty optional = so.FindProperty("optionalOnceDone");   // his choice, if he gave it (before D-0212 there is none)
+                    if (optional != null) keptOptional = optional.boolValue;
                     hadOld = true;
                 }
                 foreach (FlatGate gate in root.GetComponentsInChildren<FlatGate>(true))
@@ -365,6 +393,7 @@ namespace ShiftJam
             WorkshopPieces.Set(zone, "floor", frameFloor);
             WorkshopPieces.Set(zone, "ceiling", frameCeiling);
             WorkshopPieces.Set(zone, "toyOnly", true);
+            WorkshopPieces.Set(zone, "optionalOnceDone", keptOptional);
             WorkshopPieces.Set(zone, "cutaway", true);
             WorkshopPieces.Set(zone, "cutFrom", CutFrom);
             WorkshopPieces.Set(zone, "fill", fill);
@@ -399,6 +428,9 @@ namespace ShiftJam
                 Vector3 size = exitTouch.size;   // made as (across, up, along) for a gate across the lane: turned to face the camera, across and along swap
                 exitTouch.size = new Vector3(ExitTouchAlong, size.y, size.x);
             }
+            // The link back (D-0212): the way out carries a player it does not hold, walking into it westward, to the way in.
+            FlatGate entranceGate = entrance.GetComponent<FlatGate>(), exitGate = exit.GetComponent<FlatGate>();
+            if (exitGate != null) WorkshopPieces.Set(exitGate, "link", entranceGate);
             // The letters (D-0208), under the zone; the reward's sound on the zone.
             var letterLines = new List<string>();
             int letterCount = PlaceLetters(zoneGo.transform, scene, hall, laneZ, ceilingY, beforeX, afterX, letterLines, warn);
@@ -411,6 +443,14 @@ namespace ShiftJam
                 zs.ApplyModifiedPropertiesWithoutUndo();
             }
 
+            // The 3D route (D-0212): its own top-level object, made again on every run.
+            int routesRemoved = 0;
+            foreach (GameObject root in scene.GetRootGameObjects())
+                if (root.name == RouteName) { Undo.DestroyObjectImmediate(root); routesRemoved++; }
+            var routeLines = new List<string>();
+            GameObject route = PlaceRoute(scene, hall, laneZ, southFace, ceilingY, beforeX, afterX, exit, wallS != null ? wallS.sharedMaterial : null, routeLines, warn);
+            Undo.RegisterCreatedObjectUndo(route, UndoName);
+
             EditorSceneManager.MarkSceneDirty(scene);
             Selection.activeGameObject = zoneGo;
 
@@ -421,7 +461,7 @@ namespace ShiftJam
                 + $". Big cards: on the way in \"{texts.FindProperty("card").stringValue}\" ({Say(texts.FindProperty("cardColour").colorValue)}), on the way out \"{texts.FindProperty("clearText").stringValue}\" ({Say(texts.FindProperty("clearColour").colorValue)}).");
             report.AppendLine($"BOX (world): x {Say(boxWest)} to {Say(boxEast)}, y {Say(boxBottom)} to {Say(boxTopY)}, z {Say(boxSouth)} to {Say(boxNorth)} (size {Say(boxSize)}, middle {Say(boxMiddle)}). "
                 + $"It starts {Say(GateClear)} past the entrance gate (x {Say(GateX)}; cut A started at -24 itself), so a held toy is always clear of the gate the side-on camera sees edge-on. "
-                + $"It ends AT the exit gate: going out lets the player go at once, and only a player the zone holds can go out, so walking back in from the east passes through the exit without anything happening. "
+                + $"It ends AT the exit gate: going out lets the player go at once, and only a player the zone holds can go out; walking back in from the east is never taken (D-0212): through the exit rift it carries the toy back to the entrance, beside it the stretch stays 3D. "
                 + $"Its bottom is {Say(BoxUnderPit)} under the sprint gap's floor (the plan said y -2: the zone let go half-way down a fall).");
             report.AppendLine($"LANE: point {Say(lanePoint)}, the camera's side -Z (child 'Lane', its blue arrow south); along the lane = +X. RAIL: the camera's middle travels x {Say(RailWest)} to {Say(RailEast)} (Rail Start {Say(RailWest - LaneX)}, Rail End {Say(RailEast - LaneX)}, counted from the lane's point; cut A's west end was -14). "
                 + $"FRAME: never under y {Say(frameFloor)} or over y {Say(frameCeiling)} (cut A: over {Say(ceilingY)}, the ceiling's underside: the toy's head on the screen's top edge on the step box).");
@@ -431,7 +471,8 @@ namespace ShiftJam
             UnityEngine.Object rewardClip = zoneSo.FindProperty("allFoundSound.clip").objectReferenceValue;
             report.AppendLine($"LETTERS (D-0208): {letterCount} placed under {ZoneName} on the lane (z {Say(laneZ)}). " + string.Join(" | ", letterLines)
                 + $". ALL FOUND (once per save slot): {zoneSo.FindProperty("allFoundCharges").intValue} shift charge, the big card \"{zoneSo.FindProperty("allFoundText").stringValue}\" ({Say(zoneSo.FindProperty("allFoundColour").colorValue)}), sound {(rewardClip != null ? rewardClip.name : "silent")}. "
-                + $"THE STRIP: top left, shown while the zone holds the player and {Say(view.stripSeconds)} s after a letter is found (FlatView > Strip Seconds).");
+                + $"THE STRIP: top left, shown while the zone holds the player and {Say(view.stripSeconds)} s after a letter is found (FlatView > Strip Seconds). "
+                + "SEEN only in the flat run (D-0212): each letter is drawn while the zone holds a local player and while it pops (FlatLetter > Only While Held), so the stretch walked in 3D shows none.");
             report.AppendLine($"PIXEL LOOK (D-0209): {(zoneSo.FindProperty("pixelLook").boolValue ? "ON (kept: an older FlatZone_Hall had it ticked)" : "OFF (tick Pixel Look on FlatZone_Hall to see it)")}; feature: {pixelWhere}; "
                 + $"FlatView > Pixel Rows {view.pixelRows} ({PixelColumns(view.pixelRows, 16f / 9f)} columns on a 16:9 screen, {PixelColumns(view.pixelRows, 21f / 9f)} on 21:9; a big pixel is {Say(1080f / Mathf.Max(1, view.pixelRows))} screen pixels at 1080 high), Palette Strength {Say(view.paletteStrength)}, Dither {Say(view.dither)}.");
 
@@ -454,11 +495,18 @@ namespace ShiftJam
             var kept = new List<Renderer>();
             zone.KeptInTheWay(kept);
             report.AppendLine($"NOT cut although they reach the camera's side of the lane in the stretch it sees (they cross the lane, or are spared: the floor, the ceiling, the steps and the zone's own gates belong here; anything else is in front of the picture): {kept.Count}: {Names(kept)}.");
+            report.AppendLine($"3D ROUTE (D-0212): {RouteName} at the top level{(routesRemoved > 0 ? $" ({routesRemoved} older one taken out first)" : "")}. " + string.Join(" | ", routeLines) + ". " + RouteCut(route, cut, warn) + ".");
+            report.AppendLine("THE BOOK STAIRS GOING DOWN WEST: " + StairsDown(hall, ceilingY, warn) + ".");
+            report.AppendLine("THE FLOOR UNDER THE ROPES: " + FloorUnderRopes(hall, laneZ, beforeX, route, zoneGo, warn) + ".");
+            report.AppendLine("WHO THE ZONE TAKES (D-0212; FlatZone.WouldTake, the game's own rule, asked out of Play): " + TakeRule(zone, boxWest, boxEast, boxBottom, boxTopY, laneZ, entrance) + ".");
+            report.AppendLine("THE LINK BACK (D-0212): " + LinkLine(zone, entrance, exit, warn) + ".");
             if (sounds == null) warn.Add($"no {SoundsPath}: the gates are silent");
             if (warn.Count > 0) report.AppendLine("LOOK AT: " + string.Join("; ", warn) + ".");
             report.Append("SAVING: the scene is marked changed and NOT saved (as Place Hallway Ropes does): save Greybox (Ctrl+S) to keep the zone, or close without saving to drop it. "
                 + "OFF SWITCHES: untick FlatZone_Hall in the Hierarchy (the hallway plays as before, no gates); FlatView > Fill Light 0 (no fill light); a gate's object unticked (that gate gone; with the Exit gone nobody is let go but by walking out); "
-                + "a letter's object unticked (that letter gone; the reward counts the letters that are on; all five unticked = no strip, the zone as before D-0208).");
+                + "a letter's object unticked (that letter gone; the reward counts the letters that are on; all five unticked = no strip, the zone as before D-0208); "
+                + "D-0212: FlatZone_Hall > Optional Once Done off (the box takes anyone walking in at the west face, done or not), the Exit's Link emptied (no carry back), a letter's Only While Held off (drawn all the time), "
+                + RouteName + " unticked (no steps, no plank: the stretch is flat-only again going west).");
             return report.ToString();
         }
 
@@ -496,6 +544,380 @@ namespace ShiftJam
             light.shadows = LightShadows.None;
             light.enabled = false;
             return light;
+        }
+
+        // ================================================================== the 3D route (D-0212)
+
+        /// <summary>The eastmost solid end sticking out of the box's east face inside the steps' band (from the lane's side,
+        /// <paramref name="north"/>, to <paramref name="south"/>) that a toy can walk from onto the box's top: its top at most one
+        /// step under the box's and not more than a step offset over it. The stair books run through the box and their ends
+        /// stick out (D-0212, measured 25 Nov). False when nothing sticks out: the steps meet the box's face.</summary>
+        private static bool FindOverhangLanding(Bounds box, float south, float north, float boxTop, float riseMost, out float east, out float top, out string name)
+        {
+            east = box.max.x; top = boxTop; name = null;
+            var centre = new Vector3(box.max.x + 6f, boxTop - riseMost * 0.5f, (south + north) * 0.5f);
+            var half = new Vector3(6.05f, riseMost * 0.5f + 0.3f, (north - south) * 0.5f);
+            foreach (Collider c in Physics.OverlapBox(centre, half, Quaternion.identity, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (c.transform.root.name == RouteName) continue;   // an older route's own steps
+                Bounds b = c.bounds;
+                if (b.max.x <= box.max.x + 0.05f || b.max.y > boxTop + 0.3f || b.max.y < boxTop - riseMost - 0.01f) continue;
+                if (b.max.x > east) { east = b.max.x; top = b.max.y; name = c.transform.parent != null ? c.transform.parent.name + "/" + c.name : c.name; }
+            }
+            return name != null;
+        }
+
+        /// <summary>FlatRoute_Hall at the top level of <paramref name="scene"/>: the steps up the StepBox's east face (onto
+        /// the stair books' ends where they stick out of it) and the plank over the sprint gap, both in the band between the
+        /// lane and the side camera that the cutaway hides (past Cut From, short of the near wall). One line per piece into
+        /// <paramref name="lines"/>; anything that does not add up into <paramref name="warn"/>.</summary>
+        private static GameObject PlaceRoute(Scene scene, Transform hall, float laneZ, float southFace, float ceilingY, float beforeX, float afterX, GameObject exit, Material fallbackLook, List<string> lines, List<string> warn)
+        {
+            var root = new GameObject(RouteName);
+            if (root.scene != scene) SceneManager.MoveGameObjectToScene(root, scene);
+            root.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            float jump = ToyJump(out string jumpFrom);
+            float stepOffset = ToyStepOffset(out string offsetFrom);
+            float north = laneZ - CutFrom - RouteCutClear;   // the route's edge nearest the lane
+            Physics.SyncTransforms();
+
+            // ---- the steps
+            Transform stepBox = hall != null ? hall.Find("StepBox") : null;
+            Bounds box;
+            string boxFrom;
+            if (stepBox != null && DrawnBounds(stepBox.gameObject, out box)) boxFrom = "StepBox found";
+            else { box = new Bounds(new Vector3(10.16f, StepBoxTop * 0.5f, laneZ), new Vector3(11.525f, StepBoxTop, 15.08f)); boxFrom = "StepBox NOT FOUND: the measured box (x 4.4 to 15.925, z 7.54 either side of the lane)"; warn.Add("no StepBox: the steps stand where the measured box was"); }
+            float floorY = FloorAt(new Vector3(box.max.x + 4f, ceilingY - 0.5f, north - StepsAcross * 0.5f), ceilingY + 2f, out string floorFrom);
+            float boxTop = box.max.y, boxEast = box.max.x, south = north - StepsAcross;
+            float riseMost = Mathf.Min(BookRiseMost, jump * StepRiseShare);
+            // The stair books (UpStairs) run through the box and stick out of its east face (measured 25 Nov: Book9 to Book11,
+            // tops 11.07 to 12.14, ends out to x 21.38, across z -156.7 to -144.1): the steps climb onto the eastmost such end,
+            // so none stands inside a book or under one's overhang. From there the toy walks west onto the box's top.
+            string landing = "the box's top";
+            if (FindOverhangLanding(box, south, north, boxTop, riseMost, out float landEast, out float landTop, out string landName))
+            {
+                landing = $"{landName}'s end sticking out of the box's east face (top y {Say(landTop)}, out to x {Say(landEast)}), then the box's top";
+                boxEast = landEast; boxTop = landTop;
+            }
+            int risers = Mathf.Max(1, Mathf.CeilToInt((boxTop - floorY) / riseMost));
+            float rise = (boxTop - floorY) / risers;
+            GameObject stepPrefab = PackPrefab(StepPieces, out string stepName);
+            lines.Add($"STEPS up the StepBox's east face ({boxFrom}: x {Say(box.min.x)} to {Say(box.max.x)}, top y {Say(box.max.y)}, z {Say(box.min.z)} to {Say(box.max.z)}; the floor there y {Say(floorY)}, {floorFrom}): "
+                + $"{risers - 1} steps and {landing}, each rise {Say(rise)} (at most {Say(StepRiseShare)} of the toy's jump {Say(jump)}, {jumpFrom}), each tread {Say(StepTread)} along, {Say(StepsAcross)} across (z {Say(south)} to {Say(north)}), "
+                + $"{(stepPrefab != null ? stepName + " from the Playroom pack, sized to each step" : "plain blocks in the hallway's own material (no " + string.Join(" or ", StepPieces) + " in " + PackPath + ")")}");
+            if (box.min.z > north - 1f) warn.Add($"the StepBox reaches only z {Say(box.min.z)}: the top step meets it over {Say(north - box.min.z)} across (under 1: a toy may not step from the steps onto the box)");
+            for (int k = risers - 1; k >= 1; k--)
+            {
+                float top = floorY + k * rise;
+                float x0 = boxEast + StepGap + (risers - 1 - k) * StepTread;
+                var want = new Bounds(new Vector3(x0 + StepTread * 0.5f, (floorY + top) * 0.5f, (south + north) * 0.5f), new Vector3(StepTread, top - floorY, StepsAcross));
+                GameObject step = FitPiece(stepPrefab, "Step_" + k, root.transform, want, false, fallbackLook);
+                float head = top + ToyTall;
+                lines.Add($"Step_{k}: x {Say(want.min.x)} to {Say(want.max.x)}, top y {Say(top)} ({Say(rise)} over the {(k == 1 ? "floor" : "step before")}; a full jump lifts the feet {Say(jump)}), head room {Say(ceilingY - head)} under the ceiling; {Touches(step, root.transform)}");
+                if (head > ceilingY) warn.Add($"Step_{k}: a toy on it (head {Say(head)}) does not fit under the ceiling (y {Say(ceilingY)})");
+            }
+            if (rise > jump) warn.Add($"a step's rise {Say(rise)} is over the toy's jump {Say(jump)}");
+
+            // ---- the plank over the sprint gap
+            FindGap(beforeX, afterX, (southFace + north) * 0.5f, floorY, ceilingY, out float gapWest, out float gapEast, out string gapFrom);
+            GameObject plankPrefab = PackPrefab(PlankPieces, out string plankName);
+            if (plankPrefab == null) { warn.Add($"no {string.Join(", ", PlankPieces)} in {PackPath}: NO PLANK over the sprint gap (the way west needs a sprint jump)"); return root; }
+            float zMin = southFace + PlankWallGap;
+            var plankWant = new Bounds(new Vector3((gapWest + gapEast) * 0.5f, floorY, zMin + PlankAcross * 0.5f), new Vector3(gapEast - gapWest + 2f * PlankBite, 0f, PlankAcross));
+            GameObject plank = FitPiece(plankPrefab, "Plank", root.transform, plankWant, true, fallbackLook);
+            DrawnBounds(plank, out Bounds pb);
+            float thick = pb.max.y - floorY;
+            string exitClear = "";
+            if (exit != null && TriggerBounds(exit, out Bounds et))
+            {
+                exitClear = $"; the exit rift's trigger (x {Say(et.min.x)} to {Say(et.max.x)}, z {Say(et.min.z)} to {Say(et.max.z)}) is {Say(et.min.x - pb.max.x)} past its east end and {Say(et.min.z - pb.max.z)} past its edge nearest the lane";
+                if (pb.max.x > et.min.x - ToyRound && pb.max.z > et.min.z) warn.Add("the plank's east end reaches the exit rift's trigger: a toy walking off it east steps into the rift");
+            }
+            lines.Add($"PLANK: {plankName} from the Playroom pack at {Say(plank.transform.localScale.x)} times, x {Say(pb.min.x)} to {Say(pb.max.x)} ({Say(pb.size.x)} long), z {Say(pb.min.z)} to {Say(pb.max.z)} ({Say(pb.size.z)} across), top y {Say(pb.max.y)}; "
+                + $"over the sprint gap x {Say(gapWest)} to {Say(gapEast)} ({gapFrom}), lying {Say(gapWest - pb.min.x)} on the floor west of it and {Say(pb.max.x - gapEast)} east; "
+                + $"its top is {Say(thick)} over the floor: {(thick <= stepOffset ? "walked onto (the toy's step offset is " + Say(stepOffset) + ", " + offsetFrom + ")" : "OVER the toy's step offset " + Say(stepOffset) + ": a hop up")}{exitClear}; {Touches(plank, root.transform)}");
+            if (pb.size.z < 3f) warn.Add($"the plank is only {Say(pb.size.z)} across (under 3)");
+            if (pb.min.x > gapWest - 0.5f || pb.max.x < gapEast + 0.5f) warn.Add("the plank does not reach the floor on both sides of the sprint gap");
+            if (pb.max.z > north + 0.001f) warn.Add($"the plank reaches z {Say(pb.max.z)}, nearer the lane than the cut band's edge {Say(north)}: the side view may see it");
+            return root;
+        }
+
+        /// <summary>One route piece: an empty <paramref name="name"/> (not turned) under <paramref name="parent"/> with the
+        /// pack's piece in it (a plain cube in <paramref name="fallbackLook"/> when there is none). Not <paramref name="uniform"/>:
+        /// the holder is scaled per axis so the drawn piece fills <paramref name="want"/> (a block); uniform: the piece is
+        /// laid with its long side along x and scaled the same every way until it is at least as long and as wide as
+        /// <paramref name="want"/> (a plank: never stretched), its middle on want's middle along x and across, its bottom
+        /// on want's bottom.</summary>
+        private static GameObject FitPiece(GameObject prefab, string name, Transform parent, Bounds want, bool uniform, Material fallbackLook)
+        {
+            var holder = new GameObject(name).transform;
+            holder.SetParent(parent, false);
+            GameObject look;
+            if (prefab != null) look = (GameObject)PrefabUtility.InstantiatePrefab(prefab, holder);
+            else
+            {
+                look = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                look.transform.SetParent(holder, false);
+                if (fallbackLook != null) look.GetComponent<Renderer>().sharedMaterial = fallbackLook;
+            }
+            look.transform.localPosition = Vector3.zero;
+            if (!DrawnBounds(look, out Bounds b)) return holder.gameObject;
+            if (uniform)
+            {
+                if (b.size.z > b.size.x) { look.transform.localRotation = Quaternion.Euler(0f, 90f, 0f) * look.transform.localRotation; DrawnBounds(look, out b); }
+                float k = Mathf.Max(want.size.z / Mathf.Max(0.001f, b.size.z), want.size.x / Mathf.Max(0.001f, b.size.x));
+                holder.localScale = Vector3.one * k;
+                DrawnBounds(look, out b);
+                holder.position += new Vector3(want.center.x - b.center.x, want.min.y - b.min.y, want.center.z - b.center.z);
+                return holder.gameObject;
+            }
+            holder.localScale = new Vector3(want.size.x / Mathf.Max(0.001f, b.size.x), want.size.y / Mathf.Max(0.001f, b.size.y), want.size.z / Mathf.Max(0.001f, b.size.z));
+            DrawnBounds(look, out b);
+            holder.position += want.center - b.center;
+            return holder.gameObject;
+        }
+
+        /// <summary>The first of <paramref name="names"/> found as a prefab in the Playroom pack (by its file's name), or null.</summary>
+        private static GameObject PackPrefab(string[] names, out string found)
+        {
+            foreach (string n in names)
+                foreach (string guid in AssetDatabase.FindAssets(n + " t:Prefab", new[] { PackPath }))
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    if (System.IO.Path.GetFileNameWithoutExtension(path) != n) continue;
+                    found = n;
+                    return AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                }
+            found = null;
+            return null;
+        }
+
+        /// <summary>What a route piece's box (shrunk 5 cm every way, so the floor and the box it stands against do not
+        /// count) overlaps that is solid and not the route's own: "clear" is what is wanted.</summary>
+        private static string Touches(GameObject piece, Transform own)
+        {
+            if (!DrawnBounds(piece, out Bounds b)) return "nothing drawn";
+            Physics.SyncTransforms();
+            Vector3 half = Vector3.Max(b.extents - Vector3.one * 0.05f, Vector3.one * 0.01f);
+            var names = new List<string>();
+            foreach (Collider c in Physics.OverlapBox(b.center, half, Quaternion.identity, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (c == null || c.transform.IsChildOf(own)) continue;
+                string n = c.transform.parent != null ? c.transform.parent.name + "/" + c.name : c.name;
+                if (!names.Contains(n)) names.Add(n);
+            }
+            return names.Count == 0 ? "clear of everything solid" : "IT OVERLAPS " + string.Join(", ", names) + " (move that, or this)";
+        }
+
+        /// <summary>The floor's top straight down from <paramref name="from"/>: the highest solid top (not a trigger) within
+        /// 0.5 of y 0, so a lost thing lying there does not count; 0 when there is none (then <paramref name="said"/> says so).</summary>
+        private static float FloorAt(Vector3 from, float reach, out string said)
+        {
+            Physics.SyncTransforms();
+            if (FloorThere(from, reach, 0f, 0.5f, out RaycastHit hit)) { said = $"{hit.collider.name} found under it"; return hit.point.y; }
+            said = "NO floor found under it at y 0: y 0 used";
+            return 0f;
+        }
+
+        /// <summary>True when a ray straight down from <paramref name="from"/> meets a solid top (not a trigger) within
+        /// <paramref name="tolerance"/> of <paramref name="near"/>: a floor at that height, whatever lies on it.</summary>
+        private static bool FloorThere(Vector3 from, float reach, float near, float tolerance, out RaycastHit floor)
+        {
+            floor = default;
+            bool any = false;
+            foreach (RaycastHit hit in Physics.RaycastAll(from, Vector3.down, reach, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (Mathf.Abs(hit.point.y - near) >= tolerance || (any && hit.point.y <= floor.point.y)) continue;
+                floor = hit; any = true;
+            }
+            return any;
+        }
+
+        /// <summary>The sprint gap along the line z = <paramref name="z"/>: the floor (a solid top within 0.25 of
+        /// <paramref name="floorY"/>) looked for every 0.25 from <paramref name="fromX"/> to <paramref name="toX"/>; the gap
+        /// runs from the first miss to the last. The checkpoints' numbers (6 either side) when no miss is found.</summary>
+        private static void FindGap(float fromX, float toX, float z, float floorY, float ceilingY, out float west, out float east, out string said)
+        {
+            Physics.SyncTransforms();
+            west = float.NaN; east = float.NaN;
+            for (float x = fromX; x <= toX; x += 0.25f)
+            {
+                if (FloorThere(new Vector3(x, ceilingY - 0.5f, z), ceilingY + 2f, floorY, 0.25f, out _)) continue;
+                if (float.IsNaN(west)) west = x - 0.25f;
+                east = x;
+            }
+            if (float.IsNaN(west)) { west = fromX + GapFromCheckpoint; east = toX - GapFromCheckpoint; said = "NO gap found in the floor: the checkpoints' numbers"; return; }
+            east += 0.25f;
+            said = $"measured: no floor from x {Say(west + 0.25f)} to {Say(east - 0.25f)} every 0.25";
+        }
+
+        /// <summary>The toy's full jump at toy size (MovementSettings Jump Height times ShiftSettings Toy Scale).</summary>
+        private static float ToyJump(out string from)
+        {
+            var moves = AssetDatabase.LoadAssetAtPath<MovementSettings>(MovesPath);
+            var shift = AssetDatabase.LoadAssetAtPath<ShiftSettings>(ShiftPath);
+            float toy = shift != null ? shift.toyScale : 1f;
+            if (moves == null) { from = "NOT FOUND, the 24 Nov number"; return FallbackJump; }
+            from = MovesPath + " Jump Height " + Say(moves.jumpHeight) + " x toy scale " + Say(toy);
+            return moves.jumpHeight * toy;
+        }
+
+        /// <summary>The toy capsule's step offset (the Player prefab's CharacterController): a lip this high is walked onto.</summary>
+        private static float ToyStepOffset(out string from)
+        {
+            var player = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPath);
+            if (player != null && player.TryGetComponent(out CharacterController capsule)) { from = PlayerPath; return capsule.stepOffset; }
+            from = "the Player prefab NOT FOUND, the 25 Nov number";
+            return FallbackStepOffset;
+        }
+
+        /// <summary>A gate's trigger box in the world (its BoxCollider's own box: right in the editor, where the
+        /// collider's bounds may not be up to date). False when it has none.</summary>
+        private static bool TriggerBounds(GameObject gate, out Bounds bounds)
+        {
+            bounds = default;
+            if (gate == null || !gate.TryGetComponent(out BoxCollider box)) return false;
+            Vector3 lo = gate.transform.TransformPoint(box.center - box.size * 0.5f), hi = gate.transform.TransformPoint(box.center + box.size * 0.5f);
+            bounds.SetMinMax(Vector3.Min(lo, hi), Vector3.Max(lo, hi));
+            return true;
+        }
+
+        /// <summary>Whether every renderer of the route is in the cutaway's list, by piece (the route's own children: Step_1
+        /// and on, Plank): the CUT AWAY line above has them too, by their renderers' names.</summary>
+        private static string RouteCut(GameObject route, List<Renderer> cut, List<string> warn)
+        {
+            if (route == null) return "NO route";
+            var inCut = new List<string>(); var missing = new List<string>();
+            int renderers = 0;
+            foreach (Transform piece in route.transform)
+            {
+                bool all = true, some = false;
+                foreach (Renderer r in piece.GetComponentsInChildren<Renderer>()) { renderers++; some = true; if (!cut.Contains(r)) all = false; }
+                if (!some) continue;
+                (all ? inCut : missing).Add(piece.name);
+            }
+            if (missing.Count > 0) warn.Add($"route pieces NOT cut away side-on (they would stand in front of the flat run): {string.Join(", ", missing)}");
+            return $"CUT AWAY side-on (in the list above, {renderers} renderer(s)): {(inCut.Count > 0 ? string.Join(", ", inCut) : "none")}"
+                + (missing.Count > 0 ? $"; NOT CUT: {string.Join(", ", missing)}" : "; every route piece is cut (not drawn in the flat run, its shadow kept)");
+        }
+
+        /// <summary>The book stairs (UpStairs) as a toy walking DOWN west from the box's top meets them, east to west: each
+        /// book's top and the stretch of it to land on (from its own west end to the west end of the one before: the
+        /// books lie one over the next), the drop onto it, and the head room. Books whose west end is under the box's top
+        /// (the landing books) are not met. A landing under the toy's width, or a toy that does not fit under the ceiling,
+        /// goes to the warnings.</summary>
+        private static string StairsDown(Transform hall, float ceilingY, List<string> warn)
+        {
+            Transform stairs = hall != null ? hall.Find("UpStairs") : null;
+            if (stairs == null) { warn.Add("no UpStairs: the way down west is not checked"); return "UpStairs NOT FOUND"; }
+            Transform stepBox = hall.Find("StepBox");
+            float above, aboveWest; string start;
+            if (stepBox != null && DrawnBounds(stepBox.gameObject, out Bounds sb)) { above = sb.max.y; aboveWest = sb.min.x; start = $"from the StepBox's top (y {Say(above)}, its west face x {Say(aboveWest)})"; }
+            else { above = StepBoxTop; aboveWest = float.PositiveInfinity; start = $"from the measured box top (y {Say(above)}; StepBox NOT FOUND)"; }
+            var books = new List<(string name, Bounds b)>();
+            foreach (Transform book in stairs) if (DrawnBounds(book.gameObject, out Bounds bb)) books.Add((book.name, bb));
+            if (books.Count == 0) { warn.Add("UpStairs has no books"); return "UpStairs has no books"; }
+            books.Sort((a, c) => c.b.min.x.CompareTo(a.b.min.x));   // east first: the way down west
+            var parts = new List<string>(); var under = new List<string>();
+            float worstDrop = 0f, narrowest = float.MaxValue;
+            foreach (var (name, b) in books)
+            {
+                if (b.min.x >= aboveWest - 0.01f) { under.Add($"{name} (top {Say(b.max.y)})"); continue; }   // under the box's top or the book before: not met
+                float tread = float.IsInfinity(aboveWest) ? b.size.x : aboveWest - b.min.x;
+                float drop = above - b.max.y;
+                worstDrop = Mathf.Max(worstDrop, drop); narrowest = Mathf.Min(narrowest, tread);
+                parts.Add($"{name} top {Say(b.max.y)} (land on x {Say(b.min.x)} to {Say(b.min.x + tread)}, {Say(tread)} long; drop {Say(drop)})");
+                if (tread < ToyRound * 2f) warn.Add($"UpStairs/{name}: only {Say(tread)} of it shows to land on going down (under the toy's {Say(ToyRound * 2f)})");
+                if (drop < -0.3f) warn.Add($"UpStairs/{name}: going down west it is {Say(-drop)} UP from the one before (over the step offset)");
+                if (b.max.y + ToyTall > ceilingY) warn.Add($"UpStairs/{name}: a toy on it does not fit under the ceiling");
+                above = b.max.y; aboveWest = b.min.x;
+            }
+            return $"{start}, east to west: " + string.Join(", ", parts) + $"; then the floor ({Say(above)} down)"
+                + (under.Count > 0 ? $"; not met (their west end under the box's top): {string.Join(", ", under)}" : "")
+                + $". Worst drop {Say(worstDrop)} (a drop is walked off), narrowest landing {Say(narrowest)} (the toy is {Say(ToyRound * 2f)} round): "
+                + (narrowest >= ToyRound * 2f ? "every book can be stepped down onto" : "SEE LOOK AT");
+        }
+
+        /// <summary>The floor along the lane under the ropes, from the StepBox's east face to CP_beforeSprint: its top
+        /// every 0.5 (gaps named), and a toy-sized capsule standing every 1 along it: what solid thing it touches.</summary>
+        private static string FloorUnderRopes(Transform hall, float laneZ, float beforeX, GameObject route, GameObject zone, List<string> warn)
+        {
+            Transform stepBox = hall != null ? hall.Find("StepBox") : null;
+            float from = stepBox != null && DrawnBounds(stepBox.gameObject, out Bounds sb) ? sb.max.x + 0.5f : 16.5f;
+            Physics.SyncTransforms();
+            float low = float.MaxValue, high = float.MinValue; var holes = new List<string>(); var touched = new List<string>();
+            for (int i = 0; from + i * 0.5f <= beforeX; i++)
+            {
+                float x = from + i * 0.5f;
+                if (FloorThere(new Vector3(x, 3f, laneZ), 6f, 0f, 0.5f, out RaycastHit hit)) { low = Mathf.Min(low, hit.point.y); high = Mathf.Max(high, hit.point.y); }
+                else if (holes.Count < 8) holes.Add(Say(x));
+                if (i % 2 != 0) continue;
+                Vector3 feet = new Vector3(x, (low < float.MaxValue ? high : 0f) + 0.05f, laneZ);
+                foreach (Collider c in Physics.OverlapCapsule(feet + Vector3.up * (ToyRound + 0.02f), feet + Vector3.up * (ToyTall - ToyRound), ToyRound, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    if (c == null || (route != null && c.transform.IsChildOf(route.transform)) || c.transform.IsChildOf(zone.transform)) continue;
+                    string n = (c.transform.parent != null ? c.transform.parent.name + "/" : "") + c.name + " at x " + Say(x);
+                    if (touched.Count < 8) touched.Add(n);
+                }
+            }
+            if (holes.Count > 0) warn.Add($"the lane under the ropes has no floor at x {string.Join(", ", holes)}");
+            if (touched.Count > 0) warn.Add($"a toy standing on the lane under the ropes touches {string.Join(", ", touched)}");
+            return $"x {Say(from)} to {Say(beforeX)} on the lane (z {Say(laneZ)}): the floor's top y {(low < float.MaxValue ? Say(low) + " to " + Say(high) : "NOT FOUND")} every 0.5{(holes.Count > 0 ? "; NO FLOOR at x " + string.Join(", ", holes) : ", no hole")}; "
+                + $"a toy standing there every 1 touches {(touched.Count == 0 ? "nothing solid: walkable both ways" : string.Join(", ", touched))}";
+        }
+
+        /// <summary>The take rule's answers for a toy's middle (0.9 over the floor) stepping 0.4 across each side of the box,
+        /// before and after done, with and without coming through the rift; the slots' done marks as they stand.</summary>
+        private static string TakeRule(FlatZone zone, float boxWest, float boxEast, float boxBottom, float boxTop, float laneZ, GameObject entrance)
+        {
+            const float Mid = ToyTall * 0.5f, Step = 0.2f;
+            string Ask(Vector3 a, Vector3 b, bool done, bool invited) => zone.WouldTake(a, b, done, invited) ? "TAKES" : "no";
+            Vector3 westOut = new Vector3(boxWest - Step, Mid, laneZ), westIn = new Vector3(boxWest + Step, Mid, laneZ);
+            float besideZ = laneZ - 7f;
+            if (TriggerBounds(entrance, out Bounds et)) besideZ = et.min.z - 2f;
+            Vector3 besideOut = new Vector3(boxWest - Step, Mid, besideZ), besideIn = new Vector3(boxWest + Step, Mid, besideZ);
+            Vector3 eastOut = new Vector3(boxEast + Step, Mid, laneZ), eastIn = new Vector3(boxEast - Step, Mid, laneZ);
+            Vector3 topOut = new Vector3(30f, boxTop + Step, laneZ), topIn = new Vector3(30f, boxTop - Step, laneZ);
+            Vector3 bottomOut = new Vector3(70f, boxBottom - Step, laneZ), bottomIn = new Vector3(70f, boxBottom + Step, laneZ);
+            Vector3 far = new Vector3(boxWest - 12f, Mid, laneZ);
+            var slots = new List<string>();
+            for (int i = 0; i < SaveGame.Slots; i++) slots.Add($"slot {i + 1} {(zone.DoneFor(i) ? "DONE" : "not done")}");
+            return $"through the rift's middle (x {Say(boxWest)}, z {Say(laneZ)}) walking east: before done {Ask(westOut, westIn, false, false)}, done {Ask(westOut, westIn, true, false)}, done and through the rift {Ask(westOut, westIn, true, true)} | "
+                + $"beside the rift (z {Say(besideZ)}) walking east: before done {Ask(besideOut, besideIn, false, false)}, done {Ask(besideOut, besideIn, true, false)} | "
+                + $"in at the east end (x {Say(boxEast)}) walking west: before done {Ask(eastOut, eastIn, false, false)}, done {Ask(eastOut, eastIn, true, true)} | "
+                + $"in through the top (y {Say(boxTop)}): {Ask(topOut, topIn, false, true)} | in through the bottom (y {Say(boxBottom)}): {Ask(bottomOut, bottomIn, false, true)} | "
+                + $"put inside from 12 west (a respawn, a portal): {Ask(far, westIn, false, true)}. "
+                + $"Optional Once Done is {(zone.OptionalOnceDone ? "ON" : "OFF (done changes nothing)")}. Done now: {string.Join(", ", slots)} (\"{FlatZone.DoneKeyOf(zone.Id)}\" in the slot's seen list; New Game clears it)";
+        }
+
+        /// <summary>Where the exit's link back lands, and what is around that spot: the entrance's trigger, the floor, the
+        /// drop ahead.</summary>
+        private static string LinkLine(FlatZone zone, GameObject entrance, GameObject exit, List<string> warn)
+        {
+            FlatGate inGate = entrance != null ? entrance.GetComponent<FlatGate>() : null, outGate = exit != null ? exit.GetComponent<FlatGate>() : null;
+            if (inGate == null || outGate == null) { warn.Add("a gate has no FlatGate script: no link back"); return "NO link (a gate has no FlatGate script)"; }
+            zone.LandingFor(inGate, out Vector3 at, out Quaternion facing);
+            FlatViewSettings v = zone.Settings;
+            Vector3 back = facing * Vector3.forward;
+            string clear = "the entrance has no trigger";
+            if (TriggerBounds(entrance, out Bounds t))
+            {
+                // the trigger's face nearest the landing, along the way the player faces there
+                float gap = Mathf.Abs(Vector3.Dot(at - t.ClosestPoint(at), back)) - ToyRound;
+                clear = $"the body's edge {Say(gap)} clear of the entrance's trigger (x {Say(t.min.x)} to {Say(t.max.x)})";
+                if (t.Contains(at) || gap <= 0f) warn.Add("the link back lands the toy inside the entrance's trigger: raise FlatView > Link Landing");
+            }
+            float floorY = FloorAt(at + Vector3.up * 3f, 6f, out string floorFrom);
+            float ahead = float.NaN;
+            for (float d = 0.25f; d <= 8f; d += 0.25f)
+            {
+                if (FloorThere(at + back * d + Vector3.up * 3f, 6f, floorY, 0.25f, out _)) continue;
+                ahead = d; break;
+            }
+            return $"the Exit ('{exit.name}', x {Say(exit.transform.position.x)}) carries a player the zone does NOT hold that walks into it toward the Entrance to {Say(at)}, facing yaw {Say(facing.eulerAngles.y)} (away from the Entrance; 270 = west), "
+                + $"FlatView > Link Landing {Say(v.linkLanding)} behind the Entrance's middle; the floor there y {Say(floorY)} ({floorFrom}); {clear}; "
+                + $"{(float.IsNaN(ahead) ? "floor for 8 ahead" : $"the floor ends {Say(ahead)} ahead (the hop's drop: walking on falls in)")}. "
+                + $"With the shift warp (outward, {Say(v.blendSeconds)} s), both gates' flash and sound; both rest {Say(v.linkCooldown)} s (FlatView > Link Cooldown); the way in stays open {Say(v.riftWindow)} s behind a toy walking through it (FlatView > Rift Window); its respawn point is set there";
         }
 
         // ================================================================== the pixel look (D-0209)
@@ -1061,7 +1483,7 @@ namespace ShiftJam
             if (go.TryGetComponent(out BoxCollider box))
             {
                 Vector3 lo = go.transform.TransformPoint(box.center - box.size * 0.5f), hi = go.transform.TransformPoint(box.center + box.size * 0.5f);
-                touch = $"its trigger x {Say(Mathf.Min(lo.x, hi.x))} to {Say(Mathf.Max(lo.x, hi.x))}, y {Say(Mathf.Min(lo.y, hi.y))} to {Say(Mathf.Max(lo.y, hi.y))}, z {Say(Mathf.Min(lo.z, hi.z))} to {Say(Mathf.Max(lo.z, hi.z))}{(role == "EXIT" ? "" : " (switched off in Play: an entrance is not touched)")}";
+                touch = $"its trigger x {Say(Mathf.Min(lo.x, hi.x))} to {Say(Mathf.Max(lo.x, hi.x))}, y {Say(Mathf.Min(lo.y, hi.y))} to {Say(Mathf.Max(lo.y, hi.y))}, z {Say(Mathf.Min(lo.z, hi.z))} to {Say(Mathf.Max(lo.z, hi.z))}{(role == "EXIT" ? (so.FindProperty("link").objectReferenceValue != null ? ", carries back to '" + so.FindProperty("link").objectReferenceValue.name + "'" : ", NO link back") : " (the way in: a player walking through it eastward is invited in)")}";
             }
             string sound = so != null && so.FindProperty("sound.clip").objectReferenceValue != null ? so.FindProperty("sound.clip").objectReferenceValue.name : "silent";
             Vector3 f = go.transform.forward;

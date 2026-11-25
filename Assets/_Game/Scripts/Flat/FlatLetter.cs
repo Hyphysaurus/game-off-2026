@@ -14,10 +14,13 @@ namespace ShiftJam
     ///   slot (SaveGame's seen list, so Continue keeps it and New Game clears it), and the HUD's strip lights it.
     /// - A letter already found shows as a ghost (see-through, faint): still there to see, not to take again.
     /// - When the last letter of the zone is found the zone gives its reward, once per slot (FlatZone.LetterFound).
+    /// - It is SEEN only during the flat run (D-0212): its look is drawn while its zone holds a local player (and while
+    ///   it pops), so a player walking the stretch in 3D sees no letters hanging in the hallway.
     /// Only a player the zone is holding takes it (side-on, at toy size, in Play): anyone else runs through it. The
     /// look is a child ("Look", its mesh and renderer); this script sizes it from the shape at start (Height), centres
     /// it on this object, and sizes the trigger to it.
-    /// OFF SWITCH: untick the letter's object: that letter is gone, and the zone's reward counts the letters that are on.
+    /// OFF SWITCHES: untick the letter's object: that letter is gone, and the zone's reward counts the letters that are on.
+    /// Untick Only While Held: the letter is drawn all the time again (before D-0212).
     /// Shift Jam > Flat > Land Hallway Scroller places the hallway's five under FlatZone_Hall.
     /// </summary>
     [DisallowMultipleComponent]
@@ -44,6 +47,7 @@ namespace ShiftJam
         [SerializeField, Tooltip("The letter's material while it is to be found (unlit, so his colours stay his). Slot 0 of the shape is its faces, slot 1 its sides.")] private Material solid;
         [SerializeField, Tooltip("The ghost's material once it is found (unlit and see-through).")] private Material ghost;
         [SerializeField, Tooltip("The ghost's colour over the sheet; its alpha is how see-through it is (0 = gone, 1 = solid).")] private Color ghostColour = new Color(0.8f, 0.9f, 1f, 0.22f);
+        [SerializeField, Tooltip("Drawn only while its zone holds a local player (the flat run) and while it pops (D-0212). Off: drawn all the time.")] private bool onlyWhileHeld = true;
 
         [Header("Its motion")]
         [SerializeField, Tooltip("Degrees a second it turns about its up. 0 = it faces the camera and stays still.")] private float spinDegreesPerSecond = 60f;
@@ -119,6 +123,7 @@ namespace ShiftJam
 
         private void OnEnable()
         {
+            if (onlyWhileHeld && look != null) look.enabled = false;   // LateUpdate shows it while the zone holds a player
             Live.Add(this);
             SaveGame.Changed += Read;
             _popAt = float.NegativeInfinity;
@@ -206,6 +211,9 @@ namespace ShiftJam
         private void LateUpdate()
         {
             if (look == null || _solidSlots == null) return;
+            bool show = !onlyWhileHeld || Popping || (zone != null && zone.AnyInside);
+            if (look.enabled != show) { look.enabled = show; _shownFrame = -1; }   // shown again: its frame is laid on afresh
+            if (!show) return;   // not drawn: nothing to turn or lay on
             float since = Time.time - _popAt;
             float pop = since < popSeconds ? 1f - since / popSeconds : 0f;   // 1 at the moment it is taken, 0 when done
             if (pop <= 0f && _found && !_ghostShown) ShowGhost(true);

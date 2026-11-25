@@ -6,7 +6,8 @@ namespace ShiftJam
     /// The opening's numbers (D-0097): New Game's few seconds in the toy box: dark, the flaps open and light comes in, a
     /// spark (a tiny shift orb) drifts down onto the lying toy and strikes, and the toy gets up. Read from
     /// Resources/OpeningSettings; without the asset these defaults play. Seconds are real time (the slow-motion does not
-    /// stretch them); distances are in the toy's own heights unless they say otherwise.
+    /// stretch them); distances are in the toy's own heights unless they say otherwise. Also the toy's first words once it
+    /// is up (D-0213, said by WakeLine).
     /// </summary>
     [CreateAssetMenu(menuName = "Shift Jam/Opening Settings", fileName = "OpeningSettings")]
     public sealed class OpeningSettings : ScriptableObject
@@ -54,6 +55,30 @@ namespace ShiftJam
 
         [Header("Skip")]
         [Tooltip("Seconds a key or button is held to skip (Esc skips at once).")] public float skipHold = 0.6f;
+
+        [Header("The wake-up line (D-0213)")]
+        [Tooltip("What the toy says once it is up (his words). A speech sticker at the top of the screen, typed out. Shown "
+               + "on every New Game (New Game clears the slot) and at most once per save slot; never on Continue, a "
+               + "respawn or in a sandbox. Empty = no line.")]
+        [TextArea(2, 4)] public string wakeLine = "Geez, things got shifty last night... How did I get here? Am I dreaming?";
+        [Tooltip("One word of the line that wobbles (its first match, any case). The line itself stays plain text. Empty "
+               + "or not in the line = no wobble.")] public string wakeLineWobble = "shifty";
+        [Tooltip("The Text Animator effect that wobbles it, by its tag: wave, wiggle, swing, pend, dangle, rot, shake, "
+               + "bounce. Empty = no wobble.")] public string wakeLineWobbleEffect = "wave";
+        [Tooltip("Seconds after the toy starts to get up (or after a skip) before the line drops in: the strike's flash "
+               + "and the skip's fade from black are gone by then. Real time.")] public float wakeLineDelay = 0.6f;
+        [Tooltip("Letters typed a second.")] public float wakeLineLettersPerSecond = 28f;
+        [Tooltip("The beat the typing waits after a sentence ends (\". \", \"... \", \"? \"), seconds.")] public float wakeLinePause = 0.3f;
+        [Tooltip("Seconds the whole line stays up once typed, before it fades.")] public float wakeLineHold = 4.5f;
+        [Tooltip("Its sound as it drops in, one of the UI sounds (Resources/UiSounds). None = silent.")]
+        public UiAudio.Kind wakeLineSound = UiAudio.Kind.Toast;
+
+        /// <summary>The wake-up line's look and timing, for Toasts.Say.</summary>
+        public SayStyle WakeLineStyle() => new SayStyle
+        {
+            lettersPerSecond = wakeLineLettersPerSecond, pauseSeconds = wakeLinePause, holdSeconds = wakeLineHold,
+            delay = wakeLineDelay, wobbleWord = wakeLineWobble, wobbleTag = wakeLineWobbleEffect, sound = wakeLineSound,
+        };
 
         private static OpeningSettings _loaded;
 

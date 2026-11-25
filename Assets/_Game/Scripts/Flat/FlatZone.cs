@@ -18,11 +18,25 @@ namespace ShiftJam
     /// - the shift warp plays as the camera swings (D-0203: outward on the way in, inward on the way out, over the
     ///   blend; a size shift running wins), a big card says so ("FLAT SHIFT", "BACK TO 3D"), and a fill light the zone
     ///   owns rides with that player's camera, fading in and out with the swing, so the toy and the far wall read.
-    /// Whether the body is in the box is tested every frame (no trigger events), so a respawn, a Continue or a portal
-    /// that lands inside works. Not held: in first person, in Build Mode, in a car, or (Toy Only) at the wrong size or
-    /// mid-shift; the player is let go and taken back once it fits again. A pause holds everything as it is.
+    /// WHO IT TAKES (D-0212, his "optional unless designed for specific beats"): a player is taken when its body WALKS
+    /// INTO the box across the way-in side (the end the rail starts at: the hallway's west face). Before this save slot
+    /// has DONE the stretch, that is all it takes (the first run stays mandatory); once it is done, only a player who
+    /// walked through the way-in gate (the entrance rift's own trigger, moving on: FlatGate calls Invite) is taken, and
+    /// one who walks in beside the rift stays in 3D. Never taken: a body that comes in across any other side (the far
+    /// end, the top, the bottom: walking back from the playroom no longer flips the view at the exit), or one that is
+    /// put inside (a respawn, a portal, the console: a move longer than Walked Most in a frame). Once taken, a player
+    /// stays the zone's until its body leaves the box or it goes out through the exit: a respawn that lands inside keeps
+    /// it; first person, Build Mode, a car, or (Toy Only) the wrong size or a shift let it go only while they last, and
+    /// it is taken back once it fits again. A pause holds everything as it is. Whether the body is in the box is tested
+    /// every frame (no trigger events).
+    /// DONE (per save slot, in SaveGame's seen list: "flat:FlatZone_Hall:done" for the hallway, so Continue and a
+    /// respawn keep it and New Game clears it) is set when a held player goes out through the exit; walking out of the
+    /// box or falling out of it is not done.
     /// Clear (the exit gate calls it, FlatGate) lets a player go at once, with the exit card, and the zone leaves that
-    /// player alone until its body has left the box: walking back in starts a new visit.
+    /// player alone until its body has walked into the box again as above.
+    /// THE LINK BACK (D-0212): the exit gate carries a player the zone does not hold who walks into it toward the
+    /// entrance back to just behind the entrance (CarryBack: on the floor, facing away, clear of its trigger), with the
+    /// shift warp; the gates flash and sound and rest (FlatView > Link Cooldown, Link Landing).
     /// The zone's own pieces (anything under this object: its gates, its fill light, its letters) are never cut away.
     /// LETTERS (D-0208): the S-H-I-F-T letters under this object (FlatLetter) are taken by a player the zone holds and
     /// saved per save slot under this zone's Id; the HUD's strip (FlatHud) shows them while the zone holds the player.
@@ -32,6 +46,7 @@ namespace ShiftJam
     /// title's palette (the PixelShift full-screen pass, FlatView > Pixel Rows, Palette Strength, Dither), easing in
     /// and out with the camera's swing; the renderer feature is switched on only while the look is above 0.
     /// OFF SWITCH: switch this object off (or untick the script) and the stretch plays exactly as it did without it.
+    /// Optional Once Done off: the first run's rule always (anyone walking in at the way-in side is taken, done or not).
     /// Local players only (one per camera rig: single player has one, a party one each); online, another player's copy
     /// on this PC has no rig and is not held, and what the zone does to this PC's player is not sent to the others.
     /// Drop one at the top level of a scene; Shift Jam > Flat > Land Hallway Scroller places the hallway's.
@@ -50,6 +65,10 @@ namespace ShiftJam
         [SerializeField, Tooltip("World height the frame never shows under, where it fits. A little under the walking floor puts ground under the feet.")] private float floor = 0f;
         [SerializeField, Tooltip("World height the frame never shows over, where it fits. At or under Floor: no limits.")] private float ceiling = 14f;
         [SerializeField, Tooltip("Only a toy is held, and not in the middle of a shift.")] private bool toyOnly = true;
+
+        [Header("Who it takes (D-0212)")]
+        [SerializeField, Tooltip("Once this save slot has gone through the stretch and out of its exit (done), the zone takes only a player who walks in through its entrance gate (the rift); walking in beside it, or coming back from the far end, stays 3D. OFF: anyone who walks in across the way-in side is taken, done or not (the first run's rule, always).")] private bool optionalOnceDone = true;
+        [SerializeField, Min(0.1f), Tooltip("A body that moves further than this in one frame (own units: toy units at toy size) was put there (a respawn, a portal, the console), not walked in: such a move never takes it. A sprint is 11 a second, so even a quarter-second hitch moves under 3.")] private float walkedMost = 6f;
 
         [Header("The cutaway")]
         [SerializeField, Tooltip("What stands between the lane and the camera is not drawn while the zone is on (its shadow stays). Off: nothing is hidden.")] private bool cutaway = true;
@@ -87,8 +106,11 @@ namespace ShiftJam
             public ShiftWarp warp;   // the course player's screen warp (a party's copies have none: no warp)
             public bool inside;    // held now
             public bool putAway;   // we put its gun away: it comes back on the way out
-            public bool cleared;   // it went out through the exit: left alone until its body has left the box
+            public bool admitted;  // it walked in as the take rule allows: held whenever it fits, until it leaves the box or goes out through the exit
             public bool leaving;   // let go, and its camera is still swinging back: the cutaway waits for it
+            public Vector3 last;   // its middle last frame (the take rule asks where it came from)
+            public bool hasLast;   // false until a frame has been seen, and after a carry back: no walk to read
+            public float invitedUntil = float.NegativeInfinity;   // it walked through the way-in gate: may be taken until then
         }
 
         /// <summary>One thing the cutaway hides, and how: its own shadow setting (read at the moment of the cut) is put back.</summary>
@@ -105,6 +127,8 @@ namespace ShiftJam
         private float _fillShare;   // the fill light, 0 (off) to 1 (full): eases with the camera's swing
         private float _pixelShare;  // the pixel look, 0 (off) to 1 (full): eases with the camera's swing
         private bool _pixelDriving; // this zone has the pixel pass on: only it switches it off again (another zone's is left alone)
+        private bool _done;         // the active save slot has gone out through this zone's exit (read when the saves change)
+        private string _doneKey;    // its name in the seen list, made once (an object's name is a new string each time it is asked)
 
         // The pixel pass's numbers are globals (PixelShift.shader), so playing never writes its material asset.
         private static readonly int PixelWeightId = Shader.PropertyToID("_PixelShiftWeight"), PixelRowsId = Shader.PropertyToID("_PixelShiftRows"),
@@ -125,13 +149,36 @@ namespace ShiftJam
         public bool AnyInside { get { for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) return true; return false; } }
         /// <summary>The zone's name for saves (its object's name: renaming the object forgets the letters it has found).</summary>
         public string Id => name;
+        /// <summary>True when the active save slot has gone out through this zone's exit (D-0212). Read in Play.</summary>
+        public bool Done => _done;
+        /// <summary>Once done, only the way-in gate takes a player (Optional Once Done).</summary>
+        public bool OptionalOnceDone => optionalOnceDone;
         private Transform Lane => lane != null ? lane : transform;
 
-        private void OnEnable() { GameMode.Changed += OnModeChanged; }
+        /// <summary>The save's name for "this zone's stretch is done" (a moment in SaveGame's seen list: "flat:FlatZone_Hall:done").</summary>
+        public static string DoneKeyOf(string zoneId) => "flat:" + (zoneId ?? "").Replace("|", "/") + ":done";   // the seen list is split on "|", as the letters' keys
+
+        /// <summary>True when save slot <paramref name="slot"/> has done this zone's stretch. Works out of Play (the maker's report).</summary>
+        public bool DoneFor(int slot) => SaveGame.Seen(slot, DoneKeyOf(Id));
+
+        private void OnEnable()
+        {
+            GameMode.Changed += OnModeChanged;
+            SaveGame.Changed += ReadDone;
+            ReadDone();
+        }
+
+        /// <summary>The active slot's done mark, read again whenever the saves change (another slot, New Game, a mark).</summary>
+        private void ReadDone()
+        {
+            _doneKey ??= DoneKeyOf(Id);
+            _done = SaveGame.Seen(SaveGame.Slot, _doneKey);
+        }
 
         private void OnDisable()
         {
             GameMode.Changed -= OnModeChanged;
+            SaveGame.Changed -= ReadDone;
             for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) Release(_riders[i], false);
             _riders.Clear();
             SetCut(false);   // at once: nobody is left to wait for
@@ -188,12 +235,85 @@ namespace ShiftJam
 
         private void ClearRider(Rider r)
         {
-            r.cleared = true;   // left alone until its body has left the box
+            r.admitted = false;   // left alone until it walks into the box again as the take rule allows
             PlayerMotor motor = r.motor;
             Release(r, true);
+            if (!_done) { _doneKey ??= DoneKeyOf(Id); SaveGame.MarkSeen(SaveGame.Slot, _doneKey); _done = true; }   // done for this slot (D-0212)
             Toasts.CardFor(motor, clearText, clearColour);
             onCleared?.Invoke();
             Cleared?.Invoke(this);
+        }
+
+        // ------------------------------------------------------------------ the rifts (D-0212)
+
+        /// <summary>The way-in gate was walked through, moving on, by the player <paramref name="who"/> belongs to: for
+        /// FlatView > Rift Window seconds its body may walk into the box and be taken, done or not. False if that is
+        /// not a local player (another player's copy online) or the zone holds it already.</summary>
+        public bool Invite(Component who)
+        {
+            Rider r = RiderOf(who);
+            if (r == null || r.inside) return false;
+            r.invitedUntil = Time.time + Settings.riftWindow;
+            return true;
+        }
+
+        /// <summary>The way out's link (the exit gate calls it): the player <paramref name="who"/> belongs to, when the
+        /// zone does not hold it, is carried to just behind <paramref name="to"/> (the way in): FlatView > Link Landing
+        /// behind its middle, on its floor, facing away from it, its respawn point there (as a portal does), its camera
+        /// turned to match, and the shift warp played. Its walk starts afresh there (no walk into the box is read from
+        /// the jump). False, and nothing done: not a local player, held by the zone, mid-shift, or (Toy Only) not a toy.
+        /// The gates do their own flash, sound and rest.</summary>
+        public bool CarryBack(Component who, FlatGate to)
+        {
+            Rider r = RiderOf(who);
+            if (r == null || r.inside || to == null) return false;
+            if (r.shifter != null && (r.shifter.Shifting || (toyOnly && r.shifter.Size != ShiftSize.Toy))) return false;
+            LandingFor(to, out Vector3 at, out Quaternion facing);
+            r.motor.Warp(at, facing);   // first person follows it (Warped)
+            if (r.motor.TryGetComponent(out Respawn respawn)) respawn.SetPoint(at, facing);
+            if (r.rig != null) r.rig.Warp(facing.eulerAngles.y);
+            if (r.warp != null) r.warp.Play(true, Settings.blendSeconds);
+            r.admitted = false; r.hasLast = false; r.invitedUntil = float.NegativeInfinity;
+            return true;
+        }
+
+        /// <summary>Where CarryBack puts a player for the way in <paramref name="to"/>: Link Landing behind its middle, at
+        /// its height (a gate stands on its floor), facing away from it. Works out of Play (the maker's report).</summary>
+        public void LandingFor(FlatGate to, out Vector3 at, out Quaternion facing)
+        {
+            Vector3 back = -to.transform.forward; back.y = 0f;
+            back = back.sqrMagnitude > 1e-6f ? back.normalized : Vector3.back;
+            at = to.transform.position + back * Settings.linkLanding;
+            facing = Quaternion.LookRotation(back, Vector3.up);
+        }
+
+        /// <summary>The take rule (D-0212) for a body the zone does not have, whose middle moved from
+        /// <paramref name="from"/> to <paramref name="to"/> (world) in one frame: true when that move walks it into the
+        /// box across the way-in side, and then before the stretch is <paramref name="done"/> (or with Optional Once Done
+        /// off) always, after it only when it was <paramref name="invited"/> (it came through the way-in gate). Any other
+        /// way in (the far end, the top, the bottom, or a move longer than Walked Most: a respawn, a portal) is never
+        /// taken. <paramref name="scale"/>: the player's own scale (Walked Most is in its units). The game's own rule, so
+        /// the maker can print what it answers out of Play.</summary>
+        public bool WouldTake(Vector3 from, Vector3 to, bool done, bool invited, float scale = 1f)
+        {
+            float most = walkedMost * Mathf.Max(0.01f, scale);
+            if ((to - from).sqrMagnitude > most * most) return false;
+            if (!Contains(to) || Contains(from) || !BesideWayIn(from)) return false;
+            return !done || !optionalOnceDone || invited;
+        }
+
+        /// <summary>True when <paramref name="point"/> (the world) lies past the box's way-in side and within its other
+        /// extents: the side at the rail's start end (Rail Start; the hallway's west face). The box's own axes nearest
+        /// the lane's direction decide which side that is.</summary>
+        private bool BesideWayIn(Vector3 point)
+        {
+            FillRail();
+            Vector3 l = transform.InverseTransformPoint(point) - centre, half = size * 0.5f;
+            Vector3 along = transform.InverseTransformDirection(_rail.Along);
+            float toStart = railStart <= railEnd ? -1f : 1f;   // the rail's start end lies this way along the lane
+            if (Mathf.Abs(along.x) >= Mathf.Abs(along.z))
+                return l.x * Mathf.Sign(along.x) * toStart > half.x && Mathf.Abs(l.y) <= half.y && Mathf.Abs(l.z) <= half.z;
+            return l.z * Mathf.Sign(along.z) * toStart > half.z && Mathf.Abs(l.y) <= half.y && Mathf.Abs(l.x) <= half.x;
         }
 
         private Rider RiderOf(Component who)
@@ -209,12 +329,16 @@ namespace ShiftJam
         {
             SyncRiders();
             bool any = false, hold = false;
+            float now = Time.time;
             for (int i = 0; i < _riders.Count; i++)
             {
                 Rider r = _riders[i];
-                bool inBox = Contains(Middle(r), r.inside ? edgeSlack : 0f);
-                if (r.cleared && !inBox) r.cleared = false;   // it has left: the next walk in is a new visit
-                bool fits = inBox && !r.cleared && Fits(r);
+                Vector3 middle = Middle(r);
+                bool inBox = Contains(middle, r.admitted ? edgeSlack : 0f);
+                if (!inBox) r.admitted = false;   // it has left: the next walk in is a new visit
+                else if (!r.admitted && r.hasLast && WouldTake(r.last, middle, _done, now <= r.invitedUntil, r.motor.Scale)) r.admitted = true;
+                r.last = middle; r.hasLast = true;
+                bool fits = r.admitted && Fits(r);
                 if (fits && !r.inside) Take(r);
                 else if (!fits && r.inside) Release(r, true);
                 if (r.inside) { any = true; Keep(r); }

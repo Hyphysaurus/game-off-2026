@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Text;
+using Febucci.TextAnimatorForUnity.TextMeshPro;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,6 +17,11 @@ namespace ShiftJam
     /// card of the moment's own colour, a little over the middle of the screen (clear of a player standing in the
     /// middle), tilted. It pops in, its letters bounce (TextFx), it holds for a breath and swells away. One at a time:
     /// a new one takes the place of the last.
+    /// And the SPEECH STICKER (<see cref="Toasts.Say"/>, D-0213): the toy itself talking. The same sticker card in a paler
+    /// cream with no badge, a tail on its bottom edge pointing down at the toy, its words typed out letter by letter on
+    /// real time (Text Animator shows each letter, each one growing in), one word wobbling, then held while it is read.
+    /// It goes to the top of the stack, is never pushed out early by other toasts, and waits (does not run on) while the
+    /// pause menu is open.
     /// </summary>
     public sealed class ToastHud : MonoBehaviour
     {
@@ -26,6 +34,9 @@ namespace ShiftJam
         private const float CardLetters = 96f, CardSpacing = 4f, CardPadX = 56f, CardPadY = 20f, CardOutline = 7f, CardShadow = 10f, CardRound = 34f;
         private const float CardRise = 190f, CardTilt = -2.5f, CardWidest = 1500f;
         private const float CardIn = 0.3f, CardHold = 1.2f, CardOut = 0.35f, CardFrom = 0.45f, CardSwell = 0.18f;
+        // The speech sticker, at 1920 by 1080: its letters, the padding round them, its tail (a square turned 45 degrees,
+        // half of it below the card) and where along the bottom edge the tail sits (share of the card's width from the left).
+        private const float SayLetters = 28f, SayPadX = 24f, SayTail = 26f, SayTailAt = 0.3f, SayTilt = -1f;
         private static readonly Color Ink = new Color32(0x1f, 0x1b, 0x2e, 0xff);
 
         private struct Look { public Color fill, badge, label; public string name; public UiAudio.Kind sound; public float seconds; }
@@ -38,6 +49,7 @@ namespace ShiftJam
                 case ToastKind.Refused: return new Look { fill = Hex(0xffe1dc), badge = Hex(0xf87171), label = Hex(0xb42318), name = "CAN'T", sound = UiAudio.Kind.Denied, seconds = 2.6f };
                 case ToastKind.Warning: return new Look { fill = Hex(0xfef3c7), badge = Hex(0xfbbf24), label = Hex(0x92400e), name = "WATCH OUT", sound = UiAudio.Kind.Toast, seconds = 4f };
                 case ToastKind.Core: return new Look { fill = Hex(0xede9fe), badge = Hex(0xc4b5fd), label = Hex(0x6d28d9), name = "CORE", sound = UiAudio.Kind.Win, seconds = 4f };
+                case ToastKind.Say: return new Look { fill = Hex(0xfffdf6), badge = Hex(0xfffdf6), label = Hex(0x6d28d9), name = "", sound = UiAudio.Kind.Toast, seconds = 4.5f };   // its sound and hold come from its SayStyle
                 default: return new Look { fill = Hex(0xe0f2fe), badge = Hex(0x8ecae6), label = Hex(0x0369a1), name = "TIP", sound = UiAudio.Kind.Toast, seconds = 5f };
             }
         }
@@ -51,6 +63,21 @@ namespace ShiftJam
             public ToastKind kind;
             public int times = 1;
             public float born, until, bumped = -1f, height, y, tilt;
+            // A speech sticker's (Say) only: room its tail takes below the card, its letters' animator, when each letter
+            // shows (seconds after typeFrom), how many show so far, and whether the typing is over.
+            public float below, typeFrom;
+            public TextAnimator_TMP anim;
+            public float[] letterAt;
+            public int shown;
+            public bool typed;
+        }
+
+        /// <summary>A line the toy will say once its wait is over (SayStyle.delay).</summary>
+        private sealed class Waiting
+        {
+            public string text, title;
+            public SayStyle style;
+            public float at;
         }
 
         /// <summary>The big card on screen now (one at a time).</summary>
@@ -63,6 +90,7 @@ namespace ShiftJam
 
         private static ToastHud _instance;
         private readonly List<Card> _cards = new List<Card>();
+        private readonly List<Waiting> _waiting = new List<Waiting>();
         private BigCard _big;
         private RectTransform _root;
         private CanvasGroup _group;
@@ -94,7 +122,7 @@ namespace ShiftJam
                     UiAudio.Play(look.sound);
                     return;
                 }
-            if (_cards.Count >= MaxShown) { var oldest = _cards[0]; oldest.until = Mathf.Min(oldest.until, now + OutSeconds); }
+            if (_cards.Count >= MaxShown) LeaveEarly(now);
             var card = Make(text, kind, title, look);
             card.born = now; card.until = now + Life(look, text);
             card.tilt = (_made++ % 2 == 0 ? -1.4f : 1f);
@@ -105,19 +133,64 @@ namespace ShiftJam
 
         private static float Life(Look look, string text) => look.seconds + Mathf.Clamp(text.Length * 0.03f, 0f, 3f);
 
+        /// <summary>A fourth card is coming: the oldest card that is not the toy talking leaves early (a line being read
+        /// is never pushed out).</summary>
+        private void LeaveEarly(float now)
+        {
+            foreach (var c in _cards)
+                if (c.kind != ToastKind.Say) { c.until = Mathf.Min(c.until, now + OutSeconds); return; }
+        }
+
+        /// <summary>The toy says <paramref name="text"/> (<see cref="Toasts.Say"/>): now, or after its style's delay.</summary>
+        public void AddSay(string text, SayStyle style, string title)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            if (style.delay > 0f) { _waiting.Add(new Waiting { text = text, title = title ?? "", style = style, at = Time.unscaledTime + style.delay }); return; }
+            MakeSay(text, style, title ?? "");
+        }
+
+        private void MakeSay(string text, SayStyle style, string title)
+        {
+            float now = Time.unscaledTime;
+            // The same line still up (a second New Game straight after the first): that one goes, this one types afresh.
+            for (int i = _cards.Count - 1; i >= 0; i--)
+                if (_cards[i].kind == ToastKind.Say && _cards[i].text == text) { Destroy(_cards[i].rt.gameObject); _cards.RemoveAt(i); }
+            if (_cards.Count >= MaxShown) LeaveEarly(now);
+            var card = MakeSpeech(text, title, LookOf(ToastKind.Say), style);
+            card.born = now;
+            card.typeFrom = now + InSeconds * 0.5f;   // the letters start as the card lands
+            float typing = card.letterAt.Length > 0 ? card.letterAt[card.letterAt.Length - 1] : 0f;
+            card.until = card.typeFrom + typing + Mathf.Max(0f, style.holdSeconds) + OutSeconds;
+            card.tilt = SayTilt;
+            card.y = -1f;
+            _cards.Insert(0, card);   // the toy's words sit at the top: other toasts stack under them
+            UiAudio.Play(style.sound);
+        }
+
         private void Update()
         {
             bool hidden = PauseMenu.IsOpen || TitleMenu.IsOpen;
             _group.alpha = hidden ? 0f : 1f;
             float now = Time.unscaledTime, dt = Time.unscaledDeltaTime;
+            bool paused = PauseMenu.IsOpen;   // the toy's words wait for the pause to close (the title lets them run out)
+            for (int i = 0; i < _waiting.Count; i++)
+            {
+                var w = _waiting[i];
+                if (paused) { w.at += dt; continue; }
+                if (now < w.at) continue;
+                _waiting.RemoveAt(i); i--;
+                MakeSay(w.text, w.style, w.title);
+            }
             float y = Top;
             for (int i = 0; i < _cards.Count; i++)
             {
                 var c = _cards[i];
+                if (paused && c.kind == ToastKind.Say) { c.born += dt; c.until += dt; c.typeFrom += dt; }
                 if (now >= c.until) { Destroy(c.rt.gameObject); _cards.RemoveAt(i); i--; continue; }
+                if (c.kind == ToastKind.Say) Type(c, now);
                 c.y = c.y < 0f ? y : Mathf.Lerp(c.y, y, 1f - Mathf.Exp(-14f * dt));   // slides up when one above leaves
                 float tIn = Mathf.Clamp01((now - c.born) / InSeconds);
-                float drop = (1f - EaseOutBack(tIn)) * (c.height + Top);
+                float drop = (1f - EaseOutBack(tIn)) * (c.height + c.below + Top);
                 float shake = c.kind == ToastKind.Refused && now - c.born < 0.4f ? Mathf.Sin((now - c.born) * 60f) * 10f * (1f - (now - c.born) / 0.4f) : 0f;
                 float tOut = Mathf.Clamp01((c.until - now) / OutSeconds);
                 c.group.alpha = Mathf.Min(tIn * 2f, 1f) * tOut;
@@ -125,7 +198,7 @@ namespace ShiftJam
                 c.rt.anchoredPosition = new Vector2(shake, -(c.y - drop) + (1f - tOut) * 20f);
                 c.rt.localScale = Vector3.one * bump;
                 c.rt.localRotation = Quaternion.Euler(0f, 0f, c.tilt);
-                y += c.height + Gap + Shadow;
+                y += c.height + c.below + Gap + Shadow;
             }
             if (_big != null) ShowBig(now);
         }
@@ -172,6 +245,23 @@ namespace ShiftJam
             _big.group.alpha = Mathf.Min(tIn * 3f, 1f) * tOut;
             float scale = Mathf.LerpUnclamped(CardFrom, 1f, EaseOutBack(tIn)) * (1f + CardSwell * (1f - tOut));
             _big.rt.localScale = Vector3.one * scale;
+        }
+
+        /// <summary>A speech sticker's typing: shows each letter whose time has come (Text Animator grows it in). At the
+        /// end anything still hidden is shown at once, so the line always ends whole.</summary>
+        private static void Type(Card c, float now)
+        {
+            if (c.typed || c.anim == null) return;
+            float t = now - c.typeFrom;
+            if (t < 0f) return;
+            int due = c.shown;
+            while (due < c.letterAt.Length && c.letterAt[due] <= t) due++;
+            int count = c.anim.CharactersCount;
+            int want = Mathf.Min(due, count);
+            while (c.shown < want) { c.anim.SetVisibilityChar(c.shown, true); c.shown++; }
+            if (due < c.letterAt.Length) return;
+            if (count == 0 || c.shown < count) c.anim.SetVisibilityEntireText(true);
+            c.typed = true;
         }
 
         private static float EaseOutBack(float t) { const float k = 1.70158f; t -= 1f; return 1f + (k + 1f) * t * t * t + k * t * t; }
@@ -251,6 +341,119 @@ namespace ShiftJam
             countRt.anchoredPosition = new Vector2(-Pad, 0f); countRt.sizeDelta = new Vector2(48f, 32f);
             card.count.alignment = TextAlignmentOptions.Right;
             return card;
+        }
+
+        /// <summary>The speech sticker: the cream card with its outline and drop shadow, a tail on the bottom edge, an
+        /// optional small name, and the words, laid out whole from the start (hidden, then shown letter by letter) so
+        /// nothing moves as they type.</summary>
+        private Card MakeSpeech(string text, string title, Look look, SayStyle style)
+        {
+            var card = new Card { text = text, title = title, kind = ToastKind.Say };
+            bool named = !string.IsNullOrEmpty(title);
+            card.letterAt = LetterTimes(Plain(text), style);
+
+            // Measure first, the way the line will be drawn: the card fits its words, up to MaxTextWidth.
+            var probe = Label(_root, "Probe", text, SayLetters, Ink, false);
+            probe.fontWeight = FontWeight.SemiBold;
+            Vector2 bodySize = probe.GetPreferredValues(text, MaxTextWidth, 0f);
+            Vector2 nameSize = Vector2.zero;
+            if (named)
+            {
+                probe.fontSize = 18f; probe.fontWeight = FontWeight.Regular; probe.fontStyle = FontStyles.Bold;
+                nameSize = probe.GetPreferredValues(title, MaxTextWidth, 0f);
+            }
+            Destroy(probe.gameObject);
+            float textW = Mathf.Min(Mathf.Max(bodySize.x, nameSize.x) + 2f, MaxTextWidth);
+            float textH = (named ? nameSize.y + 2f : 0f) + bodySize.y;
+            float w = SayPadX + textW + SayPadX;
+            float h = Mathf.Max(Badge + Pad * 2f, textH + Pad * 2f);
+            card.height = h;
+            float tailHalf = SayTail * 0.7071f;   // half the turned square's diagonal: how far the tail reaches below the card
+            card.below = tailHalf;
+
+            var rt = Rect("Speech", _root, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(w, h));
+            card.rt = rt;
+            card.group = rt.gameObject.AddComponent<CanvasGroup>(); card.group.alpha = 0f;
+
+            // Back to front: the card's shadow and the tail's, the outlines, the tail's fill (over the card's outline, so
+            // the tail opens into the card), then the card's fill over the tail's top half.
+            float tailX = w * SayTailAt;
+            HudShapes.RoundedImage(Rect("Shadow", rt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), new Vector2(0f, -Shadow), Vector2.zero), Ink, 22f);
+            Diamond(rt, "TailShadow", tailX, -Shadow, SayTail, Ink);
+            HudShapes.RoundedImage(Rect("Outline", rt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero), Ink, 22f);
+            Diamond(rt, "TailOutline", tailX, 0f, SayTail, Ink);
+            Diamond(rt, "TailFill", tailX, 0f, SayTail - Outline * 2f, look.fill);
+            HudShapes.RoundedImage(Rect("Fill", rt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(-Outline * 2f, -Outline * 2f)), look.fill, 22f - Outline);
+
+            var textBox = Rect("Words", rt, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(SayPadX, 0f), new Vector2(textW, textH));
+            float top = 0f;
+            if (named)
+            {
+                var head = Label(textBox, "Label", title, 18f, look.label, true);
+                head.characterSpacing = 6f;
+                Pin(head.rectTransform, 0f, nameSize.y);
+                top = nameSize.y + 2f;
+            }
+            var line = Label(textBox, "Line", "", SayLetters, Ink, false);
+            line.fontWeight = FontWeight.SemiBold;
+            Pin(line.rectTransform, top, bodySize.y);
+            card.anim = TextFx.On(line);
+            if (card.anim != null) card.anim.SetText(Spoken(text, style), true);   // laid out whole, every letter hidden
+            else line.text = text;
+            return card;
+        }
+
+        /// <summary>The line as Text Animator reads it: every letter grows in as it shows, and the style's wobble word
+        /// (its first match, any case) wears the wobble effect's tag.</summary>
+        private static string Spoken(string text, SayStyle style)
+        {
+            string word = style.wobbleWord != null ? style.wobbleWord.Trim() : "";
+            string tag = style.wobbleTag != null ? style.wobbleTag.Trim().Trim('<', '>', '/').Trim() : "";
+            int at = word.Length > 0 && tag.Length > 0 ? text.IndexOf(word, StringComparison.OrdinalIgnoreCase) : -1;
+            if (at < 0) return TextFx.Popped(text);
+            return TextFx.Popped(text.Substring(0, at) + "<" + tag + ">" + text.Substring(at, word.Length) + "</" + tag + ">" + text.Substring(at + word.Length));
+        }
+
+        /// <summary>When each letter of <paramref name="plain"/> shows, in seconds from the start: one every
+        /// 1 / lettersPerSecond, and a beat (pauseSeconds) after a sentence's end (". ", "... ", "? ", "! ").</summary>
+        private static float[] LetterTimes(string plain, SayStyle style)
+        {
+            var at = new float[plain.Length];
+            float step = 1f / Mathf.Max(1f, style.lettersPerSecond), pause = Mathf.Max(0f, style.pauseSeconds), t = 0f;
+            for (int i = 0; i < plain.Length; i++)
+            {
+                at[i] = t;
+                t += step;
+                char ch = plain[i];
+                if ((ch == '.' || ch == '?' || ch == '!') && i + 1 < plain.Length && plain[i + 1] == ' ') t += pause;
+            }
+            return at;
+        }
+
+        /// <summary>The words without any &lt;tag&gt; (TextMeshPro's own, like &lt;b&gt;): the letters that are typed.</summary>
+        private static string Plain(string text)
+        {
+            if (text.IndexOf('<') < 0) return text;
+            var sb = new StringBuilder(text.Length);
+            bool inTag = false;
+            foreach (char ch in text)
+            {
+                if (ch == '<') { inTag = true; continue; }
+                if (inTag) { if (ch == '>') inTag = false; continue; }
+                sb.Append(ch);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>A square of <paramref name="size"/> turned 45 degrees, its middle on the card's bottom edge at
+        /// <paramref name="x"/> (lifted by <paramref name="y"/>): the half below the card is the tail.</summary>
+        private static void Diamond(RectTransform card, string name, float x, float y, float size, Color color)
+        {
+            var rt = Rect(name, card, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), new Vector2(x, y), new Vector2(size, size));
+            rt.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            var img = rt.gameObject.AddComponent<Image>();
+            img.color = color;
+            img.raycastTarget = false;
         }
 
         /// <summary>Bold words (the keys in "<b>F</b> shift") get a key-cap tint behind them.</summary>

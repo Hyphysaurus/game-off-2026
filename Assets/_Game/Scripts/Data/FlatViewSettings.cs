@@ -8,6 +8,8 @@ namespace ShiftJam
     /// the camera scales them. One asset for every zone: Resources/FlatView, made by
     /// Shift Jam > Flat > Land Hallway Scroller when it is missing (never overwritten), his to tune in the Inspector:
     /// the camera reads it every frame, so a number changed in Play shows at once.
+    /// The rifts (D-0212): how long the way in stays open behind a player who walked through it, and the way out's
+    /// link back to the way in (its rest, where the player lands).
     /// </summary>
     [CreateAssetMenu(menuName = "Shift Jam/Flat View Settings", fileName = "FlatView")]
     public sealed class FlatViewSettings : ScriptableObject
@@ -49,6 +51,14 @@ namespace ShiftJam
         public float laneSnap = 10f;
         [Min(0f), Tooltip("The fastest the body is slid back onto the lane, own units a second (a sprint is 11). A toy that walks in at the hallway's wall is 9 off the lane: at 12 it is on the lane in under a second. 0 = no limit.")]
         public float laneSnapSpeed = 12f;
+
+        [Header("The rifts (D-0212)")]
+        [Min(0f), Tooltip("Seconds a player who walked through a zone's way in (its entrance rift) moving on may still step into the zone's box and be taken. Once the stretch is done for the save slot, that is the only way the zone takes anyone.")]
+        public float riftWindow = 1f;
+        [Min(0f), Tooltip("Seconds both rifts of a zone rest after the way out has carried a player back to the way in: neither carries anyone back, and the way in takes nobody through it, until they are up. The way out still lets a held player go at any time.")]
+        public float linkCooldown = 1.5f;
+        [Min(0f), Tooltip("Where a player carried back from the way out lands: this far behind the way in's middle (on the side it is walked into from), world units, on the floor, facing away from it. The hallway's way in is 1.6 deep (0.8 each side of its middle) and the toy 0.3 round: 2 leaves the body 0.9 clear of its trigger, and 2.5 short of the hop's drop behind it.")]
+        public float linkLanding = 2f;
 
         [Header("The letters (D-0208)")]
         [Min(0f), Tooltip("Seconds the S-H-I-F-T strip stays on screen after a letter is found (it also shows the whole time a zone with letters holds the player).")]

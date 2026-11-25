@@ -99,3 +99,12 @@ The jam entry (submit 30 Nov) is a snapshot of this, not the end of it. One buil
 ## Parked (after the jam)
 - Additive scenes per room; dark-room navigation with the carried light; the "kid arranges" verb with more
   carryables (boxes); the racing-track shortcut in R4; costumes as wardrobe clothes; a second house floor.
+- **The SHIFTBOX (his idea, 25 Nov 2026, with the name):** "a box object that houses the shift orbs later down and can
+  be activated instantly". The instant shift already exists (F spends a carried charge anywhere, D-0045), so the
+  box's own job is holding several orbs, built on `ShiftCharge` (its `maxCharges`), not a second way to shift. Open
+  choice for when it is picked up: (a) a later-game upgrade: you carry the box, each orb in it is one charge you can
+  see; (b) a station along the course that refills the orbs; or both. Tie-in: the cardboard box the toy wakes in
+  (`Room/BoxBurst.cs`) can be the first Shiftbox, so the title comes from the story. Watch: more charges means fewer
+  reasons to visit cores; keep the orbs finite and place it after the core lessons.
+- **The name:** SHIFTBOX is his favourite so far (25 Nov 2026; "SHIFT" alone is crowded on Steam: Shift Happens is a
+  size-changing platformer). Not decided: check the Steam store and trademarks before the Coming Soon page.

@@ -7,8 +7,13 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   (start, a gate, a lap, a missed gate, the finish); a jump pad and a car launch; a Nitro Star, a Repair Heart, a Shield
   Ring (on, a blocked hit, its end); a Car Cannon's fuse. Too loud / quiet: the clip's volume (course cues) or the
   copy in `Assets/_Imports/ShiftJamMix/` (made with ffmpeg from the pack file).
-- **NEXT (music):** his rule "focus on whatever music packs I already have purchased from other creators": find his
-  bought music, line up options for each music spot, his pick, then wire it.
+- **NEXT (music), WAITING ON HIS PICKS:** his rule "focus on whatever music packs I already have purchased from other
+  creators". Bought music found: ithappy Playroom (10 toy-room tracks, in `_Imports`; 6 loop cleanly), COZY ReSound
+  (Asset Store, 15 calm Sam Bowman pieces), Ambient Sounds (Asset Store, 12 forest-ambience tracks: off-theme). Cozy
+  Tunes: bought or free is unknown. Audition (all at -16 LUFS): `%TEMP%\shiftjam-stage\sound-audition\music` (title,
+  house, reveal, raceway, workshop, colour corner). Wiring needs code: title music + handover in Greybox (the title
+  stops time: unscaled fades), house music waits out the opening and dips under the reveal's swell, per-scene music
+  for the sandboxes, streamed imports. The Stadium stays silent.
 
 ## 25 Nov 2026 00:0x — S-H-I-F-T LETTERS IN THE HALLWAY (D-0208) + THE PIXEL LOOK, OFF (D-0209). Landed in a hidden batch run, Greybox SAVED. NOT PLAYED.
 - **HIS PLAYTEST (hallway):** the strip top left on the way in; S: jump from the fifth book; H, I, F: swing the ropes

@@ -3845,3 +3845,40 @@
     licence allows sharing the raw files; a clone has empty slots, which are silent). The audition folder, with the
     other candidates by folder number and letter: `%TEMP%\shiftjam-stage\sound-audition`.
   - **NOT HEARD by anyone yet.**
+- **D-0203 (24 Nov 2026, 23:1x) Flat Zone gates: his portal in and out, the warp, and the hallway's side-on view fixed.** His
+  play of cut A: "flatworld looks and feels pretty good but there was no visual indicator we were shifting into that
+  perspective, perhaps we use another type of shift orb we have or a portal"; then "we can use that original shift jam
+  portal that we created ... and yes, a portal to shift back, mario has the green pipes".
+  - **The gates** (`Flat/FlatGate.cs`, look `Prefabs/Flat/FlatGate_Portal.prefab` = the car portal's own Model, his
+    drawing, D-0073): the way IN stands across the lane at x -24 facing the toy (his star's pink #FF4FA3) and plays
+    its flash, ripple and sound when the zone takes the player; the way OUT stands at x 81 FACING THE SIDE CAMERA (the
+    orb's cyan; turned by me after the builder: across the lane the side-on camera saw it edge-on, a thin line, all
+    the way to it) and its trigger (2 along the lane) lets the player go. The pennant (FlatFinish, its prefab, five
+    materials) is gone. A rift look is another prefab with FlatGate, no code change (his rift, in the making).
+  - **The warp:** `ShiftWarp.Play(grow, seconds)` plays the size shift's screen tear once on its own clock: outward on
+    the way in, inward on the way out (a size shift already running wins).
+  - **The hallway's view (from his play, watched):** Frame Height 13 to 9 (the toy reads bigger), the rail's west end
+    -14 to -20, the frame may rise to 16 (on the step box the toy sat on the screen's top edge: now 57 to 77 % up), a
+    fill light that rides with the camera while in the zone (the far wall was nearly black), and a big card for "FLAT
+    SHIFT" / "BACK TO 3D" (`Toasts.CardFor`, Fredoka 96 on a sticker card that pops and bounces).
+  - **Checked without Play:** compiled; the builder ran in his open Greybox (FlatZone_Hall placed again, scene left
+    unsaved); the camera at five places against numbers worked out by hand (28.412 from the lane, z -178.395, 9 top
+    to bottom); the gates' places and triggers; the cutaway (south wall + 9 props; the gate's strokes spared).
+  - **Unsure:** the portal disc is opaque (walking up it hides what is behind it); the fill light's brightness is on
+    paper; the gates play their sound (the new shift whooshes) and the card is silent.
+  - **NOT PLAYED.**
+- **D-0204 (24 Nov 2026, 23:1x) The other menus in the new style: Pause, Options, Parties on the model.** His words: "our
+  other menus dont have the cool new menu ui", then "proceed with all outstanding tasks".
+  - **How:** `MenuModel.AddSlab` copies a slab the model already has onto any page at a place (the places are data on
+    the prefab: MenuModel > Made Controls), so no Blender export is needed. Pause (Resume, Options, Back to Title /
+    Leave Party, Quit) is its own copy of the model over the paused game; Options (`UI/MenuOptions.cs`: look speed,
+    invert Y, volume, fullscreen, graphics, body; values step with left / right or a click on a half, with a fill
+    bar) and Parties (`UI/MenuParties.cs`) are pages, from the title and from Pause. The old panels stay as the
+    fallback without the model. The guns, the paint and Shift for 3D work on every page.
+  - **Title fixes (from his play, watched):** a dart in a title letter falls away after 1.5 s; the menu guns wear the
+    weapon pack's ColorSet_03_Cyber (cyan and magenta) instead of grey.
+  - **Checked without Play:** compiled; maker runs (the second changes nothing); every made slab read back at its
+    place (Pause at y 144, 48, -48, -144; Options 180 to -300 and Back at -408; Parties three rows and six buttons).
+  - **Unsure:** the first pause in a scene makes the model and its guns (may hitch); a page sound plays with the open
+    sound on later pauses; D-pad up is the ammo swap when two ammo kinds are loaded.
+  - **NOT PLAYED.**

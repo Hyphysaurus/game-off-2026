@@ -13,6 +13,9 @@ namespace ShiftJam
     /// and gamepad all work through the scene's EventSystem. With his Blender menu's prefab there (MenuModel, D-0196) the
     /// buttons and the text are laid over its slabs instead of drawn here. The title is the title prefab (his animated pixel lettering, D-0189) or, without it, his drawing (TitleArt, D-0099): one title for
     /// every window shape, as large as the top of the screen allows, popping in and then breathing a little.
+    /// On the model, Options and Parties are pages of the model too (D-0204: MenuOptions, MenuParties, slabs copied from
+    /// the model's own by Made Controls on its prefab); Back goes to the page each was opened from. Without their slabs
+    /// they are the old panels over the title, as before.
     /// </summary>
     public sealed class TitleMenu : MonoBehaviour
     {
@@ -105,6 +108,7 @@ namespace ShiftJam
         private void OnDestroy()
         {
             IsOpen = false; NetSession.StatusChanged -= OnPartyStatus;   // there is only ever one title
+            if (_menuParties != null) _menuParties.StatusChanged -= OnPartyStatus;
             if (_model != null) Destroy(_model.gameObject);
         }
 
@@ -116,8 +120,10 @@ namespace ShiftJam
         {
             if (_hint == null) return;
             bool news = !string.IsNullOrEmpty(NetSession.Status);
-            _hint.text = news ? NetSession.Status : _model != null ? ModelHintLine : HintLine;
-            _hint.alpha = news ? 1f : 0.6f;
+            // On the model's party list, what the list is doing comes next (D-0204), as the old panel's own status line did.
+            bool listing = !news && _model != null && _menuParties != null && _model.Page == MenuParties.Page && !string.IsNullOrEmpty(_menuParties.Status);
+            _hint.text = news ? NetSession.Status : listing ? _menuParties.Status : _model != null ? ModelHintLine : HintLine;
+            _hint.alpha = news || listing ? 1f : 0.6f;
         }
 
         private PartiesPanel _parties; private Button _partiesButton;
@@ -244,20 +250,14 @@ namespace ShiftJam
         {
             get
             {
-                MenuDarts gun = _driver != null ? _driver.Darts : null;
-                if (gun == null) return "mouse, arrows or stick · Enter / A chooses · Esc / B goes back · Shift for 3D";
-                if (!gun.CanReload)      // darts only: as it always read
-                {
-                    if (!gun.Chooses) return "the " + gun.Label + " only plays: hold to spray · G for the gun that chooses · Shift for 3D";
-                    return "click: a dart chooses · hold and pull: stretch" + (gun.CanSwap ? " · G swaps guns" : "") + " · Shift for 3D · Esc goes back";
-                }
-                // More than one kind of ammo (D-0201): the line names the one loaded, and T for the next.
-                string reload = " · T for " + gun.NextAmmoLabel;
-                if (!gun.Chooses) return "the " + gun.Label + " only plays: hold to spray " + gun.AmmoLabel + reload + " · G for the gun that chooses · Shift for 3D";
-                return "click: a " + gun.AmmoOne + " chooses · hold and pull: stretch" + (gun.CanSwap ? " · G swaps guns" : "") + reload + " · Shift for 3D · Esc goes back";
+                if (_driver == null) return "mouse, arrows or stick · Enter / A chooses · Esc / B goes back · Shift for 3D";
+                string page = _model != null ? _model.Page : "";
+                return _driver.HintLine("Esc / B goes back", page == MenuOptions.Page ? MenuOptions.HintMore : page == MenuParties.Page ? MenuParties.HintMore : null);   // the words are the driver's (D-0204: the pause menu shares them)
             }
         }
         private MenuDriver _driver;
+        private MenuOptions _menuOptions;   // Options as a page of the model (D-0204); null = the old panel
+        private MenuParties _menuParties;   // the party list as a page of the model (D-0204); null = the old panel
         private TMP_InputField _nameField; private TMP_Text _nameLabel;
         private bool _pickForNewGame;   // the Saves page was opened by New Game: a slot chosen there starts over in it
 
@@ -295,6 +295,10 @@ namespace ShiftJam
             _driver = gameObject.AddComponent<MenuDriver>();
             _driver.Bind(_model);
             _driver.Chosen += OnChosen; _driver.Back += OnBack; _driver.Moved += OnMoved;
+            _driver.Stepped += OnStepped;
+            _menuOptions = MenuOptions.Make(_model);     // its slabs, made once; null = Options opens the old panel
+            _menuParties = MenuParties.Make(_model);     // the same for the party list
+            if (_menuParties != null) _menuParties.StatusChanged += OnPartyStatus;
             if (_driver.Darts != null)
             {
                 _driver.Darts.Swapped += () => { UiAudio.Play(UiAudio.Kind.Select); OnPartyStatus(); };
@@ -306,13 +310,26 @@ namespace ShiftJam
 
         private static void OnMoved() => UiAudio.Play(UiAudio.Kind.Select);
 
-        /// <summary>Shows a page of the model with its words and what can be used on it as they are now.</summary>
-        private void ToPage(string page)
+        /// <summary>Shows a page of the model with its words and what can be used on it as they are now, with
+        /// <paramref name="select"/> selected (null: the first that can be used).</summary>
+        private void ToPage(string page, string select = null)
         {
             RefreshModel();
+            if (page == MenuOptions.Page && _menuOptions != null) _menuOptions.Open();
+            bool parties = page == MenuParties.Page && _menuParties != null;
+            if (parties) _menuParties.Open();
             _model.ShowPage(page);
+            if (parties) _menuParties.Search();
+            if (select != null && _model.TryGet(select, out MenuModel.Control chosen) && chosen.Shown && chosen.Usable) _model.Selected = chosen;
             bool online = page == "Online";
             _nameField.gameObject.SetActive(online); _nameLabel.gameObject.SetActive(online);
+            OnPartyStatus();     // the hint line for this page
+        }
+
+        /// <summary>A value of the Options page stepped (left / right, or a click on its side).</summary>
+        private void OnStepped(string control, int way)
+        {
+            if (_menuOptions != null && _model.Page == MenuOptions.Page) _menuOptions.Step(control, way);
         }
 
         /// <summary>What every control of the model reads, whether it can be used, and which save slot is the one in use.</summary>
@@ -378,14 +395,20 @@ namespace ShiftJam
                 case "Btn_Online": ToPage("Online"); break;
                 case "Btn_Playground": ToPage("Playground"); break;
                 case "Btn_SavesBack": case "Btn_OnlineBack": case "Btn_PlaygroundBack": ToPage("Main"); break;
-                case "Btn_Options": OpenOptions(); break;
+                case "Btn_Options": if (_menuOptions != null) ToPage(MenuOptions.Page); else OpenOptions(); break;
+                case MenuOptions.Back: ToPage("Main", "Btn_Options"); break;
                 case "Btn_Quit": Quit(); break;
                 case "Btn_QuickPlay": NetSession.PlayOnline(); break;
-                case "Btn_Parties": OpenParties(); break;
+                case "Btn_Parties": if (_menuParties != null) ToPage(MenuParties.Page); else OpenParties(); break;
+                case MenuParties.Back: ToPage("Online", "Btn_Parties"); break;
                 case "Slab_Name": _nameField.Select(); _nameField.ActivateInputField(); break;
                 case "Btn_Workshop": Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); break;
                 case "Btn_Raceway": Time.timeScale = 1f; SceneManager.LoadScene(RacewayScene); break;
                 case "Btn_Colours": Time.timeScale = 1f; SceneManager.LoadScene(ColourCornerScene); break;
+                default:
+                    if (_menuOptions != null && MenuOptions.Owns(control)) _menuOptions.Choose(control);
+                    else if (_menuParties != null && _menuParties.Owns(control)) _menuParties.Choose(control);
+                    break;
             }
         }
 
@@ -393,12 +416,17 @@ namespace ShiftJam
         {
             if (_model.Page == "Main") return;
             UiAudio.Play(UiAudio.Kind.Click);
-            ToPage("Main");
+            if (_model.Page == MenuOptions.Page) ToPage("Main", "Btn_Options");     // back where it was opened from
+            else if (_model.Page == MenuParties.Page) ToPage("Online", "Btn_Parties");
+            else ToPage("Main");
         }
 
         private void LateUpdate()
         {
             if (_model == null || _driver == null || _nameField == null) return;
+            // The pad's Start leaves Options too, as it leaves the old panel.
+            var pad = UnityEngine.InputSystem.Gamepad.current;
+            if (_driver.enabled && pad != null && pad.startButton.wasPressedThisFrame && _model.Page == MenuOptions.Page) { UiAudio.Play(UiAudio.Kind.Click); ToPage("Main", "Btn_Options"); }
             _driver.Typing = _nameField.isFocused;
             // The name field rides its slab: deep, the slab is not where it is flat.
             if (!_nameField.gameObject.activeSelf || !_model.TryGet("Slab_Name", out MenuModel.Control slab)) return;

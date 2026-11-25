@@ -2,6 +2,31 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 23:1x — PORTALS IN AND OUT OF THE FLAT ZONE (D-0203), PAUSE / OPTIONS / PARTIES IN THE NEW MENU STYLE (D-0204), NEW SOUNDS (D-0202). Checked without Play, NOT PLAYED.
+- **🔴 GREYBOX IS MARKED CHANGED AND UNSAVED:** FlatZone_Hall (with its two portals and the fill light) was placed again
+  in his open scene. Ctrl+S keeps it; without saving, run **Shift Jam > Flat > Land Hallway Scroller** again.
+- **HIS PLAYTEST:** (1) the hallway: the pink portal ahead of the book stairs, the warp and the big card as you run
+  through, the toy bigger in the side-on view, the far wall lit, the cyan portal at the end seen from the side, run
+  into it: warp, "BACK TO 3D", camera back behind; (2) Esc in the house: the pause menu as slabs; Options from there
+  and from the title (values step left / right); Online > Parties; (3) the title: darts fall off the letters, the
+  guns in cyan and magenta; (4) the sounds everywhere (D-0202): too loud / too soft / wrong, by name.
+- **HIS RIFT:** `Dev\Art\pixel\shift_rift\shift_rift_in.aseprite` (64 x 128, 16 frames, his title palette, empty
+  layers over the mock-up at 30%) is set up for him; `shift_rift_in_from_mockup.aseprite` is the mock-up in layers.
+  When he saves, export it without the REFERENCE layer (Aseprite batch `--ignore-layer`) and give it a FlatGate look
+  (the way in). The 3D rift (the way out) is for Blender. Mock-ups: https://claude.ai/artifact/Exk6A2hcnCoZMrnr2chswk
+- **WHERE NEXT FOR FLAT ZONES (a survey of the course, read from the builders' code; nothing built):**
+  1. **The wardrobe tower (R5)**, a vertical climb inside the wardrobe (x 382.5..577.5, z -760..-640, floor 0,
+     ceiling 170; Shelf_40 at (480,39,-670)): the 3D climb failed on depth (the pillow 'fell short every time',
+     D-0081); side-on the only drift is along the lane. Medium. Risk: dark until the torch is on.
+  2. **The hallway's second stretch (R3)**: the pencil bridge and the pin hop (same lane z -150, same south wall):
+     the pins become jump timing. Small. Risks: the pins' hazard box is taller than the pin drawn; the Dart Line's
+     way up from downstairs runs through it.
+  3. **The paper plane's ring run (R4)**: off the desk, into the fan's column, side-on through the three rings (a
+     zone turned 68 degrees down the ring line). Small, nothing to build. Risk: the zip line crosses the ring plane.
+  4. **The drop into the living room**: a two-storey falling glide. Large (a void between storeys).
+  - The survey's pick for the next zone: the wardrobe tower. The best place for his pixel rift: across the lane at
+    x 168 before the pencil bridge, where the game first says no to a shift ("Too low in here").
+
 ## 24 Nov 2026 22:1x — PAINT BALL AMMO ON THE TITLE MENU (D-0201). In his editor, checked without Play, NOT SEEN.
 - **IN:** T (pad: D-pad up) swaps the menu guns between darts and paint balls; a paint ball leaves a splat on the
   button it hits (under the caption, riding the slab) or on the wall; a title letter takes a cast of the colour.

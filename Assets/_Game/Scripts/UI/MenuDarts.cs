@@ -23,6 +23,11 @@ namespace ShiftJam
     /// the paint, MenuTitle). A row that does not burst sticks like a dart. The blaster's ball still chooses the control it
     /// lands on; the ammo never changes what a gun does. With no rows (or none with a model) there are darts only and
     /// Reload does nothing.
+    /// D-0204, from his play (about ten darts sat in the title's letters and made it messy; the grey pistol was off the
+    /// palette): a dart stuck in a PLAYTHING (the title's letters) lets go after Toy Stuck Seconds and falls away (Toy
+    /// Fall); darts in buttons and the wall keep Stuck Seconds. A gun row's Colour Set is the colour set its flat look
+    /// wears instead of its own: the weapon pack's parts share one colour layout, so one of its ColorSet materials
+    /// dresses the whole gun in other colours (the material most of the gun's parts wear is the one swapped).
     /// </summary>
     [DefaultExecutionOrder(50)]   // after the MenuModel has moved its camera and its slabs this frame: the gun and the darts ride both
     [RequireComponent(typeof(MenuModel))]
@@ -33,6 +38,7 @@ namespace ShiftJam
         {
             [Tooltip("Its name in the hint line.")] public string label = "blaster";
             [Tooltip("Its model (a prefab of the weapon pack). None = this gun is left out.")] public GameObject model;
+            [Tooltip("The colour set its flat look wears instead of its own (one of the weapon pack's ColorSet materials: the pack's parts share one colour layout, so the same gun comes out in that set's colours). It takes the place of the material most of the gun's parts wear. None = its own colours.")] public Material colourSet;
             [Min(0.01f), Tooltip("How many times its own size it is drawn.")] public float size = 1f;
             [Tooltip("Its dart chooses the control it lands on. Off = it only plays.")] public bool chooses = true;
             [Tooltip("It fires on while the trigger is held.")] public bool auto;
@@ -85,6 +91,9 @@ namespace ShiftJam
         [SerializeField, Min(1), Tooltip("The most darts stuck at once: the oldest goes for a new one.")] private int mostStuck = 40;
         [SerializeField, Min(0.1f), Tooltip("Seconds a stuck dart stays.")] private float stuckSeconds = 10f;
         [SerializeField, Min(0.01f), Tooltip("Seconds a dart takes to shrink away.")] private float goSeconds = 0.25f;
+        [SerializeField, Min(0.1f), Tooltip("Seconds a dart stuck in a plaything (the title's letters) stays before it lets go: more than a few made the title messy. Darts in buttons and the wall keep Stuck Seconds.")] private float toyStuckSeconds = 1.5f;
+        [SerializeField, Min(0f), Tooltip("A dart letting go of a plaything falls away this fast, metres a second more every second (0 = it shrinks away where it is, as other darts do).")] private float toyFall = 3f;
+        [SerializeField, Min(0.05f), Tooltip("Seconds that fall lasts (it shrinks away over the last Go Seconds of it).")] private float toyFallSeconds = 0.5f;
         [SerializeField, Tooltip("One of these plays where a dart lands. None = silent.")] private AudioClip[] landClips = Array.Empty<AudioClip>();
         [SerializeField, Range(0f, 1f)] private float landVolume = 0.45f;
         [Header("Its ammo (D-0201): the darts first, then these rows")]
@@ -104,6 +113,9 @@ namespace ShiftJam
             public int Kind;                    // its place in the kinds loaded (0 = the darts)
             public Color Colour;                // its paint
             public bool Burst;                  // it burst where it landed: it is dropped
+            public bool Falling;                // it let go of a plaything and is falling away (D-0204)
+            public Vector3 FellFrom;            // where it was when it let go, in the world
+            public Quaternion FellTurn;         // and how it lay
         }
 
         private MenuModel _model;
@@ -188,6 +200,7 @@ namespace ShiftJam
                 foreach (Collider c in shape.GetComponentsInChildren<Collider>(true)) Destroy(c);
                 foreach (MonoBehaviour b in shape.GetComponentsInChildren<MonoBehaviour>(true)) b.enabled = false;
                 // Its barrel along the holder's +Z, its middle at the holder, as the game's own guns are read.
+                if (guns[i].colourSet != null) Recolour(shape, guns[i].colourSet);
                 Transform muzzle = Find(shape.transform, "Muzzle"), magazine = Find(shape.transform, "Magazine");
                 shape.transform.localPosition = Vector3.zero; shape.transform.localRotation = Quaternion.identity; shape.transform.localScale = Vector3.one * guns[i].size;
                 if (muzzle != null && magazine != null)
@@ -218,6 +231,30 @@ namespace ShiftJam
                 if (ammo[i] != null && ammo[i].model != null) { _kinds.Add(i); _spare.Add(new Stack<Transform>()); }
             _sound = gameObject.AddComponent<AudioSource>();
             _sound.playOnAwake = false; _sound.spatialBlend = 0f; _sound.ignoreListenerPause = true;
+        }
+
+        /// <summary>Dresses a gun in another colour set (D-0204): every slot that wears the material most of its parts wear
+        /// (the pack's colour set; glass and sights wear others) wears <paramref name="set"/> instead. Its own instance only.</summary>
+        private static void Recolour(GameObject shape, Material set)
+        {
+            var worn = new Dictionary<Material, int>();
+            Renderer[] looks = shape.GetComponentsInChildren<Renderer>(true);
+            foreach (Renderer r in looks)
+            {
+                if (!(r is MeshRenderer) && !(r is SkinnedMeshRenderer)) continue;
+                foreach (Material m in r.sharedMaterials) if (m != null) worn[m] = worn.TryGetValue(m, out int n) ? n + 1 : 1;
+            }
+            Material most = null; int best = 0;
+            foreach (KeyValuePair<Material, int> pair in worn) if (pair.Value > best) { best = pair.Value; most = pair.Key; }
+            if (most == null || most == set) return;
+            foreach (Renderer r in looks)
+            {
+                if (!(r is MeshRenderer) && !(r is SkinnedMeshRenderer)) continue;
+                Material[] slots = r.sharedMaterials;
+                bool changed = false;
+                for (int k = 0; k < slots.Length; k++) if (slots[k] == most) { slots[k] = set; changed = true; }
+                if (changed) r.sharedMaterials = slots;
+            }
         }
 
         private static Transform Find(Transform under, string name)
@@ -418,8 +455,14 @@ namespace ShiftJam
                 if (dart.On != null && !dart.On.Shown) { Drop(i); continue; }      // its slab left the screen
                 if (dart.StuckAt < 0f) { Fly(dart); if (dart.Burst) Drop(i); continue; }
                 if (dart.Burst) { Drop(i); continue; }
+                if (dart.Falling) { if (!Fall(dart, now - dart.GoingAt)) Drop(i); continue; }
                 stuck++;
-                if (dart.GoingAt < 0f && (now - dart.StuckAt > stuckSeconds || stuck > mostStuck)) dart.GoingAt = now;
+                bool toy = dart.On != null && dart.On.Toy;      // in a title letter: it lets go soon (D-0204)
+                if (dart.GoingAt < 0f && (now - dart.StuckAt > (toy ? toyStuckSeconds : stuckSeconds) || stuck > mostStuck))
+                {
+                    dart.GoingAt = now;
+                    if (toy && toyFall > 0f) { dart.Falling = true; dart.FellFrom = dart.Body.position; dart.FellTurn = dart.Body.rotation; continue; }
+                }
                 float size = dart.GoingAt < 0f ? 1f : 1f - (now - dart.GoingAt) / goSeconds;
                 if (size <= 0f) { Drop(i); continue; }
                 Stick(dart, place, size);
@@ -471,6 +514,21 @@ namespace ShiftJam
             float scale = BodySize(dart.Kind) * size;
             dart.Body.SetPositionAndRotation(target + way * ((sink - TipAhead(dart.Kind) * scale) * _model.Scale) + _model.Toward * (flatLift * (1f - deep) * _model.Scale), Quaternion.LookRotation(way, _model.Up));
             dart.Body.localScale = Vector3.one * Mathf.Max(0.001f, scale);
+        }
+
+        /// <summary>A dart falling away from a plaything, <paramref name="since"/> seconds after it let go: down the screen,
+        /// its nose tipping down, shrinking away at the end. False when the fall is over.</summary>
+        private bool Fall(Dart dart, float since)
+        {
+            if (since >= toyFallSeconds) return false;
+            Vector3 down = -_model.Up;
+            Vector3 nose = dart.FellTurn * Vector3.forward;
+            float share = since / toyFallSeconds;
+            Quaternion tip = Quaternion.FromToRotation(nose, Vector3.Slerp(nose, down, share * 0.7f));
+            dart.Body.SetPositionAndRotation(dart.FellFrom + down * (0.5f * toyFall * since * since * _model.Scale), tip * dart.FellTurn);
+            float left = toyFallSeconds - since;
+            dart.Body.localScale = Vector3.one * Mathf.Max(0.001f, BodySize(dart.Kind) * Mathf.Clamp01(left / goSeconds));
+            return true;
         }
 
         private void Drop(int i)

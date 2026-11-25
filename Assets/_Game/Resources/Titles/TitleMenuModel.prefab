@@ -107,6 +107,94 @@ MonoBehaviour:
   drawnLike: []
   place: {x: 0, y: -5000, z: 0}
   enlarge: 100
+  nextPlace: {x: 3000, y: 0, z: 0}
+  madeControls:
+  - control: Pause_Resume
+    sameAs: Btn_NewGame
+    page: Pause
+    at: {x: 0, y: 0.24}
+  - control: Pause_Options
+    sameAs: Btn_NewGame
+    page: Pause
+    at: {x: 0, y: 0.08}
+  - control: Pause_Title
+    sameAs: Btn_NewGame
+    page: Pause
+    at: {x: 0, y: -0.08}
+  - control: Pause_Quit
+    sameAs: Btn_NewGame
+    page: Pause
+    at: {x: 0, y: -0.24}
+  - control: Opt_Look
+    sameAs: Btn_NewGame
+    page: Options
+    at: {x: 0, y: 0.3}
+  - control: Opt_Invert
+    sameAs: Btn_NewGame
+    page: Options
+    at: {x: 0, y: 0.14}
+  - control: Opt_Volume
+    sameAs: Btn_NewGame
+    page: Options
+    at: {x: 0, y: -0.02}
+  - control: Opt_Fullscreen
+    sameAs: Btn_NewGame
+    page: Options
+    at: {x: 0, y: -0.18}
+  - control: Opt_Graphics
+    sameAs: Btn_NewGame
+    page: Options
+    at: {x: 0, y: -0.34}
+  - control: Opt_Body
+    sameAs: Btn_NewGame
+    page: Options
+    at: {x: 0, y: -0.5}
+  - control: Opt_Back
+    sameAs: Btn_SavesBack
+    page: Options
+    at: {x: 0, y: -0.68}
+  - control: Party_1
+    sameAs: Slot_2
+    page: Parties
+    at: {x: 0, y: 0.3}
+  - control: Party_2
+    sameAs: Slot_2
+    page: Parties
+    at: {x: 0, y: 0.14}
+  - control: Party_3
+    sameAs: Slot_2
+    page: Parties
+    at: {x: 0, y: -0.02}
+  - control: Parties_Refresh
+    sameAs: Btn_NewGame
+    page: Parties
+    at: {x: -0.54, y: -0.2}
+  - control: Parties_Host
+    sameAs: Btn_NewGame
+    page: Parties
+    at: {x: 0.54, y: -0.2}
+  - control: Parties_Code
+    sameAs: Btn_NewGame
+    page: Parties
+    at: {x: -0.54, y: -0.36}
+  - control: Parties_House
+    sameAs: Btn_NewGame
+    page: Parties
+    at: {x: 0.54, y: -0.36}
+  - control: Parties_More
+    sameAs: Btn_SavesBack
+    page: Parties
+    at: {x: -0.27, y: -0.54}
+  - control: Parties_Back
+    sameAs: Btn_SavesBack
+    page: Parties
+    at: {x: 0.27, y: -0.54}
+  fillColour: {r: 1, g: 0.44705883, b: 0.8, a: 1}
+  trackColour: {r: 0.10980392, g: 0.08627451, b: 0.17254902, a: 1}
+  fillHeight: 0.14
+  fillEnds: 0.03
+  fillBottom: 0.006
+  fillLift: 0.001
 --- !u!114 &8361287138707671019
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -122,6 +210,7 @@ MonoBehaviour:
   guns:
   - label: dart blaster
     model: {fileID: 3265787461906697658, guid: 1a64cbe4046047f3b3fdd4f89dbdfaa3, type: 3}
+    colourSet: {fileID: 2100000, guid: 8c14f08e0c1e3aa47a0655a20a98ae57, type: 2}
     size: 0.93152034
     chooses: 1
     auto: 0
@@ -136,6 +225,7 @@ MonoBehaviour:
     volume: 0.5
   - label: dart LMG
     model: {fileID: 2846988041165396039, guid: 48510fe9a48648a68bbccae36d6b6f5f, type: 3}
+    colourSet: {fileID: 2100000, guid: 8c14f08e0c1e3aa47a0655a20a98ae57, type: 2}
     size: 0.8722308
     chooses: 0
     auto: 1
@@ -163,6 +253,9 @@ MonoBehaviour:
   mostStuck: 40
   stuckSeconds: 10
   goSeconds: 0.25
+  toyStuckSeconds: 1.5
+  toyFall: 3
+  toyFallSeconds: 0.5
   landClips:
   - {fileID: 8300000, guid: 3f7c924496b546bba8f590c9ec7b9167, type: 3}
   - {fileID: 8300000, guid: afb21726e85b4b14979f4d615ca7bff8, type: 3}

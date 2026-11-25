@@ -32,6 +32,9 @@ namespace ShiftJam
     /// paint's six colours and its shell colours, the head-on splat pictures, the paint's firing and landing sounds, all
     /// from Resources/PaintSettings. Without the paint (no settings, no pictures or no ball) no row is made and the menu
     /// keeps its darts only.
+    /// The guns' colours (D-0204): a gun row whose Colour Set is empty is given the weapon pack's ColorSet_03_Cyber, whose
+    /// two strong colours are a cyan (#7fe7f0) and a magenta pink (#e46be0): the game's orb cyan and candy pink, on the
+    /// pack's light grey. The pistol came in the pack's grey Ash (off the palette); the LMG already wore Cyber.
     /// </summary>
     public static class MenuPieces
     {
@@ -42,6 +45,7 @@ namespace ShiftJam
         private const string FoamDartPath = "Assets/_Game/Prefabs/Combat/FoamDart.prefab";
         private const string PistolWeapon = "Assets/_Game/Prefabs/Weapons/DartPistol.prefab";
         private const string Pack = "Assets/_Imports/ithappy/Cartoon_Weapons/Prefabs/Weapon_Presets/";
+        private const string GunColours = "Assets/_Imports/ithappy/Cartoon_Weapons/Materials/ColorSet_03_Cyber.mat";   // cyan and pink: the game's own (D-0204)
 
         // ---- the paint (D-0201)
         private const string PaintSettingsPath = "Assets/_Game/Resources/" + PaintSettings.ResourceName + ".asset";
@@ -162,6 +166,18 @@ namespace ShiftJam
                             + (Has(shape, "Muzzle") && Has(shape, "Magazine") ? "" : " (no Muzzle and Magazine in it: its longest side is taken as its barrel)") + ", " + fire.Length + " firing sounds");
                     }
                 }
+                // The guns' colour set (D-0204), on every row that has none.
+                var toyColours = AssetDatabase.LoadAssetAtPath<Material>(GunColours);
+                if (toyColours == null) did.Add("no " + GunColours + ": the guns keep their own colours");
+                else
+                    for (int i = 0; i < guns.arraySize; i++)
+                    {
+                        SerializedProperty g = guns.GetArrayElementAtIndex(i), set = g.FindPropertyRelative("colourSet");
+                        if (set == null) { did.Add("NO field colourSet"); break; }
+                        if (set.objectReferenceValue != null) continue;
+                        set.objectReferenceValue = toyColours;
+                        did.Add("the " + g.FindPropertyRelative("label").stringValue + "'s colour set = " + toyColours.name);
+                    }
                 SerializedProperty landed = d.FindProperty("landClips");
                 if (landed.arraySize == 0 && land.Length > 0) { SetClips(landed, land); did.Add(land.Length + " landing sounds"); }
                 FillPaint(d, paint, ball, did);

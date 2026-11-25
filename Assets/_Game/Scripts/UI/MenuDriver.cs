@@ -16,6 +16,12 @@ namespace ShiftJam
     /// and while there is more than one kind the D-pad no longer moves the selection up (the stick still does). It only says what was chosen: its owner (TitleMenu) knows what that means. It reads the devices
     /// directly, on real time: the player's own input is off while a menu is up. Switch it off while another panel has
     /// the screen, and set Typing while a text field has the keys.
+    /// Values (D-0204, the Options page): on a control that steps (MenuModel.SetSteps), left and right (arrows, A D, the
+    /// stick or the D-pad across) step it down and up, with a repeat while held, and a click or the choosing dart on its
+    /// left or right half steps it down or up (Enter or pad A: up); each says Stepped, not Chosen. On a control that does
+    /// not step, left and right go to the control beside it on its row, if there is one (the Parties page's pairs).
+    /// Owner Takes Esc: the owner reads Esc and the pad's B itself (the pause menu does, earlier in the frame than this),
+    /// so one press is never two backs; Backspace is still this part's.
     /// </summary>
     public sealed class MenuDriver : MonoBehaviour
     {
@@ -32,6 +38,7 @@ namespace ShiftJam
         private MenuModel.Control _pressedOn;
         private Vector2 _pressedAt;     // where on the model's plane the press began, metres
         private bool _pulling;          // the press became a pull: letting go does not choose
+        private int _heldSide; private float _nextSide;    // left or right held, and when it repeats
 
         /// <summary>A control was chosen: its name.</summary>
         public event Action<string> Chosen;
@@ -39,6 +46,10 @@ namespace ShiftJam
         public event Action Back;
         /// <summary>The selection moved to another control.</summary>
         public event Action Moved;
+        /// <summary>A value was stepped (D-0204): its name, and -1 down or +1 up.</summary>
+        public event Action<string, int> Stepped;
+        /// <summary>The owner reads Esc and the pad's B itself (the pause menu): this part takes neither as Back.</summary>
+        public bool OwnerTakesEsc { get; set; }
         /// <summary>A text field has the keys: letters, Shift and Backspace are its, not the menu's.</summary>
         public bool Typing { get; set; }
 
@@ -53,18 +64,26 @@ namespace ShiftJam
         {
             MenuDarts gun = Darts;
             if (gun != null && gun.Choosing) return;                 // a choice is already in the air
+            int way = c.Steps ? (at.x < _model.Middle(c).x ? -1 : 1) : 0;   // a value: its left half steps it down, its right half (and its middle: Enter) up
             if (gun != null) { gun.Aim = at; gun.AimOn = c; }        // the gun turns to what is chosen (keys and the pad have no pointer)
-            if (gun == null || !gun.Fire(at, c, true, () => { if (this != null && isActiveAndEnabled && c.Shown && c.Usable) Chosen?.Invoke(c.Name); }))
+            if (gun == null || !gun.Fire(at, c, true, () => { if (this != null && isActiveAndEnabled && c.Shown && c.Usable) Pick(c, way); }))
             {
                 _model.Knock(c, at - _model.Middle(c), 0.6f);
-                Chosen?.Invoke(c.Name);
+                Pick(c, way);
             }
+        }
+
+        /// <summary>Says what a choice was: a step of a value (way -1 or +1), or a control chosen (way 0).</summary>
+        private void Pick(MenuModel.Control c, int way)
+        {
+            if (way != 0) Stepped?.Invoke(c.Name, way);
+            else Chosen?.Invoke(c.Name);
         }
 
 
         private void OnDisable()
         {
-            _held = 0;
+            _held = 0; _heldSide = 0;
             if (_darts != null) _darts.Trigger = false;
             if (_pressedOn != null) { _pressedOn.Pressed = false; if (_pulling && _model != null) _model.Release(_pressedOn); _pressedOn = null; }
             _pulling = false;
@@ -135,8 +154,22 @@ namespace ShiftJam
             else if (way != _held) { _held = way; _nextRepeat = Time.unscaledTime + repeatAfter; Step(way); }
             else if (Time.unscaledTime >= _nextRepeat) { _nextRepeat = Time.unscaledTime + repeatEvery; Step(way); }
 
+            // Left and right, with a repeat while held: a value steps, anything else hands the selection along its row.
+            int side = 0;
+            if (!Typing && keys != null) side += (keys.rightArrowKey.isPressed || keys.dKey.isPressed ? 1 : 0) - (keys.leftArrowKey.isPressed || keys.aKey.isPressed ? 1 : 0);
+            if (pad != null)
+            {
+                Vector2 stick = pad.leftStick.ReadValue(), cross = pad.dpad.ReadValue();
+                bool across = Mathf.Abs(stick.x) > Mathf.Abs(stick.y);     // a stick pushed mostly up or down is not also a step
+                side += ((across && stick.x > stickPush) || cross.x > 0.5f ? 1 : 0) - ((across && stick.x < -stickPush) || cross.x < -0.5f ? 1 : 0);
+            }
+            side = Mathf.Clamp(side, -1, 1);
+            if (side == 0) _heldSide = 0;
+            else if (side != _heldSide) { _heldSide = side; _nextSide = Time.unscaledTime + repeatAfter; Side(side); }
+            else if (Time.unscaledTime >= _nextSide) { _nextSide = Time.unscaledTime + repeatEvery; Side(side); }
+
             bool choose = (pad != null && pad.buttonSouth.wasPressedThisFrame) || (!Typing && keys != null && (keys.enterKey.wasPressedThisFrame || keys.numpadEnterKey.wasPressedThisFrame || keys.spaceKey.wasPressedThisFrame));
-            bool back = (pad != null && pad.buttonEast.wasPressedThisFrame) || (keys != null && keys.escapeKey.wasPressedThisFrame) || (!Typing && keys != null && keys.backspaceKey.wasPressedThisFrame);
+            bool back = (!OwnerTakesEsc && ((pad != null && pad.buttonEast.wasPressedThisFrame) || (keys != null && keys.escapeKey.wasPressedThisFrame))) || (!Typing && keys != null && keys.backspaceKey.wasPressedThisFrame);
             bool shift = (pad != null && pad.buttonNorth.wasPressedThisFrame) || (!Typing && keys != null && (keys.leftShiftKey.wasPressedThisFrame || keys.rightShiftKey.wasPressedThisFrame || keys.fKey.wasPressedThisFrame));
             bool swap = (pad != null && pad.buttonWest.wasPressedThisFrame) || (!Typing && keys != null && keys.gKey.wasPressedThisFrame);
             bool reload = (padLoads && pad != null && pad.dpad.up.wasPressedThisFrame) || (!Typing && keys != null && keys.tKey.wasPressedThisFrame);
@@ -146,6 +179,51 @@ namespace ShiftJam
             if (pad != null && Darts != null && Darts.Auto && pad.rightTrigger.ReadValue() > 0.5f) Darts.Trigger = true;   // the pad sprays where the selection is
             if (choose && _model.Selected != null && _model.Selected.Usable) { Choose(_model.Selected, _model.Middle(_model.Selected)); return; }
             if (back) Back?.Invoke();
+        }
+
+        /// <summary>Left (-1) or right (+1): a value steps (with a knock on that side); anything else hands the selection to
+        /// the nearest usable control beside it on its row that way, if there is one.</summary>
+        private void Side(int way)
+        {
+            MenuModel.Control at = _model.Selected;
+            if (at == null || !at.Usable || !at.Shown) return;
+            if (at.Steps)
+            {
+                _model.Knock(at, new Vector2(way * at.Size.x / _model.PixelsPerMetre * 0.4f, 0f), 0.35f);
+                Stepped?.Invoke(at.Name, way);
+                return;
+            }
+            MenuModel.Control best = null; float nearest = float.MaxValue;
+            var shown = _model.Shown;
+            for (int i = 0; i < shown.Count; i++)
+            {
+                MenuModel.Control c = shown[i];
+                if (c == at || !c.Usable || Mathf.Abs(c.Centre.y - at.Centre.y) > Mathf.Min(c.Size.y, at.Size.y) * 0.5f) continue;
+                float along = (c.Centre.x - at.Centre.x) * way;
+                if (along > 0.5f && along < nearest) { nearest = along; best = c; }
+            }
+            if (best == null) return;
+            _model.Selected = best; Moved?.Invoke();
+            if (_darts != null) { _darts.Aim = _model.Middle(best); _darts.AimOn = best; }
+        }
+
+        /// <summary>The hint line for the hands this menu has (which gun is out, the ammo loaded, the shift), with
+        /// <paramref name="back"/> for how to go back and <paramref name="more"/> (or null) for what this page adds. Words
+        /// made when asked (a swap, a reload, a page), not every frame.</summary>
+        public string HintLine(string back, string more = null)
+        {
+            string extra = string.IsNullOrEmpty(more) ? "" : " · " + more;
+            MenuDarts gun = Darts;
+            if (gun == null) return "mouse, arrows or stick · Enter / A chooses" + extra + " · " + back + " · Shift for 3D";
+            if (!gun.CanReload)      // darts only
+            {
+                if (!gun.Chooses) return "the " + gun.Label + " only plays: hold to spray · G for the gun that chooses" + extra + " · Shift for 3D";
+                return "click: a dart chooses · hold and pull: stretch" + (gun.CanSwap ? " · G swaps guns" : "") + extra + " · Shift for 3D · " + back;
+            }
+            // More than one kind of ammo (D-0201): the line names the one loaded, and T for the next.
+            string reload = " · T for " + gun.NextAmmoLabel;
+            if (!gun.Chooses) return "the " + gun.Label + " only plays: hold to spray " + gun.AmmoLabel + reload + " · G for the gun that chooses" + extra + " · Shift for 3D";
+            return "click: a " + gun.AmmoOne + " chooses · hold and pull: stretch" + (gun.CanSwap ? " · G swaps guns" : "") + reload + extra + " · Shift for 3D · " + back;
         }
 
         /// <summary>The selection, one usable control down (+1) or up (-1), round the ends.</summary>

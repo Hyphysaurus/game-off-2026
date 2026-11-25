@@ -28,6 +28,13 @@ namespace ShiftJam
     /// is not selected, chosen or painted (the title's letters, MenuTitle).
     /// Paint (D-0201): Splash tells whoever listens (Splashed) that a paint ball burst on a control, and in what colour;
     /// Tipped and Stretch say how a slab is turned and stretched now, so a splat laid on its face can ride it (MenuSplats).
+    /// Menus beyond the model's four pages (D-0204: Pause, Options, Parties): AddSlab COPIES a slab the model has (its
+    /// body, its frame, its label place) onto a page of any name, at a place of the menu, under a name of its own; the
+    /// copy is a whole control (pages, springs, the shift, keys, darts, paint, frame colours) and is measured by the
+    /// same code as the model's own. The places are rows of Made Controls on the prefab; MakePage makes a page's rows,
+    /// once. A control can be left off its page (SetHidden), can be a value that left and right step (SetSteps), and
+    /// can show how far a value is with a bar on its face (SetFill). A second model up at once (the pause menu's while
+    /// the title's stands hidden in the scene) stands Next Place further along, out of the first one's camera.
     /// Everything moves on real time: a menu holds the game's.
     /// </summary>
     public sealed class MenuModel : MonoBehaviour
@@ -38,6 +45,17 @@ namespace ShiftJam
 
         /// <summary>A control drawn with another's slab (see Drawn Like).</summary>
         [System.Serializable] private struct Twin { public string control, sameAs; }
+
+        /// <summary>A control made in code by copying a slab of the model (D-0204): see Made Controls.</summary>
+        [System.Serializable]
+        public struct Made
+        {
+            [Tooltip("Its name: the menu that uses it asks for it by this name.")] public string control;
+            [Tooltip("The control of the model whose slab it copies (Btn_NewGame is the plain wide button, Slot_2 the long save slot, Btn_SavesBack the small back button).")] public string sameAs;
+            [Tooltip("The page it is on (\"Pause\" for Page_Pause; a page the model file does not have is made).")] public string page;
+            [Tooltip("Its middle, metres across and up from the menu's middle (a metre is Pixels Per Metre canvas pixels at 1080 high).")] public Vector2 at;
+            public Made(string control, string sameAs, string page, float x, float y) { this.control = control; this.sameAs = sameAs; this.page = page; at = new Vector2(x, y); }
+        }
 
         /// <summary>One control of the model: its slab, its frame, its words, and where it is on the screen when flat.</summary>
         public sealed class Control
@@ -57,6 +75,15 @@ namespace ShiftJam
             /// <summary>A plaything, not a button (the title's letters, D-0200): of no page, on show on every page; it takes
             /// the brush, a pull, knocks and darts like a slab and is never selected, chosen or painted.</summary>
             public bool Toy;
+            /// <summary>A value (D-0204): left and right step it, and a choice on its left or right half steps it down or up.</summary>
+            public bool Steps;
+            /// <summary>Left off its page (SetHidden): not shown, not picked, passed over by the keys.</summary>
+            public bool Hidden;
+            /// <summary>Made in code from another control's slab (AddSlab), not in the model file.</summary>
+            public bool Copy;
+            internal Transform Bar;                  // its fill bar (SetFill): a holder on its face, the track and the fill in it
+            internal Renderer BarTrack, BarFill;
+            internal float BarLength;                // the track's length, world units
             internal bool Stays;     // of no page and already on show: a page change leaves it as it is
             internal float Grow = 1f, GrowSpeed, Drop, DropSpeed, Squash, SquashSpeed, Wait;
             // A soft toy (D-0199): knocked or let go of, it swings about its place and settles. Metres and radians.
@@ -124,6 +151,39 @@ namespace ShiftJam
         [Header("Where it stands (out of the game's sight)")]
         [SerializeField, Tooltip("Far from the world, so the game's own camera never has it in view.")] private Vector3 place = new Vector3(0f, -5000f, 0f);
         [SerializeField, Min(1f), Tooltip("How many times larger than made it stands there: that far from the middle of the world, a slab's millimetres would shimmer at their own size.")] private float enlarge = 100f;
+        [SerializeField, Tooltip("A second model up at once (the pause menu's, while the title's stands hidden in the scene) stands this much further along, world units, and a third twice as far: out of the other's camera (its view is about 800 units across at its furthest).")] private Vector3 nextPlace = new Vector3(3000f, 0f, 0f);
+        [Header("Controls made in code (D-0204): copies of the model's own slabs, for the menus beyond its four pages")]
+        [SerializeField, Tooltip("Each row is one control: its name, the slab it copies, its page and its middle (metres). A menu whose rows are missing here, or whose slab is not in the model, draws itself the old way. Pause: the pause menu's own copy of this prefab. Options: on the title's model and the pause menu's. Parties: on the title's.")]
+        private Made[] madeControls =
+        {
+            new Made("Pause_Resume", "Btn_NewGame", "Pause", 0f, 0.24f),
+            new Made("Pause_Options", "Btn_NewGame", "Pause", 0f, 0.08f),
+            new Made("Pause_Title", "Btn_NewGame", "Pause", 0f, -0.08f),
+            new Made("Pause_Quit", "Btn_NewGame", "Pause", 0f, -0.24f),
+            new Made("Opt_Look", "Btn_NewGame", "Options", 0f, 0.30f),
+            new Made("Opt_Invert", "Btn_NewGame", "Options", 0f, 0.14f),
+            new Made("Opt_Volume", "Btn_NewGame", "Options", 0f, -0.02f),
+            new Made("Opt_Fullscreen", "Btn_NewGame", "Options", 0f, -0.18f),
+            new Made("Opt_Graphics", "Btn_NewGame", "Options", 0f, -0.34f),
+            new Made("Opt_Body", "Btn_NewGame", "Options", 0f, -0.50f),
+            new Made("Opt_Back", "Btn_SavesBack", "Options", 0f, -0.68f),
+            new Made("Party_1", "Slot_2", "Parties", 0f, 0.30f),
+            new Made("Party_2", "Slot_2", "Parties", 0f, 0.14f),
+            new Made("Party_3", "Slot_2", "Parties", 0f, -0.02f),
+            new Made("Parties_Refresh", "Btn_NewGame", "Parties", -0.54f, -0.20f),
+            new Made("Parties_Host", "Btn_NewGame", "Parties", 0.54f, -0.20f),
+            new Made("Parties_Code", "Btn_NewGame", "Parties", -0.54f, -0.36f),
+            new Made("Parties_House", "Btn_NewGame", "Parties", 0.54f, -0.36f),
+            new Made("Parties_More", "Btn_SavesBack", "Parties", -0.27f, -0.54f),
+            new Made("Parties_Back", "Btn_SavesBack", "Parties", 0.27f, -0.54f),
+        };
+        [Header("A value's fill bar (SetFill: Options' look speed, volume, body)")]
+        [SerializeField, Tooltip("The part filled, as far as the value goes.")] private Color fillColour = new Color32(0xff, 0x72, 0xcc, 0xff);
+        [SerializeField, Tooltip("The track under it, the whole way.")] private Color trackColour = new Color32(0x1c, 0x16, 0x2c, 0xff);
+        [SerializeField, Range(0.02f, 0.5f), Tooltip("Its height, as a share of the slab's face (it runs along the bottom, under the words).")] private float fillHeight = 0.14f;
+        [SerializeField, Min(0f), Tooltip("Clear space between it and the face's ends, metres.")] private float fillEnds = 0.03f;
+        [SerializeField, Min(0f), Tooltip("Clear space between it and the face's bottom edge, metres.")] private float fillBottom = 0.006f;
+        [SerializeField, Min(0.0001f), Tooltip("It lies this far in front of the face, metres: behind the words (which are 0.002 in front).")] private float fillLift = 0.001f;
 
         private static readonly int BaseColour = Shader.PropertyToID("_BaseColor"), BaseMap = Shader.PropertyToID("_BaseMap"), Surface = Shader.PropertyToID("_Surface");
 
@@ -137,6 +197,12 @@ namespace ShiftJam
         private MaterialPropertyBlock _paint;
         private float _depth, _depthSpeed;
         private bool _read, _paged, _deep;
+        private Mesh _barQuad;          // the fill bars' square, made with the first bar
+        private int _slot;              // which of the models up at once this is (0 = the first): it stands Next Place along that many times
+        private static readonly List<MenuModel> Live = new List<MenuModel>();
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetLive() => Live.Clear();
+        private const string WordsName = "Words", BarName = "Fill";   // the children this part puts on a slab (a copy leaves its template's behind)
         // Reading order: top to bottom, and left to right within a row (half a pixel apart counts as the same row).
         private static readonly System.Comparison<Control> ReadingOrder = (a, b) => Mathf.Abs(b.Centre.y - a.Centre.y) > 0.5f ? b.Centre.y.CompareTo(a.Centre.y) : a.Centre.x.CompareTo(b.Centre.x);
 
@@ -177,6 +243,16 @@ namespace ShiftJam
             if (game == null || game.renderType != CameraRenderType.Base) return null;
             MenuModel model = Instantiate(prefab);
             model.name = "MenuModel";
+            // Its place among the models up now: the first free one (a model gone frees its place).
+            Live.RemoveAll(m => m == null);
+            int slot = 0;
+            for (bool taken = true; taken; )
+            {
+                taken = false;
+                foreach (MenuModel m in Live) if (m._slot == slot) { taken = true; slot++; break; }
+            }
+            model._slot = slot;
+            Live.Add(model);
             string missing = model.Read(needed);
             if (missing == null) missing = model.Stage(under, game);
             if (missing == null) return model;
@@ -193,7 +269,7 @@ namespace ShiftJam
             if (slabMaterial == null) return "no Slab Material on the prefab";
             int layer = LayerMask.NameToLayer("UI");
             if (layer < 0) return "no UI layer";
-            transform.SetPositionAndRotation(place, transform.rotation);
+            transform.SetPositionAndRotation(place + nextPlace * _slot, transform.rotation);
             transform.localScale *= enlarge;
             foreach (Transform t in GetComponentsInChildren<Transform>(true)) { t.gameObject.layer = layer; _named[t.name] = t; }
             _paint = new MaterialPropertyBlock();
@@ -345,7 +421,7 @@ namespace ShiftJam
             _shown.Clear();
             foreach (Control c in _controls.Values)
             {
-                bool on = c.Page.Length == 0 || c.Page == Page;
+                bool on = !c.Hidden && (c.Page.Length == 0 || c.Page == Page);
                 c.Stays = on && c.Shown && c.Page.Length == 0;       // of no page and already here: it stays as it is
                 c.Shown = on; c.Pressed = false;
                 c.Body.gameObject.SetActive(on);
@@ -387,13 +463,218 @@ namespace ShiftJam
             return c;
         }
 
+        // ---- controls made in code (D-0204): menus beyond the model's four pages need no Blender export
+
+        /// <summary>
+        /// Copies the slab of the control <paramref name="sameAs"/> (its body, its frame and its label place) onto the
+        /// page <paramref name="page"/>, its middle at <paramref name="at"/> (metres across and up from the menu's middle),
+        /// as a control called <paramref name="name"/>. The copy is a whole control: it shows with its page, takes the
+        /// keys, the pointer, knocks, darts and paint, and its frame shows its state; it is measured by the same code as
+        /// the model's own slabs. Its colours are its template's. A page the model has none of is made (beside the
+        /// template's own page, standing as it does: every page of the model is an empty at its middle). A copy made
+        /// while its page is on show drops in at once. Copies are kept: asked again for a name it made on that page, it
+        /// gives that copy back. Null before the model is read, when another control has the name, or when the model has
+        /// no control <paramref name="sameAs"/> (a plaything is not a slab). It makes no camera (an editor check may call it).
+        /// </summary>
+        public Control AddSlab(string name, string sameAs, string page, Vector2 at)
+        {
+            if (!_read || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(page)) return null;
+            if (_controls.TryGetValue(name, out Control made)) return made.Copy && made.Page == page ? made : null;
+            if (string.IsNullOrEmpty(sameAs) || !_controls.TryGetValue(sameAs, out Control like) || like.Toy) return null;
+            GameObject copy = Instantiate(like.Body.gameObject, PageFor(page, like), false);
+            copy.name = name;
+            Transform body = copy.transform, frame = null, label = null;
+            for (int i = body.childCount - 1; i >= 0; i--)
+            {
+                Transform child = body.GetChild(i);
+                // What this part put on the template (its words, its fill bar) stays the template's: the copy makes its own.
+                if (child.name == WordsName || child.name == BarName) { child.gameObject.SetActive(false); Gone(child.gameObject); continue; }
+                if (child.name == like.Name + "_Frame") { child.name = name + "_Frame"; frame = child; }
+                else if (child.name == "Label_" + like.Name) { child.name = "Label_" + name; label = child; }
+            }
+            // It rests where its template rests, moved across the menu's plane to its own place (the template may be
+            // swinging or pressed thin right now: its rest is what counts).
+            Vector2 move = at - like.Centre / pixelsPerMetre;
+            Vector3 shift = (_right * move.x + _up * move.y) * enlarge;
+            body.SetPositionAndRotation(like.RestPlace + shift, like.RestTurn);
+            body.localScale = like.RestScale;
+            foreach (Transform t in copy.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = gameObject.layer;
+            var c = new Control
+            {
+                Name = name, Page = page, Body = body, Copy = true, Box = like.Box,
+                RestScale = like.RestScale, RestPlace = body.position, RestTurn = like.RestTurn,
+                BodyColours = (Color[])like.BodyColours.Clone(), LabelPlace = like.LabelPlace + shift,
+            };
+            body.TryGetComponent(out c.BodyRenderer);
+            if (frame != null) frame.TryGetComponent(out c.FrameRenderer);
+            Measure(c);
+            _controls[name] = c;
+            _named[name] = body;
+            if (frame != null) _named[frame.name] = frame;
+            if (label != null) _named[label.name] = label;
+            bool now = _paged && page == Page;      // its page is up: it joins it now, dropping in
+            copy.SetActive(now);
+            if (now)
+            {
+                c.Shown = true; c.Drop = pageDrop;
+                _shown.Add(c);
+                _shown.Sort(ReadingOrder);
+            }
+            return c;
+        }
+
+        /// <summary>The object holding a page's controls: the model's own Page_..., or one made beside the template's.</summary>
+        private Transform PageFor(string page, Control like)
+        {
+            if (_named.TryGetValue("Page_" + page, out Transform have) && have != null) return have;
+            Transform holder = like.Body.parent;
+            var made = new GameObject("Page_" + page).transform;
+            made.gameObject.layer = gameObject.layer;
+            if (holder == null || holder == transform) made.SetParent(transform, false);
+            else
+            {
+                made.SetParent(holder.parent, false);
+                made.localPosition = holder.localPosition; made.localRotation = holder.localRotation; made.localScale = holder.localScale;
+            }
+            _named[made.name] = made;
+            return made;
+        }
+
+        /// <summary>Makes the rows of Made Controls that are on <paramref name="page"/> (once: a row made already is kept as
+        /// it is). False, with what is wrong in <paramref name="missing"/>, when no row is on that page or a row's slab is
+        /// not in the model: the menu that wanted the page then draws itself the old way.</summary>
+        public bool MakePage(string page, out string missing)
+        {
+            missing = null;
+            if (!_read) { missing = "the model is not read"; return false; }
+            int rows = 0;
+            foreach (Made row in madeControls)
+            {
+                if (row.page != page) continue;
+                rows++;
+                if (AddSlab(row.control, row.sameAs, row.page, row.at) != null) continue;
+                missing = "Made Controls: " + row.control + " (a copy of " + row.sameAs + ") could not be made";
+                return false;
+            }
+            if (rows == 0) { missing = "no row of Made Controls is on the page " + page; return false; }
+            return true;
+        }
+
+        /// <summary>Leaves a control off its page (true) or puts it back (false). While its page is up it goes, or drops in,
+        /// at once; else its page's next ShowPage sees to it. A control that goes takes the selection with it to the
+        /// first one that can be used.</summary>
+        public void SetHidden(string control, bool hidden)
+        {
+            if (!_controls.TryGetValue(control, out Control c) || c.Hidden == hidden) return;
+            c.Hidden = hidden;
+            if (!_paged || (c.Page.Length > 0 && c.Page != Page)) return;
+            if (hidden)
+            {
+                c.Shown = false; c.Pressed = false; c.Held = false; c.Pull = Vector2.zero;
+                c.Body.gameObject.SetActive(false);
+                _shown.Remove(c);
+                if (Selected == c) { Selected = null; foreach (Control s in _shown) if (s.Usable) { Selected = s; break; } }
+                return;
+            }
+            c.Shown = true; c.Body.gameObject.SetActive(true);
+            c.Drop = pageDrop; c.DropSpeed = 0f; c.Wait = 0f; c.Grow = 1f; c.GrowSpeed = 0f;
+            c.Off = c.OffSpeed = c.Lean = c.LeanSpeed = Vector3.zero; c.Squash = c.SquashSpeed = 0f;
+            _shown.Add(c);
+            _shown.Sort(ReadingOrder);
+            if (Selected == null && c.Usable) Selected = c;
+        }
+
+        /// <summary>Makes a control a value (true): the MenuDriver's left and right step it, and a choice on its left or
+        /// right half steps it down or up, instead of choosing it.</summary>
+        public void SetSteps(string control, bool steps) { if (_controls.TryGetValue(control, out Control c)) c.Steps = steps; }
+
+        /// <summary>A bar along the bottom of a control's face, filled this share of the way (0 to 1): how far a value is.
+        /// Below 0 = no bar. Made the first time it is asked for; it rides the slab as its words do.</summary>
+        public void SetFill(string control, float share)
+        {
+            if (!_controls.TryGetValue(control, out Control c) || c.Toy) return;
+            if (share < 0f) { if (c.Bar != null) c.Bar.gameObject.SetActive(false); return; }
+            if (c.Bar == null && !MakeBar(c)) return;
+            c.Bar.gameObject.SetActive(true);
+            share = Mathf.Clamp01(share);
+            Transform fill = c.BarFill.transform;
+            fill.gameObject.SetActive(share > 0.001f);
+            fill.localPosition = new Vector3(c.BarLength * share * 0.5f, 0f, fill.localPosition.z);
+            fill.localScale = new Vector3(Mathf.Max(1e-4f, c.BarLength * share), fill.localScale.y, 1f);
+        }
+
+        /// <summary>A control's fill bar: a holder on its face (laid there with the slab at rest, then a child of it), the
+        /// track the whole way and the fill a hair in front of it. False without a slab material.</summary>
+        private bool MakeBar(Control c)
+        {
+            if (slabMaterial == null) return false;
+            if (_barQuad == null) _barQuad = BarSquare();
+            Transform b = c.Body;
+            Vector3 wasAt = b.position, wasSize = b.localScale; Quaternion wasTurn = b.rotation;
+            b.SetPositionAndRotation(c.RestPlace, c.RestTurn); b.localScale = c.RestScale;
+            Vector2 face = c.Size / pixelsPerMetre;
+            float length = Mathf.Max(0.01f, face.x - 2f * fillEnds), tall = Mathf.Max(0.002f, face.y * fillHeight);
+            var holder = new GameObject(BarName).transform;
+            holder.gameObject.layer = gameObject.layer;
+            holder.SetParent(b, false);
+            holder.SetPositionAndRotation(FacePoint(c, new Vector2(-face.x * 0.5f + fillEnds, -face.y * 0.5f + fillBottom + tall * 0.5f)) - _look * (fillLift * enlarge), Facing);
+            // One of the holder's units is one of the world's, along each of its own axes (each runs along one of the slab's).
+            Vector3 lossy = b.lossyScale, own = Vector3.one;
+            for (int k = 0; k < 3; k++)
+            {
+                Vector3 inSlab = b.InverseTransformDirection(holder.rotation * (k == 0 ? Vector3.right : k == 1 ? Vector3.up : Vector3.forward));
+                int m = Mathf.Abs(inSlab.x) >= Mathf.Abs(inSlab.y) && Mathf.Abs(inSlab.x) >= Mathf.Abs(inSlab.z) ? 0 : Mathf.Abs(inSlab.y) >= Mathf.Abs(inSlab.z) ? 1 : 2;
+                own[k] = 1f / Mathf.Max(1e-6f, Mathf.Abs(lossy[m]));
+            }
+            holder.localScale = own;
+            c.Bar = holder;
+            c.BarLength = length * enlarge;
+            c.BarTrack = BarPart("Track", holder, new Vector3(c.BarLength * 0.5f, 0f, 0f), new Vector3(c.BarLength, tall * enlarge, 1f));
+            c.BarFill = BarPart("Filled", holder, new Vector3(0f, 0f, -0.5f * fillLift * enlarge), new Vector3(1e-4f, tall * enlarge, 1f));
+            b.SetPositionAndRotation(wasAt, wasTurn); b.localScale = wasSize;
+            return true;
+        }
+
+        private Renderer BarPart(string name, Transform holder, Vector3 at, Vector3 size)
+        {
+            var go = new GameObject(name);
+            go.layer = gameObject.layer;
+            go.transform.SetParent(holder, false);
+            go.transform.localPosition = at; go.transform.localScale = size;
+            go.AddComponent<MeshFilter>().sharedMesh = _barQuad;
+            var look = go.AddComponent<MeshRenderer>();
+            look.sharedMaterial = slabMaterial;
+            look.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            look.receiveShadows = false;
+            look.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+            look.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
+            return look;
+        }
+
+        /// <summary>A square a unit wide, facing the viewer along its -z (as a splat's is).</summary>
+        private static Mesh BarSquare()
+        {
+            var mesh = new Mesh { name = "MenuBarSquare" };
+            mesh.SetVertices(new List<Vector3> { new Vector3(-0.5f, -0.5f, 0f), new Vector3(-0.5f, 0.5f, 0f), new Vector3(0.5f, 0.5f, 0f), new Vector3(0.5f, -0.5f, 0f) });
+            mesh.SetNormals(new List<Vector3> { Vector3.back, Vector3.back, Vector3.back, Vector3.back });
+            mesh.SetUVs(0, new List<Vector2> { new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(1f, 0f) });
+            mesh.SetTriangles(new[] { 0, 1, 2, 0, 2, 3 }, 0);
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        private static void Gone(Object thing) { if (Application.isPlaying) Destroy(thing); else DestroyImmediate(thing); }
+
+        /// <summary>The game camera it is drawn over (null before it is on a screen).</summary>
+        public Camera Under => _under;
+
         /// <summary>What a control reads: a line, and a smaller second line under it (null for none).</summary>
         public void SetWords(string control, string line, string second = null)
         {
             if (!_controls.TryGetValue(control, out Control c)) return;
             if (c.Words == null)
             {
-                var go = new GameObject("Words");
+                var go = new GameObject(WordsName);
                 go.layer = gameObject.layer;
                 go.transform.SetParent(c.Body, false);
                 go.transform.SetPositionAndRotation(c.LabelPlace, Quaternion.LookRotation(_look, _up));
@@ -707,11 +988,20 @@ namespace ShiftJam
                 _paint.SetColor(BaseColour, state == State.Disabled ? disabledFrame : state == State.Selected ? selectedFrame : state == State.Active ? activeFrame : normalFrame);
                 c.FrameRenderer.SetPropertyBlock(_paint);
             }
+            if (c.BarTrack != null)
+            {
+                float dim = state == State.Disabled ? disabledBright : 1f;
+                Color track = trackColour * dim, fill = fillColour * dim; track.a = fill.a = 1f;
+                _paint.SetColor(BaseColour, track); c.BarTrack.SetPropertyBlock(_paint);
+                _paint.SetColor(BaseColour, fill); c.BarFill.SetPropertyBlock(_paint);
+            }
             if (c.Words != null) { Color w = wordColour; w.a = state == State.Disabled ? 0.4f : 1f; if (c.Words.color != w) c.Words.color = w; }
         }
 
         private void OnDestroy()
         {
+            Live.Remove(this);
+            if (_barQuad != null) Gone(_barQuad);
             if (_under != null && _view != null)
             {
                 UniversalAdditionalCameraData game = _under.GetUniversalAdditionalCameraData();

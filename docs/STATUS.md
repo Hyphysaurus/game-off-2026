@@ -10,10 +10,9 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   into it: warp, "BACK TO 3D", camera back behind; (2) Esc in the house: the pause menu as slabs; Options from there
   and from the title (values step left / right); Online > Parties; (3) the title: darts fall off the letters, the
   guns in cyan and magenta; (4) the sounds everywhere (D-0202): too loud / too soft / wrong, by name.
-- **HIS RIFT:** `Dev\Art\pixel\shift_rift\shift_rift_in.aseprite` (64 x 128, 16 frames, his title palette, empty
-  layers over the mock-up at 30%) is set up for him; `shift_rift_in_from_mockup.aseprite` is the mock-up in layers.
-  When he saves, export it without the REFERENCE layer (Aseprite batch `--ignore-layer`) and give it a FlatGate look
-  (the way in). The 3D rift (the way out) is for Blender. Mock-ups: https://claude.ai/artifact/Exk6A2hcnCoZMrnr2chswk
+- **THE RIFTS ARE IN (D-0207), Claude's stand-ins:** the way in is a pixel rift (64 x 128, 16 frames) at the foot of the
+  book stairs; the way out is a 3D crystal rift at the end, facing the side camera. His own versions later: see D-0207
+  for the files to draw over and the menu items to run. Mock-ups: https://claude.ai/artifact/Exk6A2hcnCoZMrnr2chswk
 - **WHERE NEXT FOR FLAT ZONES (a survey of the course, read from the builders' code; nothing built):**
   1. **The wardrobe tower (R5)**, a vertical climb inside the wardrobe (x 382.5..577.5, z -760..-640, floor 0,
      ceiling 170; Shelf_40 at (480,39,-670)): the 3D climb failed on depth (the pillow 'fell short every time',

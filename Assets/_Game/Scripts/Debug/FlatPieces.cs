@@ -42,6 +42,21 @@ namespace ShiftJam
         private const string GreyboxPath = "Assets/_Game/Scenes/Greybox.unity";
         private const string ViewPath = "Assets/_Game/Resources/FlatView.asset";
         public const string GatePath = "Assets/_Game/Prefabs/Flat/FlatGate_Portal.prefab";
+        // The rifts (D-0207): the way in is a pixel rift (a sprite sheet on a quad), the way out a 3D rift (a model). Both
+        // are made from their art when it is in the project and the gate prefabs are missing; without the art the
+        // hallway keeps his portal at both ends. They are stand-ins until he draws his own: replace the art files (same
+        // names) and run Shift Jam > Flat > Rebuild Rift Gates.
+        public const string RiftInPath = "Assets/_Game/Prefabs/Flat/FlatGate_RiftIn.prefab";
+        public const string RiftOutPath = "Assets/_Game/Prefabs/Flat/FlatGate_RiftOut.prefab";
+        private const string RiftArt = "Assets/_Game/Art/Flat/";
+        private const string RiftInSheet = RiftArt + "ShiftRiftIn_sheet.png";       // 16 frames of 64 x 128 side by side
+        private const string RiftOutModel = RiftArt + "ShiftRiftOut.fbx";           // 2 tall, materials RiftEdge, RiftShardPink, RiftInside
+        private const string WarpArt = "Assets/_Game/Art/Portals/warp_art_grow.png"; // his shift-warp swirl, inside the 3D rift
+        private const string SlabLook = "Assets/_Game/Data/MenuSlab.mat";            // an unlit material: the rifts' materials are copies of it
+        private const int RiftInFrames = 16;
+        private const float RiftInPixel = 0.05f;      // world units a pixel of the pixel rift: 64 x 128 px = 3.2 x 6.4
+        private const float RiftInBelow = 0.3f;       // the sheet's empty rows under the tear's tip: the tip stands on the floor
+        private const float RiftOutScale = 3.1f;      // the 3D rift is 2 tall as made: 6.2 tall, as tall as the portal's drawing
         private const string Data = "Assets/_Game/Data/";
         private const string GlowPath = Data + "FlatGateGlow.mat";
         private const string GlowSource = Data + "OrbGlow.mat";   // our orb's soft glow (his mote drawing): the car portals' floor glow is a copy of it too
@@ -112,6 +127,17 @@ namespace ShiftJam
             if (report.StartsWith(Tag + " NOT ")) Debug.LogWarning(report); else Debug.Log(report);
         }
 
+        [MenuItem("Shift Jam/Flat/Rebuild Rift Gates (their look)")]
+        public static void RebuildRiftsMenu()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode) { Debug.LogWarning($"{Tag} NOT rebuilt: this does not run in Play. Stop the game first."); return; }
+            var did = new List<string>();
+            GameObject portal = GatePiece(false, did);
+            RiftInPiece(portal, true, did); RiftOutPiece(portal, true, did);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"{Tag} Rebuild Rift Gates: {string.Join("; ", did)}. Run Land Hallway Scroller to put them in the hallway.");
+        }
+
         [MenuItem("Shift Jam/Flat/Rebuild Portal Gate (its look)")]
         public static void RebuildGateMenu()
         {
@@ -155,6 +181,8 @@ namespace ShiftJam
                 else assets.Add($"{ViewPath} was there: kept as it is (Frame Height {Say(view.frameHeight)})");
             }
             GameObject gatePiece = GatePiece(false, assets);
+            GameObject riftIn = gatePiece != null ? RiftInPiece(gatePiece, false, assets) : null;
+            GameObject riftOut = gatePiece != null ? RiftOutPiece(gatePiece, false, assets) : null;
             AssetDatabase.SaveAssets();
             report.AppendLine("ASSETS: " + string.Join("; ", assets) + ".");
             if (gatePiece == null)
@@ -274,8 +302,9 @@ namespace ShiftJam
             // a thin line, all the way to it. Its trigger is then turned too: thin along the lane, so the toy is let go as
             // it reaches the portal's middle, and wide across it.
             var sounds = AssetDatabase.LoadAssetAtPath<CourseSounds>(SoundsPath);
-            GameObject entrance = Gate(gatePiece, zoneGo.transform, "Entrance", new Vector3(GateX, 0f, laneZ), Vector3.right, FlatGate.Role.Entrance, entranceColour, sounds != null ? sounds.grow : default);
-            GameObject exit = Gate(gatePiece, zoneGo.transform, "Exit", new Vector3(exitX, 0f, laneZ), Vector3.back, FlatGate.Role.Exit, exitColour, sounds != null ? sounds.shrink : default);
+            // The way in is the pixel rift and the way out the 3D rift when they are made (D-0207), else his portal.
+            GameObject entrance = Gate(riftIn != null ? riftIn : gatePiece, zoneGo.transform, "Entrance", new Vector3(GateX, 0f, laneZ), Vector3.right, FlatGate.Role.Entrance, entranceColour, sounds != null ? sounds.grow : default);
+            GameObject exit = Gate(riftOut != null ? riftOut : gatePiece, zoneGo.transform, "Exit", new Vector3(exitX, 0f, laneZ), Vector3.back, FlatGate.Role.Exit, exitColour, sounds != null ? sounds.shrink : default);
             if (exit.TryGetComponent(out BoxCollider exitTouch))
             {
                 Vector3 size = exitTouch.size;   // made as (across, up, along) for a gate across the lane: turned to face the camera, across and along swap
@@ -295,7 +324,7 @@ namespace ShiftJam
                 + $"Its bottom is {Say(BoxUnderPit)} under the sprint gap's floor (the plan said y -2: the zone let go half-way down a fall).");
             report.AppendLine($"LANE: point {Say(lanePoint)}, the camera's side -Z (child 'Lane', its blue arrow south); along the lane = +X. RAIL: the camera's middle travels x {Say(RailWest)} to {Say(RailEast)} (Rail Start {Say(RailWest - LaneX)}, Rail End {Say(RailEast - LaneX)}, counted from the lane's point; cut A's west end was -14). "
                 + $"FRAME: never under y {Say(frameFloor)} or over y {Say(frameCeiling)} (cut A: over {Say(ceilingY)}, the ceiling's underside: the toy's head on the screen's top edge on the step box).");
-            report.AppendLine("GATES (instances of " + GatePath + " under " + ZoneName + "): " + GateLine(entrance) + " | " + GateLine(exit) + ".");
+            report.AppendLine("GATES (under " + ZoneName + "; the way in is " + PieceName(entrance) + ", the way out " + PieceName(exit) + "): " + GateLine(entrance) + " | " + GateLine(exit) + ".");
             report.AppendLine($"FILL LIGHT: 'Fill' under {ZoneName}, a spot with no shadows, off until a player is held; then it rides with that player's camera, fading in and out with the swing (FlatView > Fill Light {Say(view.fillLight)} at the lane, 0 = off).");
 
             FlatRail rail = zone.Rail;
@@ -453,6 +482,145 @@ namespace ShiftJam
             return AssetDatabase.LoadAssetAtPath<GameObject>(GatePath);
         }
 
+        /// <summary>A rift gate's prefab (D-0207): the portal gate's parts (its FlatGate, trigger, floor glow and flash light)
+        /// with the portal's Model taken out and the rift's look put in as the child "Look". Kept as it is when it is there
+        /// (unless <paramref name="rebuild"/>); null when the rift's art is not in the project.</summary>
+        private static GameObject RiftPiece(GameObject portal, string path, string label, bool rebuild, List<string> did, System.Func<Transform, List<string>, List<Renderer>> makeLook)
+        {
+            var there = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (there != null && !rebuild) { did.Add($"{path} was there: kept as it is"); return there; }
+            Scene stage = EditorSceneManager.NewPreviewScene();
+            try
+            {
+                var root = (GameObject)PrefabUtility.InstantiatePrefab(portal, stage);
+                PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+                root.name = System.IO.Path.GetFileNameWithoutExtension(path);
+                Transform model = root.transform.Find("Model");
+                if (model != null) Object.DestroyImmediate(model.gameObject);
+                var look = new GameObject("Look").transform;
+                look.SetParent(root.transform, false);
+                List<Renderer> glow = makeLook(look, did);
+                if (glow == null) { did.Add($"{path} NOT made: {label}'s art is not in the project"); return null; }
+                FlatGate gate = root.GetComponent<FlatGate>();
+                WorkshopPieces.Set(gate, "ripple", (Object)null);
+                var glowObjects = new List<Object>(); foreach (Renderer r in glow) glowObjects.Add(r);
+                WorkshopPieces.SetArray(gate, "glow", glowObjects);
+                Transform lightT = root.transform.Find("FlashLight");
+                if (lightT != null && DrawnBounds(look.gameObject, out Bounds lb)) lightT.localPosition = new Vector3(0f, lb.center.y - root.transform.position.y, 0f);
+                PrefabUtility.SaveAsPrefabAsset(root, path, out bool saved);
+                did.Add(saved ? $"{path} {(there != null ? "REBUILT" : "MADE")}: {label}" : $"{path} DID NOT SAVE");
+            }
+            finally { EditorSceneManager.ClosePreviewScene(stage); }
+            return AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        }
+
+        /// <summary>The way in: the pixel rift, a quad that steps through the sheet's frames (SheetLook), its pixels kept
+        /// sharp, seen from both sides, standing on the floor. It does not brighten in a flash (its pixels are the look);
+        /// the floor glow and the flash light carry the gate's colour.</summary>
+        private static GameObject RiftInPiece(GameObject portal, bool rebuild, List<string> did)
+        {
+            if (AssetDatabase.LoadAssetAtPath<Texture2D>(RiftInSheet) == null) { did.Add($"no {RiftInSheet}: the way in stays his portal"); return null; }
+            return RiftPiece(portal, RiftInPath, "the pixel rift", rebuild, did, (look, notes) =>
+            {
+                SheetImport(RiftInSheet, notes);
+                var sheet = AssetDatabase.LoadAssetAtPath<Texture2D>(RiftInSheet);
+                Material mat = RiftMaterial("RiftIn", Color.white, sheet, true, notes);
+                if (mat == null) return null;
+                GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                Object.DestroyImmediate(quad.GetComponent<Collider>());
+                quad.name = "Sheet";
+                quad.transform.SetParent(look, false);
+                float w = sheet.width / (float)RiftInFrames * RiftInPixel, h = sheet.height * RiftInPixel;
+                quad.transform.localScale = new Vector3(w, h, 1f);
+                quad.transform.localPosition = new Vector3(0f, h * 0.5f - RiftInBelow, 0f);
+                var r = quad.GetComponent<MeshRenderer>();
+                r.sharedMaterial = mat; r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false;
+                var steps = quad.AddComponent<SheetLook>();
+                WorkshopPieces.Set(steps, "frames", RiftInFrames);
+                notes.Add($"the pixel rift {Say(w)} x {Say(h)}, {RiftInFrames} frames");
+                return new List<Renderer>();
+            });
+        }
+
+        /// <summary>The way out: the 3D rift model, its spikes turned toward the gate's forward (the side camera), swaying
+        /// and bobbing (RiftLook); its rim, spikes and inside brighten in a flash.</summary>
+        private static GameObject RiftOutPiece(GameObject portal, bool rebuild, List<string> did)
+        {
+            var modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(RiftOutModel);
+            if (modelAsset == null) { did.Add($"no {RiftOutModel}: the way out stays his portal"); return null; }
+            return RiftPiece(portal, RiftOutPath, "the 3D rift", rebuild, did, (look, notes) =>
+            {
+                Material edge = RiftMaterial("RiftEdge", new Color(0.45f, 0.95f, 1f), null, false, notes);
+                Material pink = RiftMaterial("RiftShardPink", new Color(1f, 0.45f, 0.8f), null, false, notes);
+                Material inside = RiftMaterial("RiftInside", Color.white, AssetDatabase.LoadAssetAtPath<Texture2D>(WarpArt), false, notes);
+                if (edge == null || pink == null || inside == null) return null;
+                var model = (GameObject)Object.Instantiate(modelAsset, look, false);
+                model.name = "Model";
+                model.transform.localScale = Vector3.one * RiftOutScale;
+                var glow = new List<Renderer>();
+                foreach (Renderer r in model.GetComponentsInChildren<Renderer>(true))
+                {
+                    var mats = r.sharedMaterials;
+                    for (int i = 0; i < mats.Length; i++)
+                    {
+                        string n = mats[i] != null ? mats[i].name : "";
+                        mats[i] = n.StartsWith("RiftInside") ? inside : n.StartsWith("RiftShardPink") ? pink : edge;
+                    }
+                    r.sharedMaterials = mats; r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false;
+                    glow.Add(r);
+                }
+                // The spikes point toward the viewer as made: turn the model so they point along the gate's forward.
+                Transform spikes = model.transform.Find("RiftSpikes"), face = model.transform.Find("RiftInside");
+                if (spikes != null && face != null && DrawnBounds(spikes.gameObject, out Bounds sb) && DrawnBounds(face.gameObject, out Bounds fb)
+                    && look.InverseTransformPoint(sb.center).z < look.InverseTransformPoint(fb.center).z)
+                    model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f) * model.transform.localRotation;
+                if (DrawnBounds(model, out Bounds mb)) model.transform.localPosition -= new Vector3(0f, mb.min.y - look.position.y, 0f) - Vector3.up * 0.05f;
+                look.gameObject.AddComponent<RiftLook>();
+                notes.Add($"the 3D rift at {Say(RiftOutScale)} of its model");
+                return glow;
+            });
+        }
+
+        /// <summary>An unlit material for a rift (a copy of the menu slab's), made when missing, kept when there. A sheet's
+        /// material clips its see-through pixels and is seen from both sides.</summary>
+        private static Material RiftMaterial(string name, Color colour, Texture picture, bool sheet, List<string> did)
+        {
+            string path = Data + name + ".mat";
+            var have = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (have != null) return have;
+            var source = AssetDatabase.LoadAssetAtPath<Material>(SlabLook);
+            if (source == null) { did.Add($"no {SlabLook} to copy for {path}"); return null; }
+            var m = new Material(source) { name = name };
+            m.SetColor("_BaseColor", colour);
+            if (picture != null) m.SetTexture("_BaseMap", picture);
+            if (sheet)
+            {
+                m.SetTextureScale("_BaseMap", new Vector2(1f / RiftInFrames, 1f));   // one frame (the first): what the editor shows; SheetLook steps them in Play
+                m.SetFloat("_AlphaClip", 1f); m.SetFloat("_Cutoff", 0.5f); m.EnableKeyword("_ALPHATEST_ON");
+                m.SetFloat("_Cull", 0f);   // both sides
+                m.SetOverrideTag("RenderType", "TransparentCutout");
+                m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+            }
+            AssetDatabase.CreateAsset(m, path);
+            did.Add($"{path} MADE");
+            return m;
+        }
+
+        /// <summary>A pixel sheet's import settings: its pixels as they are (point filter, no mip maps, not rescaled,
+        /// uncompressed, clamped, see-through).</summary>
+        private static void SheetImport(string path, List<string> did)
+        {
+            var import = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (import == null) return;
+            if (import.textureType == TextureImporterType.Default && !import.mipmapEnabled && import.filterMode == FilterMode.Point && import.wrapMode == TextureWrapMode.Clamp
+                && import.npotScale == TextureImporterNPOTScale.None && import.textureCompression == TextureImporterCompression.Uncompressed && import.alphaIsTransparency) return;
+            import.textureType = TextureImporterType.Default; import.sRGBTexture = true; import.alphaIsTransparency = true; import.mipmapEnabled = false;
+            import.filterMode = FilterMode.Point; import.wrapMode = TextureWrapMode.Clamp; import.npotScale = TextureImporterNPOTScale.None;
+            import.textureCompression = TextureImporterCompression.Uncompressed; import.maxTextureSize = 8192;
+            import.SaveAndReimport();
+            did.Add($"{path}: import settings set (point, no mip maps, not rescaled)");
+        }
+
         /// <summary>The gate's floor glow: kept as it is when it is there, made as a white copy of our orb glow (the
         /// gate lays its own colour over it) when it is not.</summary>
         private static Material GlowMaterial(List<string> did)
@@ -468,6 +636,13 @@ namespace ShiftJam
             return look;
         }
 
+        /// <summary>The prefab a placed gate is an instance of, by its path.</summary>
+        private static string PieceName(GameObject go)
+        {
+            GameObject source = go != null ? PrefabUtility.GetCorrespondingObjectFromSource(go) : null;
+            return source != null ? AssetDatabase.GetAssetPath(source) : "no prefab";
+        }
+
         /// <summary>One gate for the report: where it stands, what it is, what it draws and where its trigger reaches.</summary>
         private static string GateLine(GameObject go)
         {
@@ -476,6 +651,7 @@ namespace ShiftJam
             string role = so != null ? (so.FindProperty("role").enumValueIndex == (int)FlatGate.Role.Exit ? "EXIT" : "ENTRANCE") : "NO FlatGate SCRIPT";
             string colour = so != null ? Say(so.FindProperty("colour").colorValue) : "-";
             Transform swirl = go.transform.Find("Model/Swirl");
+            if (swirl == null) swirl = go.transform.Find("Look");   // a rift: its look
             string drawn = swirl != null && DrawnBounds(swirl.gameObject, out Bounds b)
                 ? $"the drawing x {Say(b.min.x)} to {Say(b.max.x)}, y {Say(b.min.y)} to {Say(b.max.y)}, z {Say(b.min.z)} to {Say(b.max.z)}"
                 : "no drawing found";

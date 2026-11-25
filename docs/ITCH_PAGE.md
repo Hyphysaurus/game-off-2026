@@ -62,6 +62,9 @@ flashlight.
   by hand, by a script, or with another AI tool).
   On the menu each letter is now a block shape made from that sheet by a script Claude wrote (one box a pixel), and
   its four other colour sets are the same sheet with every hue turned by that script (D-0200): none of it is painted.
+- **Made by AI (stand-ins):** the Flat Zone's two rifts (D-0207): the pixel rift was drawn by a script Claude wrote, in
+  the title's colours; the 3D rift was modelled by a script Claude wrote in Blender, with his warp drawing inside. ✍ He
+  plans his own versions: update this line when they replace them.
 - **Not AI:** the graffiti title drawing (on the end card) and the portal and orb drawings are his. Every other model, character, animation and
   sound comes from the licensed packs in the credits.
 

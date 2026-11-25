@@ -3882,3 +3882,22 @@
   - **Unsure:** the first pause in a scene makes the model and its guns (may hitch); a page sound plays with the open
     sound on later pauses; D-pad up is the ammo swap when two ammo kinds are loaded.
   - **NOT PLAYED.**
+- **D-0207 (24 Nov 2026, 23:2x) The Flat Zone's rifts: a pixel rift in, a 3D rift out (stand-ins by Claude).** His words: "maybe
+  we make the rift two ways, one in aseprite and one version in blender, one is the go into 2d and one is back into 3D
+  mode", then "can you make both the 2d and 3d versions for now, ill make my own versions later on".
+  - **The way in** = the pixel rift: `Art/Flat/ShiftRiftIn_sheet.png` (16 frames of 64 x 128, only his title sheet's
+    colours), a quad 3.2 x 6.4 standing across the lane at x -24, stepping its frames (`Flat/SheetLook.cs`), pixels
+    sharp, seen from both sides. **The way out** = the 3D rift: `Art/Flat/ShiftRiftOut.fbx` (made by script in Blender:
+    a jagged tear with a glowing rim, crystal spikes toward the viewer, his warp swirl `warp_art_grow.png` inside),
+    6.2 tall at x 81 facing the side camera, swaying and bobbing (`Flat/RiftLook.cs`), brightening in a flash.
+  - **Gates:** `Prefabs/Flat/FlatGate_RiftIn.prefab` and `FlatGate_RiftOut.prefab` = the portal gate's parts (FlatGate,
+    trigger, floor glow, flash light) with a rift look; Land Hallway Scroller uses them when they are there (else his
+    portal). Materials `Data/RiftIn|RiftEdge|RiftShardPink|RiftInside.mat` (unlit copies of the menu slab's).
+  - **HIS OWN VERSIONS later:** draw over `Dev\Art\pixel\shift_rift\shift_rift_in.aseprite` (or edit
+    `shift_rift_in_from_mockup.aseprite`) and export the sheet over `Art/Flat/ShiftRiftIn_sheet.png`; model in
+    `Dev\Blender Projects\shift_rift_out.blend` (made by the script; materials RiftEdge, RiftShardPink, RiftInside) and
+    export over `Art/Flat/ShiftRiftOut.fbx` (export before saving a new .blend, or check the FBX for his disk's path:
+    the repo is public); then Shift Jam > Flat > Rebuild Rift Gates and Land Hallway Scroller.
+  - **Checked without Play:** the FBX carries no path; both gates made and placed (the report names the prefab each
+    uses); a hidden editor camera's pictures show the pixel rift at the foot of the book stairs and the 3D rift at the
+    end of the hallway. **NOT PLAYED.** The itch page lists the rifts as made by Claude.

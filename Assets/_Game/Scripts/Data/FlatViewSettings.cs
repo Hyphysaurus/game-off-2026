@@ -13,8 +13,8 @@ namespace ShiftJam
     public sealed class FlatViewSettings : ScriptableObject
     {
         [Header("The rail camera (own units)")]
-        [Tooltip("How tall a slice of the world fills the screen, at the lane. The hallway is 14 high: 13 shows nearly all of it.")]
-        public float frameHeight = 13f;
+        [Tooltip("How tall a slice of the world fills the screen, at the lane. Smaller = the toy is bigger on screen. 9 (D-0203; cut A had 13, where the toy read small): a toy (1.8 tall) is a fifth of the screen's height, and the hallway (14 high) shows two thirds of its height at a time.")]
+        public float frameHeight = 9f;
         [Range(5f, 60f), Tooltip("Field of view of the rail camera, degrees. Low = a long lens: flat, nearly orthographic, like a 2D game. The distance follows from it and the frame height.")]
         public float fieldOfView = 18f;
         [Range(-20f, 20f), Tooltip("Degrees the rail camera looks down (above 0) or up. 0 = straight side-on.")]
@@ -37,6 +37,12 @@ namespace ShiftJam
         public float blendSeconds = 0.6f;
         [Range(0f, 90f), Tooltip("The stick is read against the camera, and the camera turns a quarter round on the way in and out. With the stick held through that, it keeps meaning the way the player was going until it is let go or moved by more than this many degrees. 0 = off: the stick follows the camera at once (W held on the way in fades to a stop).")]
         public float keepStickAngle = 40f;
+
+        [Header("The fill light (D-0203)")]
+        [Min(0f), Tooltip("While a zone holds a player, a light the zone owns rides with that player's camera and lights the stretch from the front, so the toy and the far wall read side-on. How bright it is at the lane (it fades in and out with the camera's swing). 0 = off. The zone needs its Fill light set (the hallway builder makes one).")]
+        public float fillLight = 0.7f;
+        [Tooltip("The fill light's colour.")]
+        public Color fillColour = new Color(1f, 0.95f, 0.88f);
 
         [Header("The hold on the lane")]
         [Min(0f), Tooltip("Share of the drift off the lane taken away per second. 0 = the body is not brought back (only kept from drifting further).")]

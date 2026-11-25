@@ -9,7 +9,8 @@ namespace ShiftJam
     /// The one way to put a short message on screen (D-0162): sticker cards at the top middle, up to three stacked, a
     /// repeat merged into its card (x2), each kind with its own sound. Any script, any scene: the HUD makes itself on the
     /// first message. <b>Bold</b> words show as key caps. A message about one player goes through <see cref="ShowFor"/>
-    /// so only that player's own screen shows it (online, the other PCs hold copies of everyone).
+    /// so only that player's own screen shows it (online, the other PCs hold copies of everyone). A moment that wants
+    /// the whole screen for a breath (a Flat Zone's way in and out) is a big card instead: <see cref="CardFor"/>.
     /// </summary>
     public static class Toasts
     {
@@ -27,6 +28,19 @@ namespace ShiftJam
             var charge = player.GetComponentInParent<ShiftCharge>();
             if (charge == null || !charge.HasHud) return;
             Show(text, kind, title);
+        }
+
+        /// <summary>A moment's big card for <paramref name="player"/> (D-0203: a Flat Zone's "FLAT SHIFT" and "BACK TO
+        /// 3D"): one short line, big, in the middle of the screen, on a sticker card of <paramref name="colour"/>, gone
+        /// in under two seconds. Shown only where that player is played, like <see cref="ShowFor"/>; silent (the moment
+        /// has its own sound). A new card takes the place of one still showing.</summary>
+        public static void CardFor(Component player, string text, Color colour)
+        {
+            if (player == null || string.IsNullOrEmpty(text)) return;
+            var charge = player.GetComponentInParent<ShiftCharge>();
+            if (charge == null || !charge.HasHud) return;
+            if (Application.isBatchMode) return;   // batch runs draw nothing
+            ToastHud.Get().AddCard(text, colour);
         }
 
         /// <summary>Shown the first time only, once per save slot (a first-time tip).</summary>

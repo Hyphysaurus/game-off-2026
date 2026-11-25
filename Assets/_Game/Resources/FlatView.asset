@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: abaf4e08ee7096047ad56b046d832e6e, type: 3}
   m_Name: FlatView
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.FlatViewSettings
-  frameHeight: 13
+  frameHeight: 9
   fieldOfView: 18
   pitch: 2
   feetInFrame: 0.3
@@ -23,5 +23,7 @@ MonoBehaviour:
   heightDeadZone: 2
   blendSeconds: 0.6
   keepStickAngle: 40
+  fillLight: 0.7
+  fillColour: {r: 1, g: 0.95, b: 0.88, a: 1}
   laneSnap: 10
   laneSnapSpeed: 12

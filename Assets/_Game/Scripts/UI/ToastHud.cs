@@ -10,6 +10,10 @@ namespace ShiftJam
     /// outline, a drop shadow, a coloured badge with the kind's icon, a small label over the line). They drop in from the
     /// top with a slight tilt, stay longer for longer lines, a refusal shakes, a repeat bumps its x-count, and the oldest
     /// leaves early when a fourth arrives. One for the whole game (kept across scene loads), hidden under menus.
+    /// It also draws the BIG CARD (<see cref="Toasts.CardFor"/>, D-0203): one short line in big letters on a sticker
+    /// card of the moment's own colour, a little over the middle of the screen (clear of a player standing in the
+    /// middle), tilted. It pops in, its letters bounce (TextFx), it holds for a breath and swells away. One at a time:
+    /// a new one takes the place of the last.
     /// </summary>
     public sealed class ToastHud : MonoBehaviour
     {
@@ -17,6 +21,11 @@ namespace ShiftJam
         private const int MaxShown = 3;
         private const float Top = 26f, Gap = 14f, MaxTextWidth = 640f, Badge = 52f, Pad = 16f, Outline = 4f, Shadow = 6f;
         private const float InSeconds = 0.35f, OutSeconds = 0.35f;
+        // The big card, at 1920 by 1080: its letters, the card round them, where it stands (over the middle), its tilt,
+        // and its life (pop in, hold, swell away).
+        private const float CardLetters = 96f, CardSpacing = 4f, CardPadX = 56f, CardPadY = 20f, CardOutline = 7f, CardShadow = 10f, CardRound = 34f;
+        private const float CardRise = 190f, CardTilt = -2.5f, CardWidest = 1500f;
+        private const float CardIn = 0.3f, CardHold = 1.2f, CardOut = 0.35f, CardFrom = 0.45f, CardSwell = 0.18f;
         private static readonly Color Ink = new Color32(0x1f, 0x1b, 0x2e, 0xff);
 
         private struct Look { public Color fill, badge, label; public string name; public UiAudio.Kind sound; public float seconds; }
@@ -44,8 +53,17 @@ namespace ShiftJam
             public float born, until, bumped = -1f, height, y, tilt;
         }
 
+        /// <summary>The big card on screen now (one at a time).</summary>
+        private sealed class BigCard
+        {
+            public RectTransform rt;
+            public CanvasGroup group;
+            public float born, until;
+        }
+
         private static ToastHud _instance;
         private readonly List<Card> _cards = new List<Card>();
+        private BigCard _big;
         private RectTransform _root;
         private CanvasGroup _group;
         private TMP_FontAsset _font;
@@ -109,6 +127,51 @@ namespace ShiftJam
                 c.rt.localRotation = Quaternion.Euler(0f, 0f, c.tilt);
                 y += c.height + Gap + Shadow;
             }
+            if (_big != null) ShowBig(now);
+        }
+
+        /// <summary>A big card: <paramref name="text"/> (one short line) on a sticker card of <paramref name="fill"/>.
+        /// One still showing is taken away at once.</summary>
+        public void AddCard(string text, Color fill)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            if (_big != null) { Destroy(_big.rt.gameObject); _big = null; }
+
+            // Measure the plain words first (the bounce tags are not letters): the card fits them.
+            var probe = Label(_root, "Probe", text, CardLetters, Ink, true);
+            probe.characterSpacing = CardSpacing;
+            probe.textWrappingMode = TextWrappingModes.NoWrap;
+            Vector2 size = probe.GetPreferredValues(text, CardWidest, 0f);
+            Destroy(probe.gameObject);
+            float w = Mathf.Min(size.x, CardWidest) + CardPadX * 2f, h = size.y + CardPadY * 2f;
+
+            var rt = Rect("BigCard", _root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, CardRise), new Vector2(w, h));
+            var group = rt.gameObject.AddComponent<CanvasGroup>(); group.alpha = 0f;
+            HudShapes.RoundedImage(Rect("Shadow", rt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), new Vector2(0f, -CardShadow), Vector2.zero), Ink, CardRound);
+            HudShapes.RoundedImage(Rect("Outline", rt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero), Ink, CardRound);
+            HudShapes.RoundedImage(Rect("Fill", rt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(-CardOutline * 2f, -CardOutline * 2f)), fill, CardRound - CardOutline);
+            var words = Label(rt, "Words", text, CardLetters, Ink, true);
+            words.characterSpacing = CardSpacing;
+            words.textWrappingMode = TextWrappingModes.NoWrap;
+            words.alignment = TextAlignmentOptions.Center;
+            Stretch(words.rectTransform);
+            TextFx.Set(TextFx.On(words), words, TextFx.Bounced(text));
+
+            float now = Time.unscaledTime;
+            _big = new BigCard { rt = rt, group = group, born = now, until = now + CardIn + CardHold + CardOut };
+            rt.localScale = Vector3.one * CardFrom;
+            rt.localRotation = Quaternion.Euler(0f, 0f, CardTilt);
+        }
+
+        /// <summary>The big card's life: it pops in from small (overshooting a little), holds, then swells and fades.</summary>
+        private void ShowBig(float now)
+        {
+            if (now >= _big.until) { Destroy(_big.rt.gameObject); _big = null; return; }
+            float tIn = Mathf.Clamp01((now - _big.born) / CardIn);
+            float tOut = Mathf.Clamp01((_big.until - now) / CardOut);   // 1 until it starts to leave, 0 gone
+            _big.group.alpha = Mathf.Min(tIn * 3f, 1f) * tOut;
+            float scale = Mathf.LerpUnclamped(CardFrom, 1f, EaseOutBack(tIn)) * (1f + CardSwell * (1f - tOut));
+            _big.rt.localScale = Vector3.one * scale;
         }
 
         private static float EaseOutBack(float t) { const float k = 1.70158f; t -= 1f; return 1f + (k + 1f) * t * t * t + k * t * t; }

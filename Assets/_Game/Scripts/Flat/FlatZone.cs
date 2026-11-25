@@ -13,13 +13,16 @@ namespace ShiftJam
     /// - its camera rides the rail side-on (ShoulderCamera.SetRail), mouse look dropped,
     /// - what stands between the lane and the camera is cut away (not drawn, its shadow kept: the room's light is
     ///   unchanged), and put back exactly as it was once the camera has swung back,
-    /// - a drawn gun is put away (aiming means nothing side-on) and comes back on the way out.
+    /// - a drawn gun is put away (aiming means nothing side-on) and comes back on the way out,
+    /// - the shift warp plays as the camera swings (D-0203: outward on the way in, inward on the way out, over the
+    ///   blend; a size shift running wins), a big card says so ("FLAT SHIFT", "BACK TO 3D"), and a fill light the zone
+    ///   owns rides with that player's camera, fading in and out with the swing, so the toy and the far wall read.
     /// Whether the body is in the box is tested every frame (no trigger events), so a respawn, a Continue or a portal
     /// that lands inside works. Not held: in first person, in Build Mode, in a car, or (Toy Only) at the wrong size or
     /// mid-shift; the player is let go and taken back once it fits again. A pause holds everything as it is.
-    /// Clear (the finish marker calls it) lets a player go at once, with the finish text, and the zone leaves that
+    /// Clear (the exit gate calls it, FlatGate) lets a player go at once, with the exit card, and the zone leaves that
     /// player alone until its body has left the box: walking back in starts a new visit.
-    /// The zone's own pieces (anything under this object, the finish marker for one) are never cut away.
+    /// The zone's own pieces (anything under this object: its gates, its fill light) are never cut away.
     /// OFF SWITCH: switch this object off (or untick the script) and the stretch plays exactly as it did without it.
     /// Local players only (one per camera rig: single player has one, a party one each); online, another player's copy
     /// on this PC has no rig and is not held, and what the zone does to this PC's player is not sent to the others.
@@ -47,21 +50,25 @@ namespace ShiftJam
         [SerializeField, Tooltip("Always cut away, wherever they stand (the near wall).")] private Renderer[] alwaysCut;
 
         [Header("Moments")]
-        [SerializeField, Tooltip("The card shown on the way in. Empty: none.")] private string card = "FLAT SHIFT";
+        [SerializeField, Tooltip("The big card shown on the way in. Empty: none.")] private string card = "FLAT SHIFT";
+        [SerializeField, Tooltip("The way-in card's colour (his title's candy pink).")] private Color cardColour = new Color32(0xFF, 0x7E, 0xB9, 0xFF);
         [SerializeField, Min(0f), Tooltip("Seconds before the card may show again (a respawn inside, a step out and back in).")] private float cardEvery = 20f;
-        [SerializeField, Tooltip("The card shown when the finish is tagged (Clear). Empty: none.")] private string clearText = "BACK TO 3D";
+        [SerializeField, Tooltip("The big card shown when a player goes out through the exit (Clear). Empty: none.")] private string clearText = "BACK TO 3D";
+        [SerializeField, Tooltip("The way-out card's colour (the orb's cyan).")] private Color clearColour = new Color(0.55f, 0.93f, 1f);
+        [SerializeField, Tooltip("The fill light: while a player is held it rides with that player's camera, as bright as FlatView > Fill Light says at the lane, fading in and out with the swing. A spot light is aimed to cover the screen. Empty: no fill (as before D-0203).")] private Light fill;
         [SerializeField, Tooltip("A player was taken: the view went side-on.")] private UnityEvent onEntered;
-        [SerializeField, Tooltip("A player was let go: walked out, tagged the finish, or stopped fitting (first person, a car, a shift).")] private UnityEvent onExited;
-        [SerializeField, Tooltip("The finish was tagged (Clear).")] private UnityEvent onCleared;
+        [SerializeField, Tooltip("A player was let go: walked out, went out through the exit, or stopped fitting (first person, a car, a shift).")] private UnityEvent onExited;
+        [SerializeField, Tooltip("A player went out through the exit (Clear).")] private UnityEvent onCleared;
 
         /// <summary>One local player: its camera rig and what the zone needs of its body.</summary>
         private sealed class Rider
         {
             public ShoulderCamera rig; public PlayerMotor motor; public Transform body; public CharacterController capsule;
             public Shifter shifter; public WeaponHolder holder;
+            public ShiftWarp warp;   // the course player's screen warp (a party's copies have none: no warp)
             public bool inside;    // held now
             public bool putAway;   // we put its gun away: it comes back on the way out
-            public bool cleared;   // it tagged the finish: left alone until its body has left the box
+            public bool cleared;   // it went out through the exit: left alone until its body has left the box
             public bool leaving;   // let go, and its camera is still swinging back: the cutaway waits for it
         }
 
@@ -76,12 +83,13 @@ namespace ShiftJam
         private readonly FlatRail _rail = new FlatRail();
         private bool _cutFound, _cutOn;
         private float _cardAt = float.NegativeInfinity;
+        private float _fillShare;   // the fill light, 0 (off) to 1 (full): eases with the camera's swing
 
         /// <summary>A zone some local player is in now, or null.</summary>
         public static FlatZone Current { get; private set; }
-        /// <summary>Raised when a finish is tagged, with the zone.</summary>
+        /// <summary>Raised when a player goes out through a zone's exit (Clear), with the zone.</summary>
         public static event Action<FlatZone> Cleared;
-        /// <summary>Raised when this zone takes a player (the finish marker makes itself ready again on it).</summary>
+        /// <summary>Raised when this zone takes a player (the entrance gate plays on it).</summary>
         public event Action Entered;
         /// <summary>Raised when this zone lets a player go.</summary>
         public event Action Exited;
@@ -99,9 +107,11 @@ namespace ShiftJam
         private void OnDisable()
         {
             GameMode.Changed -= OnModeChanged;
-            for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) Release(_riders[i]);
+            for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) Release(_riders[i], false);
             _riders.Clear();
             SetCut(false);   // at once: nobody is left to wait for
+            _fillShare = 0f;
+            if (fill != null) fill.enabled = false;
             if (Current == this) Current = null;
         }
 
@@ -114,7 +124,7 @@ namespace ShiftJam
         private void OnModeChanged(GameMode.Mode from, GameMode.Mode to)
         {
             if (to == GameMode.Mode.Play) return;
-            for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) Release(_riders[i]);
+            for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) Release(_riders[i], false);   // no swing: another camera takes over
         }
 
         /// <summary>True when <paramref name="point"/> (the world) is inside the box grown by <paramref name="slack"/>.</summary>
@@ -125,22 +135,22 @@ namespace ShiftJam
             return Mathf.Abs(local.x) <= half.x + slack && Mathf.Abs(local.y) <= half.y + slack && Mathf.Abs(local.z) <= half.z + slack;
         }
 
-        /// <summary>True while this zone holds the player <paramref name="who"/> belongs to (the finish marker asks: only
-        /// a held player can tag it).</summary>
+        /// <summary>True while this zone holds the player <paramref name="who"/> belongs to (only a held player can go out
+        /// through the exit).</summary>
         public bool Holds(Component who)
         {
             Rider r = RiderOf(who);
             return r != null && r.inside;
         }
 
-        /// <summary>The finish for everyone the zone holds: each is let go at once (the camera swings back behind it),
-        /// with the finish text and the cleared events. With nobody held it does nothing.</summary>
+        /// <summary>The way out for everyone the zone holds: each is let go at once (the camera swings back behind it),
+        /// with the exit card and the cleared events. With nobody held it does nothing.</summary>
         public void Clear()
         {
             for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) ClearRider(_riders[i]);
         }
 
-        /// <summary>The finish for the player <paramref name="who"/> belongs to (the finish marker calls this with whoever
+        /// <summary>The way out for the player <paramref name="who"/> belongs to (the exit gate calls this with whoever
         /// touched it). False if the zone was not holding that player: nothing happened.</summary>
         public bool Clear(Component who)
         {
@@ -154,8 +164,8 @@ namespace ShiftJam
         {
             r.cleared = true;   // left alone until its body has left the box
             PlayerMotor motor = r.motor;
-            Release(r);
-            if (!string.IsNullOrEmpty(clearText)) Toasts.ShowFor(motor, null, ToastKind.Core, clearText);
+            Release(r, true);
+            Toasts.CardFor(motor, clearText, clearColour);
             onCleared?.Invoke();
             Cleared?.Invoke(this);
         }
@@ -180,7 +190,7 @@ namespace ShiftJam
                 if (r.cleared && !inBox) r.cleared = false;   // it has left: the next walk in is a new visit
                 bool fits = inBox && !r.cleared && Fits(r);
                 if (fits && !r.inside) Take(r);
-                else if (!fits && r.inside) Release(r);
+                else if (!fits && r.inside) Release(r, true);
                 if (r.inside) { any = true; Keep(r); }
                 // Let go: the wall stays cut until this camera is back off the rail's side (it is outside the wall for
                 // most of the swing back). A camera that is switched off (first person, a menu) is not waited for.
@@ -189,6 +199,7 @@ namespace ShiftJam
             }
             if (any) Current = this; else if (Current == this) Current = null;
             SetCut(hold);
+            KeepFill(any);
         }
 
         /// <summary>The local players, one per camera rig (ShoulderCamera.All: no search). A rig that is gone, or that
@@ -199,7 +210,7 @@ namespace ShiftJam
             {
                 Rider r = _riders[i];
                 if (r.rig != null && r.motor != null && ReferenceEquals(r.rig.Target, r.body)) continue;
-                if (r.inside) Release(r);
+                if (r.inside) Release(r, false);
                 _riders.RemoveAt(i);
             }
             IReadOnlyList<ShoulderCamera> rigs = ShoulderCamera.All;
@@ -210,6 +221,7 @@ namespace ShiftJam
                 if (!rig.Target.TryGetComponent(out PlayerMotor motor)) continue;
                 var r = new Rider { rig = rig, motor = motor, body = rig.Target };
                 motor.TryGetComponent(out r.capsule); motor.TryGetComponent(out r.shifter); motor.TryGetComponent(out r.holder);
+                motor.TryGetComponent(out r.warp);
                 _riders.Add(r);
             }
         }
@@ -241,10 +253,11 @@ namespace ShiftJam
             FillRail();
             r.motor.Flat = LockFor(r.motor);
             r.rig.SetRail(_rail);
+            if (r.warp != null) r.warp.Play(true, _rail.View.blendSeconds);   // outward, as the camera swings out (a shift running wins)
             if (!string.IsNullOrEmpty(card) && Time.unscaledTime - _cardAt >= cardEvery)
             {
                 _cardAt = Time.unscaledTime;
-                Toasts.ShowFor(r.motor, null, ToastKind.Core, card);
+                Toasts.CardFor(r.motor, card, cardColour);
             }
             onEntered?.Invoke();
             Entered?.Invoke();
@@ -260,13 +273,20 @@ namespace ShiftJam
         }
 
         /// <summary>Gives back everything the zone took from this player: the hold, the rail, the gun. The cutaway goes
-        /// back in Update, once the camera has swung back. Safe when the player or its camera is already gone (a scene
-        /// closing).</summary>
-        private void Release(Rider r)
+        /// back in Update, once the camera has swung back. <paramref name="swing"/>: the camera swings back behind the
+        /// player on foot (walked out, went out through the exit), so the warp plays inward with it; not when another
+        /// camera takes over (first person, a car seat) or the zone is closing. Safe when the player or its camera is
+        /// already gone (a scene closing).</summary>
+        private void Release(Rider r, bool swing)
         {
             r.inside = false;
             if (r.motor != null && r.motor.Flat.HasValue && ReferenceEquals(r.motor.Flat.Value.owner, this)) r.motor.Flat = null;
-            if (r.rig != null && ReferenceEquals(r.rig.Rail, _rail)) { r.rig.ClearRail(); r.leaving = true; }
+            if (r.rig != null && ReferenceEquals(r.rig.Rail, _rail))
+            {
+                r.rig.ClearRail(); r.leaving = true;
+                if (swing && r.warp != null && r.rig.isActiveAndEnabled && r.motor != null && r.motor.isActiveAndEnabled && GameMode.Current == GameMode.Mode.Play)
+                    r.warp.Play(false, _rail.View.blendSeconds);   // inward, as it swings back (a shift that let it go wins)
+            }
             // The gun comes back out, unless the player's own scene is closing (nothing there should be woken).
             if (r.putAway && r.holder != null && r.holder.gameObject.scene.isLoaded) r.holder.SetDrawn(true);
             r.putAway = false;
@@ -290,6 +310,46 @@ namespace ShiftJam
             _rail.start = railStart; _rail.end = railEnd;
             _rail.floor = floor; _rail.ceiling = ceiling;
             _rail.view = Settings;
+        }
+
+        // ------------------------------------------------------------------ the fill light
+
+        /// <summary>The fill light (D-0203): it eases on over the blend while anyone is held and off over the blend after,
+        /// stands where the first held (or still swinging back) player's camera stands and looks the way it looks, and
+        /// is as bright as FlatView > Fill Light at the lane: its brightness grows with the square of its distance from
+        /// the lane, so it is the same at the lane wherever the camera is on its swing (near the toy, nearly nothing).
+        /// No shadows: it shines through the cut wall. A spot is opened to cover an ultrawide screen at the rail camera's
+        /// field of view. Switched off while it is at 0, so it costs nothing outside the zone.</summary>
+        private void KeepFill(bool any)
+        {
+            if (fill == null) return;
+            FlatViewSettings v = _rail.View;
+            bool want = any && v.fillLight > 0f;
+            if (!want && _fillShare <= 0f) { if (fill.enabled) fill.enabled = false; return; }
+            _fillShare = Mathf.MoveTowards(_fillShare, want ? 1f : 0f, Time.unscaledDeltaTime / Mathf.Max(0.01f, v.blendSeconds));
+            Rider lit = null;
+            for (int i = 0; i < _riders.Count && lit == null; i++)
+            {
+                Rider r = _riders[i];
+                if ((r.inside || r.leaving) && r.rig != null && r.rig.isActiveAndEnabled) lit = r;
+            }
+            if (lit != null) fill.transform.SetPositionAndRotation(lit.rig.transform.position, lit.rig.transform.rotation);
+            bool on = _fillShare > 0f;
+            if (fill.enabled != on) fill.enabled = on;
+            if (!on) return;
+            float scale = lit != null ? lit.motor.Scale : 1f;
+            float toLane = Mathf.Max(scale, Mathf.Abs(Vector3.Dot(fill.transform.position - _rail.point, _rail.normal)));
+            fill.intensity = v.fillLight * _fillShare * toLane * toLane;
+            fill.range = Mathf.Max(toLane * 3f, _rail.Frame(scale) * 2f);   // 3 times: the range's own fade takes under 3% at the lane, a tenth at the far wall
+            fill.color = v.fillColour;
+            if (fill.shadows != LightShadows.None) fill.shadows = LightShadows.None;   // through the cut wall, which still casts
+            if (fill.type == LightType.Spot)
+            {
+                // the screen's corners at an ultrawide 2.4: the diagonal is 2.6 times the half-height
+                float cone = 2f * Mathf.Atan(Mathf.Tan(_rail.FieldOfView * 0.5f * Mathf.Deg2Rad) * 2.8f) * Mathf.Rad2Deg;
+                fill.spotAngle = Mathf.Min(170f, cone);
+                fill.innerSpotAngle = fill.spotAngle * 0.8f;
+            }
         }
 
         // ------------------------------------------------------------------ to check without Play

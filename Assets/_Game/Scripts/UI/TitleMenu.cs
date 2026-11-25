@@ -10,7 +10,7 @@ namespace ShiftJam
     /// The title screen: the name, three save slots, Continue / New Game / Quit. It builds its own canvas at run time
     /// (nothing to place; it spawns in any scene with a Player) and holds the player still until a choice is made.
     /// Continue loads the active slot through Respawn (standing); New Game empties it and plays the opening in the toy box (D-0097). Mouse, keyboard
-    /// and gamepad all work through the scene's EventSystem. The title is his drawing (TitleArt, D-0099): one drawing for
+    /// and gamepad all work through the scene's EventSystem. The title is the title prefab (his animated pixel lettering, D-0189) or, without it, his drawing (TitleArt, D-0099): one title for
     /// every window shape, as large as the top of the screen allows, popping in and then breathing a little.
     /// </summary>
     public sealed class TitleMenu : MonoBehaviour
@@ -168,9 +168,10 @@ namespace ShiftJam
             var dim = Rect("Dim", _root.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             dim.gameObject.AddComponent<Image>().color = new Color(0.03f, 0.03f, 0.06f, 0.72f);
 
-            // His drawing over the buttons, 1160 x 540 on a 16:9 screen (it was 946 x 440 in a 1300 x 440 box); the
-            // buttons and the hint sit a little lower and closer to make the room (D-0099).
-            if (TitleArt.Place(_root.transform, new Vector2(0.5f, 0.74f), Vector2.zero, new Vector2(1500f, 540f)) == null)
+            // The title over the buttons: the title prefab (his animated pixel lettering, D-0189; its size is the prefab's
+            // own Width and Height), or, without it, his drawing, 1160 x 540 on a 16:9 screen. The buttons and the hint
+            // sit a little lower and closer to make the room (D-0099).
+            if (TitleArt.Place(_root.transform, new Vector2(0.5f, 0.74f), Vector2.zero, new Vector2(1500f, 540f), prefabPath: TitleArt.MenuPrefabPath) == null)
             {
                 var t = Text("Title", _root.transform, "SHIFT", 180, new Vector2(0.5f, 0.72f), new Vector2(1400, 240));
                 t.fontStyle = FontStyles.Bold; t.characterSpacing = 18f;

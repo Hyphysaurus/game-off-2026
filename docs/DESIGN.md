@@ -222,3 +222,35 @@ than a floor arrow), **B** gets the pack's trampolines and the fan pad, **C**'s 
 **D** has its car (car_4, the key turns while you wind), and a new **E: the cannon** (drive in, get fired across the
 room) is a later treat. A race loop (checkpoint arches, the finish arch, the circle track, the TV showing lap times, the
 podium and fireworks at the end) would give the boosts a reason; the HUD then adds lap and time.
+
+## Design pass, 24 Nov 2026 16:3x (PROPOSED: his exploration with ChatGPT + a menu mock-up; nothing here is built; his picks)
+Source: text he pasted from ChatGPT and an AI-made concept picture (`Art/Mockups/SHIFT Pixel Menu Mockup.png`: a
+mock-up only, nothing from it can ship as art).
+
+### A. A first mission, "After Lights Out"
+The bedroom's toy stadium powers up but three pieces of its track are out; cross the room, restore the route, finish
+in the stadium. The goal is shown by lit track and moving toys, not a quest log. Seven beats, against what exists:
+| beat | what the player does | state today |
+|---|---|---|
+| 1 under the bed | follow a light, block tunnel, book stairs, see the stadium glow | new dressing; the toy box opening does this job now |
+| 2 skateboard bridge | kid places a skateboard over a gap, toy crosses it | the idea is built in the playroom (kid arranges, toy traverses: carry + place); the skateboard is not |
+| 3 train crossing | dodge the train, later ride it | NOT built; proposed 4 Nov (the pack's train on a spline), never picked |
+| 4 workbench test | one blaster, three targets drop a track piece | the gun and targets are taught in the hallway; a target that releases something is not built |
+| 5 the desk | keyboard, stationery, a fan's gusts, the computer powers the route | NOT built (no fan, no powered route) |
+| 6 bedroom grand prix | drive one car over the repaired route | driving and the Raceway are built; a route through the bedroom is not |
+| 7 final shift | a short stadium course behind a rival | the Stadium is built as the online team match; a solo course there is not |
+Three recurring characters (a builder who points at broken routes, a banana-suited rival who takes shortcuts, an
+astronaut at the highest place): the house characters Gap, Pit and Dab (D-0185) are placeholders these could replace.
+Its own advice: the first playable stops after the train (discovery, one scale puzzle, one moving thing).
+- What is new in it: ONE through-line for the rooms (restore the track to the stadium), which the game lacks, and
+  something that moves (the train), named as a gap on 4 Nov.
+- Open: this frame or the 4 Nov "Outgrown" moving-day frame (neither adopted); how much of it is jam scope.
+
+### B. A pixel title menu (the mock-up)
+Pixel frames for Continue / New Game, three slot rows (room, size, date; a picture and an icon each), five room
+tiles with icons (Workshop, Raceway, Colours, Online, Parties), Options and Quit, a hint row with button icons, a
+flat dark purple backdrop with toy silhouettes, a cyan selection frame and arrow.
+- A slot already stores its room, size and time (`SaveGame.Data`); it stores no picture.
+- The mock-up's title (an arrow for the I) is not his pixel title (D-0189).
+- In his Asset Library: Kenney Input Prompts (button icons), Pixel UI pack 3 (frames), pixel fonts under `Fonts/`;
+  licences not read yet.

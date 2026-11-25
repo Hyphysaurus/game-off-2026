@@ -3508,3 +3508,24 @@
     the hit reaction, the fall and the get-up, the kick, anything in the Stadium.
   - Known: a script reload in Play leaves the arm in the plain holding pose until the next play (the aim measures
     the rest pose as it wakes).
+- **D-0189 (24 Nov 2026, 16:2x) The title menu's title is a prefab: his animated pixel lettering.** His ask: a new
+  title in the style of the ONION lettering of his Aseprite onion piece. He made a 75 x 35 pixel title, 64 frames
+  with a light sweep, exported it as one sheet, sliced it and made a clip and an Animator for it in the editor, and
+  put it on the Greybox START card. The title MENU did not change, because it builds its canvas in code and
+  `TitleArt.Place` knew only the one drawing.
+  - `TitleArt.Place(..., prefabPath)`: with a prefab under Resources the prefab is the title, else his drawing as
+    before. The menu asks for `Resources/Titles/TitleMenuArt.prefab` (an Image on the sheet's first frame + his
+    Animator). The caller says where; the prefab's own Width and Height say how big (1200 x 560 = 16 screen pixels a
+    pixel at 1080p). The end card passes no prefab and keeps his graffiti drawing.
+  - The menu holds the game at time 0, so `Place` puts the prefab's Animators on unscaled time (on normal time the
+    sweep would stand still on the menu). A prefab without a TitleArt of its own gets one that pops in but does not
+    breathe: scaling pixel art by a hair makes its pixels crawl.
+  - His sheet, clip and controller were in `Assets/_Imports/ShiftJam/`, which git ignores (bought content, D-0001):
+    the public repo would have had a title with nothing behind it. Moved (in the editor, references kept) to
+    `Assets/_Game/Art/Title/`.
+  - Why a prefab and not a palette painter (the plan of 13:0x): he made finished, animated frames; a prefab shows
+    exactly what he made and he can change it without code. Other palettes for room titles: not built.
+  - Provenance: the letter design is Claude's script-made mock-up (option 7's shapes), drawn into Aseprite by him;
+    so ITCH_PAGE now lists the pixel title as AI-assisted and only the graffiti drawing as his alone.
+  - Checked: compiled outside (editor and player), compiled in his editor, the prefab loads through Resources with
+    its sprite, its 4 s looping clip and unscaled time; the sheet is 4800 x 35, point filtered. NOT seen in Play.

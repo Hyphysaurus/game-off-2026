@@ -54,7 +54,10 @@ flashlight.
 - **Made by script:** a few small pieces were made by scripts that tool wrote, not by an image, sound or 3D
   generator: the shift orb, the portal ring and the nitro star models, a spark particle texture, and the arms-carry
   pose ✍ (drop any you replaced).
-- **Not AI:** the title lettering and the portal and orb drawings are his. Every other model, character, animation and
+- **AI-assisted:** the pixel title on the menu (D-0189). Its letter design comes from a mock-up Claude drew by
+  script; he drew it into Aseprite from that ✍ (say how the pink and purple colours and the light sweep were made:
+  by hand, by a script, or with another AI tool).
+- **Not AI:** the graffiti title drawing (on the end card) and the portal and orb drawings are his. Every other model, character, animation and
   sound comes from the licensed packs in the credits.
 
 ## Credits

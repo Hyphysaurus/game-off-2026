@@ -2,6 +2,77 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 16:4x — THE BOT MATCH IS PLAYED (his words below); FOUR THINGS FOUND, NOTHING FIXED YET (waiting for his "proceed")
+- **His words (16:3x):** "i played bot match and it felt better! some of the pickups dont clearly register though,
+  and i still dont see ammo tracking... plus theres only a few of the weapons in there". The match in the log is
+  the 13:39 play (Stadium 2:49, D-0188): Blue 10, Orange 2 in 2:16, he held the shotgun, the knife and the SMG.
+  So D-0182 and D-0188 are PLAYED. Earlier: "make sure i cant get stuck in the turntable wheel" (16:25 still).
+- **Found, from the files (not fixed):**
+  1. **The turntable trap.** E while standing ON a grabbable switches off its collision with the grabber: he fell
+     through the wheel (log: height 2.3 to 2.5 on it, then 1.0 at 1.5 from its hub) and was inside it at let-go.
+  2. **Pickups.** The power-ups (heart, shield ring, bomb, star) give one shared sound and vanish: no words, no
+     number, no effect, no play-log line; one you cannot use (full health, full shield, most grenades, full charge)
+     does nothing at all when walked through. The Stadium scene has NO `CourseAudio` (every other scene has one), so
+     the weapon-taken sound and the other course sounds are silent there. Ammo boxes do show a toast.
+  3. **Ammo.** `WeaponHud` draws "rounds / reserve" bottom left whenever a dart gun is out. He does not see it;
+     why is NOT known (not seen on his screen; no still of a match with a gun out).
+  4. **Weapons.** The game has five (pistol, SMG, shotgun, knife, foam finger) and the Stadium has all five. The
+     weapons pack also has AR, MG, SR (sniper) and GL (grenade launcher) families: none is a weapon in the game.
+- **🔴 ALSO IN THAT LOG: 42 "RuntimeNavMeshBuilder: Source mesh ... does not allow read access. This will work in
+  playmode in the editor but not in player" errors as the Stadium loads.** `Bots/BotGround` maps the floor from the
+  pack's collider meshes; in a BUILT game those pieces would be missing from the bots' floor. Not tried in a build.
+- He also said ChatGPT is making the menu mock-ups in Blender (16:3x): the menu's look is not mine to touch.
+
+## 24 Nov 2026 16:2x — HIS PIXEL TITLE IS ON THE TITLE MENU (D-0189). COMPILED IN HIS EDITOR, NOT SEEN IN PLAY, NOT COMMITTED
+- **What he had made (13:35 to 15:34):** the lettering in Aseprite (`Dev\Art\pixel\shift_title`), recoloured pink to
+  purple with a cyan rim and a light sweep (64 frames, `ShiftJamTitlePixelRiftCandySprite`), sliced in Unity with a
+  new editor tool (`Assets/Editor/ShiftSpriteSheetSlicer.cs`, not mine, not committed), a clip, an Animator, and an
+  object on the Greybox START card in place of its "Title" text (his scene change, saved 15:34, not committed).
+- **What I did:** the title MENU now shows it (`TitleArt.Place` takes a prefab; `Resources/Titles/TitleMenuArt.prefab`
+  made from his sheet and Animator); Animators on real time so the sweep runs while the menu holds the game; his
+  three title files moved from the git-ignored `_Imports/ShiftJam/` to `Assets/_Game/Art/Title/`. The end card
+  still shows his graffiti drawing.
+- **HIS TO LOOK AT:** Play from the title. Size = the prefab's Width / Height (1200 x 560 now); the lettering sits
+  higher and smaller than the drawing did, with about 210 px of air above Continue: say if it should be bigger or
+  lower. The start card's own copy runs on normal time (fine there: the game is running).
+- **16:19 he played with it in (play-20261124-161924):** his words after: "we replaced title menu artwork with the
+  animated pixel art and we've audited the general architecture of the game itself for modular components" ("we" =
+  he and Bezi, which he said is also working on the title menu). No verdict on size or height yet. The audit left no
+  file in the project: its findings are not in these docs.
+- **OPEN (his):** how the colours and the sweep were made, for the itch page's AI line (marked there); whether the
+  start card should keep the title too; palettes for room titles (not built).
+
+## 24 Nov 2026 13:37 — CHECKPOINT (the session hit its usage limit): BOTS HAVE BODIES (D-0187) AND A BRAIN (D-0188). COMPILED, STADIUM REBUILT, NOTHING PLAYED
+- **Done and committed (local, not pushed):** funny soldiers with living bodies (D-0187, seen in stills on a test
+  stand); `Bots/BotGround` (the floor mapped as a scene starts, checked on the Stadium); the bot brain
+  (`Bots/BotBrain`, `BotPath`, `BotAim`, levels in `Resources/BotSkills.asset`: Easy, Normal, Hard; the host's **N**
+  in warm-up goes to the next level); the Stadium scene rebuilt (13:36) with funny soldiers, brains and a BotGround.
+- **NOT done:** no check of the rebuilt Stadium beyond the build's own log (no stills, no out-of-Play run of a
+  brain: `BotBrain.Clock` is there for one); D-0188's entry in DECISIONS and the BotBrain / Bot Skills rows in
+  ARCHITECTURE are not written; memory and the master doc are not updated.
+- **Known fault to fix:** `Debug/BotPieces.MakeGround` makes its object with `ObjectFactory.CreateGameObject`, which
+  marks the OPEN scene as changed: the rebuild then showed "Scene(s) Have Been Modified" in his editor and waited
+  for a click (Greybox was not changed). The prefab exists now, so it does not happen again; in a fresh project it
+  would. Make the object with `new GameObject` and `SceneManager.MoveGameObjectToScene` instead.
+- **His to try:** title > Online, **M** in the Stadium (bots now walk, strafe, hunt, fall back); **N** in warm-up
+  changes their level; the tally line each bot says at the end of a match is in the play log.
+- **Still waiting:** characters stage 4 (the players' two body-sync faults): its design goes to him first.
+
+## 24 Nov 2026 13:0x — A PIXEL TITLE IN THE ONION LETTERING'S STYLE: DESIGNED, HE DRAWS THE LETTERS. NOTHING IN THE GAME YET
+- His ask: a new title in the style of the ONION lettering from his Aseprite onion piece (chunky 9-pixel letters, dark
+  outline, a dithered gradient down each letter, a glow pulse). His picks: **the shift orb's colours for the title**
+  (white > cyan > blue > purple, gold rim; option 7 on `docs/stills/title_pixel_mock_2.png`); the other palettes
+  (teams, paint darts, inflatables, wooden toys, his title's pink and purple) **kept for rooms and sections later**;
+  and **he draws S, H, I, F, T himself** (his choice over a script-drawn set).
+- His file: `Dev\Art\pixel\shift_title\shift_title_75x35.aseprite` (outside this repo): five empty letter boxes,
+  the orb palette, the ONION letters above as a stroke reference; he draws on `3 Letters`.
+- **NOT BUILT:** the game side. Planned: the letter shapes from his picture, the colours from a list of palettes
+  editable in the Inspector (so a room's card can use another palette), painted by `TitleArt` with crisp pixels and
+  the pulse; his graffiti drawing stays on the end card. It waits for his saved letters, because what he draws
+  (flat shapes or his own shading, the size) decides how the picture is read.
+- When it lands: `docs/ITCH_PAGE.md` "Not AI" line must say the letters are his and the gradient, rim and pulse are
+  code. Mock-ups (script-made, never to ship): `docs/stills/title_pixel_mock*.png|gif|py`, not committed.
+
 ## 24 Nov 2026 12:2x — HIS FIRST LOOK AT THE STADIUM (11:27); SINCE THEN: THE TITLE, THE GRENADE'S CHARGE, CHARACTERS STAGES 1 AND 2, A LEAK FIXED. NOTHING OF IT PLAYED
 - **His play 11:27 (9:00; Stadium 1:36): NO MATCH WAS STARTED.** No match line in the Unity log, he was never moved to
   a base; the six knock-downs were the practice soldiers at their posts. His words after: "tdm is working", then

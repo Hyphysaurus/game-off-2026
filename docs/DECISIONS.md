@@ -4078,3 +4078,28 @@
     emission), against D-0214's "only hints of light". Off: switch off Room/Bedroom/ClawMachine.
   - Maker for D-0218 and D-0219: Shift Jam > House > Land Start Room Toys (`Debug/CourseBuilder.StartRoom.cs`). Landed in
     his editor and Greybox saved. **D-0216 to D-0219 NOT PLAYED.**
+- **D-0220 (25 Nov 2026, 13:5x) The objective layer: a goal line, ten gold stars, the first-minute goal.** His brother's
+  playtest ("there aren't any clear objectives"); his "we can still break the rule for no new systems. I do like your
+  recommendations. Let's go for those." Every word is a PLACEHOLDER on `Resources/ObjectiveSet` for him to rewrite.
+  - **The goal line** (`UI/ObjectiveHud.cs`, top left in the sticker style): the big goal ("BACK ON THE WINDOW SILL"), the
+    first unfinished main step with a tick box, and a gold star counter. A step ticks, then the next slides in; it slides
+    under the S-H-I-F-T strip in a Flat Zone; hidden on the title, menus, key sheet, console, the opening, Build Mode, team
+    matches, online, and after the Goal. Other scenes show the counter only.
+  - **Ten main steps** in route order (box core, shelf switch, little door, the tall end, core A, the safe, core B, the
+    wardrobe hole, core C, the sill). A later step done marks the earlier ones done, so any order works.
+  - **Ten optional gold stars**, none needed for the ending: Light up the bedroom (the wall switch OR the star lamp),
+    Skittle strike, Spell S-H-I-F-T, Clear the sandbag fort, Rout the Tan Splinter, Through all three rings (was "five":
+    only three exist), Win the Raceway, Bring the colour back, Shine on the top shelf, Back on the sill. A star: a Got
+    toast, a sound, a full shift charge (`ShiftCharge.Refill`), the counter pops. The skittles, fort and rings count
+    within one visit.
+  - **Wiring:** `Core/Objectives.cs` (the API the helpers will use: Goal, Current, CurrentTarget, Changed, MarkStep,
+    AwardStar, StarCount...) hears GameEvents and the Raceway and Colour Corner finishes; parts that only raise UnityEvents
+    call an `ObjectiveHook` (13 under `ObjectiveHooks (D-0220)` in Greybox, 20 listeners). Saved per slot (`step:<id>`,
+    `star:<id>`); New Game clears them. Online: nothing counts (each player's own, nothing networked).
+  - **The first-minute goal:** after the wake-up line, a second line (OpeningSettings > Goal Line, placeholder "I need to get
+    back up on that window sill."). **The end card** shows "n of 10 gold stars" under its title.
+  - **Known:** the Tan Splinter room still has no ammo (D-0221); the Raceway and Colour Corner stars are unplayed; a star
+    plays two sounds (ObjectiveSet > Star Sound = None leaves the toast's); a Continue from an older save shows step 1 until
+    the next step is done. Re-run the maker after any builder that remakes a hooked part (for example the glide rings).
+  - Maker: Shift Jam > Objectives > Build Objectives (D-0220). Landed and Greybox saved. Off: untick On on ObjectiveSet.
+    **NOT PLAYED.**

@@ -1,0 +1,231 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 249feb96ae0cc334d8da2de29697eb27, type: 3}
+  m_Name: ObjectiveSet
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveSet
+  on: 1
+  goal: Back on the window sill
+  starToast: Gold star {0} of {1}. Shift charge full.
+  counterFormat: '{0} / {1}'
+  endCardFormat: '{0} of {1} gold stars'
+  starSound: 8
+  tickSeconds: 0.9
+  slideSeconds: 0.35
+  popSeconds: 0.45
+  fadeSeconds: 0.25
+  steps:
+  - id: wake-box
+    text: Shine the flashlight on the box core
+    target: 
+    doneWhen:
+    - when: 0
+      objects:
+      - Room/ToyBox/ShiftCore
+      scene: Greybox
+      needed: 1
+  - id: little-door
+    text: 'Open the little door: the switch on the shelf'
+    target: 
+    doneWhen:
+    - when: 1
+      objects:
+      - Room/Bedroom/ShelfSwitch
+      scene: Greybox
+      needed: 1
+  - id: through-door
+    text: Go through the little door
+    target: Room/Bedroom/Goal
+    doneWhen:
+    - when: 8
+      objects:
+      - Room/Bedroom/Goal
+      scene: Greybox
+      needed: 1
+    - when: 3
+      objects:
+      - Room/Course/R3_SkirtingRun/CP_start
+      scene: Greybox
+      needed: 1
+  - id: tall-end
+    text: Follow the hallway to its tall end
+    target: 
+    doneWhen:
+    - when: 3
+      objects:
+      - Room/Course/R3_SkirtingRun/CP_tall
+      scene: Greybox
+      needed: 1
+  - id: core-a
+    text: 'Grow: the core in the army fort'
+    target: 
+    doneWhen:
+    - when: 7
+      objects:
+      - Room/Course/R4_Playroom/CoreA_Grow
+      scene: Greybox
+      needed: 1
+  - id: safe
+    text: Lift the safe off the wardrobe hole
+    target: 
+    doneWhen:
+    - when: 5
+      objects:
+      - Room/Course/R4_Playroom/Safe
+      scene: Greybox
+      needed: 1
+  - id: core-b
+    text: 'Shrink: the core on the desk'
+    target: 
+    doneWhen:
+    - when: 7
+      objects:
+      - Room/Course/R4_Playroom/CoreB_Shrink
+      scene: Greybox
+      needed: 1
+  - id: wardrobe
+    text: Go into the hole under the wardrobe
+    target: Room/Course/R4_Playroom/WardrobeHole
+    doneWhen:
+    - when: 8
+      objects:
+      - Room/Course/R4_Playroom/WardrobeHole
+      scene: Greybox
+      needed: 1
+    - when: 3
+      objects:
+      - Room/Course/R5_Wardrobe/CP_start
+      scene: Greybox
+      needed: 1
+  - id: core-c
+    text: 'Grow: the core at the top'
+    target: Room/Course/R5_Wardrobe/CoreC_Grow
+    doneWhen:
+    - when: 7
+      objects:
+      - Room/Course/R5_Wardrobe/CoreC_Grow
+      scene: Greybox
+      needed: 1
+    - when: 8
+      objects:
+      - Room/Course/R5_Wardrobe/TopPortal
+      scene: Greybox
+      needed: 1
+  - id: sill
+    text: Get onto the window sill
+    target: 
+    doneWhen:
+    - when: 4
+      objects:
+      - Room/Course/R6_Window/Goal
+      scene: Greybox
+      needed: 1
+  stars:
+  - id: light-bedroom
+    title: Light up the bedroom
+    room: Bedroom
+    doneWhen:
+    - when: 13
+      objects:
+      - Room/Bedroom/DarkBedroom
+      scene: Greybox
+      needed: 1
+    - when: 14
+      objects:
+      - Room/Bedroom/NightLamp
+      scene: Greybox
+      needed: 1
+  - id: skittles
+    title: Skittle strike
+    room: Hallway
+    doneWhen:
+    - when: 11
+      objects:
+      - Room/Course/R3_SkirtingRun/Skittle_1
+      - Room/Course/R3_SkirtingRun/Skittle_2
+      - Room/Course/R3_SkirtingRun/Skittle_3
+      scene: Greybox
+      needed: 0
+  - id: shift-letters
+    title: Spell S-H-I-F-T
+    room: Hallway
+    doneWhen:
+    - when: 9
+      objects:
+      - FlatZone_Hall
+      scene: Greybox
+      needed: 1
+  - id: fort
+    title: Clear the sandbag fort
+    room: Playroom
+    doneWhen:
+    - when: 11
+      objects:
+      - Room/Course/R4_Playroom/ArmyBeat/Soldier_NE
+      - Room/Course/R4_Playroom/ArmyBeat/Soldier_NW
+      - Room/Course/R4_Playroom/ArmyBeat/Soldier_W
+      - Room/Course/R4_Playroom/ArmyBeat/Soldier_Core
+      scene: Greybox
+      needed: 0
+  - id: tan-splinter
+    title: Rout the Tan Splinter
+    room: Downstairs
+    doneWhen:
+    - when: 10
+      objects:
+      - Room/Course/Downstairs/TanSplinter
+      scene: Greybox
+      needed: 1
+  - id: rings
+    title: Through all three rings
+    room: Playroom
+    doneWhen:
+    - when: 12
+      objects:
+      - Room/Course/R4_Playroom/GlideBoosters/Ring_1
+      - Room/Course/R4_Playroom/GlideBoosters/Ring_2
+      - Room/Course/R4_Playroom/GlideBoosters/Ring_3
+      scene: Greybox
+      needed: 0
+  - id: raceway
+    title: Win the Raceway
+    room: Raceway
+    doneWhen:
+    - when: 15
+      objects: []
+      scene: Raceway
+      needed: 1
+  - id: colour
+    title: Bring the colour back
+    room: Colour Corner
+    doneWhen:
+    - when: 16
+      objects: []
+      scene: ColourCorner
+      needed: 1
+  - id: top-shelf
+    title: Shine on the top shelf
+    room: Wardrobe
+    doneWhen:
+    - when: 0
+      objects:
+      - Room/Course/R5_Wardrobe/CoreC_Grow
+      scene: Greybox
+      needed: 1
+  - id: sill
+    title: Back on the sill
+    room: Window
+    doneWhen:
+    - when: 4
+      objects:
+      - Room/Course/R6_Window/Goal
+      scene: Greybox
+      needed: 1

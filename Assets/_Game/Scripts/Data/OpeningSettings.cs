@@ -7,7 +7,7 @@ namespace ShiftJam
     /// spark (a tiny shift orb) drifts down onto the lying toy and strikes, and the toy gets up. Read from
     /// Resources/OpeningSettings; without the asset these defaults play. Seconds are real time (the slow-motion does not
     /// stretch them); distances are in the toy's own heights unless they say otherwise. Also the toy's first words once it
-    /// is up (D-0213, said by WakeLine).
+    /// is up (D-0213, said by WakeLine), and the second line after them that names the goal (D-0220).
     /// </summary>
     [CreateAssetMenu(menuName = "Shift Jam/Opening Settings", fileName = "OpeningSettings")]
     public sealed class OpeningSettings : ScriptableObject
@@ -73,12 +73,48 @@ namespace ShiftJam
         [Tooltip("Its sound as it drops in, one of the UI sounds (Resources/UiSounds). None = silent.")]
         public UiAudio.Kind wakeLineSound = UiAudio.Kind.Toast;
 
+        [Header("The first-minute goal (D-0220)")]
+        [Tooltip("A second line the toy says once the wake-up line has gone: the whole game's goal in the first minute. "
+               + "PLACEHOLDER wording, his to rewrite. Typed like the wake-up line (its letters a second, pause and sound), "
+               + "said with it (same New Games, same once per slot). Empty = no second line.")]
+        [TextArea(2, 4)] public string goalLine = "I need to get back up on that window sill.";
+        [Tooltip("Seconds between the wake-up line leaving and this one dropping in. Real time. With no wake-up line it "
+               + "drops in after Wake Line Delay instead.")] public float goalLineGap = 0.4f;
+        [Tooltip("Seconds this line stays up once typed, before it fades.")] public float goalLineHold = 4f;
+
+        // The speech sticker's own drop-in before its letters start, and its fade at the end (ToastHud: half of 0.35, and 0.35).
+        private const float SayLandSeconds = 0.175f, SayOutSeconds = 0.35f;
+
         /// <summary>The wake-up line's look and timing, for Toasts.Say.</summary>
         public SayStyle WakeLineStyle() => new SayStyle
         {
             lettersPerSecond = wakeLineLettersPerSecond, pauseSeconds = wakeLinePause, holdSeconds = wakeLineHold,
             delay = wakeLineDelay, wobbleWord = wakeLineWobble, wobbleTag = wakeLineWobbleEffect, sound = wakeLineSound,
         };
+
+        /// <summary>The goal line's look and timing (D-0220): typed like the wake-up line, no wobble, dropping in Goal Line
+        /// Gap after the wake-up line has gone (<paramref name="afterWakeLine"/>), or after Wake Line Delay alone.</summary>
+        public SayStyle GoalLineStyle(bool afterWakeLine) => new SayStyle
+        {
+            lettersPerSecond = wakeLineLettersPerSecond, pauseSeconds = wakeLinePause, holdSeconds = goalLineHold,
+            delay = afterWakeLine ? WakeLineSeconds() + Mathf.Max(0f, goalLineGap) : wakeLineDelay,
+            wobbleWord = "", wobbleTag = "", sound = wakeLineSound,
+        };
+
+        /// <summary>Seconds from the wake-up line being asked for until its sticker has gone: its delay, the drop-in, a
+        /// letter at a time (and the beat after each sentence, as the speech sticker types it), the hold, the fade.</summary>
+        public float WakeLineSeconds()
+        {
+            string line = wakeLine ?? "";
+            float step = 1f / Mathf.Max(1f, wakeLineLettersPerSecond), pause = Mathf.Max(0f, wakeLinePause), typing = 0f;
+            for (int i = 0; i + 1 < line.Length; i++)   // up to the last letter's time, as the sticker counts it
+            {
+                typing += step;
+                char ch = line[i];
+                if ((ch == '.' || ch == '?' || ch == '!') && line[i + 1] == ' ') typing += pause;
+            }
+            return Mathf.Max(0f, wakeLineDelay) + SayLandSeconds + typing + Mathf.Max(0f, wakeLineHold) + SayOutSeconds;
+        }
 
         private static OpeningSettings _loaded;
 

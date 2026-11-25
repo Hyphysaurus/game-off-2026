@@ -1662,6 +1662,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8100010956015737578, guid: 3be1d4c08a5386f449d284ba8ab72258, type: 3}
   m_PrefabInstance: {fileID: 27959096}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &30071349
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 30071350}
+  - component: {fileID: 30071351}
+  m_Layer: 0
+  m_Name: Star skittles #1 KnockedDown
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &30071350
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 30071349}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &30071351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 30071349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: skittles
+  kind: 1
+  needed: 3
 --- !u!1001 &30854594
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3397,7 +3444,19 @@ MonoBehaviour:
   marbleDark: {fileID: 0}
   onUsed:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1763943199}
+        m_TargetAssemblyTypeName: ShiftJam.ObjectiveHook, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
@@ -6370,6 +6429,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 411336761729979682, guid: f08de717ef5c183459cbcfce24108612, type: 3}
   m_PrefabInstance: {fileID: 117374254}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &118476026
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 118476027}
+  - component: {fileID: 118476028}
+  m_Layer: 0
+  m_Name: Step core-b #1 CoreUsed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &118476027
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 118476026}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &118476028
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 118476026}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: core-b
+  kind: 0
+  needed: 1
 --- !u!1 &119569302
 GameObject:
   m_ObjectHideFlags: 0
@@ -10807,6 +10913,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8800521442291759998, guid: bcaa1bf032370b24585c1d90243bc773, type: 3}
   m_PrefabInstance: {fileID: 185506145}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &186244472
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 186244473}
+  - component: {fileID: 186244474}
+  m_Layer: 0
+  m_Name: Step wardrobe #1 PortalUsed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &186244473
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 186244472}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &186244474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 186244472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: wardrobe
+  kind: 0
+  needed: 1
 --- !u!1001 &186738161
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11259,6 +11412,9 @@ MonoBehaviour:
   endCard: {fileID: 1826139315}
   fade: {fileID: 544746443}
   endFade: 1.2
+  starsY: -30
+  starsSize: 48
+  choicesDrop: 60
 --- !u!1 &189249556
 GameObject:
   m_ObjectHideFlags: 0
@@ -11509,6 +11665,34 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 781929905}
     m_Modifications:
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1395230488}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: FirePart
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ShiftJam.ObjectiveHook, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3634490096045016288, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 581
@@ -24042,6 +24226,34 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 934380549}
     m_Modifications:
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 30071351}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: FirePart
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ShiftJam.ObjectiveHook, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 874684511813812610, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
       propertyPath: m_Name
       value: Skittle_2
@@ -28007,7 +28219,19 @@ MonoBehaviour:
   cooldown: 1
   onUsed:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 855884488}
+        m_TargetAssemblyTypeName: ShiftJam.ObjectiveHook, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &384406160
 GameObject:
   m_ObjectHideFlags: 0
@@ -34911,6 +35135,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1055903113}
+        m_TargetAssemblyTypeName: ShiftJam.ObjectiveHook, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!65 &390869330
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -36621,7 +36857,19 @@ MonoBehaviour:
     pitchSpread: 0
   onAllFound:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1230159234}
+        m_TargetAssemblyTypeName: ShiftJam.ObjectiveHook, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   pixelLook: 1
   pixelFeature: {fileID: 7049384999994194876, guid: f288ae1f4751b564a96ac7587541f7a2, type: 2}
 --- !u!4 &419039168
@@ -46129,6 +46377,34 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1105274419}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: FirePart
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ShiftJam.ObjectiveHook, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3563254122357634653, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -52388,6 +52664,34 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 781929905}
     m_Modifications:
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1395230488}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: FirePart
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ShiftJam.ObjectiveHook, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 3634490096045016288, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 614
@@ -61589,6 +61893,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6549354179014127125, guid: 49171cdbdf9307a43be3556f0fb2b8fc, type: 3}
   m_PrefabInstance: {fileID: 855860830}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &855884486
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 855884487}
+  - component: {fileID: 855884488}
+  m_Layer: 0
+  m_Name: Step through-door #1 PortalUsed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &855884487
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 855884486}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &855884488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 855884486}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: through-door
+  kind: 0
+  needed: 1
 --- !u!1 &856182058
 GameObject:
   m_ObjectHideFlags: 0
@@ -75630,6 +75981,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 934380549}
     m_Modifications:
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 30071351}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: FirePart
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ShiftJam.ObjectiveHook, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 874684511813812610, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
       propertyPath: m_Name
       value: Skittle_1
@@ -78393,6 +78768,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 600826712187267911, guid: 67e6b10ce72d1a641b1a58151d4c3e8c, type: 3}
   m_PrefabInstance: {fileID: 1051314030}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1055903111
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1055903112}
+  - component: {fileID: 1055903113}
+  m_Layer: 0
+  m_Name: Step core-c #2 PortalUsed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1055903112
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1055903111}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1055903113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1055903111}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: core-c
+  kind: 0
+  needed: 1
 --- !u!1001 &1057420623
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -85929,6 +86351,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7328759759584156428, guid: c500900ee2d205f489921d5f9adede2c, type: 3}
   m_PrefabInstance: {fileID: 1104611470}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1105274417
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1105274418}
+  - component: {fileID: 1105274419}
+  m_Layer: 0
+  m_Name: Star rings #1 RingPassed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1105274418
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105274417}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1105274419
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105274417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: rings
+  kind: 1
+  needed: 3
 --- !u!1001 &1106678585
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -90502,7 +90971,19 @@ MonoBehaviour:
   marbleDark: {fileID: 0}
   onUsed:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1204595307}
+        m_TargetAssemblyTypeName: ShiftJam.ObjectiveHook, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
@@ -90783,6 +91264,53 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1203250269}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1204595305
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1204595306}
+  - component: {fileID: 1204595307}
+  m_Layer: 0
+  m_Name: Step core-a #1 CoreUsed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1204595306
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1204595305}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1204595307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1204595305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: core-a
+  kind: 0
+  needed: 1
 --- !u!1 &1205200413
 GameObject:
   m_ObjectHideFlags: 0
@@ -92032,7 +92560,19 @@ MonoBehaviour:
   marbleDark: {fileID: 0}
   onUsed:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 118476028}
+        m_TargetAssemblyTypeName: ShiftJam.ObjectiveHook, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
@@ -93245,6 +93785,53 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.5414429, y: 0.8, z: 10}
   m_Center: {x: 1.9393616, y: 0.4, z: -5}
+--- !u!1 &1230159232
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1230159233}
+  - component: {fileID: 1230159234}
+  m_Layer: 0
+  m_Name: Star shift-letters #1 LettersFound
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1230159233
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1230159232}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1230159234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1230159232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: shift-letters
+  kind: 1
+  needed: 1
 --- !u!1 &1232656137
 GameObject:
   m_ObjectHideFlags: 0
@@ -100113,6 +100700,53 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9d213f0e66570e4db91293c45aeeab0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.KeepLit
+--- !u!1 &1276511330
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1276511331}
+  - component: {fileID: 1276511332}
+  m_Layer: 0
+  m_Name: Star tan-splinter #1 SquadRouted
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1276511331
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276511330}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1276511332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276511330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: tan-splinter
+  kind: 1
+  needed: 1
 --- !u!1 &1278368728
 GameObject:
   m_ObjectHideFlags: 0
@@ -101899,6 +102533,34 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 781929905}
     m_Modifications:
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1395230488}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: FirePart
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ShiftJam.ObjectiveHook, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3634490096045016288, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 578
@@ -102350,6 +103012,30 @@ PrefabInstance:
     - target: {fileID: 1058666715832990032, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1105274419}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: FirePart
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ShiftJam.ObjectiveHook, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 3563254122357634653, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
       propertyPath: m_Enabled
@@ -105454,6 +106140,53 @@ Transform:
   - {fileID: 641066579}
   m_Father: {fileID: 934380549}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1395230486
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1395230487}
+  - component: {fileID: 1395230488}
+  m_Layer: 0
+  m_Name: Star fort #1 KnockedDown
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1395230487
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1395230486}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1395230488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1395230486}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: fort
+  kind: 1
+  needed: 4
 --- !u!1001 &1396000256
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -108017,6 +108750,34 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 934380549}
     m_Modifications:
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 30071351}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: FirePart
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ShiftJam.ObjectiveHook, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 791899697205140220, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 874684511813812610, guid: 907cb5aa4e83d2d4c9defd39f51858d1, type: 3}
       propertyPath: m_Name
       value: Skittle_3
@@ -121172,6 +121933,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3634490096045016288, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
   m_PrefabInstance: {fileID: 1558481866}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1558757666
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1558757667}
+  m_Layer: 0
+  m_Name: ObjectiveHooks (D-0220)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1558757667
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558757666}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 855884487}
+  - {fileID: 1204595306}
+  - {fileID: 118476027}
+  - {fileID: 186244473}
+  - {fileID: 1763943198}
+  - {fileID: 1055903112}
+  - {fileID: 1645069052}
+  - {fileID: 2097408891}
+  - {fileID: 30071350}
+  - {fileID: 1230159233}
+  - {fileID: 1395230487}
+  - {fileID: 1276511331}
+  - {fileID: 1105274418}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1560072505
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -125768,7 +126573,19 @@ MonoBehaviour:
   lookEvery: 1
   onLightsOn:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1645069053}
+        m_TargetAssemblyTypeName: ShiftJam.ObjectiveHook, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1001 &1633989974
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -126125,6 +126942,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8135031592100287965, guid: 21ab162079b792743b7cac471f4dc48b, type: 3}
   m_PrefabInstance: {fileID: 1644366092}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1645069051
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1645069052}
+  - component: {fileID: 1645069053}
+  m_Layer: 0
+  m_Name: Star light-bedroom #1 LightsOn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1645069052
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1645069051}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1645069053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1645069051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: light-bedroom
+  kind: 1
+  needed: 1
 --- !u!1001 &1645299103
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -126729,7 +127593,19 @@ MonoBehaviour:
   cooldown: 1
   onUsed:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 186244474}
+        m_TargetAssemblyTypeName: ShiftJam.ObjectiveHook, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!65 &1653065119
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -129453,6 +130329,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 781929905}
     m_Modifications:
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1395230488}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: FirePart
+      objectReference: {fileID: 0}
+    - target: {fileID: 3606686055907102782, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
+      propertyPath: onDied.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ShiftJam.ObjectiveHook, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 3634490096045016288, guid: 7a100c7d7d8dc3b47a440976638bc55c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 632
@@ -137787,6 +138687,53 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.5414429, y: 0.8, z: 3.1984584}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &1763943197
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1763943198}
+  - component: {fileID: 1763943199}
+  m_Layer: 0
+  m_Name: Step core-c #1 CoreUsed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1763943198
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1763943197}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1763943199
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1763943197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: core-c
+  kind: 0
+  needed: 1
 --- !u!1 &1764674690
 GameObject:
   m_ObjectHideFlags: 0
@@ -140177,7 +141124,19 @@ MonoBehaviour:
     pitchSpread: 0
   onWoken:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2097408892}
+        m_TargetAssemblyTypeName: ShiftJam.ObjectiveHook, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1806279697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -145013,6 +145972,34 @@ PrefabInstance:
     - target: {fileID: 1058666715832990032, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1105274419}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: FirePart
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ShiftJam.ObjectiveHook, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1190829439641667331, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
+      propertyPath: onBoost.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3563254122357634653, guid: bf178e28dd3488b4a9477f5d0223146d, type: 3}
       propertyPath: m_Enabled
@@ -161836,7 +162823,19 @@ MonoBehaviour:
   left: '{0} to go'
   onRouted:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1276511332}
+        m_TargetAssemblyTypeName: ShiftJam.ObjectiveHook, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &2018635560
 GameObject:
   m_ObjectHideFlags: 0
@@ -171175,6 +172174,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7328759759584156428, guid: c500900ee2d205f489921d5f9adede2c, type: 3}
   m_PrefabInstance: {fileID: 2093549130}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2097408890
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2097408891}
+  - component: {fileID: 2097408892}
+  m_Layer: 0
+  m_Name: Star light-bedroom #2 LampWoken
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2097408891
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2097408890}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1558757667}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2097408892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2097408890}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: light-bedroom
+  kind: 1
+  needed: 1
 --- !u!1 &2097593863
 GameObject:
   m_ObjectHideFlags: 0
@@ -174286,3 +175332,4 @@ SceneRoots:
   - {fileID: 1359664198}
   - {fileID: 419039168}
   - {fileID: 1478953994}
+  - {fileID: 1558757667}

@@ -1,6 +1,8 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace ShiftJam
 {
@@ -9,6 +11,9 @@ namespace ShiftJam
     /// in a scene with no title), an end card with his title drawing over it that the last Goal
     /// raises, and its two choices: R (pad A) to play again, P (pad Y) to go to the playroom, the Workshop sandbox
     /// (D-0086). Lives on the HUD; the cards are plain objects it shows and hides.
+    /// The end card also counts the gold stars (D-0220): a star and "n of 10 gold stars" (ObjectiveSet's End Card Format)
+    /// under its title, the choices moved down to make room. Made in code the first time the card comes up; no line when
+    /// the set has no stars or the format is empty.
     /// </summary>
     public sealed class GameFlow : MonoBehaviour
     {
@@ -16,8 +21,16 @@ namespace ShiftJam
         [SerializeField] private GameObject endCard;
         [SerializeField, Tooltip("Found on the HUD if empty.")] private ScreenFade fade;
         [SerializeField] private float endFade = 1.2f;
+        [Header("Gold stars on the end card (D-0220)")]
+        [SerializeField, Tooltip("Where the star count sits on the end card: up from the card's middle (the title is at 60, "
+                               + "the choices at -60 before they move).")] private float starsY = -30f;
+        [SerializeField, Tooltip("The star count's letter size.")] private float starsSize = 48f;
+        [SerializeField, Tooltip("How far the choices (the card's Sub line) move down to make room for the star count.")]
+        private float choicesDrop = 60f;
 
         private bool _ended, _started;
+        private TMP_Text _stars;
+        private RectTransform _starsIcon;
 
         private void Awake()
         {
@@ -64,8 +77,63 @@ namespace ShiftJam
             // take that player out of the party's world (D-0134).
             if (_ended || NetSession.InParty) return;
             _ended = true;
-            if (fade != null) fade.Cover(endFade, () => { if (endCard != null) endCard.SetActive(true); });
-            else if (endCard != null) endCard.SetActive(true);
+            if (fade != null) fade.Cover(endFade, ShowEndCard);
+            else ShowEndCard();
+        }
+
+        private void OnEnable() => Objectives.Changed += OnObjectives;
+        private void OnDisable() => Objectives.Changed -= OnObjectives;
+
+        /// <summary>A star earned with the card already up (the sill's own star lands with the Goal): count again.</summary>
+        private void OnObjectives() { if (_stars != null && endCard != null && endCard.activeInHierarchy) CountStars(); }
+
+        private void ShowEndCard()
+        {
+            if (endCard == null) return;
+            endCard.SetActive(true);
+            CountStars();
+        }
+
+        /// <summary>The end card's star line (D-0220): made under the title the first time, filled with the count now.</summary>
+        private void CountStars()
+        {
+            ObjectiveSet set = Objectives.Set;
+            int total = Objectives.StarTotal;
+            if (total <= 0 || string.IsNullOrEmpty(set.endCardFormat)) { if (_stars != null) _stars.transform.parent.gameObject.SetActive(false); return; }
+            if (_stars == null)
+            {
+                var title = endCard.transform.Find("Title") != null ? endCard.transform.Find("Title").GetComponent<TMP_Text>() : null;
+                var line = new GameObject("Stars", typeof(RectTransform));
+                var lineRt = (RectTransform)line.transform;
+                lineRt.SetParent(endCard.transform, false);
+                lineRt.anchorMin = lineRt.anchorMax = lineRt.pivot = new Vector2(0.5f, 0.5f);
+                lineRt.anchoredPosition = new Vector2(0f, starsY); lineRt.sizeDelta = new Vector2(1400f, starsSize * 1.3f);
+                var words = new GameObject("Words", typeof(RectTransform));
+                var wordsRt = (RectTransform)words.transform;
+                wordsRt.SetParent(lineRt, false);
+                wordsRt.anchorMin = wordsRt.anchorMax = wordsRt.pivot = new Vector2(0.5f, 0.5f);
+                var text = words.AddComponent<TextMeshProUGUI>();
+                if (title != null) text.font = title.font;   // the card's own letters
+                text.fontSize = starsSize; text.color = Color.white; text.raycastTarget = false;
+                text.alignment = TextAlignmentOptions.Center; text.textWrappingMode = TextWrappingModes.NoWrap;
+                _stars = text;
+                var icon = new GameObject("Star", typeof(RectTransform));
+                _starsIcon = (RectTransform)icon.transform;
+                _starsIcon.SetParent(lineRt, false);
+                _starsIcon.anchorMin = _starsIcon.anchorMax = _starsIcon.pivot = new Vector2(0.5f, 0.5f);
+                _starsIcon.sizeDelta = new Vector2(starsSize, starsSize);
+                var img = icon.AddComponent<Image>(); img.sprite = ObjectiveHud.StarSprite; img.color = new Color32(0xff, 0xd1, 0x66, 0xff); img.raycastTarget = false;
+                // The choices move down under it.
+                var sub = endCard.transform.Find("Sub") as RectTransform;
+                if (sub != null) sub.anchoredPosition += new Vector2(0f, -choicesDrop);
+            }
+            _stars.transform.parent.gameObject.SetActive(true);
+            _stars.text = Objectives.Format(set.endCardFormat, Objectives.StarCount, total);
+            // The star stands just left of the words, the pair centred.
+            float wide = _stars.GetPreferredValues(_stars.text).x, gap = starsSize * 0.3f, all = starsSize + gap + wide;
+            ((RectTransform)_stars.transform).sizeDelta = new Vector2(wide + 4f, starsSize * 1.3f);
+            ((RectTransform)_stars.transform).anchoredPosition = new Vector2(-all * 0.5f + starsSize + gap + wide * 0.5f, 0f);
+            _starsIcon.anchoredPosition = new Vector2(-all * 0.5f + starsSize * 0.5f, 0f);
         }
 
         /// <summary>The end card's second choice: the Workshop, where everything can be tried freely.</summary>

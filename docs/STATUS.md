@@ -2,6 +2,20 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 13:5x — THE OBJECTIVE LAYER (D-0220) LANDED, Greybox saved. NOT PLAYED. DUNGEON MASON PACKS IN (git-ignored).
+- **HIS TEST (objectives):** New Game: the card top left ("BACK ON THE WINDOW SILL", a tick box and the current step, a
+  gold star with 0 / 10); after the wake-up line, the second line "I need to get back up on that window sill."; wake the
+  box core: the step ticks and the next slides in; light the bedroom (wall switch or star lamp): a gold star toast, the
+  charge fills, the counter pops; the hallway Flat Zone: the card slides under the S-H-I-F-T strip; Esc hides it;
+  Continue keeps steps and stars, New Game clears them; the end card shows "n of 10 gold stars". All words are his to
+  rewrite on Resources/ObjectiveSet.
+- **Dungeon Mason (his import, 25 Nov):** 20 free packs moved from the Assets root into `Assets/_Imports/DungeonMason/`
+  (git-ignored; 1.87 GB on C:), no scripts in any of them, project settings untouched; 99 Built-in materials converted
+  to URP Lit with URP's own converter. Still pink: the Polyart Wizard's 4 tint-shader materials (its URP version is the
+  zip in `WizardPBR/SRP/`). Not placed anywhere in the game yet.
+- **Still waiting on him:** the D-0216..D-0219 test list below, the claw machine's glow in the dark, enemies hurting the
+  toy in the house (still off). **Next build:** D-0221 (helpers + the downstairs fix: ammo for the Tan Splinter star).
+
 ## 25 Nov 2026 13:2x — 2D AIM (D-0216), ONTO THE LANE AT ONCE (D-0217), THE STAR LAMP (D-0218), THE CLAW MACHINE (D-0219), LANDED, Greybox saved. NOT PLAYED.
 - **HIS TEST, hallway zone:** (1) flashlight on, move the mouse round the toy: the beam follows the cursor up, down,
   left, right; the toy turns to the cursor's side through facing the camera; a small reticle on the cursor; wake a
@@ -16,12 +30,8 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
 - **Look for:** stars glaring near the lamp (each spot 4000: NightLamp/StarProjector/Stars); the claw machine's lamps
   glowing at full brightness in the dark room (emission is not dimmed by a Dark Zone).
 - **WAITING ON HIM:** the claw machine's glow in the dark (dark until the lights come on, always lit, or never lit);
-  the six free Dungeon Mason packs (RPG Monster Partners, RPG Monster Duo PBR Polyart, Party Monster Duo Polyart, Mini
-  Legion Rock Golem, Dragon for Boss Monster HP, RPG Monster Buddy): once he has downloaded them in the Package Manager,
-  I import them into the git-ignored `_Imports/DungeonMason/`; enemies hurting the toy in the house (still off).
-- **Building next:** the objective layer (D-0220: the goal line, 10 gold stars, the first-minute goal), then D-0221
-  (helpers + the downstairs fix).
-- **Pushed:** origin/main = e0a8ebd. Ten local commits after it.
+  enemies hurting the toy in the house (still off). (The Dungeon Mason packs: in, see the entry above.)
+- **Pushed:** origin/main = e0a8ebd. Everything after it is local.
 
 ## 25 Nov 2026 12:4x — THE DARK BEDROOM (D-0214) + THE HALLWAY'S DARK STRETCH AS A TEST (D-0215), LANDED, Greybox saved. NOT PLAYED. Pixel Look ON (his).
 - **HIS TEST:** New Game in the dark (beam, door glow, moonlight, the box core breathing and humming, a soft light on

@@ -2,6 +2,22 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 19:2x — PARKED FOR HIS PLAYTEST. The project compiles in his editor. Two things are half-way:
+- **Flat Zones (D-0198), the Unity AI assistant's build, stopped when its credits ran out.** The lock on the player and
+  the rail camera are in and do nothing yet; `Flat/FlatZone.cs` is held out of the build (`#if FLAT_ZONE_WIP`, read its
+  first lines); letters, flagpole, pixel pass and the hallway builder are not started. Plan:
+  `Assets/Plans/flat-zone-hallway-scroller.md`. Nothing of it is in a scene.
+- **The playable menu (D-0199):** step 2 (springy slabs, the pull, the brush) is IN and unseen; step 3 (dart guns) is
+  written and waits in `docs/parked/menu-step3/` (how to land it: DECISIONS D-0199); step 4 (the title as letters) is
+  designed only.
+- **HIS PLAYTEST NOW:** the title: Shift for 3D; sweep the mouse fast over the buttons; press a button and drag away,
+  let go; click still chooses; arrows / pad. Then the house as usual: the player, the ropes and the camera were
+  touched by the Flat Zone work (guarded, but unplayed), so walking, a rope swing and getting out of a car are worth
+  a minute each.
+- **IF THE MENU MISBEHAVES:** `git revert` the step 2 commit, or rename `Resources/Titles/TitleMenuModel.prefab` and the
+  title draws itself the old way.
+- **NEXT:** his word on step 2 > land step 3 > write step 4 > sounds. Flat Zones: finish `FlatZone.cs` first.
+
 ## 24 Nov 2026 19:1x — THE PLAYABLE MENU, STEP 1 (D-0197): ONE COLUMN ON PAGES + THE SHIFT FROM 2D TO 3D. IN HIS EDITOR, NOTHING OF IT SEEN
 - **Design settled by him on two mock-ups** (links in the session; sources `docs/menu/shift-playable-menu-mock.html`
   and `shift-menu-3d-mock.html`): click = a dart that chooses, hold and pull = stretch, G = a dart LMG that only

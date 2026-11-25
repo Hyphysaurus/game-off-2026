@@ -3696,3 +3696,29 @@
     camera, the mouse and the pad, the name field riding its slab: all unseen until Play.
   - **Not built yet:** springy slabs and the grab (step 2), darts and the two guns (3), the title as five soft
     letters that shift colour (4: until then the title art lies flat over the scene and does not lean), sounds (6).
+- **D-0198 (24 Nov 2026, 19:2x) Flat Zones, slice 1 (a stretch of the house goes side-on, 2D in 3D): STARTED BY THE UNITY
+  AI ASSISTANT, PARKED MID-BUILD.** His words: "a 2D-3D transition beat and ecosystem, based and inspired by concepts
+  in Mario Odyssey, DK Bananza, and Evoland, in which the world Shifts in perspectives". The assistant ran out of
+  credits part-way; Claude parked it so the project compiles. The plan is `Assets/Plans/flat-zone-hallway-scroller.md`.
+  - **Done and compiled, and doing nothing until a zone uses them (plan steps 1 and 2):** `Flat/FlatLock.cs`,
+    `Flat/FlatRail.cs`, `Data/FlatViewSettings.cs`, `PlayerMotor.Flat` and `FlatWish`, one line in `RopeRider`, and
+    `ShoulderCamera.SetRail / ClearRail / RailView`.
+  - **Parked (plan step 3):** `Flat/FlatZone.cs` is held out of the build by `#if FLAT_ZONE_WIP` (its first lines say
+    why). It needs a `cutaway` field, a `pixelMaterial` field, and the `FlatLetter` and `FlagPole` parts.
+  - **Not started:** the PixelShift pass (4), the flagpole and cards (5), the S-H-I-F-T letters and their HUD (6), the
+    builder that lands the zone in the hallway (7). No `Resources/FlatView.asset` yet. Nothing is in any scene.
+  - **NOT PLAYED.** The motor and camera changes are guarded (no zone = as before), which is read from the code, not seen.
+- **D-0199 (24 Nov 2026, 19:2x) The playable menu, step 2: every slab is a soft toy.** His go: "Proceed with the title
+  build." `MenuModel` gains `Knock`, `Brush`, `Hold`, `Release`: a slab squashes and tips where it is hit, the pointer
+  brushing over it stirs it, a press that pulls away stretches it after the pointer and lets it fly home (play, not a
+  choice), and its neighbours feel a knock. `MenuDriver` does the pull and the brush. Numbers on the prefab under
+  "A control as a soft toy". Compiled in his editor; **NOT SEEN.**
+  - **Step 3 is WRITTEN AND PARKED, not in the game:** `docs/parked/menu-step3/` holds the dart blaster and dart LMG
+    (`MenuDarts.cs`), the prefab maker (`MenuPieces.cs`) and the three menu scripts changed for them. It compiled
+    outside Unity against the project. To land: copy the five files to the paths in its `manifest.tsv`, let the editor
+    compile, run **Shift Jam > Menu > Build Title Menu Model** (it adds the guns and the dart to the prefab), Play.
+  - **Step 4 is designed, not written:** his pixel title baked into five solid letters. Measured on his sheet: 64
+    frames of 75 by 35, 16 a second, the shape the same in every frame; the letters' columns are S 6-20, H 20-34,
+    I 34-40, F 40-54, T 54-68 (they share their outline columns). Colours by pointing each pixel's cube at its own
+    pixel of the sheet and sliding along it for the animation; other colour sets as hue-turned copies of the sheet
+    that he can repaint; a letter is a toy on the model (no frame, cannot be chosen) and changes set when knocked.

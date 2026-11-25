@@ -22,6 +22,8 @@ namespace ShiftJam
     /// pressed thin: the menu looks drawn. DEEP (3D, the shift), the camera comes in as its lens widens, so the menu
     /// keeps its size on the screen while its depth appears, and the view leans a little with the pointer. A metre of
     /// model is Pixels Per Metre on a 1080-high screen in both, at the model's own plane.
+    /// Every control is a soft toy (D-0199): Knock squashes and tips it, Brush stirs it, Hold and Release pull it on an
+    /// elastic and let it fly home; its neighbours feel a knock too.
     /// Everything moves on real time: a menu holds the game's.
     /// </summary>
     public sealed class MenuModel : MonoBehaviour
@@ -41,13 +43,19 @@ namespace ShiftJam
             public Renderer BodyRenderer, FrameRenderer;
             public Color[] BodyColours;
             public Vector3 RestScale, RestPlace, LabelPlace;
+            public Quaternion RestTurn;
             public Bounds Box;              // its slab's own box, in the slab's space
-            public int DepthAxis;           // which of the slab's own axes runs toward the viewer
+            public int DepthAxis, AcrossAxis, UpAxis;   // which of the slab's own axes run toward the viewer, across the screen and up it
             public TextMeshPro Words;
             /// <summary>Its middle and its size on the screen while flat, canvas pixels from the middle of a 1080-high screen.</summary>
             public Vector2 Centre, Size;
             public bool Usable = true, Active, Pressed, Shown;
             internal float Grow = 1f, GrowSpeed, Drop, DropSpeed, Squash, SquashSpeed, Wait;
+            // A soft toy (D-0199): knocked or let go of, it swings about its place and settles. Metres and radians.
+            internal Vector3 Off, OffSpeed;          // across, up, toward the viewer
+            internal Vector3 Lean, LeanSpeed;        // tipped about the up line, about the across line, rolled
+            internal Vector2 Pull;                   // held by the pointer: how far it is pulled, metres
+            internal bool Held;
         }
 
         [Header("The model on the screen")]
@@ -78,6 +86,15 @@ namespace ShiftJam
         [SerializeField, Min(0f), Tooltip("How quickly that settles (higher = less bounce).")] private float settle = 16f;
         [SerializeField, Min(0f), Tooltip("A page's slabs drop in from this far above, metres, one after another.")] private float pageDrop = 0.22f;
         [SerializeField, Min(0f), Tooltip("Seconds between one slab of a page starting to drop in and the next.")] private float pageStagger = 0.04f;
+        [Header("A control as a soft toy (D-0199)")]
+        [SerializeField, Min(1f), Tooltip("How quickly a knocked or let-go slab swings back (higher = snappier).")] private float toySpringiness = 240f;
+        [SerializeField, Min(0f), Tooltip("How quickly that settles (higher = less wobble).")] private float toySettle = 13f;
+        [SerializeField, Min(0.01f), Tooltip("The furthest a held slab can be pulled, metres: it stretches toward this and no further.")] private float pullReach = 0.32f;
+        [SerializeField, Min(0f), Tooltip("A held slab is this much longer for each metre it is pulled along itself.")] private float pullStretch = 1.6f;
+        [SerializeField, Min(0f), Tooltip("How hard a knock squashes, tips and shoves a slab (1 = a dart's).")] private float knockPower = 1f;
+        [SerializeField, Range(0f, 1f), Tooltip("How much of a knock its neighbours on the page feel.")] private float neighbourShare = 0.3f;
+        [SerializeField, Min(0f), Tooltip("How much the pointer brushing over a slab stirs it.")] private float brushPower = 1f;
+        [SerializeField, Range(0f, 45f), Tooltip("The most a slab tips, degrees (deep only: flat, a slab does not tip).")] private float mostTip = 16f;
         [Header("Its words")]
         [SerializeField, Tooltip("The words' font. Empty = TextMesh Pro's own.")] private TMP_FontAsset font;
         [SerializeField] private Color wordColour = new Color32(0xff, 0xf0, 0xfc, 0xff);
@@ -185,18 +202,20 @@ namespace ShiftJam
                 if (!_named.TryGetValue(pair.Key + "_Frame", out Transform frame) || frame.parent != pair.Value) continue;
                 if (!pair.Value.TryGetComponent(out MeshFilter mesh) || mesh.sharedMesh == null || !pair.Value.TryGetComponent(out Renderer body)) continue;
                 Transform slab = pair.Value;
-                var c = new Control { Name = pair.Key, Body = slab, BodyRenderer = body, RestScale = slab.localScale, RestPlace = slab.position, Box = mesh.sharedMesh.bounds };
+                var c = new Control { Name = pair.Key, Body = slab, BodyRenderer = body, RestScale = slab.localScale, RestPlace = slab.position, RestTurn = slab.rotation, Box = mesh.sharedMesh.bounds };
                 for (Transform p = slab.parent; p != null && p != transform; p = p.parent) if (p.name.StartsWith("Page_")) { c.Page = p.name.Substring(5); break; }
                 if (c.Page == null) c.Page = "";
                 frame.TryGetComponent(out c.FrameRenderer);
                 c.BodyColours = Unlit(body);
                 if (c.FrameRenderer != null) Unlit(c.FrameRenderer);
-                float most = -1f;
+                float most = -1f, mostAcross = -1f, mostUp = -1f;
                 for (int axis = 0; axis < 3; axis++)
                 {
                     Vector3 way = axis == 0 ? slab.right : axis == 1 ? slab.up : slab.forward;
-                    float along = Mathf.Abs(Vector3.Dot(way, _look));
+                    float along = Mathf.Abs(Vector3.Dot(way, _look)), across = Mathf.Abs(Vector3.Dot(way, _right)), upward = Mathf.Abs(Vector3.Dot(way, _up));
                     if (along > most) { most = along; c.DepthAxis = axis; }
+                    if (across > mostAcross) { mostAcross = across; c.AcrossAxis = axis; }
+                    if (upward > mostUp) { mostUp = upward; c.UpAxis = axis; }
                 }
                 Vector2 low = new Vector2(float.MaxValue, float.MaxValue), high = new Vector2(float.MinValue, float.MinValue);
                 for (int i = 0; i < 8; i++)
@@ -297,7 +316,12 @@ namespace ShiftJam
                 if (on) _shown.Add(c);
             }
             _shown.Sort((a, b) => b.Centre.y != a.Centre.y ? b.Centre.y.CompareTo(a.Centre.y) : a.Centre.x.CompareTo(b.Centre.x));
-            for (int i = 0; i < _shown.Count; i++) { Control c = _shown[i]; c.Drop = pageDrop; c.DropSpeed = 0f; c.Wait = i * pageStagger; c.Grow = 1f; c.GrowSpeed = 0f; }
+            for (int i = 0; i < _shown.Count; i++)
+            {
+                Control c = _shown[i];
+                c.Drop = pageDrop; c.DropSpeed = 0f; c.Wait = i * pageStagger; c.Grow = 1f; c.GrowSpeed = 0f;
+                c.Off = c.OffSpeed = c.Lean = c.LeanSpeed = Vector3.zero; c.Pull = Vector2.zero; c.Held = false; c.Squash = c.SquashSpeed = 0f;
+            }
             Selected = null;
             foreach (Control c in _shown) if (c.Usable) { Selected = c; break; }
         }
@@ -371,12 +395,104 @@ namespace ShiftJam
                 float want = !c.Usable ? 1f : c.Pressed && selected ? pressedSize : selected ? selectedSize : 1f;
                 Spring(ref c.Grow, ref c.GrowSpeed, want, dt);
                 if (c.Wait > 0f) c.Wait -= dt; else Spring(ref c.Drop, ref c.DropSpeed, 0f, dt);
+                // The soft toy: its swing about its place, its tip and its squash settle on their own springs.
+                float deep = Mathf.Clamp01(_depth);
+                for (int k = 0; k < 3; k++)
+                {
+                    float off = c.Off[k], offSpeed = c.OffSpeed[k], lean = c.Lean[k], leanSpeed = c.LeanSpeed[k];
+                    Toy(ref off, ref offSpeed, dt); Toy(ref lean, ref leanSpeed, dt);
+                    c.Off[k] = off; c.OffSpeed[k] = offSpeed; c.Lean[k] = lean; c.LeanSpeed[k] = leanSpeed;
+                }
+                Toy(ref c.Squash, ref c.SquashSpeed, dt);
+                Vector2 pull = c.Held ? Rubber(c.Pull) : Vector2.zero;
                 Vector3 size = c.RestScale * c.Grow;
+                size[c.AcrossAxis] *= (1f + c.Squash * 0.05f) * (1f + Mathf.Abs(pull.x) * pullStretch);
+                size[c.UpAxis] *= (1f - c.Squash * 0.07f) * (1f + Mathf.Abs(pull.y) * pullStretch);
                 size[c.DepthAxis] = c.RestScale[c.DepthAxis] * thin;
                 c.Body.localScale = size;
-                c.Body.position = c.RestPlace + _up * (c.Drop * enlarge) - _look * ((selected ? selectedLift : 0f) * Mathf.Clamp01(_depth) * enlarge);
+                float tip = mostTip * Mathf.Deg2Rad;
+                Quaternion turn = Quaternion.AngleAxis(Mathf.Clamp(c.Lean.x + pull.x * 0.9f, -tip, tip) * deep * Mathf.Rad2Deg, _up)
+                    * Quaternion.AngleAxis(Mathf.Clamp(c.Lean.y, -tip, tip) * deep * Mathf.Rad2Deg, _right)
+                    * Quaternion.AngleAxis(Mathf.Clamp(c.Lean.z - pull.x * 0.35f, -tip, tip) * Mathf.Rad2Deg, _look);
+                c.Body.rotation = turn * c.RestTurn;
+                c.Body.position = c.RestPlace + (_right * (c.Off.x + pull.x) + _up * (c.Off.y + pull.y + c.Drop)
+                    - _look * (((selected ? selectedLift : 0f) + (c.Held ? selectedLift * 2f : 0f) + c.Off.z) * deep)) * enlarge;
                 Paint(c, !c.Usable ? State.Disabled : selected ? State.Selected : c.Active ? State.Active : State.Normal);
             }
+        }
+
+        /// <summary>A step of a soft toy's spring back to rest (Toy Springiness, Toy Settle).</summary>
+        private void Toy(ref float at, ref float speed, float dt)
+        {
+            speed += (-toySpringiness * at - toySettle * speed) * dt;
+            at += speed * dt;
+        }
+
+        /// <summary>A pull as the slab takes it: it follows the pointer near its place and stretches toward Pull Reach, never past.</summary>
+        private Vector2 Rubber(Vector2 pull)
+            => new Vector2(pullReach * (float)System.Math.Tanh(pull.x / pullReach), pullReach * (float)System.Math.Tanh(pull.y / pullReach));
+
+        /// <summary>Knocks a control: it squashes, tips away from where it was hit and is shoved back, and its neighbours on
+        /// the page feel a share of it. <paramref name="at"/>: where on the slab, metres from its middle (across, up).</summary>
+        public void Knock(Control c, Vector2 at, float power = 1f)
+        {
+            if (c == null || !c.Shown) return;
+            float p = power * knockPower, halfWide = Mathf.Max(0.01f, c.Size.x / pixelsPerMetre * 0.5f), halfTall = Mathf.Max(0.01f, c.Size.y / pixelsPerMetre * 0.5f);
+            c.SquashSpeed -= 9f * p;
+            c.LeanSpeed.x += Mathf.Clamp(at.x / halfWide, -1f, 1f) * 5f * p;
+            c.LeanSpeed.y -= Mathf.Clamp(at.y / halfTall, -1f, 1f) * 3.5f * p;
+            c.LeanSpeed.z -= Mathf.Clamp(at.x / halfWide, -1f, 1f) * 0.6f * p;
+            c.OffSpeed.z -= 0.5f * p;
+            int here = _shown.IndexOf(c);
+            for (int step = -1; step <= 1; step += 2)
+            {
+                int n = here + step;
+                if (n < 0 || n >= _shown.Count) continue;
+                _shown[n].SquashSpeed -= 9f * p * neighbourShare;
+                _shown[n].OffSpeed.y -= step * 0.25f * p * neighbourShare;   // the one above is nudged up, the one below down
+            }
+        }
+
+        /// <summary>The pointer brushed over a control: it is stirred the way the pointer went (a share of the screen a second).</summary>
+        public void Brush(Control c, Vector2 pointerSpeed)
+        {
+            if (c == null || !c.Shown || c.Held) return;
+            c.OffSpeed.x += pointerSpeed.x * 0.12f * brushPower;
+            c.LeanSpeed.z -= pointerSpeed.x * 0.35f * brushPower;
+            c.SquashSpeed -= 0.5f * brushPower;
+        }
+
+        /// <summary>Holds a control by the pointer, pulled this far from its place (metres across and up). Let go with Release.</summary>
+        public void Hold(Control c, Vector2 pull)
+        {
+            if (c == null || !c.Shown) return;
+            if (!c.Held) c.SquashSpeed -= 5f * knockPower;
+            c.Held = true; c.Pull = pull;
+        }
+
+        /// <summary>Lets a held control go: it flies back to its place from where it was pulled to and wobbles there.</summary>
+        public void Release(Control c)
+        {
+            if (c == null || !c.Held) return;
+            Vector2 was = Rubber(c.Pull);
+            c.Held = false; c.Pull = Vector2.zero;
+            c.Off.x += was.x; c.Off.y += was.y;
+            c.LeanSpeed.x += was.x * 14f; c.LeanSpeed.z -= was.x * 6f;
+            Knock(c, Vector2.zero, Mathf.Clamp(was.magnitude / pullReach, 0.2f, 1.2f));
+        }
+
+        /// <summary>A control's middle on the model's own plane, metres across and up from the model's middle.</summary>
+        public Vector2 Middle(Control c) => c == null ? Vector2.zero : c.Centre / pixelsPerMetre;
+
+        /// <summary>Where a point of the screen is on the model's own plane, metres across and up from its middle (for a pull).</summary>
+        public Vector2 OnPlane(Vector2 screen)
+        {
+            if (_view == null) return Vector2.zero;
+            Ray ray = _view.ScreenPointToRay(screen);
+            float toward = Vector3.Dot(ray.direction, _look);
+            if (Mathf.Abs(toward) < 1e-6f) return Vector2.zero;
+            Vector3 hit = ray.GetPoint(Vector3.Dot(_origin - ray.origin, _look) / toward) - _origin;
+            return new Vector2(Vector3.Dot(hit, _right), Vector3.Dot(hit, _up)) / enlarge;
         }
 
         /// <summary>A step of a spring toward <paramref name="to"/>: a little bounce, on the Springiness and Settle numbers.</summary>

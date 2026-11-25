@@ -107,9 +107,103 @@ namespace ShiftJam
             }
             else Log.AppendLine("NO ChargeCore");
 
+            DarkStretchTest(room);   // D-0215 over D-0151: a re-run keeps the no-sign test
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             Debug.Log("HALLWAY LIGHT BEATS (D-0151)\n" + Log);
+        }
+
+        // ---- D-0215: the dark stretch as the test of what the bedroom taught (no sign says "shine your light")
+        const string ChargeHintLine = "Dark. Shine your light on it.";   // D-0151's line: it comes back after 20 s by the sleeping core
+        const float ChargeHintLinger = 20f, ChargeHintNear = 12f;
+        /// <summary>The charge sign's words as the House builder first wrote them (before D-0151 added the light line).</summary>
+        const string ChargeSignWords = "A core fills your <b>shift charge</b>.\n<b>F</b>  shift anywhere there is room.\nToo low in here: try it.";
+        const string DarkOrbName = "ChargeCoreDark";
+        static readonly Vector3 DarkOrbAt = new Vector3(209f, 2.5f, -144f);   // off the lane by the north wall, just past the pencil bridge (east floor x 206..232), before the pins and the tall end
+
+        /// <summary>
+        /// D-0215. Safe to run again (sets the same, replaces what it placed).
+        /// 1. The spare flashlight (x 98) stays; its tape sign (Sign2_Light) shows only to a player with no flashlight.
+        /// 2. The stretch's sleeping charge core says nothing (its breath and hum guide); after 20 s by it, the old line comes back.
+        ///    The charge sign loses its "Dark? Shine your light on it." line (back to the House builder's words).
+        /// 3. One extra sleeping charge orb (ChargeOnly, unlimited) off the lane, found by its breath and hum: a refill before
+        ///    the tall end's F. A light wakes it, as the stretch's own core.
+        /// </summary>
+        static void DarkStretchTest(Transform room)
+        {
+            // 1. The spare light's sign.
+            Transform lightSign = room.Find("Sign2_Light");
+            if (lightSign != null)
+            {
+                bool had = lightSign.GetComponent<NoLightSign>() != null;
+                if (!had) lightSign.gameObject.AddComponent<NoLightSign>();
+                Log.AppendLine($"HALL Sign2_Light: NoLightSign {(had ? "was there" : "ADDED")}: it shows only to a player with no flashlight (the spare at x {HallLightX} stays)");
+            }
+            else Log.AppendLine("HALL Sign2_Light NOT FOUND (run Land Hallway Light Beats)");
+
+            // 2. The stretch's charge core: silent, then the line after lingering.
+            Transform coreT = room.Find("ChargeCore");
+            var core = coreT != null ? coreT.GetComponent<ShiftSource>() : null;
+            if (core != null)
+            {
+                var so = new SerializedObject(core);
+                string was = so.FindProperty("dormantPrompt").stringValue;
+                so.FindProperty("dormantPrompt").stringValue = "";
+                so.FindProperty("sleepCues").boolValue = true;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                if (!coreT.TryGetComponent(out SleepHint hint)) hint = coreT.gameObject.AddComponent<SleepHint>();
+                var hso = new SerializedObject(hint);
+                hso.FindProperty("line").stringValue = ChargeHintLine;
+                hso.FindProperty("linger").floatValue = ChargeHintLinger;
+                hso.FindProperty("near").floatValue = ChargeHintNear;
+                hso.FindProperty("tip").boolValue = true;
+                hso.ApplyModifiedPropertiesWithoutUndo();
+                Log.AppendLine($"HALL ChargeCore at {coreT.position}: its sleeping prompt \"{was}\" -> none (E finds nothing until it wakes); SleepHint: \"{ChargeHintLine}\" comes back as its prompt and once as a tip after {ChargeHintLinger} s in all within {ChargeHintNear} of it (toy units).");
+            }
+            else Log.AppendLine("HALL ChargeCore NOT FOUND");
+            Transform sign = room.Find("Sign3_Charge");
+            if (sign != null)
+            {
+                Vector3 at = sign.position, toViewer = -sign.forward; int index = sign.GetSiblingIndex();
+                Object.DestroyImmediate(sign.gameObject);
+                TapeSign("Sign3_Charge", room, at, toViewer, ChargeSignWords, 8f, 3.6f).transform.SetSiblingIndex(index);
+                Log.AppendLine("HALL Sign3_Charge: \"A core fills your shift charge. / F shift anywhere there is room. / Too low in here: try it.\" (the light line gone; was \"... / Dark? Shine your light on it. / ...\")");
+            }
+            else Log.AppendLine("HALL Sign3_Charge NOT FOUND");
+
+            // 3. The extra sleeping orb.
+            Remove(room, DarkOrbName);
+            var coreMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Data/ShiftCore.mat");
+            GameObject extra = Core(DarkOrbName, room, DarkOrbAt, ShiftSource.Mode.ChargeOnly, coreMat, true);
+            var extraCore = extra.GetComponent<ShiftSource>();
+            var eso = new SerializedObject(extraCore);
+            eso.FindProperty("dormantPrompt").stringValue = "";
+            eso.FindProperty("sleepCues").boolValue = true;
+            eso.ApplyModifiedPropertiesWithoutUndo();
+            Transform middle = new GameObject("LightPoint").transform;
+            middle.SetParent(extra.transform, false);
+            middle.position = B(extra).center;
+            var target = Target(extra, middle, 0.5f, LightTarget.FocusRule.Any, 0f, false);
+            UnityEventTools.AddVoidPersistentListener(target.OnFilled, extraCore.Awaken);
+            var stretch = room.Find("DarkStretch");
+            var zone = stretch != null ? stretch.GetComponent<DarkZone>() : null;
+            if (zone != null) Log.AppendLine($"ZONE DarkStretch: not changed (lamps {zone.LightsTo}, ambient {zone.AmbientTo}, box {zone.Size} round {stretch.position}).");
+            Log.AppendLine($"HALL {DarkOrbName}: a sleeping ChargeOnly orb (unlimited) at {extra.transform.position}, no prompt, LightTarget (0.5 s, any light) -> Awaken; {(zone != null ? (zone.Contains(extra.transform.position) ? "inside DarkStretch" : "NOT inside DarkStretch") : "DarkStretch NOT FOUND")}; {Apart(extra.transform, room, "Pin")} from the nearest pin, {Apart(extra.transform, room, "ChargeCoreTall")} from ChargeCoreTall (awake), {Apart(extra.transform, room, "CP_afterBridge")} from the checkpoint after the bridge.");
+        }
+
+        /// <summary>The flat distance from <paramref name="from"/> to the nearest child of <paramref name="room"/> called
+        /// <paramref name="name"/>, as words.</summary>
+        static string Apart(Transform from, Transform room, string name)
+        {
+            float best = float.MaxValue;
+            foreach (Transform other in room)
+            {
+                if (other.name != name) continue;
+                Vector3 d = other.position - from.position; d.y = 0f;
+                best = Mathf.Min(best, d.magnitude);
+            }
+            return best < float.MaxValue ? best.ToString("F1") : "(no " + name + ")";
         }
 
         const float BeamIntensityKid = 20000f;   // D-0153 his "it's pretty dark, we need to amplify the beam": was 3000

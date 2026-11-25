@@ -158,6 +158,14 @@ MonoBehaviour:
   flareTime: 0.4
   strikeTime: 0.55
   strikeReach: {x: 0.8, y: 1.3}
+  sleepPulseRate: 0.45
+  sleepCrystal: 0.12
+  sleepHalo: 1.6
+  sleepLight: 1.5
+  sleepHum: {fileID: 8300000, guid: ec6b2d5f34d919b4bbb0c92f86dacf2e, type: 3}
+  sleepHumVolume: 0.5
+  sleepHumNear: 2
+  sleepHumReach: 14
 --- !u!1 &3129772363272214061
 GameObject:
   m_ObjectHideFlags: 0

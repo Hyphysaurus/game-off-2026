@@ -2,6 +2,14 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 12:4x — THE DARK BEDROOM (D-0214) + THE HALLWAY'S DARK STRETCH AS A TEST (D-0215), LANDED, Greybox saved. NOT PLAYED. Pixel Look ON (his).
+- **HIS TEST:** New Game in the dark (beam, door glow, moonlight, the box core breathing and humming, a soft light on
+  the toy); beam on the core, grow, the room stays dark; the warm switch glow beside the big door ("Lights", kid only);
+  the lamps rise over 2.5 s and stay on; Continue keeps them on, New Game is dark again. Hallway: with the bed's flashlight
+  the x 98 sign is hidden; the x 162 core has no hint until 20 s near it; a second sleeping orb past the bridge.
+- **Unheard / unseen:** the hum (Star_Light_Glow_Loop at 0.5), the moonlight and the toy's glow numbers, the lights-on
+  sound (the switch's click only).
+
 ## 25 Nov 2026 12:4x — FLAT ZONES OPTIONAL AFTER THE FIRST RUN + LINKED RIFTS + A 3D ROUTE (D-0212), THE WAKE-UP LINE (D-0213), FIXES FROM HIS 12:26 PLAY. Local, not pushed.
 - **His 12:26 play:** the mandatory first run and the exit worked; the link back carried him from x 85 to x -27; then
   the landing faced the hop's drop, he fell, grew during the reset and was put back as a kid onto the hallway's roof. Fixed:

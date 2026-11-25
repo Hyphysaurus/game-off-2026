@@ -19,7 +19,8 @@ namespace ShiftJam
         private string wrongSizePrompt = "";
         [Header("Power")]
         [SerializeField, Tooltip("Dark and unusable until Awaken() is called (by a Flashlight or a LightSensor).")] private bool startDormant;
-        [SerializeField, Tooltip("Shown while dormant. Empty hides the prompt.")] private string dormantPrompt = "Dark";
+        [SerializeField, Tooltip("Shown while dormant. Empty hides the prompt (and E does nothing: the core is not a target). A Sleep Hint beside it can bring a line back later (D-0215).")] private string dormantPrompt = "Dark";
+        [SerializeField, Tooltip("While dormant (and not spent) its orb breathes and hums so it can be found in the dark (D-0214; the breath and the hum's numbers are on the orb, Resources/FX/ShiftOrbVisual). Off = dark and silent.")] private bool sleepCues = true;
         [SerializeField, Tooltip("Shifts this core gives before it is spent. 0 = unlimited.")] private int uses = 0;
         [SerializeField, Tooltip("Shown once spent. Empty hides the prompt.")] private string spentPrompt = "";
         [Header("Where it is used from")]
@@ -40,6 +41,7 @@ namespace ShiftJam
         [SerializeField] private UnityEvent onSpent;
 
         private int _used;
+        private ShiftOrb _orb;   // its look, once Dress has hung it (Start)
 
         /// <summary>A ChargeOnly core's prompts (placeholder wording, his to change).</summary>
         public const string ChargePrompt = "Take the shift charge", ChargeFullPrompt = "Charge full";
@@ -50,6 +52,17 @@ namespace ShiftJam
         public bool Dormant { get; private set; }
         public bool Spent => uses > 0 && _used >= uses;
         public bool Usable => !Dormant && !Spent;
+
+        /// <summary>The line shown while dormant (empty: no prompt, and E finds nothing here). A Sleep Hint sets it when the
+        /// player has lingered by the sleeping core (D-0215).</summary>
+        public string DormantPrompt
+        {
+            get => dormantPrompt;
+            set => dormantPrompt = value ?? "";
+        }
+
+        /// <summary>Asleep: dormant, not spent, and it says so in the dark (D-0214).</summary>
+        public bool Sleeping => Dormant && !Spent && sleepCues;
 
         private void Awake()
         {
@@ -62,6 +75,8 @@ namespace ShiftJam
             // Every core wears the shift orb (D-0062). One that was not built with it gets it here, so the course,
             // the Workshop and the Pocket Core need no rebuild.
             ShiftOrbLink.Dress(this);
+            _orb = GetComponentInChildren<ShiftOrb>(true);
+            if (_orb != null) _orb.SetSleeping(Sleeping);
         }
 
         /// <summary>Hands the looks to something else (the orb): the old glow, sparks, ember and marble are switched
@@ -106,6 +121,7 @@ namespace ShiftJam
                 Material want = awake ? marbleAwake : marbleDark;
                 if (want != null) marble.sharedMaterial = want;
             }
+            if (_orb != null) _orb.SetSleeping(Sleeping);   // the orb breathes and hums only while it can be woken (D-0214)
         }
 
         /// <summary>Whether the player's feet are up where the core is (Stand Within). The reach of a kid's hand is

@@ -4005,3 +4005,29 @@
   - `UI/WakeLine.cs` hooks New Game's get-up (and a skipped opening) at run time: once per save slot (New Game clears it,
     so every New Game), never on Continue or a respawn. Numbers and the text on OpeningSettings (no asset yet: the code's
     defaults play; make `Resources/OpeningSettings` to edit the line). **NOT seen in Play yet.**
+- **D-0214 (25 Nov 2026, 12:4x) The dark bedroom and its lights-on payoff.** His idea in his 25 Nov play ("darken the
+  ENTIRE room... with the only hints of light being the glows from the doorway cracks, the door switch trigger hint mote,
+  and the shift orbs themselves... perhaps they must navigate to ANOTHER switch to turn on the lights permanently") and
+  "let's start folding in your proposals" (my pick: the wall-switch chain).
+  - **Dark:** `DarkBedroom` (a DarkZone over the whole room: lamps 0.08, ambient 0.14, never pitch black); the cave under the
+    bed darker still (0.05 / 0.10). `DarkZone` now lets the darkest zone win for every lamp, not just the ambient (the box's
+    burst no longer lights the room: ToyBoxDark stays separate).
+  - **What still gives light:** the giant flashlight's beam, the door's light (KeepLit) and glow, cool moonlight through the
+    room's window (`MoonFill`, 1800, no shadows, aimed away from the bed), the switch's warm glow, the cores' embers, and a
+    soft light that rides the player while the room is dark (`Room/RoomLights.cs` makes it at run time).
+  - **Sleeping cores give themselves away:** a dormant core breathes and hums (`ShiftSource` Sleep Cues, `ShiftOrb` Asleep:
+    Playroom Star_Light_Glow_Loop on Resources/FX/ShiftOrbVisual, full within 2 and silent past 14 of a toy; UNHEARD).
+  - **The chain:** the giant flashlight's beam wakes the box core -> grow -> the room's light switch (`LightSwitch`, south
+    wall beside the big door, middle 40 up: 33 over a toy's highest reach, easy for a kid; prompt "Lights") -> the lamps
+    rise over 2.5 s and stay on: saved per slot (`bedroom:lights`; Continue and a respawn start lit, New Game dark). The
+    shelf switch and the door work without it (the lights are a reward, not a lock). Online: local per player.
+  - Maker: Shift Jam > House > Land Dark Bedroom + Hallway Test (D-0214, D-0215). Landed in his editor and Greybox saved.
+- **D-0215 (25 Nov 2026, 12:4x) The hallway's dark stretch tests the light without a sign.** His "noting the potential for
+  the EXTRA flashlight and EXTRA shift orbs inside of the hallway. Perhaps we design around that as well."
+  - The spare flashlight (x 98) stays as a safety net; its sign shows only to a player with no flashlight (`NoLightSign`).
+  - The sleeping charge core (x 162) and its sign lose "Dark. Shine your light on it."; the breath and hum guide; after 20 s
+    near it unwoken the line comes back as its prompt and once as a tip (`SleepHint`).
+  - A second sleeping charge orb `ChargeCoreDark` at (209, 2.5, -144) in the dark stretch, before the F lesson (20 from the
+    awake ChargeCoreTall: maybe generous; untick it or give it Uses 1).
+  - Also: Pixel Look is ON on FlatZone_Hall for now (his "leave it on for now", 25 Nov; D-0209 had it off). **D-0214 and
+    D-0215 NOT PLAYED.**

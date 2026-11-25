@@ -10,6 +10,8 @@ namespace ShiftJam
     /// hole. It flies through its child keys in order (each child = a camera pose: move and turn them in the editor to
     /// re-shoot it), letterboxes the screen, brings the room's lights up from dim, swells the music, then hands back
     /// to the shoulder camera with a blend. Plays once per save slot; any key skips after the first second.
+    /// While its own music sounds (from the start until its fade-out ends) the scene's music dips under it
+    /// (GameEvents.RevealSwell, D-0211).
     /// Runs after the shoulder camera each frame, so the hand-back blends from its own pose into the camera's.
     /// </summary>
     [DefaultExecutionOrder(1000)]
@@ -31,8 +33,14 @@ namespace ShiftJam
 
         private Transform[] _keys; private float[] _base; private Camera _cam; private PlayerInput _input;
         private bool _running; private float _t; private RectTransform _top, _bottom; private AudioSource _audio;
+        private Coroutine _fade;
+        private bool _swelling;   // this reveal's music is sounding: GameEvents.RevealSwell said true and owes a false
 
         public bool Running => _running;
+
+        /// <summary>Switched off or destroyed mid-way (a scene change, the console): the swell is over, so the scene's
+        /// music never stays dipped.</summary>
+        private void OnDisable() { _fade = null; Swell(false); }   // switching off stops the coroutines too
 
         private void Awake()
         {
@@ -58,7 +66,14 @@ namespace ShiftJam
             var player = GameObject.Find("Player"); _input = player != null ? player.GetComponent<PlayerInput>() : null;
             if (_input != null) _input.enabled = false;
             Bars();
-            if (music != null) { _audio = gameObject.AddComponent<AudioSource>(); _audio.clip = music; _audio.volume = 0f; _audio.spatialBlend = 0f; _audio.Play(); }
+            if (music != null)
+            {
+                // A replay (the console's "reveal") while the last one's music is still fading: that one goes at once.
+                if (_fade != null) { StopCoroutine(_fade); _fade = null; }
+                if (_audio != null) Destroy(_audio);
+                _audio = gameObject.AddComponent<AudioSource>(); _audio.clip = music; _audio.volume = 0f; _audio.spatialBlend = 0f; _audio.Play();
+                Swell(true);
+            }
             onStart?.Invoke();
             _running = true; _t = 0f;
             float total = duration + handBack;
@@ -79,7 +94,7 @@ namespace ShiftJam
             _running = false;
             Destroy(_top.parent.gameObject);
             onEnd?.Invoke();
-            if (_audio != null) StartCoroutine(FadeMusic());
+            if (_audio != null) _fade = StartCoroutine(FadeMusic(_audio));
         }
 
         private void LateUpdate()
@@ -95,11 +110,22 @@ namespace ShiftJam
             _cam.transform.SetPositionAndRotation(Vector3.Lerp(pos, _cam.transform.position, back), Quaternion.Slerp(rot, _cam.transform.rotation, back));
         }
 
-        private IEnumerator FadeMusic()
+        private IEnumerator FadeMusic(AudioSource source)
         {
-            float v = _audio.volume;
-            for (float k = 0f; k < 1f; k += Time.deltaTime / musicFadeOut) { _audio.volume = v * (1f - k); yield return null; }
-            Destroy(_audio);
+            float v = source.volume;
+            for (float k = 0f; k < 1f; k += Time.deltaTime / musicFadeOut) { source.volume = v * (1f - k); yield return null; }
+            Destroy(source);
+            if (_audio == source) _audio = null;
+            _fade = null;
+            Swell(false);
+        }
+
+        /// <summary>Tells the scene's music (Course Audio) this reveal's own music is sounding or over: once each way.</summary>
+        private void Swell(bool on)
+        {
+            if (_swelling == on) return;
+            _swelling = on;
+            GameEvents.RaiseRevealSwell(this, on);
         }
 
         private void Bars()

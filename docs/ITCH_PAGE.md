@@ -71,7 +71,7 @@ flashlight.
 ## Credits
 - **Design, direction and playtesting:** ✍ [name]. **Title lettering, portal and orb drawings:** ✍ [name].
 - **Code:** written with Claude Code (Anthropic), directed and reviewed by ✍ [name].
-- **3D art, characters, animation and most sound effects:** ithappy packs (Playroom, Battle Stadium, Cartoon Weapons,
+- **3D art, characters, animation, the music and most sound effects:** ithappy packs (Playroom, Battle Stadium, Cartoon Weapons,
   Funny Characters, Modular Cyber Racing Cars, and the free Christmas, Cute Furniture and Food packs).
 - **Interface sounds:** Case Portman Audio, Cute & Cozy UI Audio Pack (the menus' clicks, D-0202; checkpoints, the goal
   and the race finish, D-0210) and Forge & Fantasy ✍ (check). **Shift whooshes and thuds, the race beeps, pickups, the

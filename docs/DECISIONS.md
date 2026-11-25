@@ -3945,3 +3945,28 @@
     Netcode's ids for its 4 cars (GlobalObjectIdHash was 0 on all four in the file; the editor works these out whenever
     the scene loads): that is its own commit, to undo alone if online cars act up.
   - Landed with the editor closed (a hidden batch run; the temporary script is deleted). **NOT PLAYED.**
+- **D-0211 (25 Nov 2026, 09:5x) Music from his bought packs: a title track, the house's, one per sandbox, and the house
+  dips under the playroom reveal.** His "for music, let's focus on whatever music packs I already have purchased from
+  other creators for now", then "proceed" on my picks from the audition (`%TEMP%\shiftjam-stage\sound-audition\music`,
+  every file at -16 LUFS).
+  - **His bought music (found):** ithappy Playroom (10 toy-room tracks, already in `_Imports`), COZY ReSound (Asset
+    Store, 15 Sam Bowman pieces), Ambient Sounds (Asset Store, 12 forest-ambience tracks: off-theme). Cozy Tunes: bought
+    or free is unknown, so it is left out. Every pick is Playroom: one musical voice, the same pack as the world.
+  - **The picks:** title Toy_Room_Menu_Music_v1 (0.44: -22.4 LUFS played, 3 dB over the rooms), the house
+    Calm_Adventure (0.30, -25.4), Raceway Treasure_Hunt_Time (0.33, -25.4), Workshop Toy_Box (0.25, -25.4), Colour
+    Corner Happy_Day (0.29, -25.6). The playroom reveal keeps A_Secret_Garden_Of_Light_v1 (0.55). The Stadium stays silent.
+  - **How it plays (`FX/CourseAudio.cs`):** decided every frame: the title's track while the title is up, silence while
+    the opening plays (New Game), else the scene's track (its Course Audio's own Music, or `CourseSounds.music`). A
+    change crossfades on two players (out 1.5 s; in 2.5 s from the track's start) on unscaled time (the title stops
+    time). While a room reveal's own music sounds (`GameEvents.RevealSwell`: one false for every true, also when the
+    reveal is switched off mid-way) the track dips to silence over 0.8 s, pauses in place, and comes back over 2.5 s.
+    The timings are on `CourseSounds` (Music In / Out / Dip).
+  - **The maker (`Debug/CourseSoundsBuilder.cs`, Shift Jam > Audio):** Build fills the house's and the title's music
+    when empty (his Inspector picks stay); Sandbox Music (open scenes) / `SandboxMusicBatch` give the three sandboxes
+    their own track when theirs is empty; Music Import Settings streams the six music clips (Vorbis 0.7; they were
+    Decompress On Load at quality 1). Their .meta files are in the git-ignored `_Imports`: re-run it on a fresh
+    checkout. `MusicBatch` does all three.
+  - Also fixed: the CourseSounds Inspector's "The player" header sits above jump / land again; RoomReveal's fade-out
+    keeps its own source (a replay could break it).
+  - Landed with the editor closed (a hidden batch run; every step run twice, the second kept everything). Raceway,
+    Workshop and ColourCorner were saved with their music fields only. **NOT PLAYED.**

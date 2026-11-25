@@ -2,18 +2,22 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 09:5x — MUSIC IN (D-0211), all from his bought ithappy Playroom pack. NOT PLAYED.
+- **HIS LISTEN, in order:** (1) the title: Toy Room Menu Music rises over 2.5 s; (2) Continue: it crossfades into
+  Calm Adventure; (3) Back to Title, then New Game: the menu track fades, the opening has no music, Calm Adventure
+  starts after it; (4) the playroom reveal (a slot that has not seen it): the house track sinks as the Secret Garden
+  swell rises, and comes back after from where it stopped; (5) a pause: all sound stops and comes back; (6) each
+  sandbox from the title: Workshop Toy Box, Raceway Treasure Hunt Time, Colours Happy Day; (7) the Stadium: silent.
+- **Tuning:** CourseSounds > Music Volume / Title Music Volume / Music In, Out, Dip; a sandbox's Course Audio > Music
+  Volume. An empty clip or a volume of 0 = silence there.
+- **Fresh checkout:** run Shift Jam > Audio > Music Import Settings (the clips' .meta files are git-ignored).
+
 ## 25 Nov 2026 09:1x — SOUND PASS 2 IN (D-0210), NOT PLAYED. Music: from his bought packs only (his word, 25 Nov).
 - **HIS LISTEN:** a checkpoint, a refused door / can't-use, the goal and end choice, a door opening; a Stadium race
   (start, a gate, a lap, a missed gate, the finish); a jump pad and a car launch; a Nitro Star, a Repair Heart, a Shield
   Ring (on, a blocked hit, its end); a Car Cannon's fuse. Too loud / quiet: the clip's volume (course cues) or the
   copy in `Assets/_Imports/ShiftJamMix/` (made with ffmpeg from the pack file).
-- **NEXT (music), WAITING ON HIS PICKS:** his rule "focus on whatever music packs I already have purchased from other
-  creators". Bought music found: ithappy Playroom (10 toy-room tracks, in `_Imports`; 6 loop cleanly), COZY ReSound
-  (Asset Store, 15 calm Sam Bowman pieces), Ambient Sounds (Asset Store, 12 forest-ambience tracks: off-theme). Cozy
-  Tunes: bought or free is unknown. Audition (all at -16 LUFS): `%TEMP%\shiftjam-stage\sound-audition\music` (title,
-  house, reveal, raceway, workshop, colour corner). Wiring needs code: title music + handover in Greybox (the title
-  stops time: unscaled fades), house music waits out the opening and dips under the reveal's swell, per-scene music
-  for the sandboxes, streamed imports. The Stadium stays silent.
+- **Music:** done, D-0211 (the block above).
 
 ## 25 Nov 2026 00:0x — S-H-I-F-T LETTERS IN THE HALLWAY (D-0208) + THE PIXEL LOOK, OFF (D-0209). Landed in a hidden batch run, Greybox SAVED. NOT PLAYED.
 - **HIS PLAYTEST (hallway):** the strip top left on the way in; S: jump from the fifth book; H, I, F: swing the ropes

@@ -83,6 +83,9 @@ namespace ShiftJam
         public static event Action<RopeRider, bool> RopeChanged;
         /// <summary>A breakable prop broke into its pieces on this PC (D-0101; the hitch catcher notes it, D-0133).</summary>
         public static event Action<Breakable> PropBroke;
+        /// <summary>A room reveal's own music began (true) or is over (false: its fade-out ended, or the reveal was switched
+        /// off or destroyed mid-way). Every true is followed by one false. The scene's music dips under it (D-0211).</summary>
+        public static event Action<RoomReveal, bool> RevealSwell;
 
         internal static void RaiseShiftStarted(Shifter who, ShiftSize size) => ShiftStarted?.Invoke(who, size);
         internal static void RaiseShifted(Shifter who, ShiftSize size) => Shifted?.Invoke(who, size);
@@ -118,5 +121,6 @@ namespace ShiftJam
         internal static void RaiseGlideChanged(Glider glider, bool open) => GlideChanged?.Invoke(glider, open);
         internal static void RaiseRopeChanged(RopeRider rider, bool on) => RopeChanged?.Invoke(rider, on);
         internal static void RaisePropBroke(Breakable prop) => PropBroke?.Invoke(prop);
+        internal static void RaiseRevealSwell(RoomReveal reveal, bool on) => RevealSwell?.Invoke(reveal, on);
     }
 }

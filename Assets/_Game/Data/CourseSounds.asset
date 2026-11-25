@@ -97,7 +97,12 @@ MonoBehaviour:
     volume: 0.5
     pitchSpread: 0.1
   landAtLeast: 11
-  music: {fileID: 0}
+  music: {fileID: 8300000, guid: 6e41a2921e193354c9100f2c081d36de, type: 3}
   musicVolume: 0.3
+  titleMusic: {fileID: 8300000, guid: 5f4ce9aa6b0db714ca98114eb6d1c3dd, type: 3}
+  titleMusicVolume: 0.44
+  musicIn: 2.5
+  musicOut: 1.5
+  musicDip: 0.8
   ambience: {fileID: 8300000, guid: 9ca932cb624d7434b963acc917aac484, type: 3}
   ambienceVolume: 0.6

@@ -58893,6 +58893,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.CourseAudio
   sounds: {fileID: 11400000, guid: 76adf2ec0aa95fc4cacd41d6510afd2e, type: 2}
   player: {fileID: 0}
+  music: {fileID: 8300000, guid: a2074b6fe4d032149853d0d3dbca4c94, type: 3}
+  musicVolume: 0.25
 --- !u!4 &1890131061
 Transform:
   m_ObjectHideFlags: 0

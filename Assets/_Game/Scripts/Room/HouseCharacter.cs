@@ -17,6 +17,10 @@ namespace ShiftJam
     /// Every PC runs its own copy and nothing is sent: it is scenery that answers, so online each PC sees it turn to the
     /// player nearest on that PC's screen. It needs no player, no controller and no parts list to work; it does nothing
     /// that allocates each frame.
+    ///
+    /// It says the current step (D-0221, "Gap says the goal"): while a main step (Objectives.Current) has a line on
+    /// ObjectiveSet > Step Talk, its first E for that step says it, then its own lines, then the step's again, and a gold
+    /// "!" (TalkMark) bobs over it until it has said that step's line. Offline only, in the house only.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CharacterBody), typeof(CapsuleCollider))]
@@ -90,6 +94,10 @@ namespace ShiftJam
         [SerializeField, Tooltip("The radius of its solid capsule, in its own body's units. The capsule's height is fitted to what it wears.")]
         private float capsuleRadius = 0.3f;
 
+        [Header("The current step (D-0221)")]
+        [SerializeField, Tooltip("While a main step is the current one and ObjectiveSet > Step Talk has a line for it, E says that line first, then its own lines, then that line again; a '!' floats over it until it has been talked to once for that step. Unticked: its own lines only, no '!'. Nothing online (as D-0220).")]
+        private bool sayStep = true;
+
         // State that must outlive a script reload in Play (plain private fields are carried over by the reload).
         private Quaternion _restRotation;
         private bool _restSet;
@@ -99,6 +107,9 @@ namespace ShiftJam
         private float _lastSeen;
         private float _nextLookAround;
         private int _nextLine;
+        private string _stepFor;     // the step whose line it has said (D-0221): its '!' is gone for that step
+        private int _stepTurn;       // 0: the step's line is next; 1: its own lines are, until they come round
+        private TalkMark _mark;      // the '!' over it, made the first time it is wanted
 
         // Caches, found again on first use after a script reload.
         [NonSerialized] private CharacterBody _body;
@@ -124,6 +135,8 @@ namespace ShiftJam
         [NonSerialized] private Quaternion _neckPose;
         [NonSerialized] private Quaternion _headWritten;
         [NonSerialized] private Quaternion _neckWritten;
+        [NonSerialized] private bool _sceneRead;
+        [NonSerialized] private bool _stepScene;
 
         /// <summary>Its name, shown as the title of what it says.</summary>
         public string CharacterName => characterName ?? "";
@@ -165,14 +178,16 @@ namespace ShiftJam
         // ---------- talking (IInteractable) ----------
 
         /// <summary>"Talk" (its Prompt field) while it has a line to say; nothing otherwise.</summary>
-        public string PromptFor(Interactor who) => HasLines ? prompt : "";
+        public string PromptFor(Interactor who) => HasLines || !string.IsNullOrWhiteSpace(StepLine(out _)) ? prompt : "";
 
         /// <summary>E: it says its next line to that player (on their screen only), plays its talking gesture and turns to
-        /// them, keeping to them for Forget Seconds.</summary>
+        /// them, keeping to them for Forget Seconds. While a main step has a line for it (D-0221), that line comes first,
+        /// then its own lines, then the step's line again.</summary>
         public void Interact(Interactor who)
         {
             if (who == null) return;
-            string line = NextLine();
+            string line = NextSaid();
+            UpdateMark();
             if (line == null) return;
             Toasts.ShowFor(who, line, ToastKind.Tip, string.IsNullOrWhiteSpace(characterName) ? null : characterName);
             Gesture(TalkHash);
@@ -198,6 +213,62 @@ namespace ShiftJam
                 for (int i = 0; i < lines.Length; i++) if (!string.IsNullOrWhiteSpace(lines[i])) return true;
                 return false;
             }
+        }
+
+        /// <summary>The current main step's line for it (ObjectiveSet > Step Talk) and the step's id, or "" when it has none
+        /// to say: Say Step unticked, the helpers' switch off, online, a scene with no main steps, after the Goal, or no line
+        /// for this step (D-0221).</summary>
+        private string StepLine(out string stepId)
+        {
+            stepId = "";
+            if (!sayStep || !Application.isPlaying || !Objectives.Live) return "";
+            if (!_sceneRead)
+            {
+                _sceneRead = true;
+                _stepScene = Objectives.StepsIn(gameObject.scene.name);
+            }
+            if (!_stepScene) return "";
+            ObjectiveSet set = Objectives.Set;
+            if (!set.friendsSayStep) return "";
+            ObjectiveStep step = Objectives.Current;
+            if (step == null) return "";
+            stepId = step.id ?? "";
+            return HelperWords.StepLine(set, stepId);
+        }
+
+        /// <summary>What E says now: the step's line when it is its turn (the first talk for a step, and again each time its
+        /// own lines come round), else its own next line; null when there is nothing to say.</summary>
+        private string NextSaid()
+        {
+            string stepLine = StepLine(out string stepId);
+            if (string.IsNullOrWhiteSpace(stepLine)) return NextLine();
+            if (stepId != _stepFor) { _stepTurn = 0; _nextLine = 0; }   // a new step: its line first, then its own from the top
+            if (_stepTurn == 0 || !HasLines)
+            {
+                _stepFor = stepId;
+                _stepTurn = 1;
+                return stepLine;
+            }
+            string own = NextLine();
+            bool more = false;
+            for (int i = _nextLine; lines != null && i < lines.Length; i++) if (!string.IsNullOrWhiteSpace(lines[i])) { more = true; break; }
+            if (!more) { _stepTurn = 0; _nextLine = 0; }   // its own lines came round: the step's again
+            return own;
+        }
+
+        /// <summary>The '!' over it: shown while the current step has a line it has not said yet (and Step Mark On), hidden
+        /// otherwise. Checked a few times a second and after each talk, not every frame.</summary>
+        private void UpdateMark()
+        {
+            string stepLine = StepLine(out string stepId);
+            bool want = !string.IsNullOrWhiteSpace(stepLine) && stepId != _stepFor && Objectives.Set.stepMarkOn;
+            if (!want)
+            {
+                if (_mark != null && _mark.gameObject.activeSelf) _mark.gameObject.SetActive(false);
+                return;
+            }
+            if (_mark == null) _mark = TalkMark.Make(transform, GetComponent<CapsuleCollider>());
+            if (!_mark.gameObject.activeSelf) _mark.gameObject.SetActive(true);
         }
 
         /// <summary>The next line that has words, moving on past it; null when there is none.</summary>
@@ -242,6 +313,7 @@ namespace ShiftJam
                 _lastWave = now;
             }
             _wasNear = near;
+            UpdateMark();   // the step may have changed, or a party begun (D-0221)
         }
 
         /// <summary>Turns to <paramref name="who"/> from now on (until forgotten).</summary>

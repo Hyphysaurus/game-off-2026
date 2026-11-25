@@ -121,6 +121,58 @@ namespace ShiftJam
         [Header("Gold stars (all optional)")]
         public ObjectiveStar[] stars = DefaultStars();
 
+        // ---- D-0221: the helpers (arrival cards, refusals that point, the house characters' step lines, the stall nudge,
+        // the downstairs crate). Words are PLACEHOLDERS for him to rewrite. The helpers maker (Shift Jam > Objectives > Land
+        // Helpers) adds a missing card, core, room or step line by its id and never overwrites what he wrote.
+
+        [Header("Arrival cards (D-0221)")]
+        [Tooltip("OFF SWITCH: unticked, no arrival card shows.")] public bool arrivalsOn = true;
+        [Tooltip("The line's letters on the card, as a share (percent) of the room name's.")] [Range(10f, 100f)] public float arrivalLineSize = 40f;
+        [Tooltip("Seconds the card waits once the way is clear (no other big card, no menu, no camera move, no Flat Zone) before it shows.")]
+        [Min(0f)] public float arrivalSettle = 0.6f;
+        [Tooltip("One card per room: its name, one line of what to do, its colour, and the box that counts as arriving.")]
+        public ArrivalWords[] arrivals = HelperWords.DefaultArrivals();
+
+        [Header("Refusals that point (D-0221)")]
+        [Tooltip("OFF SWITCH: unticked, a refused shift says the old words.")] public bool refusalsPoint = true;
+        [Tooltip("Said instead of 'No charge: a core refills it' when the nearest awake core that would refill the player is known. {0} = its place words.")]
+        public string emptyPointFormat = "No charge. The nearest core is {0}.";
+        [Tooltip("Each core's place words, by its object name. A core needs a CoreMarker (the maker adds them) to be pointed at.")]
+        public CorePlace[] corePlaces = HelperWords.DefaultCorePlaces();
+        [Tooltip("Boxes where a kid does not fit, and the words that say where there is room.")]
+        public GrowRoom[] growRooms = HelperWords.DefaultGrowRooms();
+
+        [Header("Gap, Pit and Dab say the step (D-0221)")]
+        [Tooltip("OFF SWITCH: unticked, the house characters say only their own lines and show no '!'.")] public bool friendsSayStep = true;
+        [Tooltip("Their line for each main step (by its id). The first E after a step changes says it; then their own lines, then it again.")]
+        public StepTalk[] stepTalk = HelperWords.DefaultStepTalk();
+        [Tooltip("The '!' over a character until it has been talked to once for the current step. Unticked: no '!'.")] public bool stepMarkOn = true;
+        [Tooltip("The '!' colour (the toasts' gold).")] public Color stepMarkColour = new Color32(0xff, 0xd1, 0x66, 0xff);
+        [Tooltip("The '!' height, as a share of the character's height.")] [Min(0.01f)] public float stepMarkSize = 0.35f;
+        [Tooltip("How far over the character's head the '!' floats, as a share of its height.")] [Min(0f)] public float stepMarkGap = 0.12f;
+        [Tooltip("How far the '!' bobs up and down, as a share of the character's height.")] [Min(0f)] public float stepMarkBob = 0.06f;
+        [Tooltip("Bobs a second.")] [Min(0f)] public float stepMarkBobsPerSecond = 1.4f;
+
+        [Header("The stall nudge (D-0221)")]
+        [Tooltip("OFF SWITCH: unticked, no nudge.")] public bool nudgeOn = true;
+        [Tooltip("Seconds of play with no step done and no star earned before the goal card pulses and the step is said again. The clock stops under menus, the opening, big cards and Flat Zones.")]
+        [Min(1f)] public float nudgeSeconds = 45f;
+        [Tooltip("The tip that repeats the step. {0} = the step's words.")] public string nudgeFormat = "Next: {0}";
+        [Tooltip("Seconds the goal card's pulse takes.")] [Min(0.05f)] public float pulseSeconds = 0.9f;
+        [Tooltip("How much the goal card swells at the pulse's top (0.12 = 12% bigger).")] [Min(0f)] public float pulseSwell = 0.12f;
+        [Tooltip("Swells in one pulse.")] [Min(1)] public int pulseBeats = 2;
+
+        [Header("The downstairs crate and light (D-0221)")]
+        [Tooltip("Where the glide down from the hallway's pit comes to the floor (his brother's landing, 25 Nov: 366, -160, -200). The maker stands the ammo box here, on the floor found under it.")]
+        public Vector3 landingSpot = new Vector3(366f, -160f, -200f);
+        [Tooltip("The ammo box's magazines for each blaster carried (the fort's MazeAmmo gives 1). 0 = fill every reserve to the top (and the grenades).")]
+        [Min(0)] public int crateMagazines = 3;
+        [Tooltip("Seconds before the taken box comes back (MazeAmmo's 15).")] [Min(0f)] public float crateRespawnSeconds = 15f;
+        [Tooltip("The warm light over the box: its colour.")] public Color landingLightColour = new Color(1f, 0.78f, 0.5f);
+        [Tooltip("The light's height over the floor, in the world.")] [Min(0f)] public float landingLightHeight = 22f;
+        [Tooltip("The light's reach, in the world.")] [Min(0f)] public float landingLightRange = 70f;
+        [Tooltip("The light's brightness (the room's own lamps are 700 to 2600, much higher up).")] [Min(0f)] public float landingLightIntensity = 250f;
+
         /// <summary>True for the kinds the maker wires to an ObjectiveHook.</summary>
         public static bool IsHook(ObjectiveEvent e) => e >= ObjectiveEvent.CoreUsed && e <= ObjectiveEvent.LampWoken;
 

@@ -13,7 +13,8 @@ namespace ShiftJam
     /// shows the counter alone. Hidden on the title, in the menus, the key sheet and the console, during New Game's
     /// opening, in Build Mode, in a team match (its score sits in this corner), online, and in the house once every step is
     /// done (after the Goal). While the Flat Zone letters' strip (FlatHud) shows in the same corner, the card slides down
-    /// under it. It only reads Objectives. One for the whole game, made at the first scene; built in code like the other
+    /// under it. The stall nudge (ObjectiveHelpers, D-0221) makes the whole card pulse (<see cref="Pulse"/>).
+    /// It only reads Objectives. One for the whole game, made at the first scene; built in code like the other
     /// HUDs; nothing is made or changed per frame unless something moves.
     /// Words and timings: Resources/ObjectiveSet. OFF SWITCH: untick On there.
     /// </summary>
@@ -42,6 +43,7 @@ namespace ShiftJam
         private ObjectiveStep _shown, _pending;
         private Phase _phase;
         private float _phaseAt, _popAt = float.NegativeInfinity, _flatUntil = float.NegativeInfinity, _y = -1f;
+        private float _pulseAt = float.NegativeInfinity;   // the stall nudge's pulse (D-0221)
         private bool _stepsHere;
         private int _shownCount = -1, _shownTotal = -1;
 
@@ -142,6 +144,13 @@ namespace ShiftJam
 
         private void OnStar(string id, string title) => _popAt = Time.unscaledTime;
 
+        /// <summary>The stall nudge (D-0221): the whole card swells a few beats (ObjectiveSet > Pulse Seconds, Swell, Beats)
+        /// so the eye goes to the step. Nothing if the card is not made.</summary>
+        public static void Pulse()
+        {
+            if (_instance != null) _instance._pulseAt = Time.unscaledTime;
+        }
+
         /// <summary>A step finished or the save was read again. A step finished while the card shows: tick, then slide.
         /// Anything else (a load, New Game, another slot): the card shows the new state at once.</summary>
         private void OnChanged()
@@ -216,6 +225,15 @@ namespace ShiftJam
                 _step.alpha = t;
                 if (t >= 1f) _phase = Phase.Still;
             }
+
+            // The nudge's pulse: beats of a swell, eased in and out (the card's corner stays put; it is its pivot).
+            float u = (now - _pulseAt) / Mathf.Max(0.05f, set.pulseSeconds);
+            if (u >= 0f && u < 1f)
+            {
+                float swell = 1f + set.pulseSwell * Mathf.Abs(Mathf.Sin(u * Mathf.PI * Mathf.Max(1, set.pulseBeats)));
+                _card.localScale = new Vector3(swell, swell, 1f);
+            }
+            else if (_card.localScale.x != 1f) _card.localScale = Vector3.one;
 
             float p = Mathf.Clamp01((now - _popAt) / Mathf.Max(0.01f, set.popSeconds));
             if (p >= 1f && _starIcon.localScale.x == 1f) return;   // still: nothing is touched (no canvas rebuild)

@@ -1,0 +1,244 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0af16ace5a1c5af448ab430a7d506746, type: 3}
+  m_Name: MonsterSettings
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.MonsterSettings
+  on: 1
+  online: 1
+  sight: 14
+  loseAfter: 2
+  kidReach: 50
+  lookEvery: 0.2
+  lightEvery: 0.1
+  leash: 5
+  creepSpeed: 2.2
+  runSpeed: 6
+  backSpeed: 2.5
+  turnSpeed: 300
+  gravity: 25
+  stuckSeconds: 3
+  bumpGap: 0.5
+  bumpWindup: 0.3
+  bumpFollow: 0.3
+  bumpPush: 8
+  bumpLift: 3.5
+  bumpMissShare: 1.5
+  backSeconds: 1
+  bumpCooldown: 3
+  bumpsAtMost: 2
+  bumpWindow: 4
+  bumpVolume: 0.55
+  flinchSeconds: 0.4
+  fleeDistance: 14
+  fleeToBack: 0.6
+  fleeSeconds: 4
+  returnAfter: 3
+  squeakEvery: 1.5
+  health: 30
+  hitSafeSeconds: 0.1
+  hurtSeconds: 0.5
+  downSeconds: 5
+  freezeSeconds: 0.25
+  glint: {r: 1.6, g: 1.25, b: 0.3, a: 1}
+  glintBreath: 0.4
+  glintDepth: 0.35
+  blinkEvery: 3.5
+  blinkSeconds: 0.12
+  prizeGlint: 1
+  squeak:
+    clip: {fileID: 8300000, guid: e979a016e23ccb440b206242974a5d1e, type: 3}
+    volume: 0.55
+    pitchSpread: 0.15
+  bump:
+    clip: {fileID: 8300000, guid: ad75df6220de31542bd531cd86e47e20, type: 3}
+    volume: 0.55
+    pitchSpread: 0.1
+  soundNear: 2
+  soundFar: 30
+  laneHalfWidth: 2.5
+  flashlightClear: 3
+  caveSpots:
+  - kind: Slime
+    along: 0.35
+    side: 1
+    apart: 9
+  - kind: TurtleShell
+    along: 0.65
+    side: -1
+    apart: 9
+  - kind: Slime
+    along: 1.2
+    side: 1
+    apart: 10
+  - kind: BlueSlime
+    along: 1.25
+    side: -1
+    apart: 9
+  prizes:
+  - Slime
+  - TurtleShell
+  - BlueSlime
+  - StarFish
+  - Beholder
+  - ChestMonster
+  - PartyC01
+  - PartyP01
+  prizeTall: 0.22
+  prizeWide: 0.3
+  prizeMargin: 0.04
+  prizeTurn: 25
+  kinds:
+  - name: Slime
+    packPrefab: Assets/_Imports/DungeonMason/RPG Monster DUO PBR Polyart/Prefabs/PolyartDefault/SlimePolyart.prefab
+    idle: IdleNormal
+    alert: IdleBattle
+    walk: WalkFWD
+    run: RunFWD
+    back: WalkBWD
+    attack: Attack01
+    hit: GetHit
+    hide: Dizzy
+    die: Die
+    rest: IdleNormal
+    restAt: 0
+    eyeBones:
+    - EyeBall
+    eyePairGap: 0
+    eyeSize: 0.06
+    eyeHeight: 0.6
+  - name: TurtleShell
+    packPrefab: Assets/_Imports/DungeonMason/RPG Monster DUO PBR Polyart/Prefabs/PolyartDefault/TurtleShellPolyart.prefab
+    idle: IdleNormal
+    alert: IdleBattle
+    walk: WalkFWD
+    run: RunFWD
+    back: WalkBWD
+    attack: Attack01
+    hit: GetHit
+    hide: Dizzy
+    die: Die
+    rest: IdleNormal
+    restAt: 0
+    eyeBones:
+    - Eyeball
+    eyePairGap: 0
+    eyeSize: 0.06
+    eyeHeight: 0.6
+  - name: BlueSlime
+    packPrefab: Assets/_Imports/DungeonMason/RPGMonsterCouplePBRPolyart/Prefab/BlueSlimePolyart.prefab
+    idle: BlueSlime_IdleNormal
+    alert: BlueSlime_IdleBattle
+    walk: BlueSlime_WalkFWD
+    run: BlueSlime_RunFWD
+    back: BlueSlime_WalkBWD
+    attack: BlueSlime_Attack01
+    hit: BlueSlime_GetHit
+    hide: BlueSlime_Dizzy
+    die: BlueSlime_Die
+    rest: BlueSlime_IdleNormal
+    restAt: 0
+    eyeBones:
+    - Head
+    eyePairGap: 0
+    eyeSize: 0.06
+    eyeHeight: 0.6
+  - name: StarFish
+    packPrefab: Assets/_Imports/DungeonMason/RPGMonsterCouplePBRPolyart/Prefab/StarFishPolyart.prefab
+    idle: StarFish_IdleNormal
+    alert: StarFish_IdleBattle
+    walk: StarFish_MoveFWD
+    run: StarFish_MoveFWD
+    back: StarFish_MoveBWD
+    attack: StarFish_Attack01
+    hit: StarFish_GetHit
+    hide: StarFish_Dizzy
+    die: StarFish_Die
+    rest: StarFish_IdleNormal
+    restAt: 0
+    eyeBones:
+    - Eye01_L
+    - Eye01_R
+    eyePairGap: 0
+    eyeSize: 0.06
+    eyeHeight: 0.6
+  - name: Beholder
+    packPrefab: Assets/_Imports/DungeonMason/RPGMonsterPartnersPBRPolyart/Prefabs/Character/BeholderPolyartDefault.prefab
+    idle: IdleNormal
+    alert: IdleBattle
+    walk: WalkFWD
+    run: Run
+    back: WalkBWD
+    attack: Attack01
+    hit: GetHit
+    hide: Dizzy
+    die: Die
+    rest: IdleNormal
+    restAt: 0
+    eyeBones:
+    - EyeBallCTRL
+    eyePairGap: 0
+    eyeSize: 0.06
+    eyeHeight: 0.6
+  - name: ChestMonster
+    packPrefab: Assets/_Imports/DungeonMason/RPGMonsterPartnersPBRPolyart/Prefabs/Character/ChestMonsterPolyartDefault.prefab
+    idle: IdleNormal
+    alert: IdleBattle
+    walk: WalkFWD
+    run: Run
+    back: WalkBWD
+    attack: Attack01
+    hit: GetHit
+    hide: Dizzy
+    die: Die
+    rest: IdleChest
+    restAt: 0
+    eyeBones:
+    - EyeBallCTRL
+    eyePairGap: 0
+    eyeSize: 0.06
+    eyeHeight: 0.6
+  - name: PartyC01
+    packPrefab: Assets/_Imports/DungeonMason/PartyMonsterDuo/Prefab/C01.prefab
+    idle: Idle03
+    alert: Idle03
+    walk: Run01FWD
+    run: Run01FWD
+    back: Run01BWD
+    attack: Attack01
+    hit: GetHit
+    hide: Dizzy
+    die: Die01
+    rest: Idle03
+    restAt: 0
+    eyeBones:
+    - head
+    eyePairGap: 0.12
+    eyeSize: 0.035
+    eyeHeight: 0.6
+  - name: PartyP01
+    packPrefab: Assets/_Imports/DungeonMason/PartyMonsterDuo/Prefab/P01.prefab
+    idle: Idle03
+    alert: Idle03
+    walk: Run01FWD
+    run: Run01FWD
+    back: Run01BWD
+    attack: Attack01
+    hit: GetHit
+    hide: Dizzy
+    die: Die01
+    rest: Idle03
+    restAt: 0
+    eyeBones:
+    - head
+    eyePairGap: 0.12
+    eyeSize: 0.035
+    eyeHeight: 0.6

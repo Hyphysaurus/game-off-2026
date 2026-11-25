@@ -108,3 +108,18 @@ The jam entry (submit 30 Nov) is a snapshot of this, not the end of it. One buil
   reasons to visit cores; keep the orbs finite and place it after the core lessons.
 - **The name:** SHIFTBOX is his favourite so far (25 Nov 2026; "SHIFT" alone is crowded on Steam: Shift Happens is a
   size-changing platformer). Not decided: check the Steam store and trademarks before the Coming Soon page.
+- **Monster ideas (Dungeon Mason free packs, imported 25 Nov 2026 into `Assets/_Imports/DungeonMason/`; his "i like your
+  suggestions").** Built for the jam: the monsters under the bed (D-0222) and the claw machine's prizes (D-0223). Parked:
+  - Hallway: slimes as walkers on the 2D lane (jump on them or shoot them with the 2D aim, D-0216); kick the spiked shell
+    into the skittles for the Skittle strike star; moths (Monster Minion Survivor critters) in the dark stretch, drawn to
+    the flashlight.
+  - Playroom: the Beholder as the army fort's lookout (a view cone like ToySoldier's; blind it with the flashlight); Party
+    Monster Duo as friends who dance and cheer when you earn a star (or a boxing match); a block golem mini-boss (the
+    Polyart Rock Golem recoloured in toy-block colours) beaten by the size flip: a giant to the toy, a toy to the kid.
+  - Later: a plush dragon boss on the wardrobe (grow and tuck it into bed; the Free Dragons need a bright recolour, they
+    are dark painted textures); the footman, grunt and lich as a toy castle set at war with the army men; shrink into the
+    Tiny Fantasy Forest as a tabletop diorama; Tiny Bird Duo as skins for online parties; a mimic chest that holds a gold
+    star (shine in its eye to open it).
+  - Look test renders (25 Nov): the Polyart monsters match the ithappy toys; the Free Dragons and boars do not. Party Monster
+    Duo and Dog Knight stayed in a T-pose in the preview (check their animators before use); the red Soul Eater did not
+    show. Skip for enemies: Battle Royale Duo, RPG Hero, Tiny Hero Duo, Sci-Fi Warrior, the Wizards.

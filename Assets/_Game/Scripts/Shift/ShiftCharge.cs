@@ -12,7 +12,9 @@ namespace ShiftJam
     /// changes size round its middle: the toy appears where the kid's chest was, the kid grows round the toy (and stands on
     /// the floor below if the floor is nearer than a kid's half height), and the speed carries over in proportion. The first
     /// shrink in the air without a glider says once that falling toys break. How many charges, the wait and the refills are
-    /// tuned on ShiftSettings. A refused press says why on the HUD and plays the "refused" sound.
+    /// tuned on ShiftSettings. A refused press says why on the HUD and plays the "refused" sound; since D-0221 the words
+    /// point the way when they can ("No charge" names the nearest core that would refill you, "No room to grow" says where
+    /// there is room: RefusalPointer, words on Resources/ObjectiveSet).
     /// Added to the player by the Shifter at start; draws its own HUD (ShiftChargeHud).
     /// </summary>
     [RequireComponent(typeof(Shifter))]
@@ -131,7 +133,9 @@ namespace ShiftJam
                 : null;
             if (refused != null)
             {
-                if (_hud != null) _hud.ShowNotice(refused);
+                // The toast points the way (D-0221): the nearest core that would refill this player, or where there is room
+                // to grow; the old words when nothing is known. The event keeps the old words (the play log, the sounds).
+                if (_hud != null) _hud.ShowNotice(RefusalPointer.Point(refused, transform.position, _shifter.Size));
                 GameEvents.RaiseShiftRefused(_shifter, refused);
                 return;
             }

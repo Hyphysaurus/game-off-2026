@@ -4103,3 +4103,42 @@
     the next step is done. Re-run the maker after any builder that remakes a hooked part (for example the glide rings).
   - Maker: Shift Jam > Objectives > Build Objectives (D-0220). Landed and Greybox saved. Off: untick On on ObjectiveSet.
     **NOT PLAYED.**
+- **D-0221 (25 Nov 2026, 14:4x) Helpers for the objective layer, and the downstairs fix.** The rest of the objectives plan
+  he approved ("Let's go for those"); his brother glided downstairs and held a dart SMG at 0 / 0 for 80 s.
+  - **Arrival cards** (`Room/ArrivalCard.cs` triggers + `UI/ObjectiveHelpers.cs`): the room's name big and one line under
+    it, once per save slot: THE HALLWAY, THE PLAYROOM (after its reveal), THE WARDROBE, THE LIVING ROOM (on the ground).
+    A card waits until no other big card, menu, reveal or Flat Zone is up.
+  - **Refusals that point** (`Room/CoreMarker.cs`, RefusalPointer): "No charge. The nearest core is on the desk." names
+    the nearest awake core that would refill that size; "No room to grow here. The hallway's tall end has room." in the
+    hallway. The old words when nothing is known; GameEvents.ShiftRefused keeps the old words for the play log.
+  - **Gap, Pit and Dab say the current step** (`Room/HouseCharacter.cs` Say Step, `Room/TalkMark.cs`): a gold "!" bobs
+    over them until talked to for the current step; their own lines after.
+  - **The stall nudge:** after 45 s with no step done and no star, the goal card swells twice and one Tip repeats the
+    step; re-armed by progress (`ObjectiveHud.Pulse`).
+  - **Downstairs:** an ammo crate (the AmmoBox prefab, as the fort's MazeAmmo, 3 magazines, back after 15 s) and a warm
+    light at the glide's landing (366, -160, -200). The Tan Splinter is 9 soldiers at 60 and an officer at 140: at
+    least 46 dart hits to rout. A player who glides down with no blaster gets nothing from the crate (punches and kicks
+    still count).
+  - Words: placeholders on `Resources/ObjectiveSet` (keyed lists; the maker only adds missing keys). Maker: Shift Jam >
+    Objectives > Land Helpers (D-0221); re-run it after anything that rebuilds the cores. **NOT PLAYED.**
+- **D-0222 (25 Nov 2026, 14:4x) The monsters under the bed.** His "i like your suggestions, proceed" on the brainstorm
+  (the Dungeon Mason free Polyart packs, imported 25 Nov into git-ignored `Assets/_Imports/DungeonMason/`).
+  - `Monsters/DarkMonster.cs` + `Resources/MonsterSettings` (every number and each kind's Animator state names): 4 in the
+    cave under the bed (Slime, TurtleShell, Slime, BlueSlime) under `Room/Bedroom/BedMonsters`, 9 to 13 off the way from
+    the cave's mouth (70.6, 0, -20) to the flashlight, which is kept clear (2.5 either side).
+  - In the dark: warm eye glints that blink (`Art/Monsters/MonsterEyeGlow.mat`, unlit, so a Dark Zone does not dim it); a
+    toy in sight within 14 is crept toward (leash 5); in reach it bumps the toy back (Knockback, push 8 + lift 3.5, no
+    damage, no charge lost, at most 2 bumps in 4 s). In a flashlight beam: a squeak, a flinch, it flees to the back and
+    cowers while lit, home 3 s after. Darts, punches and kicks knock it down (health 30), it gets up at its spot after
+    5 s. A kid near the bed sends them to hide.
+  - **Frozen toys in the light:** the wall switch (RoomLights.On) or the star lamp (StarLamp.Woken) stops them in a rest
+    pose, eyes out, hits turned away; a lit Continue is frozen from the first frame.
+  - Prefab variants of the pack prefabs under `Assets/_Game/Prefabs/Monsters/` (they only reference the pack). Online:
+    each PC's monsters react to its own player, nothing networked (MonsterSettings > Online off = still toys).
+    Off: MonsterSettings > On. **NOT PLAYED.**
+- **D-0223 (25 Nov 2026, 14:4x) The claw machine's prizes.** 7 mini monsters (2.9 to 5.7 tall) on the prize floor inside
+  the claw machine's glass (y 33.2), under `Room/Bedroom/ClawPrizes`; the same light rule standing still (idling with
+  glinting eyes in the dark, frozen once the room is lit). The 8th (Party P01) did not fit. Landing fix: the maker
+  measured the case from every glass material (the chute's cap and the lamps too) and skipped the body that holds the
+  floor; it now uses the body's own glass and keeps the body for the floor. Maker for D-0222 and D-0223: Shift Jam >
+  House > Land Bedroom Monsters; re-run it after Land Start Room Toys. **NOT PLAYED.**

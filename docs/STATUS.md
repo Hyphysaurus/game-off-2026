@@ -2,6 +2,22 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 14:4x — HELPERS + DOWNSTAIRS FIX (D-0221), MONSTERS UNDER THE BED (D-0222), CLAW MACHINE PRIZES (D-0223), LANDED, Greybox saved. NOT PLAYED.
+- **HIS TEST, bedroom:** New Game, walk from the toy box toward the bed: warm blinking eye glints under it. Step toward
+  one: it creeps at you and bumps you back with a hop (no damage). Grab the flashlight (L) and shine it at one: a squeak,
+  it runs to the back and cowers, comes home 3 s after. Two darts knock one down; it gets up after 5 s. The wall switch
+  (as the kid) or the star lamp: every monster freezes, eyes out. The claw machine: 7 mini monsters idling in the glass,
+  frozen once the room is lit. Faults to watch: a monster in the way to the flashlight, the toy flung far, T-poses,
+  glints off the faces, prizes poking through the glass.
+- **HIS TEST, helpers:** the THE HALLWAY card through the little door (once per slot); F with no charge names the nearest
+  core ("on the desk", "in the army fort"); F in the hallway with charge: "The hallway's tall end has room."; a gold "!"
+  over Gap, Pit and Dab until E, then the step line; 45 s idle: the goal card swells and a Tip repeats the step. Glide
+  down from the hallway's pit: THE LIVING ROOM card, a warm light and an ammo crate at the landing, then rout the Tan
+  Splinter ("9 to go"...) for the gold star.
+- **Words:** every card, refusal and step line is a placeholder on Resources/ObjectiveSet for him to rewrite.
+- **Still open for him:** the claw machine's own lamps glowing in the dark room; deleting the 7 unused Dungeon Mason
+  packs (C: at 7.7 GB free; needs his explicit "delete"); enemies hurting the toy in the house (still off).
+
 ## 25 Nov 2026 13:5x — THE OBJECTIVE LAYER (D-0220) LANDED, Greybox saved. NOT PLAYED. DUNGEON MASON PACKS IN (git-ignored).
 - **HIS TEST (objectives):** New Game: the card top left ("BACK ON THE WINDOW SILL", a tick box and the current step, a
   gold star with 0 / 10); after the wake-up line, the second line "I need to get back up on that window sill."; wake the

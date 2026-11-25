@@ -229,3 +229,104 @@ MonoBehaviour:
       - Room/Course/R6_Window/Goal
       scene: Greybox
       needed: 1
+  arrivalsOn: 1
+  arrivalLineSize: 40
+  arrivalSettle: 0.6
+  arrivals:
+  - id: hallway
+    title: THE HALLWAY
+    line: Follow it to the tall end
+    colour: {r: 0.5568628, g: 0.7921569, b: 0.9019608, a: 1}
+    onGround: 0
+    centre: {x: 86, y: 7, z: -150}
+    size: {x: 292, y: 16, z: 21}
+  - id: playroom
+    title: THE PLAYROOM
+    line: Grow, lift the safe, shrink into the wardrobe
+    colour: {r: 1, g: 0.81960785, b: 0.4, a: 1}
+    onGround: 0
+    centre: {x: 480, y: 65, z: -140}
+    size: {x: 390, y: 130, z: 325}
+  - id: wardrobe
+    title: THE WARDROBE
+    line: Climb to the top shelf
+    colour: {r: 0.76862746, g: 0.70980394, b: 0.99215686, a: 1}
+    onGround: 0
+    centre: {x: 480, y: 85, z: -700}
+    size: {x: 196, y: 170, z: 121}
+  - id: downstairs
+    title: THE LIVING ROOM
+    line: Knock every tan soldier down once
+    colour: {r: 0.9137255, g: 0.78431374, b: 0.6039216, a: 1}
+    onGround: 1
+    centre: {x: 355, y: -95, z: -135}
+    size: {x: 650, y: 130, z: 390}
+  refusalsPoint: 1
+  emptyPointFormat: No charge. The nearest core is {0}.
+  corePlaces:
+  - core: ShiftCore
+    where: in the toy box
+  - core: ShiftCore2
+    where: up on the bed
+  - core: ChargeCore
+    where: by the pencil bridge
+  - core: ChargeCoreDark
+    where: in the dark past the bridge
+  - core: ChargeCoreTall
+    where: at the hallway's tall end
+  - core: CoreE_Shelf
+    where: on the shelf at the hallway's tall end
+  - core: CoreA_Grow
+    where: in the army fort
+  - core: CoreB_Shrink
+    where: on the desk
+  - core: CoreC_Grow
+    where: on the wardrobe's top shelf
+  - core: CoreD_Window
+    where: on the window sill
+  growRooms:
+  - id: hallway
+    words: No room to grow here. The hallway's tall end has room.
+    centre: {x: 86, y: 7, z: -150}
+    size: {x: 292, y: 16, z: 21}
+  friendsSayStep: 1
+  stepTalk:
+  - step: wake-box
+    line: The core in your box is asleep. Shine the flashlight on it.
+  - step: little-door
+    line: The switch on the shelf opens the little door.
+  - step: through-door
+    line: The little door is open. Go on through.
+  - step: tall-end
+    line: Follow the hallway to its tall end. There's room to grow there.
+  - step: core-a
+    line: There's a grow core in the army fort.
+  - step: safe
+    line: Lift the safe off the hole under the wardrobe.
+  - step: core-b
+    line: The shrink core is up on the desk.
+  - step: wardrobe
+    line: Small again? In you go, under the wardrobe.
+  - step: core-c
+    line: Climb to the top shelf. That core grows you out.
+  - step: sill
+    line: Up onto the window sill!
+  stepMarkOn: 1
+  stepMarkColour: {r: 1, g: 0.81960785, b: 0.4, a: 1}
+  stepMarkSize: 0.35
+  stepMarkGap: 0.12
+  stepMarkBob: 0.06
+  stepMarkBobsPerSecond: 1.4
+  nudgeOn: 1
+  nudgeSeconds: 45
+  nudgeFormat: 'Next: {0}'
+  pulseSeconds: 0.9
+  pulseSwell: 0.12
+  pulseBeats: 2
+  landingSpot: {x: 366, y: -160, z: -200}
+  crateMagazines: 3
+  crateRespawnSeconds: 15
+  landingLightColour: {r: 1, g: 0.78, b: 0.5, a: 1}
+  landingLightHeight: 22
+  landingLightRange: 70
+  landingLightIntensity: 250

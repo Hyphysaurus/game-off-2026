@@ -344,7 +344,7 @@ MonoBehaviour:
   puffSeconds: 2.5
   puffSpeed: 6
   loadClip: {fileID: 8300000, guid: 45dcc27c1c3b1e34e99a6e2cff13f5c4, type: 3}
-  fuseClip: {fileID: 8300000, guid: 751d0f0ab5a38864dba0b07ea86cb1f8, type: 3}
+  fuseClip: {fileID: 8300000, guid: 0e857ecba20d5de469563b4e102e9076, type: 3}
   boomClip: {fileID: 8300000, guid: 990868152257ecf44a9aded2a93970cb, type: 3}
   recoil: 0.6
   recoilTime: 0.4

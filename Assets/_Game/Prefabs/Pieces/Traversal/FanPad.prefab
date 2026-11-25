@@ -275,7 +275,7 @@ MonoBehaviour:
   visual: {fileID: 3149612866484110175}
   squash: 0.8
   squashTime: 0.25
-  sound: {fileID: 8300000, guid: 7dce4e9db45f4b04a8a3e26233896f03, type: 3}
+  sound: {fileID: 8300000, guid: 4d31b73decbb5e644a8b44acd2611375, type: 3}
   volume: 0.8
   onLaunch:
     m_PersistentCalls:

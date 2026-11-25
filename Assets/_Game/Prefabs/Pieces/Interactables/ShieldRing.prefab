@@ -220,15 +220,15 @@ MonoBehaviour:
   shieldRing: {fileID: 3217940869648175413, guid: 3ab655199c4aeeb409ae4915589816ec, type: 3}
   shieldMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   shieldBubble: {fileID: 2100000, guid: 19a96b54517af3f41803ff2517113aeb, type: 2}
-  shieldBlocked: {fileID: 8300000, guid: ad75df6220de31542bd531cd86e47e20, type: 3}
-  shieldEnd: {fileID: 8300000, guid: 4e12f5eaab29d3948958f99b35cab95e, type: 3}
+  shieldBlocked: {fileID: 8300000, guid: 9de727f755b9f4d45b5e6a56a82ae0d2, type: 3}
+  shieldEnd: {fileID: 8300000, guid: 3fa0ef73737c15548bac9cf1983f2896, type: 3}
   visual: {fileID: 3776835297818294470}
   hover: 1.05
   spinSpeed: 120
   bobHeight: 0.12
   bobRate: 0.8
   popTime: 0.3
-  sound: {fileID: 8300000, guid: a090290ea146d0848b33161f845621c2, type: 3}
+  sound: {fileID: 8300000, guid: 5161acfcbc23d9e47be7417fd4164588, type: 3}
   volume: 0.8
   onTaken:
     m_PersistentCalls:

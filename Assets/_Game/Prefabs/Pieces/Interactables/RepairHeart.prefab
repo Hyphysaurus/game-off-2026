@@ -196,7 +196,7 @@ MonoBehaviour:
   bobHeight: 0.12
   bobRate: 0.8
   popTime: 0.3
-  sound: {fileID: 8300000, guid: 55438aec24ea66b4397d019b4227ba28, type: 3}
+  sound: {fileID: 8300000, guid: 5d432c82f4b9e70439d7ce7df63ca033, type: 3}
   volume: 0.8
   onTaken:
     m_PersistentCalls:

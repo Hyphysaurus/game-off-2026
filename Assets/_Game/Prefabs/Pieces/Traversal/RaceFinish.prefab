@@ -233,11 +233,11 @@ MonoBehaviour:
   laps: 3
   minLapSeconds: 3
   restartDelay: 4
-  startClip: {fileID: 8300000, guid: 93d34b91992495f4ab913e8a55c06f26, type: 3}
-  gateClip: {fileID: 8300000, guid: 3b5aaf1fe9211594d87360fe7f7a4ebb, type: 3}
-  lapClip: {fileID: 8300000, guid: 216bd37612dd3424abfbc5116204f279, type: 3}
-  missedClip: {fileID: 8300000, guid: c236882a7e20bc44e9929a2cc9e76669, type: 3}
-  finishClip: {fileID: 8300000, guid: 7cc114ef0771c064fb6e4ec8e9f7994d, type: 3}
+  startClip: {fileID: 8300000, guid: eae6ee55898f3b34db05a6e3e451d45a, type: 3}
+  gateClip: {fileID: 8300000, guid: 3fa5bc99a5161c94e9e6285177c4f46b, type: 3}
+  lapClip: {fileID: 8300000, guid: 2925643c075a07f40836580372f1eb27, type: 3}
+  missedClip: {fileID: 8300000, guid: d8a0bea7891ed594a89af667731ef751, type: 3}
+  finishClip: {fileID: 8300000, guid: f4650137877a019459370100533cd239, type: 3}
   volume: 0.8
 --- !u!1001 &2693231184920186354
 PrefabInstance:

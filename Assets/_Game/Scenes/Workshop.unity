@@ -1921,6 +1921,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -12190,7 +12191,7 @@ MonoBehaviour:
   windKeyAxis: {x: 0, y: 1, z: 0}
   boostClip: {fileID: 8300000, guid: 2f269aa0baf502245b4abc93fe3598ea, type: 3}
   windClip: {fileID: 8300000, guid: 8a8f59d0e6d5c154193552a691c35ed0, type: 3}
-  launchClip: {fileID: 8300000, guid: 7dce4e9db45f4b04a8a3e26233896f03, type: 3}
+  launchClip: {fileID: 8300000, guid: 4d31b73decbb5e644a8b44acd2611375, type: 3}
 --- !u!1 &259198634
 GameObject:
   m_ObjectHideFlags: 0
@@ -19349,6 +19350,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -19819,6 +19821,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -20256,6 +20259,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -36138,6 +36142,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -37793,6 +37798,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -37916,7 +37922,9 @@ MonoBehaviour:
   gripCurl: {x: 0, y: 0, z: 0}
   displayName: 
   icon: {fileID: 0}
+  howTo: 
   plank: 0
+  hand: 0
   onPickedUp:
     m_PersistentCalls:
       m_Calls: []
@@ -37924,6 +37932,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   keepInHand: 0
+  madeAt: 0
 --- !u!1001 &1105704154
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -39882,6 +39891,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -40817,6 +40827,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []
@@ -41492,6 +41503,7 @@ MonoBehaviour:
   onUsed:
     m_PersistentCalls:
       m_Calls: []
+  awakeToast: The core woke up. Use it to shift (E).
   onAwaken:
     m_PersistentCalls:
       m_Calls: []

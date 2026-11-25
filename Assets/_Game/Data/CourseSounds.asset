@@ -29,28 +29,28 @@ MonoBehaviour:
     volume: 0.8
     pitchSpread: 0.05
   doorOpen:
-    clip: {fileID: 8300000, guid: 94e3c9f33c82b674c89fa82c1bd3905b, type: 3}
-    volume: 0.6
+    clip: {fileID: 8300000, guid: f72205343ba913a4584a1c457fdc2c66, type: 3}
+    volume: 0.345
     pitchSpread: 0.05
   checkpoint:
-    clip: {fileID: 8300000, guid: 39a0d7bf35abfd54a94afee13b78ef91, type: 3}
-    volume: 0.6
+    clip: {fileID: 8300000, guid: a89b22ac66495db498c51a0c28aaad0a, type: 3}
+    volume: 0.25620002
     pitchSpread: 0
   reset:
     clip: {fileID: 8300000, guid: 56acbb148fe08c245a772927260b7e4f, type: 3}
     volume: 0.6
     pitchSpread: 0.05
   goal:
-    clip: {fileID: 8300000, guid: 7cc114ef0771c064fb6e4ec8e9f7994d, type: 3}
-    volume: 0.8
+    clip: {fileID: 8300000, guid: ee2e595ffa4764a4098beea2fe489079, type: 3}
+    volume: 0.4448
     pitchSpread: 0
   refused:
-    clip: {fileID: 8300000, guid: 48b2e021872b29d48b5eb5252fe43fd9, type: 3}
-    volume: 0.45
+    clip: {fileID: 8300000, guid: d8a0bea7891ed594a89af667731ef751, type: 3}
+    volume: 0.3492
     pitchSpread: 0.05
   cantUse:
-    clip: {fileID: 8300000, guid: 8ca48f8284ebc8c4fb67fed0d5f4dd09, type: 3}
-    volume: 0.35
+    clip: {fileID: 8300000, guid: 2cdea37653ae796409f75cb79112f4ed, type: 3}
+    volume: 0.54249996
     pitchSpread: 0.05
   pickUp:
     clip: {fileID: 8300000, guid: f7e0d0c75a032ed4ba261cc392526d9e, type: 3}
@@ -69,8 +69,8 @@ MonoBehaviour:
     volume: 0.3
     pitchSpread: 0.1
   endChoice:
-    clip: {fileID: 8300000, guid: 55438aec24ea66b4397d019b4227ba28, type: 3}
-    volume: 0.6
+    clip: {fileID: 8300000, guid: 578a7157fc59695418183b1c46cd5cef, type: 3}
+    volume: 0.49320003
     pitchSpread: 0
   lidOpen:
     clip: {fileID: 8300000, guid: b7289aa3f5674c84f8edfd3cde00e1c0, type: 3}

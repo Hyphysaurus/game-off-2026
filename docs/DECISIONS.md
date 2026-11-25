@@ -3923,3 +3923,25 @@
   - **Landed with the editor closed:** a hidden batch Unity run added the renderer feature (a second run keeps it),
     compiled the shader (no errors), placed the letters (the numbers above, exactly the builder's), and SAVED
     Greybox (no editor was open to save it). **NOT PLAYED.**
+- **D-0210 (25 Nov 2026, 09:1x) Sound pass 2: the last whimsical sounds in play swapped for his bought packs, level-matched.**
+  His "proceed with sound pass 2" (the audition folder `pass2`, my "a" picks; folder 18, the opening's spark, waits for
+  his word). Every swap keeps the old sound's peak level (within 1 dB), so only the character changes.
+  - **Course cues** (`Data/CourseSounds.asset`, clip + volume): checkpoint UI_Notification_v1 -> Case Portman Unlock_02 (0.60
+    -> 0.26), refused Error_v3 -> Error_09 (0.35), can't use Error_v1 -> Cancel_04 (0.54), goal Win_v1 -> Level_Up_02 (0.44),
+    end choice UI_Confirm_v1 -> Confirm_02 (0.49), door open Castle_Gate_v1 -> Playroom Drawer_Open_v1 (0.35).
+  - **Race** (RaceFinish prefab + the Stadium's race): start -> GameBurp Beep Ascend 04, gate -> Computer Beeps Short 06,
+    lap -> Multiple Tone 02, missed -> Case Portman Error_09, finish -> Case Portman Level_Up_02.
+  - **Cars and pads:** the launch boing (all 25 car prefabs, the Stadium's 4 racers, the toy cars in Greybox and the
+    Workshop, Jump Pad, Fan Pad, Bounce Tramp) -> GameBurp Twang Spring 16; Car Cannon fuse -> Power Up Short 07.
+  - **Pickups:** Nitro Star and Repair Heart -> GameBurp Collect Beep 13 (the Nitro Star's volume 0.8 -> 0.44: its old
+    chime was 5 dB quieter); Shield Ring: on -> ForceField Arc 02, a blocked hit -> Metal Hit Short 03, ending -> Power
+    Down Phaser 02.
+  - A field with no volume setting plays a copy turned down to the old sound's peak: `Assets/_Imports/ShiftJamMix/`
+    (8 files, gitignored like every bought sound; each name says its source).
+  - **Not changed:** the opening's spark (sparkFall / sparkHit), the car portals' Star_Light_On, the dazzled soldiers'
+    Startled_Male voices (Greybox), the cars' boost (Steam_Burst) and wind (Safe_Dial). No ithappy UI sound is used now.
+  - Re-saving also wrote fields the scripts gained since these files were last saved, at the values the game already
+    used (the cars' squash, the cores' awake toast), and dropped the cars' unused crashClip. Saving the Stadium also wrote
+    Netcode's ids for its 4 cars (GlobalObjectIdHash was 0 on all four in the file; the editor works these out whenever
+    the scene loads): that is its own commit, to undo alone if online cars act up.
+  - Landed with the editor closed (a hidden batch run; the temporary script is deleted). **NOT PLAYED.**

@@ -103,6 +103,9 @@ MonoBehaviour:
   invulnerability: 0
   flashColor: {r: 1, g: 0.45, b: 0.2, a: 1}
   flashSeconds: 0.1
+  squash: 0
+  squashSeconds: 0.3
+  squashPart: {fileID: 0}
   takeKnockback: 1
   showNumbers: 0
   refillAfterDeath: 0
@@ -130,17 +133,15 @@ MonoBehaviour:
   mass: 4
   centreOfMassHeight: 0
   engine: {fileID: 5697670333550181994}
-  crashClip: {fileID: 0}
   wreckSmoke: {fileID: 0}
   wreckTint: {r: 0.25, g: 0.22, b: 0.2, a: 1}
   boostFxPrefab: {fileID: 1985187664087787780, guid: 5d75b2ce6c6eafa4180db9094ea8119a, type: 3}
   driftFxPrefab: {fileID: 6444542059934168499, guid: 5e2fec45fbd801b43a743f47723f4323, type: 3}
-  damageSmokePrefab: {fileID: 4258998459985370294, guid: 546820d03daa7d34bbc9e88650d2f7bd, type: 3}
   windKey: {fileID: 0}
   windKeyAxis: {x: 0, y: 1, z: 0}
   boostClip: {fileID: 8300000, guid: 2f269aa0baf502245b4abc93fe3598ea, type: 3}
   windClip: {fileID: 8300000, guid: 8a8f59d0e6d5c154193552a691c35ed0, type: 3}
-  launchClip: {fileID: 8300000, guid: 7dce4e9db45f4b04a8a3e26233896f03, type: 3}
+  launchClip: {fileID: 8300000, guid: 4d31b73decbb5e644a8b44acd2611375, type: 3}
 --- !u!114 &4381428430980965867
 MonoBehaviour:
   m_ObjectHideFlags: 0

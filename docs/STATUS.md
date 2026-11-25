@@ -2,6 +2,14 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 09:1x — SOUND PASS 2 IN (D-0210), NOT PLAYED. Music: from his bought packs only (his word, 25 Nov).
+- **HIS LISTEN:** a checkpoint, a refused door / can't-use, the goal and end choice, a door opening; a Stadium race
+  (start, a gate, a lap, a missed gate, the finish); a jump pad and a car launch; a Nitro Star, a Repair Heart, a Shield
+  Ring (on, a blocked hit, its end); a Car Cannon's fuse. Too loud / quiet: the clip's volume (course cues) or the
+  copy in `Assets/_Imports/ShiftJamMix/` (made with ffmpeg from the pack file).
+- **NEXT (music):** his rule "focus on whatever music packs I already have purchased from other creators": find his
+  bought music, line up options for each music spot, his pick, then wire it.
+
 ## 25 Nov 2026 00:0x — S-H-I-F-T LETTERS IN THE HALLWAY (D-0208) + THE PIXEL LOOK, OFF (D-0209). Landed in a hidden batch run, Greybox SAVED. NOT PLAYED.
 - **HIS PLAYTEST (hallway):** the strip top left on the way in; S: jump from the fifth book; H, I, F: swing the ropes
   (30 degrees reaches them); T: the sprint jump over the gap; all five: "S-H-I-F-T!" and a charge; a respawn and a

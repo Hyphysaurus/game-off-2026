@@ -7372,7 +7372,7 @@ MonoBehaviour:
   windKeyAxis: {x: 0, y: 1, z: 0}
   boostClip: {fileID: 8300000, guid: 2f269aa0baf502245b4abc93fe3598ea, type: 3}
   windClip: {fileID: 8300000, guid: 8a8f59d0e6d5c154193552a691c35ed0, type: 3}
-  launchClip: {fileID: 8300000, guid: 7dce4e9db45f4b04a8a3e26233896f03, type: 3}
+  launchClip: {fileID: 8300000, guid: 4d31b73decbb5e644a8b44acd2611375, type: 3}
 --- !u!1 &151953716
 GameObject:
   m_ObjectHideFlags: 0

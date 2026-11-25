@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7202952454233237636}
   - component: {fileID: 8361287138707671019}
   - component: {fileID: 247480454306628813}
+  - component: {fileID: 8396484304504566234}
   m_Layer: 0
   m_Name: TitleMenuModel
   m_TagString: Untagged
@@ -167,6 +168,48 @@ MonoBehaviour:
   - {fileID: 8300000, guid: afb21726e85b4b14979f4d615ca7bff8, type: 3}
   - {fileID: 8300000, guid: e4fc2a58db194a22b96e74a0761e0e42, type: 3}
   landVolume: 0.45
+  dartLabel: darts
+  dartOne: dart
+  ammo:
+  - label: paint balls
+    one: paint ball
+    model: {fileID: 5111666476701131598, guid: 8b9799d1237d4d344822f888b29a178e, type: 3}
+    size: 2.5
+    bursts: 1
+    colours:
+    - {r: 1, g: 0.25, b: 0.55, a: 1}
+    - {r: 0.2, g: 0.8, b: 1, a: 1}
+    - {r: 1, g: 0.85, b: 0.15, a: 1}
+    - {r: 0.5, g: 0.9, b: 0.25, a: 1}
+    - {r: 1, g: 0.5, b: 0.1, a: 1}
+    - {r: 0.65, g: 0.4, b: 1, a: 1}
+    shellColours:
+    - {r: 0.96, g: 0.93, b: 0.82, a: 1}
+    - {r: 1, g: 0.78, b: 0.1, a: 1}
+    - {r: 1, g: 0.55, b: 0.1, a: 1}
+    - {r: 1, g: 0.2, b: 0.6, a: 1}
+    - {r: 0.6, g: 0.95, b: 0.2, a: 1}
+    - {r: 0.35, g: 0.7, b: 1, a: 1}
+    - {r: 0.08, g: 0.08, b: 0.1, a: 1}
+    shellHueApart: 0.12
+    shellPlainBelow: 0.25
+    shellFallback: {r: 0.96, g: 0.93, b: 0.82, a: 1}
+    pictures:
+    - {fileID: 2800000, guid: 66af6b9c28d781a4591c5a061313471d, type: 3}
+    - {fileID: 2800000, guid: d6fc3d178362207418c5c7fd9014a321, type: 3}
+    - {fileID: 2800000, guid: 12aa4530ca00ad646ac5ee577ff54acf, type: 3}
+    - {fileID: 2800000, guid: 25175977f1b21804898687dce9ee8ef9, type: 3}
+    splatSize: 0.24
+    fireClips:
+    - {fileID: 8300000, guid: 4b9d4e90203553e44847057023a7ac0b, type: 3}
+    - {fileID: 8300000, guid: 52ca08a4fedeb93409159f5877bae2bf, type: 3}
+    fireVolume: 0.45
+    landClips:
+    - {fileID: 8300000, guid: 713d86bf97ea94f498fd7269a4b102e2, type: 3}
+    - {fileID: 8300000, guid: 89f82223e3e2356488522c1eaa126929, type: 3}
+    - {fileID: 8300000, guid: d98a8372244851c4ebe5e870c058bd94, type: 3}
+    landVolume: 0.5
+    pitch: {x: 0.9090909, y: 1.1}
 --- !u!114 &247480454306628813
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -210,6 +253,31 @@ MonoBehaviour:
     volume: 0.4
     pitchSpread: 0.2
   changeSoundGap: 0.07
+  cast: 0.55
+  castSeconds: 2.5
+  castFadeSeconds: 1.5
+--- !u!114 &8396484304504566234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8085825475719980909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 836668d72e6bb60478ed9c95ae33b124, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.MenuSplats
+  material: {fileID: 2100000, guid: 1f8a2a3d06e11bb44bdde839a27ebed6, type: 2}
+  mostSplats: 40
+  staySeconds: 12
+  fadeSeconds: 0.8
+  spreadFrom: 0.35
+  spreadSeconds: 0.08
+  sizeVaries: 0.2
+  reach: 1.16
+  margin: 0.006
+  lift: 0.003
 --- !u!1001 &8171065679109353955
 PrefabInstance:
   m_ObjectHideFlags: 0

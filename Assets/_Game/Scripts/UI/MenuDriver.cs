@@ -12,7 +12,8 @@ namespace ShiftJam
     /// nothing; a press that pulls away stretches the slab after the pointer and lets it fly home (play, not a
     /// choice); the pointer brushing over a slab stirs it; a click on the selected control, Enter, Space or the pad's south button chooses it; Esc,
     /// Backspace or the pad's east button goes back; Shift, F or the pad's north button shifts the model between flat
-    /// and deep. It only says what was chosen: its owner (TitleMenu) knows what that means. It reads the devices
+    /// and deep; T or the pad's D-pad up loads the guns' next kind of ammo (D-0201: darts, paint balls), as in the game,
+    /// and while there is more than one kind the D-pad no longer moves the selection up (the stick still does). It only says what was chosen: its owner (TitleMenu) knows what that means. It reads the devices
     /// directly, on real time: the player's own input is off while a menu is up. Switch it off while another panel has
     /// the screen, and set Typing while a text field has the keys.
     /// </summary>
@@ -123,10 +124,11 @@ namespace ShiftJam
             // Up and down, with a repeat while held.
             int way = 0;
             if (!Typing && keys != null) way += (keys.downArrowKey.isPressed || keys.sKey.isPressed ? 1 : 0) - (keys.upArrowKey.isPressed || keys.wKey.isPressed ? 1 : 0);
+            bool padLoads = Darts != null && Darts.CanReload;      // the D-pad's up loads the next ammo, as in the game
             if (pad != null)
             {
                 Vector2 stick = pad.leftStick.ReadValue(), cross = pad.dpad.ReadValue();
-                way += (stick.y < -stickPush || cross.y < -0.5f ? 1 : 0) - (stick.y > stickPush || cross.y > 0.5f ? 1 : 0);
+                way += (stick.y < -stickPush || cross.y < -0.5f ? 1 : 0) - (stick.y > stickPush || (!padLoads && cross.y > 0.5f) ? 1 : 0);
             }
             way = Mathf.Clamp(way, -1, 1);
             if (way == 0) _held = 0;
@@ -137,8 +139,10 @@ namespace ShiftJam
             bool back = (pad != null && pad.buttonEast.wasPressedThisFrame) || (keys != null && keys.escapeKey.wasPressedThisFrame) || (!Typing && keys != null && keys.backspaceKey.wasPressedThisFrame);
             bool shift = (pad != null && pad.buttonNorth.wasPressedThisFrame) || (!Typing && keys != null && (keys.leftShiftKey.wasPressedThisFrame || keys.rightShiftKey.wasPressedThisFrame || keys.fKey.wasPressedThisFrame));
             bool swap = (pad != null && pad.buttonWest.wasPressedThisFrame) || (!Typing && keys != null && keys.gKey.wasPressedThisFrame);
+            bool reload = (padLoads && pad != null && pad.dpad.up.wasPressedThisFrame) || (!Typing && keys != null && keys.tKey.wasPressedThisFrame);
             if (shift) _model.Deep = !_model.Deep;
             if (swap && Darts != null) Darts.Swap();
+            if (reload && Darts != null) Darts.Reload();
             if (pad != null && Darts != null && Darts.Auto && pad.rightTrigger.ReadValue() > 0.5f) Darts.Trigger = true;   // the pad sprays where the selection is
             if (choose && _model.Selected != null && _model.Selected.Usable) { Choose(_model.Selected, _model.Middle(_model.Selected)); return; }
             if (back) Back?.Invoke();

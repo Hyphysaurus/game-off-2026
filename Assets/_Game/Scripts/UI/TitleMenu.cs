@@ -246,8 +246,15 @@ namespace ShiftJam
             {
                 MenuDarts gun = _driver != null ? _driver.Darts : null;
                 if (gun == null) return "mouse, arrows or stick · Enter / A chooses · Esc / B goes back · Shift for 3D";
-                if (!gun.Chooses) return "the " + gun.Label + " only plays: hold to spray · G for the gun that chooses · Shift for 3D";
-                return "click: a dart chooses · hold and pull: stretch" + (gun.CanSwap ? " · G swaps guns" : "") + " · Shift for 3D · Esc goes back";
+                if (!gun.CanReload)      // darts only: as it always read
+                {
+                    if (!gun.Chooses) return "the " + gun.Label + " only plays: hold to spray · G for the gun that chooses · Shift for 3D";
+                    return "click: a dart chooses · hold and pull: stretch" + (gun.CanSwap ? " · G swaps guns" : "") + " · Shift for 3D · Esc goes back";
+                }
+                // More than one kind of ammo (D-0201): the line names the one loaded, and T for the next.
+                string reload = " · T for " + gun.NextAmmoLabel;
+                if (!gun.Chooses) return "the " + gun.Label + " only plays: hold to spray " + gun.AmmoLabel + reload + " · G for the gun that chooses · Shift for 3D";
+                return "click: a " + gun.AmmoOne + " chooses · hold and pull: stretch" + (gun.CanSwap ? " · G swaps guns" : "") + reload + " · Shift for 3D · Esc goes back";
             }
         }
         private MenuDriver _driver;
@@ -288,7 +295,11 @@ namespace ShiftJam
             _driver = gameObject.AddComponent<MenuDriver>();
             _driver.Bind(_model);
             _driver.Chosen += OnChosen; _driver.Back += OnBack; _driver.Moved += OnMoved;
-            if (_driver.Darts != null) _driver.Darts.Swapped += () => { UiAudio.Play(UiAudio.Kind.Select); OnPartyStatus(); };
+            if (_driver.Darts != null)
+            {
+                _driver.Darts.Swapped += () => { UiAudio.Play(UiAudio.Kind.Select); OnPartyStatus(); };
+                _driver.Darts.Reloaded += () => { UiAudio.Play(UiAudio.Kind.Select); OnPartyStatus(); };   // the hint names the ammo loaded (D-0201)
+            }
             OnPartyStatus();   // the hint for the hands the model has
             ToPage("Main");
         }

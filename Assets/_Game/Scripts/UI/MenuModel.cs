@@ -26,6 +26,8 @@ namespace ShiftJam
     /// elastic and let it fly home; its neighbours feel a knock too. Knocked tells whoever listens that one was hit.
     /// A plaything (AddToy, D-0200) is all of that and never a button: a thing of no page, on show on every page, that
     /// is not selected, chosen or painted (the title's letters, MenuTitle).
+    /// Paint (D-0201): Splash tells whoever listens (Splashed) that a paint ball burst on a control, and in what colour;
+    /// Tipped and Stretch say how a slab is turned and stretched now, so a splat laid on its face can ride it (MenuSplats).
     /// Everything moves on real time: a menu holds the game's.
     /// </summary>
     public sealed class MenuModel : MonoBehaviour
@@ -140,6 +142,8 @@ namespace ShiftJam
 
         /// <summary>A control was knocked (by a dart, a tap, or being let go after a pull): which one, and how hard.</summary>
         public event System.Action<Control, float> Knocked;
+        /// <summary>A paint ball burst on a control (D-0201): which one, and the paint's colour.</summary>
+        public event System.Action<Control, Color> Splashed;
 
         /// <summary>The room left for the title, canvas pixels.</summary>
         public Vector2 TitleBox => titleMetres * pixelsPerMetre;
@@ -283,6 +287,7 @@ namespace ShiftJam
             _wash.layer = layer;
             _washCanvas = _wash.AddComponent<Canvas>();
             _washCanvas.renderMode = RenderMode.ScreenSpaceCamera; _washCanvas.worldCamera = _view;
+            _washCanvas.sortingOrder = -1;   // the back of everything: drawn before any see-through thing of the model (the paint's splats, D-0201; the words)
             var fill = new GameObject("Wash", typeof(RectTransform));
             fill.layer = layer;
             var rt = (RectTransform)fill.transform;
@@ -568,6 +573,34 @@ namespace ShiftJam
             Quaternion tipped = c.Body.rotation * Quaternion.Inverse(c.RestTurn);
             float half = c.Box.extents[c.DepthAxis] * Mathf.Abs(c.Body.lossyScale[c.DepthAxis]);
             return c.Body.TransformPoint(c.Box.center) + tipped * ((_right * at.x + _up * at.y) * enlarge - _look * half);
+        }
+
+        /// <summary>How a control is turned now from the way it rests (its tip and roll); none for null.</summary>
+        public Quaternion Tipped(Control c) => c == null ? Quaternion.identity : c.Body.rotation * Quaternion.Inverse(c.RestTurn);
+
+        /// <summary>How much longer a control is now than at rest, across and up (a squash, a pull, its size while selected
+        /// or pressed); 1, 1 at rest. A thing laid on its face grows and moves with it.</summary>
+        public Vector2 Stretch(Control c)
+        {
+            if (c == null) return Vector2.one;
+            Vector3 now = c.Body.localScale;
+            float across = Mathf.Abs(c.RestScale[c.AcrossAxis]) > 1e-6f ? now[c.AcrossAxis] / c.RestScale[c.AcrossAxis] : 1f;
+            float up = Mathf.Abs(c.RestScale[c.UpAxis]) > 1e-6f ? now[c.UpAxis] / c.RestScale[c.UpAxis] : 1f;
+            return new Vector2(Mathf.Abs(across), Mathf.Abs(up));
+        }
+
+        /// <summary>A control's face while flat and at rest, metres across and up.</summary>
+        public Vector2 FaceSize(Control c) => c == null ? Vector2.zero : c.Size / pixelsPerMetre;
+
+        /// <summary>The way a thing lying flat on the menu is turned at rest: its own z away from the viewer, its y up.</summary>
+        public Quaternion Facing => Quaternion.LookRotation(_look, _up);
+
+        /// <summary>Tells whoever listens that a paint ball burst on a control, in this colour (the title's letters take a
+        /// cast of it, MenuTitle).</summary>
+        public void Splash(Control c, Color colour)
+        {
+            if (c == null || !c.Shown) return;
+            Splashed?.Invoke(c, colour);
         }
 
         /// <summary>The control on show whose place at rest holds a point of the menu (metres from its middle); null for none.</summary>

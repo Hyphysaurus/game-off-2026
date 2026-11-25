@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 22:1x — PAINT BALL AMMO ON THE TITLE MENU (D-0201). In his editor, checked without Play, NOT SEEN.
+- **IN:** T (pad: D-pad up) swaps the menu guns between darts and paint balls; a paint ball leaves a splat on the
+  button it hits (under the caption, riding the slab) or on the wall; a title letter takes a cast of the colour.
+- **HIS PLAYTEST (title):** (1) T: the hint changes; (2) shoot a button with paint: a small coloured ball, a splat on
+  the button, the caption readable over it, and it still chooses; (3) Shift with splats on: they stay on their
+  buttons; (4) a ball into empty space: the splat as bright as on a button (if it looks dark, tell me); (5) paint a
+  title letter: it tints and fades back; (6) the LMG with paint: a spray, the oldest fading; change page; (7) the
+  sounds. Off switches: empty `MenuDarts > Ammo` on `Resources/Titles/TitleMenuModel.prefab` (darts only);
+  `MenuTitle > Cast` 0 (no tint on the letters).
+- **🔴 STILL: Greybox holds `FlatZone_Hall` UNSAVED** (see the entry below): Ctrl+S keeps it.
+- **NEXT:** his play of the title (letters, sounds, darts, paint) and of the hallway; cuts B and C of the Flat Zone
+  only on his word after he has played A.
+
 ## 24 Nov 2026 21:5x — FLAT ZONE CUT A IS IN (D-0198 update): the hallway plays side-on. In his editor, checked without Play, NOT PLAYED.
 - **🔴 GREYBOX IS MARKED CHANGED AND NOT SAVED:** `FlatZone_Hall` was placed at the top level of his OPEN scene by
   **Shift Jam > Flat > Land Hallway Scroller**. Ctrl+S keeps it; closing without saving drops it (run the menu item

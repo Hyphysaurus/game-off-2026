@@ -25,6 +25,13 @@ namespace ShiftJam
     /// one he repaints stays) and keeps their import settings (point filter, no mip maps, not rescaled, uncompressed).
     /// The menu's own sounds (a let-go, the shift, a page, a letter's colour change) are given to the slots that have
     /// no clip, from the playroom sound pack, chosen by their names.
+    /// The paint (D-0201): it makes the menu's paint ball (Prefabs/Menu/MenuPaintBall.prefab: the game's ball's child
+    /// "Ball" alone, nothing that flies or hits) and the splats' see-through unlit material (Data/MenuSplat.mat, drawn
+    /// before the words) when they are missing, adds the MenuSplats beside the model, and gives MenuDarts its paint row
+    /// (the first row that bursts; one is added when the list is empty) whatever of these it has none of: the ball, the
+    /// paint's six colours and its shell colours, the head-on splat pictures, the paint's firing and landing sounds, all
+    /// from Resources/PaintSettings. Without the paint (no settings, no pictures or no ball) no row is made and the menu
+    /// keeps its darts only.
     /// </summary>
     public static class MenuPieces
     {
@@ -35,6 +42,18 @@ namespace ShiftJam
         private const string FoamDartPath = "Assets/_Game/Prefabs/Combat/FoamDart.prefab";
         private const string PistolWeapon = "Assets/_Game/Prefabs/Weapons/DartPistol.prefab";
         private const string Pack = "Assets/_Imports/ithappy/Cartoon_Weapons/Prefabs/Weapon_Presets/";
+
+        // ---- the paint (D-0201)
+        private const string PaintSettingsPath = "Assets/_Game/Resources/" + PaintSettings.ResourceName + ".asset";
+        private const string PaintBallPath = "Assets/_Game/Prefabs/Combat/PaintBall.prefab";
+        private const string MenuBallPath = "Assets/_Game/Prefabs/Menu/MenuPaintBall.prefab";   // its root is called MenuPaintBall: a file's first object takes the file's name
+        private const string SplatLook = "Assets/_Game/Data/MenuSplat.mat";                     // the material is called MenuSplat
+        private const int SplatQueueOffset = -10;      // drawn at 2990: after the slabs (2000), before the words (TextMesh Pro, 3000)
+        private const string PaintFamily = "head";     // the head-on splat pictures
+        // The paint row as it is first made: its names, the ball's width on the menu (metres: the game's 0.02 m ball would be
+        // 12 screen pixels, too small to read beside a 0.13 m button), the splat's width where there is room, its loudness.
+        private const string PaintLabel = "paint balls", PaintOne = "paint ball";
+        private const float BallWidth = 0.05f, SplatWidth = 0.24f, PaintFireVolume = 0.45f, PaintLandVolume = 0.5f;
 
         // The two guns as they are first made: the model, its length on the menu (metres), and its numbers.
         private struct GunRow { public string Label, Model; public float Length, Interval, Spread, Knock, Kick, Volume; public bool Chooses, Auto; }
@@ -86,6 +105,8 @@ namespace ShiftJam
             WorkshopPieces.EnsureFolder("Assets/_Game/Resources/Titles");
             WorkshopPieces.EnsureFolder("Assets/_Game/Prefabs/Menu");
             GameObject dart = EnsureDart(did);
+            var paint = AssetDatabase.LoadAssetAtPath<PaintSettings>(PaintSettingsPath);
+            GameObject ball = paint != null ? EnsureBall(did) : null;
             var facts = new List<string>();     // what it found, said every run (not changes)
             bool haveTitle = BakeTitle(did, facts, out Mesh[] letters, out Vector2[] middles, out int frames, out Texture2D[] sets);
 
@@ -143,7 +164,18 @@ namespace ShiftJam
                 }
                 SerializedProperty landed = d.FindProperty("landClips");
                 if (landed.arraySize == 0 && land.Length > 0) { SetClips(landed, land); did.Add(land.Length + " landing sounds"); }
+                FillPaint(d, paint, ball, did);
                 d.ApplyModifiedPropertiesWithoutUndo();
+
+                if (!root.TryGetComponent(out MenuSplats splats)) { splats = root.AddComponent<MenuSplats>(); did.Add("added MenuSplats"); }
+                var sp = new SerializedObject(splats);
+                SerializedProperty splatLook = sp.FindProperty("material");
+                if (splatLook != null && splatLook.objectReferenceValue == null)
+                {
+                    Material look = EnsureSplatLook(AssetDatabase.LoadAssetAtPath<Material>(SlabLook), did);
+                    if (look != null) { splatLook.objectReferenceValue = look; did.Add("the splats' material = " + look.name); }
+                }
+                sp.ApplyModifiedPropertiesWithoutUndo();
 
                 if (haveTitle)
                 {
@@ -412,6 +444,148 @@ namespace ShiftJam
             import.textureCompression = TextureImporterCompression.Uncompressed; import.maxTextureSize = 8192; import.isReadable = false;
             import.SaveAndReimport();
             return true;
+        }
+
+        /// <summary>Gives MenuDarts its paint row whatever it has none of (D-0201). The paint row is the first row that bursts;
+        /// with the list empty one is made, its numbers as first made here. A row he has changed keeps every value that is set.</summary>
+        private static void FillPaint(SerializedObject darts, PaintSettings paint, GameObject ball, List<string> did)
+        {
+            SerializedProperty rows = darts.FindProperty("ammo");
+            if (rows == null) { did.Add("NO field ammo"); return; }
+            Texture2D[] pictures = paint != null ? Pictures(paint) : new Texture2D[0];
+            SerializedProperty row = null;
+            for (int i = 0; i < rows.arraySize; i++)
+                if (rows.GetArrayElementAtIndex(i).FindPropertyRelative("bursts").boolValue) { row = rows.GetArrayElementAtIndex(i); break; }
+            if (row == null)
+            {
+                if (rows.arraySize > 0) return;      // he has kinds of his own and none that bursts: left as it is
+                if (paint == null || ball == null || pictures.Length == 0)
+                {
+                    did.Add("no paint for the menu (" + (paint == null ? "no " + PaintSettingsPath : ball == null ? "no ball" : "no '" + PaintFamily + "' splat pictures in the paint settings") + "): darts only");
+                    return;
+                }
+                rows.arraySize = 1;
+                row = rows.GetArrayElementAtIndex(0);
+                // A new element holds no defaults: every value is set here.
+                float longest = Longest(ball);
+                row.FindPropertyRelative("label").stringValue = PaintLabel;
+                row.FindPropertyRelative("one").stringValue = PaintOne;
+                row.FindPropertyRelative("model").objectReferenceValue = null;
+                row.FindPropertyRelative("size").floatValue = longest > 1e-5f ? BallWidth / longest : 1f;
+                row.FindPropertyRelative("bursts").boolValue = true;
+                row.FindPropertyRelative("colours").arraySize = 0;
+                row.FindPropertyRelative("shellColours").arraySize = 0;
+                row.FindPropertyRelative("shellHueApart").floatValue = paint.shellHueApart;
+                row.FindPropertyRelative("shellPlainBelow").floatValue = paint.shellPlainBelow;
+                row.FindPropertyRelative("shellFallback").colorValue = paint.shellFallback;
+                row.FindPropertyRelative("pictures").arraySize = 0;
+                row.FindPropertyRelative("splatSize").floatValue = SplatWidth;
+                row.FindPropertyRelative("fireClips").arraySize = 0;
+                row.FindPropertyRelative("fireVolume").floatValue = PaintFireVolume;
+                row.FindPropertyRelative("landClips").arraySize = 0;
+                row.FindPropertyRelative("landVolume").floatValue = PaintLandVolume;
+                float spread = Mathf.Max(1f, paint.pitchSpread);        // the game's paint plays spread^-1 to spread^1
+                row.FindPropertyRelative("pitch").vector2Value = new Vector2(1f / spread, spread);
+                did.Add("the ammo row '" + PaintLabel + "' (the ball drawn " + BallWidth.ToString("F2") + " m wide, splats " + SplatWidth.ToString("F2") + " m)");
+            }
+            if (paint == null) return;
+            string named = row.FindPropertyRelative("label").stringValue;
+            SerializedProperty model = row.FindPropertyRelative("model");
+            if (model.objectReferenceValue == null && ball != null) { model.objectReferenceValue = ball; did.Add(named + ": the ball = " + ball.name); }
+            SerializedProperty colours = row.FindPropertyRelative("colours");
+            if (colours.arraySize == 0 && paint.fillColours.Length > 0) { SetColours(colours, paint.fillColours); did.Add(named + ": " + paint.fillColours.Length + " paint colours"); }
+            SerializedProperty shells = row.FindPropertyRelative("shellColours");
+            if (shells.arraySize == 0 && paint.shellColours.Length > 0) { SetColours(shells, paint.shellColours); did.Add(named + ": " + paint.shellColours.Length + " shell colours"); }
+            SerializedProperty looks = row.FindPropertyRelative("pictures");
+            if (looks.arraySize == 0 && pictures.Length > 0) { SetObjects(looks, pictures); did.Add(named + ": " + pictures.Length + " '" + PaintFamily + "' splat pictures"); }
+            SerializedProperty fire = row.FindPropertyRelative("fireClips");
+            if (fire.arraySize == 0 && Count(paint.fireClips) > 0) { SetClips(fire, Present(paint.fireClips)); did.Add(named + ": " + fire.arraySize + " firing sounds"); }
+            SerializedProperty land = row.FindPropertyRelative("landClips");
+            if (land.arraySize == 0 && Count(paint.hitClips) > 0) { SetClips(land, Present(paint.hitClips)); did.Add(named + ": " + land.arraySize + " landing sounds"); }
+        }
+
+        /// <summary>The paint's head-on splat pictures (the family called "head", else the one drawn nearest square-on).</summary>
+        private static Texture2D[] Pictures(PaintSettings paint)
+        {
+            PaintSettings.Family family = null;
+            foreach (PaintSettings.Family f in paint.families) if (f != null && f.name == PaintFamily) { family = f; break; }
+            if (family == null) foreach (PaintSettings.Family f in paint.families) if (f != null && (family == null || Mathf.Abs(90f - f.drawnAt) < Mathf.Abs(90f - family.drawnAt))) family = f;
+            var found = new List<Texture2D>();
+            if (family != null && family.looks != null) foreach (PaintSettings.Look look in family.looks) if (look.albedo != null) found.Add(look.albedo);
+            return found.ToArray();
+        }
+
+        private static int Count(AudioClip[] clips) { int n = 0; if (clips != null) foreach (AudioClip c in clips) if (c != null) n++; return n; }
+
+        private static AudioClip[] Present(AudioClip[] clips)
+        {
+            var found = new List<AudioClip>();
+            foreach (AudioClip c in clips) if (c != null) found.Add(c);
+            return found.ToArray();
+        }
+
+        private static void SetColours(SerializedProperty list, Color[] colours)
+        {
+            list.arraySize = colours.Length;
+            for (int i = 0; i < colours.Length; i++) list.GetArrayElementAtIndex(i).colorValue = colours[i];
+        }
+
+        /// <summary>The menu's paint ball: the game's ball's child "Ball" alone (its sphere and its look), nothing that flies or
+        /// hits. Made once; an existing one is kept.</summary>
+        private static GameObject EnsureBall(List<string> did)
+        {
+            var have = AssetDatabase.LoadAssetAtPath<GameObject>(MenuBallPath);
+            if (have != null) return have;
+            if (!File.Exists(PaintBallPath)) { did.Add("no " + PaintBallPath + ": the menu has no paint ball"); return null; }
+            GameObject game = PrefabUtility.LoadPrefabContents(PaintBallPath);
+            try
+            {
+                Transform shape = game.transform.Find("Ball");
+                if (shape == null) { did.Add("the paint ball has no child Ball: the menu has no paint ball"); return null; }
+                var ball = new GameObject("MenuPaintBall");
+                SceneManager.MoveGameObjectToScene(ball, game.scene);
+                ball.transform.SetPositionAndRotation(game.transform.position, game.transform.rotation);
+                shape.SetParent(ball.transform, true);
+                foreach (Collider c in ball.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(c);
+                foreach (MonoBehaviour b in ball.GetComponentsInChildren<MonoBehaviour>(true)) Object.DestroyImmediate(b);
+                PrefabUtility.SaveAsPrefabAsset(ball, MenuBallPath, out bool saved);
+                did.Add(saved ? "made " + MenuBallPath + ", " + Longest(ball).ToString("F3") + " m wide" : "THE PAINT BALL DID NOT SAVE");
+            }
+            finally { PrefabUtility.UnloadPrefabContents(game); }
+            return AssetDatabase.LoadAssetAtPath<GameObject>(MenuBallPath);
+        }
+
+        /// <summary>The splats' material: URP Unlit (the slab material's own shader), see-through, alpha blended, both sides,
+        /// no depth write, no shadows, at render queue 2990 (after the slabs, before the words), as the build ghost's
+        /// see-through unlit material is made. Made once; an existing one is kept as it is, so his tuning stays.</summary>
+        private static Material EnsureSplatLook(Material slab, List<string> did)
+        {
+            var have = AssetDatabase.LoadAssetAtPath<Material>(SplatLook);
+            if (have != null) return have;
+            Shader unlit = slab != null ? slab.shader : Shader.Find("Universal Render Pipeline/Unlit");   // the editor only: nothing at run time looks a shader up
+            if (unlit == null) { did.Add("no unlit shader for " + SplatLook + ": the menu's paint leaves no splats"); return null; }
+            var m = new Material(unlit) { name = "MenuSplat" };
+            m.SetFloat("_Surface", 1f);
+            m.SetFloat("_Blend", 0f);
+            m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            m.SetFloat("_SrcBlendAlpha", (float)UnityEngine.Rendering.BlendMode.One);
+            m.SetFloat("_DstBlendAlpha", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            m.SetFloat("_ZWrite", 0f);
+            m.SetFloat("_Cull", (float)UnityEngine.Rendering.CullMode.Off);
+            m.SetFloat("_AlphaClip", 0f);
+            m.SetFloat("_QueueOffset", SplatQueueOffset);     // the material inspector works the queue out again from this: it stays 2990
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.DisableKeyword("_ALPHATEST_ON");
+            m.SetOverrideTag("RenderType", "Transparent");
+            m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent + SplatQueueOffset;
+            m.SetShaderPassEnabled("ShadowCaster", false);
+            m.SetShaderPassEnabled("DepthOnly", false);
+            m.SetShaderPassEnabled("MotionVectors", false);
+            m.SetColor("_BaseColor", Color.white);
+            AssetDatabase.CreateAsset(m, SplatLook);
+            did.Add("made " + SplatLook + " (see-through, unlit, render queue " + m.renderQueue + ")");
+            return m;
         }
 
         /// <summary>The menu's dart: the foam dart's shape alone. Made once; an existing one is kept.</summary>

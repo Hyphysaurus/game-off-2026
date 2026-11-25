@@ -3802,3 +3802,28 @@
     punches and kicks still take their way from the camera; a party is handled per player but untried; online
     nothing is sent.
   - **Off switch:** untick `FlatZone_Hall` in the Hierarchy: the hallway plays as before.
+- **D-0201 (24 Nov 2026, 22:1x) The playable menu, step 5: paint ball ammo on the title menu.** His words: "can we add the
+  paintball ammo into the scene too?", then "proceed" on my plan with its defaults.
+  - **What it does:** T (pad: D-pad up) loads the next ammo, as in the game; both menu guns fire whichever is loaded and
+    the hint line names it. A paint ball flies the dart's flight in a shell colour and bursts where it lands: on a
+    button it leaves a splat (one of the game's own head-on splat pictures, tinted one of the six paint colours,
+    turned at random) that lies wholly on the face, under the caption, and rides the slab's swing, tip and squash; on
+    nothing it lies on the menu's plane. Splats fade after 12 s, at most 40, and a page's splats go with the page.
+    The blaster's paint ball still chooses its button; the LMG sprays and chooses nothing. A title letter takes no
+    splat: it takes a cast of the paint's colour for 2.5 s and fades back (MenuTitle > Cast, 0 = off). The paint's
+    own firing and landing sounds.
+  - **Parts:** `UI/MenuSplats.cs` (new: the splats; its static `Fit` says where a splat goes and how big so it stays
+    on the face), ammo rows in `MenuDarts` (the darts stay the first kind on their own fields, so an empty list =
+    darts only, as before), `MenuModel.Splash` / `Splashed`, `Tipped`, `Stretch`, `FaceSize`; the maker makes
+    `Prefabs/Menu/MenuPaintBall.prefab` (the game ball's shape alone) and `Data/MenuSplat.mat` (URP Unlit,
+    see-through, render queue 2990: after the slabs, before the words) and fills the paint row from `PaintSettings`.
+    The game's own paint (decals) is not used on the menu: it is made for the lit world.
+  - **Built by one builder (Opus 5.5 after the Fable usage limit cut the first one with nothing written).**
+  - **Checked without Play:** compiled (editor and player); maker run twice (the second changes nothing); `Fit`
+    against numbers worked out by hand (a button 1.0 by 0.13 m, hit near its right end and top: the splat 0.1017 m
+    wide at (0.435, 0); a save slot: 0.0931 m at (0.800, 0)); the faces read from the prefab are 1.0 by 0.13 and 1.72
+    by 0.12; the material is see-through at queue 2990; one paint row with 6 colours, 7 shells, 4 pictures.
+  - **Unsure:** a splat on nothing could look dimmed if the dark wash draws over it (the wash's canvas was moved to
+    sorting order -1 to prevent it); when there are two ammo kinds, D-pad up loads ammo and no longer moves the
+    selection up (the stick still does); splats on buttons are about 0.10 m, smaller than a button is tall.
+  - **NOT SEEN IN PLAY.**

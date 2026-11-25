@@ -35,11 +35,13 @@ namespace ShiftJam
         /// <summary>The title in a box <paramref name="box"/> (canvas units) centred on <paramref name="anchor"/>, kept
         /// inside the canvas's width less <paramref name="margin"/> each side. With a <paramref name="prefabPath"/> that
         /// exists under Resources, that prefab is the title and its own Width and Height are its box (the
-        /// <paramref name="box"/> is used only if the prefab has none); otherwise the drawing. Null if neither is there.</summary>
-        public static TitleArt Place(Transform parent, Vector2 anchor, Vector2 offset, Vector2 box, float margin = 40f, string prefabPath = null)
+        /// <paramref name="box"/> is used only if the prefab has none); otherwise the drawing. Null if neither is there.
+        /// <paramref name="boxWins"/>: the caller's box is the title's size even for a prefab (a menu model leaves the
+        /// title a room of its own, D-0196).</summary>
+        public static TitleArt Place(Transform parent, Vector2 anchor, Vector2 offset, Vector2 box, float margin = 40f, string prefabPath = null, bool boxWins = false)
         {
             var prefab = string.IsNullOrEmpty(prefabPath) ? null : Resources.Load<GameObject>(prefabPath);
-            if (prefab != null && prefab.transform is RectTransform) return PlacePrefab(prefab, parent, anchor, offset, box, margin);
+            if (prefab != null && prefab.transform is RectTransform) return PlacePrefab(prefab, parent, anchor, offset, box, margin, boxWins);
 
             var sprite = Sprite;
             if (sprite == null) return null;
@@ -53,14 +55,14 @@ namespace ShiftJam
 
         /// <summary>A copy of the title prefab under <paramref name="parent"/>: the caller says where, the prefab says how
         /// big. Its Animators run on real time. A prefab without a TitleArt of its own gets one that does not breathe.</summary>
-        private static TitleArt PlacePrefab(GameObject prefab, Transform parent, Vector2 anchor, Vector2 offset, Vector2 box, float margin)
+        private static TitleArt PlacePrefab(GameObject prefab, Transform parent, Vector2 anchor, Vector2 offset, Vector2 box, float margin, bool boxWins)
         {
             var go = Instantiate(prefab, parent, false);
             go.name = "TitleArt";
             var rt = (RectTransform)go.transform;
             Vector2 own = rt.sizeDelta;
             rt.anchorMin = anchor; rt.anchorMax = anchor; rt.pivot = new Vector2(0.5f, 0.5f); rt.anchoredPosition = offset;
-            rt.sizeDelta = Fit(own.x > 0f && own.y > 0f ? own : box, parent, margin);
+            rt.sizeDelta = Fit(!boxWins && own.x > 0f && own.y > 0f ? own : box, parent, margin);
             foreach (var animator in go.GetComponentsInChildren<Animator>(true)) animator.updateMode = AnimatorUpdateMode.UnscaledTime;
             if (!go.TryGetComponent<TitleArt>(out var art)) { art = go.AddComponent<TitleArt>(); art.breathe = 0f; }
             return art;

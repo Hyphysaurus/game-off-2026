@@ -3640,3 +3640,31 @@
   - **Not done:** the old first-person body is still there behind the switch (it goes after his play); a rolling
     view (the eye rides level through a roll and a death).
   - Compiled outside (editor and player) and by Unity in a hidden batch run. NOT played: none of it has been seen.
+- **D-0196 (24 Nov 2026, 18:2x) The title menu wears his Blender menu model; the menu itself is unchanged.** His "wire
+  now, proceed" on the model ChatGPT made from my handoff prompt (`Art/Menu/Exports/ShiftJam_Menu.fbx`; its report
+  and manifest are in `docs/menu/`).
+  - **`UI/MenuModel`** on `Resources/Titles/TitleMenuModel.prefab` (a copy of the model file beside it): the model
+    stands far below the world, 100 times larger, on the UI layer, drawn by an orthographic overlay camera put on
+    the game camera's stack; a dark wash on a canvas of that camera lies behind the slabs. Unlit, in the model's own
+    colours (`Data/MenuSlab.mat`, URP Unlit, referenced by the prefab so a build has it).
+  - **Read by name, not by axes:** a control is any object with a child `<name>_Frame`; its text goes at
+    `Label_<name>`; `Anchor_...` marks a place. Up is read from two controls one above the other (Continue, Slot 3),
+    the viewer's side from Continue's label. A metre of model is 600 pixels on a 1080-high screen. Re-exporting the
+    model under the same names needs no code change.
+  - **`TitleMenu`** asks for the model; with it, `BuildOnModel` lays a see-through uGUI Button over each slab and a
+    TextMeshPro caption at its label (same actions, sounds and words as before; "Options" and "Online" kept). The
+    title art takes the room the model leaves it (600 by 280, half its old size). Options and Parties hide the
+    model with the menu. Without the prefab, or with a control missing, the menu draws itself as before.
+  - **`UI/MenuSlab`** shows a button's state on its slab: disabled (dim), selected (brighter, a little larger, cyan
+    frame; the mouse coming onto a button selects it, so mouse, keys and stick share one state), active (the save
+    slot in use: pink frame), pressed (a little smaller). The frames are hairlines, so the slab itself carries it.
+  - **A fault of the model, worked round:** Continue's slab was made in its disabled look (a black face in the mesh).
+    `MenuModel > Drawn Like` draws it with New Game's slab (same size). Empty that list when the model is made again.
+  - **Checked in batch (no Play):** the prefab loads; through `MenuModel.Spawn` every control's place and size came
+    back as the model's own table has them (Continue 0, 195, 600 by 78; Workshop at -468; slot labels +24); a still
+    from its camera with New Game selected, Slot 1 active, Continue disabled (`docs/stills/menu_model_unity_camera.png`).
+    My first run read "up" from Continue to Quit, which is not under it: the layout came out tilted 14 degrees;
+    the numbers showed it.
+  - **NOT checked:** the camera stacked on the real game camera in Play, the real text, the mouse and the stick, the
+    Options and Parties panels over it, a window narrower than 4:3.
+  - Provenance: the menu meshes were made by ChatGPT through Blender Python (ITCH_PAGE says so).

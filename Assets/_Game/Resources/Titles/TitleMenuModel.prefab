@@ -1,0 +1,132 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8085825475719980909
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7757157847921535357}
+  - component: {fileID: 7202952454233237636}
+  m_Layer: 0
+  m_Name: TitleMenuModel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7757157847921535357
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8085825475719980909}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8570294617508910600}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7202952454233237636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8085825475719980909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df4883b3f602cee4e9843397c09631c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.MenuModel
+  slabMaterial: {fileID: 2100000, guid: 0dad75a45cea1204187aeb2ea142df0c, type: 2}
+  pixelsPerMetre: 600
+  frameMetres: {x: 3.2, y: 1.8}
+  titleMetres: {x: 1, y: 0.4667}
+  wash: {r: 0.03, g: 0.03, b: 0.06, a: 0.72}
+  normalFrame: {r: 0.28627452, g: 0.13725491, b: 0.5764706, a: 1}
+  selectedFrame: {r: 0.4509804, g: 0.94509804, b: 1, a: 1}
+  activeFrame: {r: 1, g: 0.44705883, b: 0.8, a: 1}
+  disabledFrame: {r: 0.039215688, g: 0.03137255, b: 0.07058824, a: 1}
+  selectedBright: 1.45
+  disabledBright: 0.4
+  selectedSize: 1.04
+  pressedSize: 0.96
+  sizeSeconds: 0.09
+  captionShare: 0.46
+  textMargin: 0.03
+  upperControl: Btn_Continue
+  lowerControl: Slot_3
+  drawnLike:
+  - control: Btn_Continue
+    sameAs: Btn_NewGame
+  place: {x: 0, y: -5000, z: 0}
+  enlarge: 100
+--- !u!1001 &8171065679109353955
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7757157847921535357}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 4c257f82b4703174aae719d130862661, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4c257f82b4703174aae719d130862661, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4c257f82b4703174aae719d130862661, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4c257f82b4703174aae719d130862661, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4c257f82b4703174aae719d130862661, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4c257f82b4703174aae719d130862661, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4c257f82b4703174aae719d130862661, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4c257f82b4703174aae719d130862661, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4c257f82b4703174aae719d130862661, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4c257f82b4703174aae719d130862661, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4c257f82b4703174aae719d130862661, type: 3}
+      propertyPath: m_Name
+      value: ShiftJam_Menu
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4c257f82b4703174aae719d130862661, type: 3}
+--- !u!4 &8570294617508910600 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4c257f82b4703174aae719d130862661, type: 3}
+  m_PrefabInstance: {fileID: 8171065679109353955}
+  m_PrefabAsset: {fileID: 0}

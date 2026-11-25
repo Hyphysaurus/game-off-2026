@@ -10,7 +10,8 @@ namespace ShiftJam
     /// The title screen: the name, three save slots, Continue / New Game / Quit. It builds its own canvas at run time
     /// (nothing to place; it spawns in any scene with a Player) and holds the player still until a choice is made.
     /// Continue loads the active slot through Respawn (standing); New Game empties it and plays the opening in the toy box (D-0097). Mouse, keyboard
-    /// and gamepad all work through the scene's EventSystem. The title is the title prefab (his animated pixel lettering, D-0189) or, without it, his drawing (TitleArt, D-0099): one title for
+    /// and gamepad all work through the scene's EventSystem. With his Blender menu's prefab there (MenuModel, D-0196) the
+    /// buttons and the text are laid over its slabs instead of drawn here. The title is the title prefab (his animated pixel lettering, D-0189) or, without it, his drawing (TitleArt, D-0099): one title for
     /// every window shape, as large as the top of the screen allows, popping in and then breathing a little.
     /// </summary>
     public sealed class TitleMenu : MonoBehaviour
@@ -47,6 +48,20 @@ namespace ShiftJam
         public static bool IsOpen { get; private set; }
 
         private OptionsPanel _options; private Button _optionsButton;
+        private MenuModel _model;   // the menu's look as a 3D model (D-0196); null = it draws itself
+
+        /// <summary>The controls the menu needs from a model; with one missing the menu draws itself.</summary>
+        private static readonly string[] ModelControls =
+        {
+            "Btn_Continue", "Btn_NewGame", "Slot_1", "Slot_2", "Slot_3", "Btn_Workshop", "Btn_Raceway", "Btn_Colours", "Btn_Online", "Btn_Parties", "Btn_Options", "Btn_Quit",
+        };
+
+        /// <summary>The menu on the screen or off it: its canvas, and its model when it has one.</summary>
+        private void ShowMenu(bool on)
+        {
+            _root.SetActive(on);
+            if (_model != null) _model.Show(on);
+        }
         private float _menuX = 0.5f;
 
         private Respawn _respawn; private PlayerInput _input; private ShoulderCamera _camera;
@@ -66,7 +81,7 @@ namespace ShiftJam
         private void Open()
         {
             IsOpen = true;
-            _root.SetActive(true);
+            ShowMenu(true);
             if (_input != null) _input.enabled = false;
             if (_camera != null) _camera.enabled = false;
             Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
@@ -79,13 +94,17 @@ namespace ShiftJam
         private void Close()
         {
             IsOpen = false;
-            _root.SetActive(false);
+            ShowMenu(false);
             Time.timeScale = 1f;
             if (_input != null) _input.enabled = true;
             if (_camera != null) _camera.enabled = true;   // its OnEnable locks the cursor again
         }
 
-        private void OnDestroy() { IsOpen = false; NetSession.StatusChanged -= OnPartyStatus; }   // there is only ever one title
+        private void OnDestroy()
+        {
+            IsOpen = false; NetSession.StatusChanged -= OnPartyStatus;   // there is only ever one title
+            if (_model != null) Destroy(_model.gameObject);
+        }
 
         private TMP_Text _hint;
         private const string HintLine = "mouse, arrows or stick · Enter / A to choose · Online drops you into a friend's world (or starts one)";
@@ -105,16 +124,16 @@ namespace ShiftJam
         private void OpenParties()
         {
             if (_parties == null) _parties = PartiesPanel.Create(transform, 51);
-            _root.SetActive(false);
-            _parties.Open(() => { _root.SetActive(true); UiAudio.Hush(); EventSystem.current?.SetSelectedGameObject(_partiesButton.gameObject); });
+            ShowMenu(false);
+            _parties.Open(() => { ShowMenu(true); UiAudio.Hush(); EventSystem.current?.SetSelectedGameObject(_partiesButton.gameObject); });
         }
 
         /// <summary>Options over the title (D-0044): the title hides while it is up and comes back with Options selected.</summary>
         private void OpenOptions()
         {
             if (_options == null) _options = OptionsPanel.Create(transform, 51);
-            _root.SetActive(false);
-            _options.Open(() => { _root.SetActive(true); UiAudio.Hush(); EventSystem.current?.SetSelectedGameObject(_optionsButton.gameObject); });
+            ShowMenu(false);
+            _options.Open(() => { ShowMenu(true); UiAudio.Hush(); EventSystem.current?.SetSelectedGameObject(_optionsButton.gameObject); });
         }
 
         private void Continue() { if (_respawn.LoadSlot(SaveGame.Slot)) Close(); }
@@ -136,7 +155,9 @@ namespace ShiftJam
                 bool has = SaveGame.TryLoad(i, out var d);
                 var label = _slots[i].GetComponentInChildren<TMP_Text>();
                 label.text = $"<b>Slot {i + 1}</b>   " + (has ? $"{Pretty(d.room)} · {(d.size == ShiftSize.Toy ? "toy" : "kid")} · {d.when}" : "<alpha=#88>empty");
-                _slots[i].GetComponent<Image>().color = i == SaveGame.Slot ? new Color(0.35f, 0.85f, 1f, 0.35f) : new Color(1f, 1f, 1f, 0.08f);
+                // The slot in use: on a model its slab's frame says so (the button over it is see-through).
+                if (_slots[i].TryGetComponent(out MenuSlab slab)) slab.Active = i == SaveGame.Slot;
+                else _slots[i].GetComponent<Image>().color = i == SaveGame.Slot ? new Color(0.35f, 0.85f, 1f, 0.35f) : new Color(1f, 1f, 1f, 0.08f);
             }
             _continue.interactable = SaveGame.Has(SaveGame.Slot);
             _continueLabel.alpha = _continue.interactable ? 1f : 0.35f;
@@ -164,6 +185,11 @@ namespace ShiftJam
             var canvas = _root.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 50;
             var scaler = _root.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = 0.5f;
             _root.AddComponent<GraphicRaycaster>();
+
+            // His Blender menu (D-0196), when its prefab is there and whole: the slabs are drawn by a camera of their own
+            // and this canvas lays the text and the real buttons over them. Sized by the screen's height, as that camera is.
+            _model = MenuModel.Spawn(_camera != null ? _camera.GetComponent<Camera>() : Camera.main, ModelControls);
+            if (_model != null) { scaler.matchWidthOrHeight = 1f; BuildOnModel(); return; }
 
             var dim = Rect("Dim", _root.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             dim.gameObject.AddComponent<Image>().color = new Color(0.03f, 0.03f, 0.06f, 0.72f);
@@ -208,6 +234,85 @@ namespace ShiftJam
             // Which build this is (D-0040): BuildTools stamps the whole version number into the player settings; "dev" = a development build (D-0043).
             var version = Text("Version", _root.transform, "v" + Application.version + (Debug.isDebugBuild && !Application.isEditor ? " dev" : ""), 20, new Vector2(0.95f, 0.035f), new Vector2(160, 32));
             version.alignment = TextAlignmentOptions.Right; version.alpha = 0.45f;
+        }
+
+        // ------------------------------------------------------------------ the same menu over a 3D model (D-0196)
+
+        /// <summary>Everything Build makes, laid over the model: each button over its slab, each text at its label or its
+        /// anchor. What a button does, its sound and its words are the same as in the menu that draws itself.</summary>
+        private void BuildOnModel()
+        {
+            var middle = new Vector2(0.5f, 0.5f);
+            Vector2 at;
+            if (!_model.Point("Anchor_Title", out at)) at = new Vector2(0f, 390f);
+            if (TitleArt.Place(_root.transform, middle, at, _model.TitleBox, 40f, TitleArt.MenuPrefabPath, true) == null)
+            {
+                var t = At("Title", "SHIFT", 120f, at, _model.TitleBox, TextAlignmentOptions.Center);
+                t.fontStyle = FontStyles.Bold; t.characterSpacing = 18f;
+            }
+
+            _continue = ModelButton("Btn_Continue", "Continue", Continue, UiAudio.Kind.Confirm); _continueLabel = _continue.GetComponentInChildren<TMP_Text>();
+            ModelButton("Btn_NewGame", "New Game", NewGame, UiAudio.Kind.Confirm);
+            for (int i = 0; i < SaveGame.Slots; i++) { int k = i; _slots[i] = ModelButton("Slot_" + (i + 1), "Slot", () => PickSlot(k), UiAudio.Kind.Select, true); }
+            ModelButton("Btn_Workshop", "Workshop", () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); });
+            ModelButton("Btn_Raceway", "Raceway", () => { Time.timeScale = 1f; SceneManager.LoadScene(RacewayScene); });
+            ModelButton("Btn_Colours", "Colours", () => { Time.timeScale = 1f; SceneManager.LoadScene(ColourCornerScene); });
+            ModelButton("Btn_Online", "Online", () => NetSession.PlayOnline());
+            _partiesButton = ModelButton("Btn_Parties", "Parties", OpenParties);
+            _optionsButton = ModelButton("Btn_Options", "Options", OpenOptions);
+            ModelButton("Btn_Quit", "Quit", Quit);
+
+            if (!_model.Point("Anchor_Hint", out at)) at = new Vector2(0f, -520f);
+            _hint = At("Hint", HintLine, 20f, at, new Vector2(1400f, 30f), TextAlignmentOptions.Center); _hint.alpha = 0.6f;
+            // The name others see online (D-0118): kept between runs; empty = the PC's user name.
+            if (!_model.Point("Anchor_Name", out at)) at = new Vector2(540f, 460f);
+            var nameLabel = At("NameLabel", "Your name online", 18f, at + new Vector2(0f, 40f), new Vector2(300f, 26f), TextAlignmentOptions.Center); nameLabel.alpha = 0.6f;
+            var nameField = BuildUiKit.Input(_root.transform, System.Environment.UserName, 24);
+            var nameRect = (RectTransform)nameField.transform;
+            nameRect.anchorMin = nameRect.anchorMax = middle; nameRect.pivot = middle;
+            nameRect.anchoredPosition = at; nameRect.sizeDelta = new Vector2(288f, 44f);
+            nameField.characterLimit = PlayerName.MaxLength;
+            nameField.text = PlayerName.Typed;
+            nameField.onEndEdit.AddListener(PlayerName.Set);
+            NetSession.StatusChanged += OnPartyStatus;
+            // Which build this is (D-0040), as in the menu that draws itself.
+            if (!_model.Point("Anchor_Version", out at)) at = new Vector2(620f, -520f);
+            var version = At("Version", "v" + Application.version + (Debug.isDebugBuild && !Application.isEditor ? " dev" : ""), 20f, at, new Vector2(170f, 32f), TextAlignmentOptions.Right);
+            version.alpha = 0.45f;
+        }
+
+        /// <summary>A button over the model's control of this name: see-through, as large as its slab, its caption where
+        /// the model's label is; a MenuSlab shows its state on the slab. <paramref name="left"/>: the words start at the
+        /// label's left (a save slot's line) and are not centred.</summary>
+        private Button ModelButton(string control, string label, UnityEngine.Events.UnityAction onClick, UiAudio.Kind sound = UiAudio.Kind.Click, bool left = false)
+        {
+            _model.TryGet(control, out MenuModel.Control c);   // there: Spawn checked every name in ModelControls
+            var middle = new Vector2(0.5f, 0.5f);
+            var rt = Rect(label, _root.transform, middle, middle, c.Centre, c.Size);
+            var img = rt.gameObject.AddComponent<Image>(); img.color = Color.clear;   // only what the mouse lands on
+            var b = rt.gameObject.AddComponent<Button>(); b.targetGraphic = img; b.transition = Selectable.Transition.None; b.onClick.AddListener(onClick);
+            UiSound.On(b, sound);
+            rt.gameObject.AddComponent<MenuSlab>().Bind(_model, c);
+            // The words: about the label, as wide as the nearer side of the slab allows.
+            float half = Mathf.Min(c.Label.x - (c.Centre.x - c.Size.x * 0.5f), c.Centre.x + c.Size.x * 0.5f - c.Label.x) - _model.TextMargin;
+            float size = c.Size.y * _model.CaptionShare * (left ? 0.85f : 1f);
+            var words = new Vector2(Mathf.Max(20f, half * 2f), c.Size.y);
+            var t = Text("Label", rt, label, size, middle, words);
+            ((RectTransform)t.transform).anchoredPosition = c.Label - c.Centre;
+            t.alignment = left ? TextAlignmentOptions.Left : TextAlignmentOptions.Center;
+            t.enableAutoSizing = true; t.fontSizeMax = size; t.fontSizeMin = Mathf.Min(size, 12f);   // a long line shrinks to its slab
+            t.raycastTarget = false;
+            return b;
+        }
+
+        /// <summary>A text about a point of the canvas (pixels from its middle).</summary>
+        private TextMeshProUGUI At(string name, string text, float size, Vector2 at, Vector2 box, TextAlignmentOptions align)
+        {
+            var middle = new Vector2(0.5f, 0.5f);
+            var t = Text(name, _root.transform, text, size, middle, box);
+            ((RectTransform)t.transform).anchoredPosition = at;
+            t.alignment = align;
+            return t;
         }
 
         private Button MenuButton(string label, float y, UnityEngine.Events.UnityAction onClick, float width = 380f, float size = 40f, float dx = 0f)

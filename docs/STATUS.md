@@ -2,6 +2,36 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 18:2x — THE TITLE MENU WEARS THE BLENDER MODEL (D-0196): COMPILED BY UNITY, LAYOUT CHECKED IN BATCH, NOT PLAYED
+- **His "wire now, proceed".** `TitleMenu` now lays its buttons and text over the model's slabs, drawn by a camera
+  of their own over the live room. Same actions and words. The old code-drawn menu is the fallback (delete
+  `Resources/Titles/TitleMenuModel.prefab` to get it back).
+- **HIS TO LOOK AT (Play from the title):** do the slabs sit under the words; the mouse over a button, the arrow
+  keys and the stick (one bright, slightly larger slab at a time); Continue dim with an empty slot and plain with a
+  save; the pink frame on the slot in use; Options and Parties open and come back; the title art, now half its old
+  size (the model leaves it 600 by 280).
+- **For the next export (ChatGPT):** every control in its PLAIN look (Continue came with a black face; worked round
+  with `MenuModel > Drawn Like`); frames thick enough to read (now 1 to 2 pixels); icons if wanted. Same names: no
+  code change.
+- Stills: `docs/stills/menu_model_unity_camera.png` (Unity's menu camera), `menu_model_caption_preview.png` (the
+  same with my stand-in captions drawn on: NOT the game's text).
+
+## 24 Nov 2026 18:0x — THE BLENDER MENU MODEL IS IN (ChatGPT's, from my handoff prompt): CHECKED, NOT WIRED
+- **Delivered 17:55:** `Assets/_Game/Art/Menu/Exports/ShiftJam_Menu.fbx` + `Reports/ShiftJam_Menu_Handoff.md` and
+  `_Manifest.json` (its source `C:\ShiftJamMenu\menu.blend` is outside the repo and outside Dev).
+- **Checked by me:** the hash matches the report; the only path inside the FBX is the neutral one; all 41 named
+  objects are there (12 controls, each with a `_Frame` child and a `Label_` empty, 4 anchors, `Menu_Root`); six
+  flat-colour materials; no animation, no textures. Rendered from the front: `docs/stills/menu_model_front_render.png`.
+- **What it is:** twelve flat slabs with cut corners and a hairline frame, laid out at 1 m = 600 reference pixels. No
+  icons, no thick pixel frames, no backdrop: the skeleton of his mock-up, not its look. The frame is about 1 to 2
+  pixels wide at 1080p: too thin to carry the selected state for a gamepad on its own.
+- **Small things:** the report gives the FBX's place as `Art/Menu/` (it is in `Art/Menu/Exports/`); it suggests the
+  captions "Settings" and "Multiplayer" for Options and Online (his call; the game says Options and Online); the
+  two report files sit inside `Assets` (they would go into the public repo as they are).
+- **NOT DONE: the wiring.** Plan given, waiting for his word: TitleMenu keeps its actions and gets this model as its
+  look (a menu camera over the room, live text and the real buttons laid over the slabs by name).
+- Provenance for the itch page when it ships: the menu meshes were made by ChatGPT through Blender Python.
+
 ## 24 Nov 2026 17:3x — THE OTHER VERBS IN FIRST PERSON (D-0195): COMPILED BY UNITY, NOT PLAYED
 - **His words (17:2x):** "lets get all of those other verbs in as well". Built on D-0194 (Ride Player on):
   roll, punch, kick, block, hit reactions and the death clip in first person; the body drawn under the eye while a

@@ -1,0 +1,1911 @@
+{
+  "schema": "ShiftJamMenu/1.0",
+  "source_blend": "C:\\ShiftJamMenu\\menu.blend",
+  "fbx_file": "ShiftJam_Menu.fbx",
+  "fbx_sha256": "a6e48abf5641906473305bc185ac93a969eef00237df917d714490b38510400c",
+  "fbx_bytes": 132476,
+  "blender_version": "5.2.0 LTS",
+  "objects_count": 41,
+  "mesh_objects": 24,
+  "empty_objects": 17,
+  "triangles": 3312,
+  "axis_convention": {
+    "blender": "X right, Z up, front toward -Y",
+    "export": "+Y forward / +Z up (Blender native basis; FBX metadata enables Unity axis conversion)",
+    "ui_reference": "1920x1080 = 3.2x1.8 metres; central 4:3 safe area X +/-1.2 and Z +/-0.9 metres",
+    "label_orientation": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Anchors rotate +90 degrees about Blender X."
+  },
+  "export_settings": {
+    "use_selection": true,
+    "object_types": [
+      "EMPTY",
+      "MESH"
+    ],
+    "global_scale": 1,
+    "apply_unit_scale": true,
+    "apply_scale_options": "FBX_SCALE_ALL",
+    "axis_forward": "Y",
+    "axis_up": "Z",
+    "use_space_transform": true,
+    "bake_space_transform": true,
+    "use_mesh_modifiers": true,
+    "use_triangles": true,
+    "mesh_smooth_type": "OFF",
+    "bake_anim": false,
+    "add_leaf_bones": false,
+    "path_mode": "STRIP",
+    "embed_textures": false,
+    "use_custom_props": true
+  },
+  "navigation_order": [
+    "Btn_Continue",
+    "Btn_NewGame",
+    "Slot_1",
+    "Slot_2",
+    "Slot_3",
+    "Btn_Workshop",
+    "Btn_Raceway",
+    "Btn_Colours",
+    "Btn_Online",
+    "Btn_Parties",
+    "Btn_Options",
+    "Btn_Quit"
+  ],
+  "actions_exported": [],
+  "textures_exported": [],
+  "objects": [
+    {
+      "name": "Anchor_Hint",
+      "type": "EMPTY",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.0,
+        -0.045,
+        -0.815
+      ],
+      "world_position_m": [
+        0.0,
+        -0.045,
+        -0.815
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        2.15,
+        0.05
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 2.15,
+        "text_rect_height_m": 0.05,
+        "binding_note": "Live help line and network status.",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Anchor_Name",
+      "type": "EMPTY",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.9,
+        -0.045,
+        0.78
+      ],
+      "world_position_m": [
+        0.9,
+        -0.045,
+        0.78
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        0.48,
+        0.105
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 0.48,
+        "text_rect_height_m": 0.105,
+        "binding_note": "Your name online input; maximum 16 characters.",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Anchor_Title",
+      "type": "EMPTY",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.0,
+        -0.045,
+        0.65
+      ],
+      "world_position_m": [
+        0.0,
+        -0.045,
+        0.65
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        1.0,
+        0.4666666666666667
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 1.0,
+        "text_rect_height_m": 0.4666666666666667,
+        "binding_note": "Existing 75x35 title; 64 frames; 4000ms; use a 1.0m x 0.4666667m centred rectangle, preserve aspect and use unscaled time.",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Anchor_Version",
+      "type": "EMPTY",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        1.03,
+        -0.045,
+        -0.865
+      ],
+      "world_position_m": [
+        1.03,
+        -0.045,
+        -0.865
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        0.29,
+        0.035
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 0.29,
+        "text_rect_height_m": 0.035,
+        "binding_note": "Version label, bottom right.",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Btn_Colours",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.0,
+        0.0,
+        -0.525
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        -0.525
+      ],
+      "size_m": [
+        0.35,
+        0.022,
+        0.102
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink",
+        "SJMenu_Pale"
+      ],
+      "properties": {
+        "control_order": 7,
+        "suggested_caption": "Colours",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "normal"
+      }
+    },
+    {
+      "name": "Btn_Colours_Frame",
+      "type": "MESH",
+      "parent": "Btn_Colours",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        -0.525
+      ],
+      "size_m": [
+        0.349,
+        0.002,
+        0.101
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_DeepPurple"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    },
+    {
+      "name": "Btn_Continue",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.325
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        0.325
+      ],
+      "size_m": [
+        1.0,
+        0.024,
+        0.13
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink"
+      ],
+      "properties": {
+        "control_order": 0,
+        "suggested_caption": "Continue",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "disabled",
+        "binding": "Enabled only for a valid selected save; existing Respawn.LoadSlot through TitleMenu."
+      }
+    },
+    {
+      "name": "Btn_Continue_Frame",
+      "type": "MESH",
+      "parent": "Btn_Continue",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        0.325
+      ],
+      "size_m": [
+        0.999,
+        0.002,
+        0.129
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    },
+    {
+      "name": "Btn_NewGame",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.16
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        0.16
+      ],
+      "size_m": [
+        1.0,
+        0.024,
+        0.13
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink",
+        "SJMenu_Pale"
+      ],
+      "properties": {
+        "control_order": 1,
+        "suggested_caption": "New Game",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "selected"
+      }
+    },
+    {
+      "name": "Btn_NewGame_Frame",
+      "type": "MESH",
+      "parent": "Btn_NewGame",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        0.16
+      ],
+      "size_m": [
+        0.999,
+        0.002,
+        0.129
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Cyan"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    },
+    {
+      "name": "Btn_Online",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.39,
+        0.0,
+        -0.525
+      ],
+      "world_position_m": [
+        0.39,
+        0.0,
+        -0.525
+      ],
+      "size_m": [
+        0.35,
+        0.022,
+        0.102
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink",
+        "SJMenu_Pale"
+      ],
+      "properties": {
+        "control_order": 8,
+        "suggested_caption": "Multiplayer",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "normal",
+        "binding": "Existing NetSession.PlayOnline; independent of campaign save availability."
+      }
+    },
+    {
+      "name": "Btn_Online_Frame",
+      "type": "MESH",
+      "parent": "Btn_Online",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        0.39,
+        0.0,
+        -0.525
+      ],
+      "size_m": [
+        0.349,
+        0.002,
+        0.101
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_DeepPurple"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    },
+    {
+      "name": "Btn_Options",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        -0.25,
+        0.0,
+        -0.69
+      ],
+      "world_position_m": [
+        -0.25,
+        0.0,
+        -0.69
+      ],
+      "size_m": [
+        0.46,
+        0.022,
+        0.11
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink",
+        "SJMenu_Pale"
+      ],
+      "properties": {
+        "control_order": 10,
+        "suggested_caption": "Settings",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "normal",
+        "binding": "Existing TitleMenu.OpenOptions / OptionsPanel; suggested visible caption Settings."
+      }
+    },
+    {
+      "name": "Btn_Options_Frame",
+      "type": "MESH",
+      "parent": "Btn_Options",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        -0.25,
+        0.0,
+        -0.69
+      ],
+      "size_m": [
+        0.459,
+        0.002,
+        0.109
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_DeepPurple"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    },
+    {
+      "name": "Btn_Parties",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.78,
+        0.0,
+        -0.525
+      ],
+      "world_position_m": [
+        0.78,
+        0.0,
+        -0.525
+      ],
+      "size_m": [
+        0.35,
+        0.022,
+        0.102
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink",
+        "SJMenu_Pale"
+      ],
+      "properties": {
+        "control_order": 9,
+        "suggested_caption": "Parties",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "normal",
+        "binding": "Existing TitleMenu.OpenParties / PartiesPanel."
+      }
+    },
+    {
+      "name": "Btn_Parties_Frame",
+      "type": "MESH",
+      "parent": "Btn_Parties",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        0.78,
+        0.0,
+        -0.525
+      ],
+      "size_m": [
+        0.349,
+        0.002,
+        0.101
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_DeepPurple"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    },
+    {
+      "name": "Btn_Quit",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.25,
+        0.0,
+        -0.69
+      ],
+      "world_position_m": [
+        0.25,
+        0.0,
+        -0.69
+      ],
+      "size_m": [
+        0.46,
+        0.022,
+        0.11
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink",
+        "SJMenu_Pale"
+      ],
+      "properties": {
+        "control_order": 11,
+        "suggested_caption": "Quit",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "normal"
+      }
+    },
+    {
+      "name": "Btn_Quit_Frame",
+      "type": "MESH",
+      "parent": "Btn_Quit",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        0.25,
+        0.0,
+        -0.69
+      ],
+      "size_m": [
+        0.459,
+        0.002,
+        0.109
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_DeepPurple"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    },
+    {
+      "name": "Btn_Raceway",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        -0.39,
+        0.0,
+        -0.525
+      ],
+      "world_position_m": [
+        -0.39,
+        0.0,
+        -0.525
+      ],
+      "size_m": [
+        0.35,
+        0.022,
+        0.102
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink",
+        "SJMenu_Pale"
+      ],
+      "properties": {
+        "control_order": 6,
+        "suggested_caption": "Raceway",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "normal"
+      }
+    },
+    {
+      "name": "Btn_Raceway_Frame",
+      "type": "MESH",
+      "parent": "Btn_Raceway",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        -0.39,
+        0.0,
+        -0.525
+      ],
+      "size_m": [
+        0.349,
+        0.002,
+        0.101
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_DeepPurple"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    },
+    {
+      "name": "Btn_Workshop",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        -0.78,
+        0.0,
+        -0.525
+      ],
+      "world_position_m": [
+        -0.78,
+        0.0,
+        -0.525
+      ],
+      "size_m": [
+        0.35,
+        0.022,
+        0.102
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink",
+        "SJMenu_Pale"
+      ],
+      "properties": {
+        "control_order": 5,
+        "suggested_caption": "Workshop",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "normal"
+      }
+    },
+    {
+      "name": "Btn_Workshop_Frame",
+      "type": "MESH",
+      "parent": "Btn_Workshop",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        -0.78,
+        0.0,
+        -0.525
+      ],
+      "size_m": [
+        0.349,
+        0.002,
+        0.101
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_DeepPurple"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    },
+    {
+      "name": "Label_Btn_Colours",
+      "type": "EMPTY",
+      "parent": "Btn_Colours",
+      "local_position_m": [
+        0.0,
+        -0.0135,
+        0.0
+      ],
+      "world_position_m": [
+        0.0,
+        -0.0135,
+        -0.525
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        0.305,
+        0.074
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 0.305,
+        "text_rect_height_m": 0.074,
+        "text_alignment": "Center",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Label_Btn_Continue",
+      "type": "EMPTY",
+      "parent": "Btn_Continue",
+      "local_position_m": [
+        0.0,
+        -0.0145,
+        0.0
+      ],
+      "world_position_m": [
+        0.0,
+        -0.0145,
+        0.325
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        0.955,
+        0.10200000000000001
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 0.955,
+        "text_rect_height_m": 0.10200000000000001,
+        "text_alignment": "Center",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Label_Btn_NewGame",
+      "type": "EMPTY",
+      "parent": "Btn_NewGame",
+      "local_position_m": [
+        0.0,
+        -0.0145,
+        0.0
+      ],
+      "world_position_m": [
+        0.0,
+        -0.0145,
+        0.16
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        0.955,
+        0.10200000000000001
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 0.955,
+        "text_rect_height_m": 0.10200000000000001,
+        "text_alignment": "Center",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Label_Btn_Online",
+      "type": "EMPTY",
+      "parent": "Btn_Online",
+      "local_position_m": [
+        0.0,
+        -0.0135,
+        0.0
+      ],
+      "world_position_m": [
+        0.39,
+        -0.0135,
+        -0.525
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        0.305,
+        0.074
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 0.305,
+        "text_rect_height_m": 0.074,
+        "text_alignment": "Center",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Label_Btn_Options",
+      "type": "EMPTY",
+      "parent": "Btn_Options",
+      "local_position_m": [
+        0.0,
+        -0.0135,
+        0.0
+      ],
+      "world_position_m": [
+        -0.25,
+        -0.0135,
+        -0.69
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        0.41500000000000004,
+        0.082
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 0.41500000000000004,
+        "text_rect_height_m": 0.082,
+        "text_alignment": "Center",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Label_Btn_Parties",
+      "type": "EMPTY",
+      "parent": "Btn_Parties",
+      "local_position_m": [
+        0.0,
+        -0.0135,
+        0.0
+      ],
+      "world_position_m": [
+        0.78,
+        -0.0135,
+        -0.525
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        0.305,
+        0.074
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 0.305,
+        "text_rect_height_m": 0.074,
+        "text_alignment": "Center",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Label_Btn_Quit",
+      "type": "EMPTY",
+      "parent": "Btn_Quit",
+      "local_position_m": [
+        0.0,
+        -0.0135,
+        0.0
+      ],
+      "world_position_m": [
+        0.25,
+        -0.0135,
+        -0.69
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        0.41500000000000004,
+        0.082
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 0.41500000000000004,
+        "text_rect_height_m": 0.082,
+        "text_alignment": "Center",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Label_Btn_Raceway",
+      "type": "EMPTY",
+      "parent": "Btn_Raceway",
+      "local_position_m": [
+        0.0,
+        -0.0135,
+        0.0
+      ],
+      "world_position_m": [
+        -0.39,
+        -0.0135,
+        -0.525
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        0.305,
+        0.074
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 0.305,
+        "text_rect_height_m": 0.074,
+        "text_alignment": "Center",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Label_Btn_Workshop",
+      "type": "EMPTY",
+      "parent": "Btn_Workshop",
+      "local_position_m": [
+        0.0,
+        -0.0135,
+        0.0
+      ],
+      "world_position_m": [
+        -0.78,
+        -0.0135,
+        -0.525
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        0.305,
+        0.074
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 0.305,
+        "text_rect_height_m": 0.074,
+        "text_alignment": "Center",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Label_Slot_1",
+      "type": "EMPTY",
+      "parent": "Slot_1",
+      "local_position_m": [
+        0.04,
+        -0.0135,
+        0.0
+      ],
+      "world_position_m": [
+        0.04,
+        -0.0135,
+        -0.015
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        1.5,
+        0.092
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 1.5,
+        "text_rect_height_m": 0.092,
+        "text_alignment": "Left",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Label_Slot_2",
+      "type": "EMPTY",
+      "parent": "Slot_2",
+      "local_position_m": [
+        0.04,
+        -0.0135,
+        0.0
+      ],
+      "world_position_m": [
+        0.04,
+        -0.0135,
+        -0.17
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        1.5,
+        0.092
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 1.5,
+        "text_rect_height_m": 0.092,
+        "text_alignment": "Left",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Label_Slot_3",
+      "type": "EMPTY",
+      "parent": "Slot_3",
+      "local_position_m": [
+        0.04,
+        -0.0135,
+        0.0
+      ],
+      "world_position_m": [
+        0.04,
+        -0.0135,
+        -0.325
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        90.000003,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": [
+        1.5,
+        0.092
+      ],
+      "material_slots": [],
+      "properties": {
+        "text_rect_width_m": 1.5,
+        "text_rect_height_m": 0.092,
+        "text_alignment": "Left",
+        "local_axes": "Local +X reads right; local +Y reads up (+Z Blender); local +Z faces viewer (-Y Blender). Native FBX axis metadata preserves this hierarchy."
+      }
+    },
+    {
+      "name": "Menu_Root",
+      "type": "EMPTY",
+      "parent": null,
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [],
+      "properties": {
+        "schema_version": "ShiftJamMenu/1.0",
+        "layout_units": "metres; 600 UI pixels per metre at 1920x1080",
+        "front": "Blender +Z up, +Y forward; visible face -Y. FBX retains native Z-up metadata to preserve mesh-parent child transforms with Apply Transform enabled. Unity importer converts axes.",
+        "unity_time": "Unscaled time for all Unity feedback and title animation.",
+        "default_selected_control": "Btn_NewGame when active save is empty; Btn_Continue when selected slot is loadable.",
+        "default_active_slot": "Slot_1 (visual authoring state; Unity reads SaveGame.Slot).",
+        "interaction_priority": "Disabled > Selected (mouse, keyboard or gamepad) > Active slot > Normal.",
+        "states_json": "{\"normal\": \"#492393\", \"selected\": \"#73f1ff\", \"active\": \"#ff72cc\", \"disabled\": \"#0a0812\", \"text\": \"#fff0fc\"}",
+        "provenance": "AI-generated geometry and palette material setup: OpenAI ChatGPT via Blender Python. No image-generation texture, font geometry, save thumbnail, or copied asset mesh.",
+        "mesh_triangle_count": 3312,
+        "layout_bounds_validation": "All 12 control bounds and 4 anchor rectangles are inside 4:3 safe area and do not overlap."
+      }
+    },
+    {
+      "name": "Slot_1",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.0,
+        0.0,
+        -0.015
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        -0.015
+      ],
+      "size_m": [
+        1.72,
+        0.022,
+        0.12
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink",
+        "SJMenu_Pale"
+      ],
+      "properties": {
+        "control_order": 2,
+        "suggested_caption": "Slot 1",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "active",
+        "save_slot_index": 0,
+        "empty_caption": "empty",
+        "metadata_source": "SaveGame.TryLoad(index, out Data): room, size, when; no screenshot or playtime.",
+        "optional_room_icon_rect": "left side, 0.10m wide; Unity-provided per-room icon, not a stored screenshot"
+      }
+    },
+    {
+      "name": "Slot_1_Frame",
+      "type": "MESH",
+      "parent": "Slot_1",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        -0.015
+      ],
+      "size_m": [
+        1.719,
+        0.002,
+        0.119
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Pink"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    },
+    {
+      "name": "Slot_2",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.0,
+        0.0,
+        -0.17
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        -0.17
+      ],
+      "size_m": [
+        1.72,
+        0.022,
+        0.12
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink",
+        "SJMenu_Pale"
+      ],
+      "properties": {
+        "control_order": 3,
+        "suggested_caption": "Slot 2",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "normal",
+        "save_slot_index": 1,
+        "empty_caption": "empty",
+        "metadata_source": "SaveGame.TryLoad(index, out Data): room, size, when; no screenshot or playtime.",
+        "optional_room_icon_rect": "left side, 0.10m wide; Unity-provided per-room icon, not a stored screenshot"
+      }
+    },
+    {
+      "name": "Slot_2_Frame",
+      "type": "MESH",
+      "parent": "Slot_2",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        -0.17
+      ],
+      "size_m": [
+        1.719,
+        0.002,
+        0.119
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_DeepPurple"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    },
+    {
+      "name": "Slot_3",
+      "type": "MESH",
+      "parent": "Menu_Root",
+      "local_position_m": [
+        0.0,
+        0.0,
+        -0.325
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        -0.325
+      ],
+      "size_m": [
+        1.72,
+        0.022,
+        0.12
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_Ink",
+        "SJMenu_Purple",
+        "SJMenu_DeepPurple",
+        "SJMenu_Pink",
+        "SJMenu_Pale"
+      ],
+      "properties": {
+        "control_order": 4,
+        "suggested_caption": "Slot 3",
+        "feedback_lift_m": 0.0018,
+        "feedback_press_m": 0.0025,
+        "focus_seconds": 0.1,
+        "press_seconds": 0.07,
+        "release_seconds": 0.12,
+        "initial_state": "normal",
+        "save_slot_index": 2,
+        "empty_caption": "empty",
+        "metadata_source": "SaveGame.TryLoad(index, out Data): room, size, when; no screenshot or playtime.",
+        "optional_room_icon_rect": "left side, 0.10m wide; Unity-provided per-room icon, not a stored screenshot"
+      }
+    },
+    {
+      "name": "Slot_3_Frame",
+      "type": "MESH",
+      "parent": "Slot_3",
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "world_position_m": [
+        0.0,
+        0.0,
+        -0.325
+      ],
+      "size_m": [
+        1.719,
+        0.002,
+        0.119
+      ],
+      "local_rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "text_rect_m": null,
+      "material_slots": [
+        "SJMenu_DeepPurple"
+      ],
+      "properties": {
+        "state_role": "Recolour this child for Normal / Selected / Active / Disabled; selected is not hover-only."
+      }
+    }
+  ],
+  "materials": [
+    {
+      "name": "SJMenu_Cyan",
+      "srgb_hex": "#73f1ff",
+      "metallic": 0,
+      "roughness": 0.38,
+      "textures": [],
+      "emission": false
+    },
+    {
+      "name": "SJMenu_DeepPurple",
+      "srgb_hex": "#492393",
+      "metallic": 0,
+      "roughness": 0.38,
+      "textures": [],
+      "emission": false
+    },
+    {
+      "name": "SJMenu_Ink",
+      "srgb_hex": "#0a0812",
+      "metallic": 0,
+      "roughness": 0.38,
+      "textures": [],
+      "emission": false
+    },
+    {
+      "name": "SJMenu_Pale",
+      "srgb_hex": "#fff0fc",
+      "metallic": 0,
+      "roughness": 0.38,
+      "textures": [],
+      "emission": false
+    },
+    {
+      "name": "SJMenu_Pink",
+      "srgb_hex": "#ff72cc",
+      "metallic": 0,
+      "roughness": 0.38,
+      "textures": [],
+      "emission": false
+    },
+    {
+      "name": "SJMenu_Purple",
+      "srgb_hex": "#b24dff",
+      "metallic": 0,
+      "roughness": 0.38,
+      "textures": [],
+      "emission": false
+    }
+  ],
+  "historical_native_actions_not_exported": [
+    {
+      "name": "demo_continue_focus_press",
+      "start_frame": 1.0,
+      "end_frame": 150.0,
+      "length_frames": 149.0
+    },
+    {
+      "name": "demo_new_game_focus_press",
+      "start_frame": 1.0,
+      "end_frame": 240.0,
+      "length_frames": 239.0
+    },
+    {
+      "name": "demo_save_01_focus",
+      "start_frame": 1.0,
+      "end_frame": 150.0,
+      "length_frames": 149.0
+    },
+    {
+      "name": "demo_save_02_focus",
+      "start_frame": 1.0,
+      "end_frame": 150.0,
+      "length_frames": 149.0
+    },
+    {
+      "name": "demo_save_03_focus",
+      "start_frame": 1.0,
+      "end_frame": 150.0,
+      "length_frames": 149.0
+    },
+    {
+      "name": "title_original_light_sweep_4000ms",
+      "start_frame": 1.0,
+      "end_frame": 121.0,
+      "length_frames": 120.0
+    }
+  ],
+  "checks": {
+    "personal_path_scan": "PASS: no known personal username or user-profile paths, ASCII or UTF-16, in FBX",
+    "neutral_source_before_export": true,
+    "all_control_origins_centered": true,
+    "all_control_rotation_scale_applied": true,
+    "all_mesh_modifiers_applied": true,
+    "all_controls_inside_4x3_safe_area": true,
+    "no_mesh_text": true,
+    "no_recreated_title": true,
+    "no_save_thumbnails": true,
+    "no_backdrop": true,
+    "no_unity_code_changes": true,
+    "not_committed_or_pushed": true,
+    "fbx_roundtrip": {
+      "objects": 41,
+      "mesh_objects": 24,
+      "parent_hierarchy": "PASS",
+      "max_position_error_m": 0,
+      "max_size_error_m": 0,
+      "max_axis_vector_error": 2.384185791015625e-07
+    },
+    "all_16_ui_regions_inside_safe_area_and_non_overlapping": true
+  },
+  "provenance": {
+    "meshes": "All 12 control body meshes and 12 frame meshes were generated by OpenAI ChatGPT using Blender Python. Exact object names appear below. No third-party mesh was copied.",
+    "materials": "Six flat palette materials configured by ChatGPT from the user-supplied title colours.",
+    "textures_images": "None created or exported for this FBX. The existing title is supplied by Unity at Anchor_Title. Earlier concept/reference image and title atlas in historical prototype scenes are not in this export.",
+    "itch_credit": "Menu button and save-slot meshes were AI-generated with OpenAI ChatGPT using Blender Python; palette/material setup was also AI-assisted. Existing title art is credited separately."
+  }
+}

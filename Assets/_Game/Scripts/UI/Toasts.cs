@@ -45,6 +45,9 @@ namespace ShiftJam
             Once(id, text, kind, title);
         }
 
+        /// <summary>True once <paramref name="id"/>'s first-time message has been used up in this save slot. Marks nothing.</summary>
+        public static bool Told(string id) => SaveGame.Seen(SaveGame.Slot, "toast:" + id);
+
         /// <summary>True the first time <paramref name="id"/> is asked about in this save slot (and marks it). Ask on
         /// events, not every frame (it reads the save's list).</summary>
         public static bool FirstTime(string id)

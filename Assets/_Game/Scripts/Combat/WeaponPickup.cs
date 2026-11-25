@@ -52,8 +52,12 @@ namespace ShiftJam
         public bool Give(WeaponHolder holder)
         {
             if (holder == null || !Available) return false;
+            // A save's first take of a weapon gets its "how to" message from the Inventory; every later take says its name
+            // on the taker's own screen, so a take is never silent (D-0191: the Stadium has no Course Audio to play one).
+            bool toldBefore = Toasts.Told(Inventory.GotId(weapon.DisplayName));
             if (holder.Equip(weapon) == null) return false;
             GameEvents.RaiseWeaponTaken(holder, weapon);
+            if (toldBefore) Toasts.ShowFor(holder, weapon.DisplayName, ToastKind.Got);
             if (Dropped) return true;                 // it is in the hand now; its WeaponLooks switched this off
             _gone = true;
             if (display != null) display.gameObject.SetActive(false);

@@ -50,6 +50,9 @@ namespace ShiftJam
         public static event Action<WeaponHolder, BlasterWeapon> DryFired;
         /// <summary>A holder took ammo from a box; the int is how many rounds its guns gained in all.</summary>
         public static event Action<WeaponHolder, int> AmmoTaken;
+        /// <summary>A player took a power-up (a heart, a shield ring, grenades, a shift charge): the player and the words
+        /// they were told ("+50 health").</summary>
+        public static event Action<UnityEngine.GameObject, string> PickupTaken;
         /// <summary>A holder's shot landed on something with health and the hit counted; the bool says whether that hit
         /// finished it off. The hit marker listens.</summary>
         public static event Action<WeaponHolder, bool> ShotLanded;
@@ -101,6 +104,7 @@ namespace ShiftJam
         internal static void RaiseReloadEnded(WeaponHolder holder, BlasterWeapon gun, bool loaded) => ReloadEnded?.Invoke(holder, gun, loaded);
         internal static void RaiseDryFired(WeaponHolder holder, BlasterWeapon gun) => DryFired?.Invoke(holder, gun);
         internal static void RaiseAmmoTaken(WeaponHolder holder, int rounds) => AmmoTaken?.Invoke(holder, rounds);
+        internal static void RaisePickupTaken(UnityEngine.GameObject player, string told) => PickupTaken?.Invoke(player, told);
         internal static void RaiseShotLanded(WeaponHolder holder, bool finished) => ShotLanded?.Invoke(holder, finished);
         internal static void RaiseDartStuck(UnityEngine.Transform shooter) => DartStuck?.Invoke(shooter);
         internal static void RaiseGrenadesChanged(GrenadeThrower thrower) => GrenadesChanged?.Invoke(thrower);

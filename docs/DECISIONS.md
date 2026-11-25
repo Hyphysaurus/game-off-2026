@@ -3529,3 +3529,45 @@
     so ITCH_PAGE now lists the pixel title as AI-assisted and only the graffiti drawing as his alone.
   - Checked: compiled outside (editor and player), compiled in his editor, the prefab loads through Resources with
     its sprite, its 4 s looping clip and unscaled time; the sheet is 4800 x 35, point filtered. NOT seen in Play.
+- **D-0190 (24 Nov 2026, 16:5x) A thing is grabbed from beside it, never from on top; its collision comes back when the
+  grabber is clear.** His still and words: "make sure i cant get stuck in the turntable wheel ... this was after
+  selecting grab on it". Cause: a hold switches off the thing's collision with the grabber (D-0157). He stood ON the
+  wheel and pressed E, fell through its top into the hollow shell (his log: height 2.3 to 2.5 on it, then 1.0 at 1.5
+  from the hub), and the collision came back at let-go with him inside. True of every Grabbable, not only the wheel.
+  - `Grabbable.StandsOn`: a ball half the capsule's width swept from just above the feet to just below them; if it
+    meets the thing or something riding it, the prompt reads **On Top Prompt** ("Step off to grab it") and E is
+    refused. A rim beside the feet is not under them, so the grab from the floor is as before.
+  - `Grabbable.RestoreCollision`: at let-go the collision comes back at once unless the grabber's capsule (15%
+    thinner, so a touch does not count) is in the thing; then it waits, tested each physics step, so they can walk
+    out. Also covers a shift to kid size while holding.
+  - Checked out of Play on the real wheel in Greybox at his logged places: on top = "Step off to grab it"; on the
+    floor beside the rim = the grab prompt and not inside; sunk at floor height = inside (collision would wait).
+    At the rim's very edge (7.2 from the hub) the grab is still offered: he would step down beside it. NOT played.
+- **D-0191 (24 Nov 2026, 16:5x) Every pickup tells its taker.** His words after the bot match: "some of the pickups
+  dont clearly register". Found: a power-up (heart, shield ring, bomb, star) gave one shared sound and vanished; one
+  the player could not use did nothing at all; a weapon take in the Stadium was silent (no Course Audio there).
+  - `PlayerPickup`: taken = the sound + a Got toast on the taker's own screen ("+50 health", "Shield full", "+2
+    grenades", "Shift charge full"; the number is what was really gained) + `GameEvents.PickupTaken` (a play-log
+    line and a count). Nothing to gain = a Refused toast ("Health is already full"), at most every **Full Text
+    Every** seconds (4). Words and an own sound can be set per pickup (**Taken Text**, **Full Text**, **Taken Clip**).
+  - `WeaponPickup`: a take says the weapon's name in a Got toast, except a save's first take, which already gets the
+    Inventory's how-to message (`Toasts.Told`, `Inventory.GotId`).
+  - Course Audio was NOT added to the Stadium: it also loops the house's music and ambience and plays every
+    player's cues flat. Sounds for the arena are a separate call.
+  - The ammo read-out: he "still" does not see one. `WeaponHud` draws it bottom left whenever a dart gun is out and
+    the cause is not known, so the play log now says, a second after a dart gun comes to hand, whether the read-out
+    is on screen, what it reads and where ("ammo read-out: on screen, \"6 / 24\", x .. y .."), or why not
+    (`WeaponHud.WhyHidden`). His next play with a gun out settles it.
+  - Compiled outside (editor and player) and in his editor. NOT played.
+- **D-0192 (24 Nov 2026, 16:5x) The bots' floor is whole in a built game: the models behind its mesh colliders are
+  Read/Write.** His match's log had 42 "RuntimeNavMeshBuilder: Source mesh ... does not allow read access. This
+  will work in playmode in the editor but not in player". `BotGround` maps the floor from the scene's colliders at
+  scene start; a built game can read a mesh collider's mesh only if its model is imported with Read/Write.
+  - `Debug/BotFloorMeshes` (editor): for each build scene that has a BotGround (found through the scene's
+    dependencies, so inside a prefab counts) it reads the scene in a preview scene (nothing open is touched) and
+    turns Read/Write on for the model behind every solid mesh collider. It runs before every build
+    (`IPreprocessBuildWithReport`) and from Shift Jam > Bots > Make Floor Meshes Readable.
+  - Run 24 Nov: 1 scene (Stadium), 407 mesh colliders, 91 models set; a second run changed none.
+  - The setting lives in the models' .meta files under `_Imports` (not in git): a fresh pack import loses it and
+    the next build puts it back. Why not bake the map: BotGround stays a drop-in that maps whatever the scene is.
+  - NOT checked in a built game. His next Stadium play should show 0 of those errors in the play log.

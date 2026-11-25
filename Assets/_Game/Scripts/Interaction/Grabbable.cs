@@ -11,7 +11,8 @@ namespace ShiftJam
     /// with it. Its own physics body moves it (by speed, so walls stop it). The giant flashlight in the toy box has one:
     /// steer its beam onto the core. Who may grab it, how fast it turns and slides, and its pivot are set on it.
     /// Both palms go on it through CarryPose (D-0164: on a rim's top edge, else on its face), a tool in hand is put
-    /// away and the gun hidden while held. Anchored (a turntable): the grabber walks round with its rim, facing the hub,
+    /// away and the gun hidden while held. It is grabbed from beside it, never from on top of it, and its collision with
+    /// the grabber comes back only once they are clear of it (D-0190). Anchored (a turntable): the grabber walks round with its rim, facing the hub,
     /// and it stops turning when they are blocked (a wall, a block) instead of dragging them off it.
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
@@ -38,8 +39,12 @@ namespace ShiftJam
         [SerializeField, Range(0.05f, 0.5f), Tooltip("How far apart the palms are, as a share of the grabber's height.")] private float handsApart = 0.2f;
         [SerializeField, Min(0.01f), Tooltip("Seconds the hands take to go on and come off.")] private float handsFade = 0.25f;
         [SerializeField, Range(0.02f, 1f), Tooltip("Anchored: when the grabber trails their grip by more than this share of their height (blocked), it stops turning that way.")] private float blockAt = 0.15f;
+        [Header("Standing on it (D-0190)")]
+        [SerializeField, Tooltip("Shown in place of the prompt to someone standing on it, or on something riding it: it is grabbed from beside it (holding it switches off its collision with the grabber, who would fall into it). Empty hides the prompt there.")] private string onTopPrompt = "Step off to grab it";
 
         private static readonly Dictionary<GameObject, Grabbable> Held = new Dictionary<GameObject, Grabbable>();
+        private static readonly RaycastHit[] Under = new RaycastHit[16];
+        private static readonly Collider[] Touching = new Collider[64];
 
         private Rigidbody _body;
         private GameObject _who;
@@ -52,6 +57,8 @@ namespace ShiftJam
         private bool _wasKinematic;
         private Collider[] _mine;
         private CharacterController _cc;
+        private CharacterController _leaving;   // someone who let go while still in it: its collision with them stays off until they are clear (D-0190)
+        private Collider[] _leavingFrom;
         private CarryPose _pose;
         private bool _hasHands;
         private Vector3 _palmR, _palmL, _normal, _fingers;   // in its own space: the palms ride with it
@@ -79,12 +86,60 @@ namespace ShiftJam
             if (Grabbed) return "";
             Shifter s = who.Shifter;
             bool kid = s != null && s.Size == ShiftSize.Kid;
-            return (kid ? kidCan : toyCan) ? prompt : "";
+            if (!(kid ? kidCan : toyCan)) return "";
+            return StandsOn(who.gameObject) ? onTopPrompt : prompt;
+        }
+
+        /// <summary>True while <paramref name="who"/> stands on it, or on something riding it (its children). A hold
+        /// switches off its collision with the grabber (D-0157), so someone on top of it would fall into it and be shut
+        /// in when they let go (D-0190: his turntable). A ball half the capsule's width is swept from just above the
+        /// feet to just below them: what is beside the feet (a rim the hands go on) is not under them.</summary>
+        private bool StandsOn(GameObject who)
+        {
+            if (who == null || !who.TryGetComponent(out CharacterController cc) || !cc.enabled) return false;
+            Transform t = who.transform; Vector3 s = t.lossyScale;
+            float tall = cc.height * Mathf.Abs(s.y), radius = cc.radius * Mathf.Max(Mathf.Abs(s.x), Mathf.Abs(s.z)) * 0.5f;
+            if (tall <= 0f || radius <= 0f) return false;
+            Vector3 feet = t.TransformPoint(cc.center) - Vector3.up * (tall * 0.5f);
+            float reach = tall * 0.1f;
+            int n = Physics.SphereCastNonAlloc(feet + Vector3.up * (radius + reach), radius, Vector3.down, Under, reach * 2f, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < n; i++)
+            {
+                Collider c = Under[i].collider;
+                if (c != null && c.transform.IsChildOf(transform)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>True while <paramref name="cc"/>'s capsule, a little thinner than it is (a touch is not "in"), is in
+        /// one of <paramref name="mine"/>. A capsule that is switched off is in nothing.</summary>
+        private static bool Inside(CharacterController cc, Collider[] mine)
+        {
+            if (cc == null || mine == null || !cc.enabled || !cc.gameObject.activeInHierarchy) return false;
+            Transform t = cc.transform; Vector3 s = t.lossyScale;
+            float full = cc.radius * Mathf.Max(Mathf.Abs(s.x), Mathf.Abs(s.z));
+            Vector3 middle = t.TransformPoint(cc.center), up = Vector3.up * Mathf.Max(cc.height * Mathf.Abs(s.y) * 0.5f - full, 0f);
+            int n = Physics.OverlapCapsuleNonAlloc(middle + up, middle - up, full * 0.85f, Touching, ~0, QueryTriggerInteraction.Ignore);
+            if (n >= Touching.Length) return true;   // too crowded to tell: not yet
+            for (int i = 0; i < n; i++) if (System.Array.IndexOf(mine, Touching[i]) >= 0) return true;
+            return false;
+        }
+
+        /// <summary>Gives its collision back to whoever let go of it, once they are clear of it (or at once with
+        /// <paramref name="now"/>). Until then they can walk out of it: nobody is shut in by letting go (D-0190).</summary>
+        private void RestoreCollision(bool now)
+        {
+            if (_leavingFrom == null) return;
+            if (!now && Inside(_leaving, _leavingFrom)) return;
+            if (_leaving != null) foreach (var c in _leavingFrom) if (c != null) Physics.IgnoreCollision(_leaving, c, false);
+            _leaving = null; _leavingFrom = null;
         }
 
         public void Interact(Interactor who)
         {
             if (Grabbed || string.IsNullOrEmpty(PromptFor(who))) return;
+            if (StandsOn(who.gameObject)) { GameEvents.RaiseUseRefused(who, onTopPrompt); return; }   // from beside it only (D-0190)
+            RestoreCollision(true);   // the last grabber's, before the lists below are this one's
             _who = who.gameObject;
             _input = _who.GetComponent<PlayerInput>();
             _motor = _who.GetComponent<PlayerMotor>();
@@ -126,7 +181,9 @@ namespace ShiftJam
             if (_input != null) _input.Jump -= LetGo;
             if (_shifter != null) _shifter.ShiftStarted -= OnShift;
             if (_motor != null) _motor.HoldAt = null;
-            if (_cc != null && _mine != null) foreach (var c in _mine) if (c != null) Physics.IgnoreCollision(_cc, c, false);
+            // Its collision with the grabber comes back when they are clear of it: at once, unless they are in it (D-0190).
+            _leaving = _cc; _leavingFrom = _cc != null ? _mine : null;
+            RestoreCollision(false);
             Held.Remove(_who);
             _who = null;
             _releasedAt = Time.time;
@@ -134,7 +191,7 @@ namespace ShiftJam
             if (!_body.isKinematic) { _body.linearVelocity = Vector3.zero; _body.angularVelocity = Vector3.zero; }
         }
 
-        private void OnDisable() => LetGo();
+        private void OnDisable() { LetGo(); RestoreCollision(true); }   // switched off, it no longer watches for them to get clear
 
         private void OnDestroy() { if (_pose != null) _pose.Remove(this); }
 
@@ -142,7 +199,7 @@ namespace ShiftJam
 
         private void FixedUpdate()
         {
-            if (_who == null) return;
+            if (_who == null) { RestoreCollision(false); return; }
             Vector2 stick = _input != null && Time.timeScale > 0f ? _input.Move : Vector2.zero;
             float k = 1f - Mathf.Exp(-ease * Time.fixedDeltaTime);
             float want = 0f;

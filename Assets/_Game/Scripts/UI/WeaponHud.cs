@@ -50,6 +50,37 @@ namespace ShiftJam
         public Color CountColour => _count.color;
         /// <summary>True while the read-out is on screen.</summary>
         public bool Showing => _group.alpha > 0f;
+        /// <summary>Whose gun it reads.</summary>
+        public WeaponHolder Holder => _holder;
+        /// <summary>True while the ammo box itself (the count and the name) is drawn.</summary>
+        public bool BoxShowing => Showing && _box.gameObject.activeInHierarchy;
+        /// <summary>Where the ammo box is on the screen, in pixels from the bottom left ("x 40-460, y 72-190 of 1920 x 1080").</summary>
+        public string BoxOnScreen
+        {
+            get
+            {
+                var corners = new Vector3[4];
+                _box.GetWorldCorners(corners);
+                return "x " + Mathf.RoundToInt(corners[0].x) + "-" + Mathf.RoundToInt(corners[2].x) + ", y " + Mathf.RoundToInt(corners[0].y) + "-" + Mathf.RoundToInt(corners[2].y) + " of " + Screen.width + " x " + Screen.height;
+            }
+        }
+        /// <summary>Why the ammo box is not drawn now, in a word or two (empty while it is drawn). The same tests as Update.</summary>
+        public string WhyHidden
+        {
+            get
+            {
+                if (_holder == null) return "no holder";
+                if (!_holder.isActiveAndEnabled) return "the holder is switched off";
+                if (!_holder.Armed) return "no gun out";
+                if (!(_holder.Current is BlasterWeapon)) return "not a dart gun";
+                if (GameMode.Current == GameMode.Mode.Build) return "build mode";
+                if (PauseMenu.IsOpen) return "the pause menu is open";
+                if (TitleMenu.IsOpen) return "the title menu counts as open";
+                if (KeyHelp.IsOpen) return "the key sheet is open";
+                if (DebugConsole.IsOpen) return "the console is open";
+                return BoxShowing ? "" : "not drawn yet";
+            }
+        }
         /// <summary>True while the dot crosshair is on screen.</summary>
         public bool DotShowing => Showing && _dot.activeSelf;
         /// <summary>True while the hit marker's flash is on screen.</summary>

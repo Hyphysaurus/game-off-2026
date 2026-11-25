@@ -253,10 +253,13 @@ namespace ShiftJam
 
         /// <summary>The first time a save takes a thing of this name: a "Got a ..." toast with its keys (D-0162). Later
         /// pickups, and things a door or a loaded save hands back, say nothing.</summary>
+        /// <summary>The first-time message's name for a thing called <paramref name="thing"/> (Toasts.Told asks with it).</summary>
+        public static string GotId(string thing) => "got:" + thing;
+
         private void Got(string thing, string howTo)
         {
             if (string.IsNullOrEmpty(thing)) return;
-            Toasts.OnceFor(this, "got:" + thing, howTo, ToastKind.Got, thing + "!");
+            Toasts.OnceFor(this, GotId(thing), howTo, ToastKind.Got, thing + "!");
         }
     }
 }

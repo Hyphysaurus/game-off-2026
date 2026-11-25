@@ -2,6 +2,26 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 16:5x — HIS "proceed": THE GRAB TRAP (D-0190), PICKUPS THAT TELL (D-0191), THE BOTS' FLOOR FOR BUILDS (D-0192). IN HIS EDITOR, NOT PLAYED
+- **Landed, compiled outside (editor + player) and in his editor (out of Play):**
+  - **D-0190** no grab while standing on a thing ("Step off to grab it"); its collision comes back only once the
+    grabber is clear. Checked on the real turntable out of Play at his logged places.
+  - **D-0191** power-ups say what they gave ("+50 health") or why not ("Health is already full"); a weapon take
+    says its name; pickups are in the play log. The play log also says whether the AMMO READ-OUT is on screen a
+    second after a dart gun comes to hand (he does not see one; cause unknown).
+  - **D-0192** `BotFloorMeshes`: 91 arena models set Read/Write so a built game can map the bots' floor; it runs
+    before every build. Not tried in a build.
+- **HIS TO TRY:** Greybox: stand on the turntable, E (refused), then from the floor (as before). Stadium match: walk
+  through a heart at full health and hurt; take a weapon; then send or leave the play log: its "ammo read-out:"
+  line says what the screen had. The Stadium load should log 0 read-access errors.
+- **NOT DONE, from the same "proceed":** new weapons (assault rifle and sniper first, then the machine gun: rows in
+  `Debug/WorkshopPieces.cs`, pickups, Stadium stands, the online weapon list, holds to check in stills).
+- **NEW REPORT (his words, 16:4x):** "my FPS modes dont register some events, such as running into the ropes and
+  grabbing them automatically or when jumping off a surface and activating the glider plane". Cause (read, not
+  played): first person is its own body (`FirstPersonMode` parks the third-person player: motor and capsule off);
+  the rope (`RopeRider`), the glider (`Glider`) and the special moves (`PlayerMoves`) all live on the parked player
+  and test `GameMode.Play`. Nothing in first person can ride or glide. Needs his pick of how (plan given).
+
 ## 24 Nov 2026 16:4x — THE BOT MATCH IS PLAYED (his words below); FOUR THINGS FOUND, NOTHING FIXED YET (waiting for his "proceed")
 - **His words (16:3x):** "i played bot match and it felt better! some of the pickups dont clearly register though,
   and i still dont see ammo tracking... plus theres only a few of the weapons in there". The match in the log is

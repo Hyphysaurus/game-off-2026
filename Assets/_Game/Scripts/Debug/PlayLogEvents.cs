@@ -29,6 +29,7 @@ namespace ShiftJam
         private string _gun = "";
         private float _nextLook;
         private bool _gunChanged, _ammoChanged;
+        private float _readOutAt;   // when to tell whether the ammo read-out is on screen (0 = not waiting)
 
         private void OnEnable()
         {
@@ -37,6 +38,7 @@ namespace ShiftJam
             GameEvents.CheckpointClaimed += OnCheckpointClaimed; GameEvents.PlayerReset += OnPlayerReset; GameEvents.GoalReached += OnGoalReached;
             GameEvents.AmmoChanged += OnAmmoChanged; GameEvents.ReloadStarted += OnReloadStarted; GameEvents.ReloadEnded += OnReloadEnded;
             GameEvents.DryFired += OnDryFired; GameEvents.AmmoTaken += OnAmmoTaken; GameEvents.ShotLanded += OnShotLanded;
+            GameEvents.PickupTaken += OnPickupTaken;
             GameEvents.DartStuck += OnDartStuck;
             GameEvents.GrenadeThrown += OnGrenadeThrown; GameEvents.GrenadeWentOff += OnGrenadeWentOff;
             GameEvents.GliderTaken += OnGliderTaken; GameEvents.GlideChanged += OnGlideChanged;
@@ -52,6 +54,7 @@ namespace ShiftJam
             GameEvents.CheckpointClaimed -= OnCheckpointClaimed; GameEvents.PlayerReset -= OnPlayerReset; GameEvents.GoalReached -= OnGoalReached;
             GameEvents.AmmoChanged -= OnAmmoChanged; GameEvents.ReloadStarted -= OnReloadStarted; GameEvents.ReloadEnded -= OnReloadEnded;
             GameEvents.DryFired -= OnDryFired; GameEvents.AmmoTaken -= OnAmmoTaken; GameEvents.ShotLanded -= OnShotLanded;
+            GameEvents.PickupTaken -= OnPickupTaken;
             GameEvents.DartStuck -= OnDartStuck;
             GameEvents.GrenadeThrown -= OnGrenadeThrown; GameEvents.GrenadeWentOff -= OnGrenadeWentOff;
             GameEvents.GliderTaken -= OnGliderTaken; GameEvents.GlideChanged -= OnGlideChanged;
@@ -67,6 +70,7 @@ namespace ShiftJam
             // The gun in hand is told once a frame at most: a scene's start hands the player its guns one after
             // another, and only the one left in the hand is worth a line.
             if (_gunChanged) { _gunChanged = false; TellGun(); }
+            if (_readOutAt > 0f && Time.unscaledTime >= _readOutAt) { _readOutAt = 0f; TellAmmoReadOut(); }
             // So is the ammo loaded: T pressed three times in a frame is one line, for the kind it ended on.
             if (_ammoChanged) { _ammoChanged = false; if (_belt != null) PlayLog.Tell("ammo loaded: " + _belt.CurrentName); }
             if (_player != null || Time.unscaledTime < _nextLook) return;
@@ -99,6 +103,19 @@ namespace ShiftJam
             if (now == _gun) return;
             _gun = now;
             PlayLog.Tell(now.Length > 0 ? "gun in hand: " + now : "no gun in hand");
+            if (now.Length > 0) _readOutAt = Time.unscaledTime + 1f;   // a second later: is its ammo read-out on the screen?
+        }
+
+        /// <summary>One line a second after a dart gun comes to hand: whether its ammo read-out is drawn, what it says and
+        /// where on the screen it is, or why not (D-0191: he did not see one in a match).</summary>
+        private void TellAmmoReadOut()
+        {
+            if (_holder == null || !_holder.Armed || !(_holder.Current is BlasterWeapon)) return;
+            WeaponHud mine = null; int all = 0;
+            foreach (WeaponHud hud in FindObjectsByType<WeaponHud>(FindObjectsInactive.Include, FindObjectsSortMode.None)) { all++; if (hud.Holder == _holder) mine = hud; }
+            if (mine == null) PlayLog.Tell("ammo read-out: NONE for this player (" + all + " in the game)");
+            else if (mine.BoxShowing) PlayLog.Tell("ammo read-out: on screen, \"" + mine.CountText + "\", " + mine.BoxOnScreen);
+            else PlayLog.Tell("ammo read-out: NOT on screen (" + mine.WhyHidden + ")");
         }
 
         private static string Name(Weapon weapon) => weapon == null ? "" : string.IsNullOrEmpty(weapon.DisplayName) ? weapon.name : weapon.DisplayName;
@@ -136,6 +153,7 @@ namespace ShiftJam
         private void OnReloadEnded(WeaponHolder holder, BlasterWeapon gun, bool loaded) { if (!Mine(holder) || loaded) return; PlayLog.Tell("reload cut short: " + Name(gun)); PlayLog.Count("reloads cut short"); }
         private void OnDryFired(WeaponHolder holder, BlasterWeapon gun) { if (Mine(holder)) PlayLog.Count("dry clicks"); }
         private void OnAmmoTaken(WeaponHolder holder, int rounds) { if (Mine(holder)) PlayLog.Tell("ammo taken: +" + rounds + " rounds"); }
+        private void OnPickupTaken(GameObject who, string told) { if (who != null && Mine(who.transform)) { PlayLog.Tell("pickup taken: " + told); PlayLog.Count("pickups"); } }
         private void OnShotLanded(WeaponHolder holder, bool finished)
         {
             if (!Mine(holder)) return;

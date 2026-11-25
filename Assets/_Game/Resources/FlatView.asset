@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abaf4e08ee7096047ad56b046d832e6e, type: 3}
+  m_Name: FlatView
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.FlatViewSettings
+  frameHeight: 13
+  fieldOfView: 18
+  pitch: 2
+  feetInFrame: 0.3
+  lead: 2.5
+  leadSeconds: 0.6
+  followSeconds: 0.1
+  heightSeconds: 0.3
+  heightDeadZone: 2
+  blendSeconds: 0.6
+  keepStickAngle: 40
+  laneSnap: 10
+  laneSnapSpeed: 12

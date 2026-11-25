@@ -1,10 +1,3 @@
-#if FLAT_ZONE_WIP
-// PARKED 24 Nov 2026 (the built-in assistant ran out of credits part-way through this file): it does not compile yet,
-// so it is held out of the build until it is finished. It still needs: a 'cutaway' field, a 'pixelMaterial' field (the
-// PixelShift pass, plan step 4), and the FlatLetter and FlagPole parts (plan steps 5 and 6). Nothing in a scene uses it.
-// To pick it up: finish those, then delete this first line block and the #endif at the very end.
-// The plan: Assets/Plans/flat-zone-hallway-scroller.md. What is done and compiled: FlatLock, FlatRail, FlatViewSettings,
-// the motor's lock (PlayerMotor.Flat) and the rail camera (ShoulderCamera.SetRail): all do nothing until a zone uses them.
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,184 +7,282 @@ using UnityEngine.Rendering;
 namespace ShiftJam
 {
     /// <summary>
-    /// A Flat Zone (D-0198): a stretch of the house played side-on, as a retro side-scroller, while the 3D room stays round
-    /// it (Mario Odyssey's 8-bit walls, Donkey Kong Country's vines). While a local player's body is inside the box:
-    /// - the body keeps to the lane's plane (PlayerMotor.Flat; the stick's depth part is gone),
+    /// A Flat Zone (D-0198): a stretch of the house played side-on, as a side-scroller, while the 3D room stays round
+    /// it. While a local player's body is inside the box:
+    /// - the body keeps to the lane's plane (PlayerMotor.Flat: the stick's depth part is gone),
     /// - its camera rides the rail side-on (ShoulderCamera.SetRail), mouse look dropped,
-    /// - what stands between the lane and the camera is cut away (drawn as shadows only: the room's light is unchanged),
-    /// - a drawn gun is put away (aiming means nothing side-on) and comes back on the way out,
-    /// - the picture goes to the pixel look (PixelShift full-screen pass), if this zone asks for it.
-    /// Containment is tested every frame (not trigger events), so a respawn, a Continue or a portal that lands inside
-    /// works. Off in first person, Build Mode, a car, or at the wrong size: the player is let go and taken back once it fits.
+    /// - what stands between the lane and the camera is cut away (not drawn, its shadow kept: the room's light is
+    ///   unchanged), and put back exactly as it was once the camera has swung back,
+    /// - a drawn gun is put away (aiming means nothing side-on) and comes back on the way out.
+    /// Whether the body is in the box is tested every frame (no trigger events), so a respawn, a Continue or a portal
+    /// that lands inside works. Not held: in first person, in Build Mode, in a car, or (Toy Only) at the wrong size or
+    /// mid-shift; the player is let go and taken back once it fits again. A pause holds everything as it is.
+    /// Clear (the finish marker calls it) lets a player go at once, with the finish text, and the zone leaves that
+    /// player alone until its body has left the box: walking back in starts a new visit.
+    /// The zone's own pieces (anything under this object, the finish marker for one) are never cut away.
+    /// OFF SWITCH: switch this object off (or untick the script) and the stretch plays exactly as it did without it.
+    /// Local players only (one per camera rig: single player has one, a party one each); online, another player's copy
+    /// on this PC has no rig and is not held, and what the zone does to this PC's player is not sent to the others.
     /// Drop one at the top level of a scene; Shift Jam > Flat > Land Hallway Scroller places the hallway's.
     /// </summary>
-    [DefaultExecutionOrder(-50)]   // before the motor and the camera: a body that walks in is held from its first step
+    [DefaultExecutionOrder(-50)]   // before the moves, the rope and the motor: a body that walks in is held from its first step
     public sealed class FlatZone : MonoBehaviour
     {
-        private static readonly int WeightId = Shader.PropertyToID("_Weight");
-        private static readonly int RowsId = Shader.PropertyToID("_Rows");
-        private static readonly int PaletteId = Shader.PropertyToID("_Palette");
-        private static readonly int PaletteSizeId = Shader.PropertyToID("_PaletteSize");
-        private static readonly int PaletteStrengthId = Shader.PropertyToID("_PaletteStrength");
-        private static readonly int DitherId = Shader.PropertyToID("_Dither");
-
         [Header("The stretch")]
-        [SerializeField, Tooltip("Resources/FlatView if empty.")] private FlatViewSettings settings;
+        [SerializeField, Tooltip("The camera's and the hold's numbers. Resources/FlatView if empty.")] private FlatViewSettings settings;
         [SerializeField, Tooltip("The box, in this object's own space: its middle.")] private Vector3 centre = Vector3.zero;
-        [SerializeField, Tooltip("The box's size, in this object's own space. The body's middle inside it = in the zone.")] private Vector3 size = new Vector3(110f, 16f, 22f);
+        [SerializeField, Tooltip("The box's size, in this object's own space. The body's middle inside it = in the zone. Take it down past any pit the player can fall in, or the zone lets go half-way down the fall.")] private Vector3 size = new Vector3(110f, 16f, 22f);
+        [SerializeField, Min(0f), Tooltip("A body that is in the zone stays in it until it is this far outside the box, so standing on the box's edge does not flick the view in and out.")] private float edgeSlack = 0.3f;
         [SerializeField, Tooltip("Its position is on the lane's plane; its forward (blue arrow) points to the camera's side. This object if empty.")] private Transform lane;
-        [SerializeField, Tooltip("How far along the lane (from the lane's point, to the camera's right) the camera's middle may go.")] private float railStart = -40f, railEnd = 40f;
-        [SerializeField, Tooltip("World heights the frame stays between where it fits (the hallway: floor 0, ceiling 14). Ceiling at or under the floor: no limit.")] private float floor = 0f, ceiling = 14f;
-        [SerializeField, Tooltip("Only a toy is held (the hallway is toy-only anyway).")] private bool toyOnly = true;
+        [SerializeField, Tooltip("How far along the lane the camera's middle may go at this end: from the lane's point, to the camera's right (a minus = to its left).")] private float railStart = -40f;
+        [SerializeField, Tooltip("How far along the lane the camera's middle may go at the other end.")] private float railEnd = 40f;
+        [SerializeField, Tooltip("World height the frame never shows under, where it fits. A little under the walking floor puts ground under the feet.")] private float floor = 0f;
+        [SerializeField, Tooltip("World height the frame never shows over, where it fits. At or under Floor: no limits.")] private float ceiling = 14f;
+        [SerializeField, Tooltip("Only a toy is held, and not in the middle of a shift.")] private bool toyOnly = true;
 
-        [Header("Look")]
-        [SerializeField, Tooltip("The pixel look while inside (PixelShift).")] private bool pixelLook = true;
-        [SerializeField, Tooltip("The PixelShift Full Screen Pass Renderer Feature on PC_Renderer. Switched on only while the look shows.")] private UnityEngine.Rendering.Universal.ScriptableRendererFeature pixelFeature;
-        [SerializeField, Min(0f), Tooltip("Things whose near side is further than this from the lane, towards the camera, are cut away.")] private float cutFrom = 3f;
-        [SerializeField, Tooltip("Always cut away (the near wall).")] private Renderer[] alwaysCut;
+        [Header("The cutaway")]
+        [SerializeField, Tooltip("What stands between the lane and the camera is not drawn while the zone is on (its shadow stays). Off: nothing is hidden.")] private bool cutaway = true;
+        [SerializeField, Min(0f), Tooltip("Things whose near side is further than this from the lane, towards the camera, are cut away. Things that cross the lane (the floor, the steps) never are.")] private float cutFrom = 3f;
+        [SerializeField, Min(1f), Tooltip("The widest screen the cutaway is found for, width over height: 2.4 is an ultrawide monitor. Things past the rail's ends by more than half such a screen are left alone.")] private float cutAspect = 2.4f;
+        [SerializeField, Tooltip("Always cut away, wherever they stand (the near wall).")] private Renderer[] alwaysCut;
 
         [Header("Moments")]
-        [SerializeField, Tooltip("Shown on the way in (a Super Mario Bros. title card). Empty: nothing.")] private string card = "WORLD 1-1";
-        [SerializeField, Tooltip("Shown when Clear is called (the flagpole).")] private string clearText = "COURSE CLEAR!";
-        [SerializeField] private UnityEvent onEntered, onExited, onCleared;
+        [SerializeField, Tooltip("The card shown on the way in. Empty: none.")] private string card = "FLAT SHIFT";
+        [SerializeField, Min(0f), Tooltip("Seconds before the card may show again (a respawn inside, a step out and back in).")] private float cardEvery = 20f;
+        [SerializeField, Tooltip("The card shown when the finish is tagged (Clear). Empty: none.")] private string clearText = "BACK TO 3D";
+        [SerializeField, Tooltip("A player was taken: the view went side-on.")] private UnityEvent onEntered;
+        [SerializeField, Tooltip("A player was let go: walked out, tagged the finish, or stopped fitting (first person, a car, a shift).")] private UnityEvent onExited;
+        [SerializeField, Tooltip("The finish was tagged (Clear).")] private UnityEvent onCleared;
 
-        private sealed class Rider { public ShoulderCamera rig; public PlayerMotor motor; public Shifter shifter; public WeaponHolder holder; public bool inside, putAway; }
+        /// <summary>One local player: its camera rig and what the zone needs of its body.</summary>
+        private sealed class Rider
+        {
+            public ShoulderCamera rig; public PlayerMotor motor; public Transform body; public CharacterController capsule;
+            public Shifter shifter; public WeaponHolder holder;
+            public bool inside;    // held now
+            public bool putAway;   // we put its gun away: it comes back on the way out
+            public bool cleared;   // it tagged the finish: left alone until its body has left the box
+            public bool leaving;   // let go, and its camera is still swinging back: the cutaway waits for it
+        }
+
+        /// <summary>One thing the cutaway hides, and how: its own shadow setting (read at the moment of the cut) is put back.</summary>
+        private struct Cut { public Renderer drawn; public ShadowCastingMode was; public byte how; }
+        private const byte Untouched = 0, ByShadowsOnly = 1, ByNotDrawing = 2;
+
         private readonly List<Rider> _riders = new List<Rider>();
-        private readonly List<(Renderer r, ShadowCastingMode mode)> _cut = new List<(Renderer, ShadowCastingMode)>();
+        private readonly List<Cut> _cut = new List<Cut>();
+        private readonly List<Renderer> _found = new List<Renderer>();
+        private readonly HashSet<Renderer> _seen = new HashSet<Renderer>();
+        private readonly FlatRail _rail = new FlatRail();
         private bool _cutFound, _cutOn;
-        private float _pixel;         // the pixel look, 0..1, eased
-        private float _rigsAt = -10f;
-        private float _cardAt = -100f;
-        private FlatRail _rail;
-        private Texture2D _madePalette;
+        private float _cardAt = float.NegativeInfinity;
 
-        /// <summary>Every zone that is on.</summary>
-        public static readonly List<FlatZone> All = new List<FlatZone>();
-        /// <summary>A zone some local player is in now, or null (the HUD reads it).</summary>
+        /// <summary>A zone some local player is in now, or null.</summary>
         public static FlatZone Current { get; private set; }
-        /// <summary>Raised on a Clear (the flagpole), with the zone.</summary>
+        /// <summary>Raised when a finish is tagged, with the zone.</summary>
         public static event Action<FlatZone> Cleared;
+        /// <summary>Raised when this zone takes a player (the finish marker makes itself ready again on it).</summary>
+        public event Action Entered;
+        /// <summary>Raised when this zone lets a player go.</summary>
+        public event Action Exited;
 
-        public FlatViewSettings Settings => settings != null ? settings : (settings = Resources.Load<FlatViewSettings>("FlatView")) != null ? settings : (settings = ScriptableObject.CreateInstance<FlatViewSettings>());
-        public bool AnyInside { get { foreach (var r in _riders) if (r.inside) return true; return false; } }
+        /// <summary>The numbers in use: this zone's, or Resources/FlatView (its defaults when there is none).</summary>
+        public FlatViewSettings Settings => settings != null ? settings : FlatViewSettings.Load();
+        /// <summary>True while a local player is held.</summary>
+        public bool AnyInside { get { for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) return true; return false; } }
         /// <summary>The zone's name for saves (its object's name).</summary>
         public string Id => name;
         private Transform Lane => lane != null ? lane : transform;
 
-        private void OnEnable() { if (!All.Contains(this)) All.Add(this); }
+        private void OnEnable() { GameMode.Changed += OnModeChanged; }
 
         private void OnDisable()
         {
-            All.Remove(this);
-            foreach (var r in _riders) if (r.inside) Exit(r);
+            GameMode.Changed -= OnModeChanged;
+            for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) Release(_riders[i]);
             _riders.Clear();
-            SetCut(false);
-            _pixel = 0f; ApplyPixel();
+            SetCut(false);   // at once: nobody is left to wait for
             if (Current == this) Current = null;
         }
 
-        private void OnDestroy() { if (_madePalette != null) Destroy(_madePalette); }
-
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() { All.Clear(); Current = null; Cleared = null; }
+        private static void ResetStatics() { Current = null; Cleared = null; }
 
-        /// <summary>True when <paramref name="point"/> (the world) is inside the box.</summary>
-        public bool Contains(Vector3 point)
+        /// <summary>Leaving Play (first person, Build Mode): everyone is let go in the same moment, before the new mode
+        /// reads the camera (first person starts looking the way the shoulder camera looks: after this, the way the
+        /// body faces, not the stale view from before the rail).</summary>
+        private void OnModeChanged(GameMode.Mode from, GameMode.Mode to)
+        {
+            if (to == GameMode.Mode.Play) return;
+            for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) Release(_riders[i]);
+        }
+
+        /// <summary>True when <paramref name="point"/> (the world) is inside the box grown by <paramref name="slack"/>.</summary>
+        public bool Contains(Vector3 point, float slack = 0f)
         {
             Vector3 local = transform.InverseTransformPoint(point) - centre;
             Vector3 half = size * 0.5f;
-            return Mathf.Abs(local.x) <= half.x && Mathf.Abs(local.y) <= half.y && Mathf.Abs(local.z) <= half.z;
+            return Mathf.Abs(local.x) <= half.x + slack && Mathf.Abs(local.y) <= half.y + slack && Mathf.Abs(local.z) <= half.z + slack;
         }
 
-        /// <summary>The lane's plane as a lock.</summary>
-        public FlatLock Lock => new FlatLock(Lane.position, Lane.forward, Settings.laneSnap);
+        /// <summary>True while this zone holds the player <paramref name="who"/> belongs to (the finish marker asks: only
+        /// a held player can tag it).</summary>
+        public bool Holds(Component who)
+        {
+            Rider r = RiderOf(who);
+            return r != null && r.inside;
+        }
 
-        /// <summary>The flagpole (or anything) calls this: "COURSE CLEAR!" and the cleared events. The camera swings back as
-        /// the player walks out of the box.</summary>
+        /// <summary>The finish for everyone the zone holds: each is let go at once (the camera swings back behind it),
+        /// with the finish text and the cleared events. With nobody held it does nothing.</summary>
         public void Clear()
         {
-            Rider who = null;
-            foreach (var r in _riders) if (r.inside) { who = r; break; }
-            if (!string.IsNullOrEmpty(clearText)) { if (who != null) Toasts.ShowFor(who.motor, clearText, ToastKind.Core); else Toasts.Show(clearText, ToastKind.Core); }
+            for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) ClearRider(_riders[i]);
+        }
+
+        /// <summary>The finish for the player <paramref name="who"/> belongs to (the finish marker calls this with whoever
+        /// touched it). False if the zone was not holding that player: nothing happened.</summary>
+        public bool Clear(Component who)
+        {
+            Rider r = RiderOf(who);
+            if (r == null || !r.inside) return false;
+            ClearRider(r);
+            return true;
+        }
+
+        private void ClearRider(Rider r)
+        {
+            r.cleared = true;   // left alone until its body has left the box
+            PlayerMotor motor = r.motor;
+            Release(r);
+            if (!string.IsNullOrEmpty(clearText)) Toasts.ShowFor(motor, null, ToastKind.Core, clearText);
             onCleared?.Invoke();
             Cleared?.Invoke(this);
         }
 
+        private Rider RiderOf(Component who)
+        {
+            if (who == null) return null;
+            PlayerMotor motor = who.GetComponentInParent<PlayerMotor>();
+            if (motor == null) return null;
+            for (int i = 0; i < _riders.Count; i++) if (ReferenceEquals(_riders[i].motor, motor)) return _riders[i];
+            return null;
+        }
+
         private void Update()
         {
-            FindRigs();
-            bool any = false;
-            foreach (var r in _riders)
+            SyncRiders();
+            bool any = false, hold = false;
+            for (int i = 0; i < _riders.Count; i++)
             {
-                bool fits = Fits(r) && Contains(BodyMiddle(r.motor));
-                if (fits && !r.inside) Enter(r);
-                else if (!fits && r.inside) Exit(r);
-                any |= r.inside;
+                Rider r = _riders[i];
+                bool inBox = Contains(Middle(r), r.inside ? edgeSlack : 0f);
+                if (r.cleared && !inBox) r.cleared = false;   // it has left: the next walk in is a new visit
+                bool fits = inBox && !r.cleared && Fits(r);
+                if (fits && !r.inside) Take(r);
+                else if (!fits && r.inside) Release(r);
+                if (r.inside) { any = true; Keep(r); }
+                // Let go: the wall stays cut until this camera is back off the rail's side (it is outside the wall for
+                // most of the swing back). A camera that is switched off (first person, a menu) is not waited for.
+                if (r.leaving && !(r.rig != null && r.rig.isActiveAndEnabled && r.rig.LeavingRail)) r.leaving = false;
+                hold |= r.inside || r.leaving;
             }
             if (any) Current = this; else if (Current == this) Current = null;
-
-            float was = _pixel;
-            _pixel = Mathf.MoveTowards(_pixel, any && pixelLook ? 1f : 0f, Time.unscaledDeltaTime / Mathf.Max(0.01f, Settings.pixelSeconds));
-            if (_pixel != was) ApplyPixel();
+            SetCut(hold);
         }
 
-        /// <summary>The local players: one per camera rig (a party has one each; online, only this PC's own).</summary>
-        private void FindRigs()
+        /// <summary>The local players, one per camera rig (ShoulderCamera.All: no search). A rig that is gone, or that
+        /// follows another body now (online, the player is bound to the rig after it spawns), is dropped and found again.</summary>
+        private void SyncRiders()
         {
-            if (Time.unscaledTime - _rigsAt < 1f && _riders.TrueForAll(r => r.rig != null && r.motor != null)) return;
-            _rigsAt = Time.unscaledTime;
             for (int i = _riders.Count - 1; i >= 0; i--)
-                if (_riders[i].rig == null || _riders[i].motor == null || _riders[i].rig.Target != _riders[i].motor.transform)
-                {
-                    if (_riders[i].inside) Exit(_riders[i]);
-                    _riders.RemoveAt(i);
-                }
-            foreach (var rig in FindObjectsByType<ShoulderCamera>(FindObjectsSortMode.None))
             {
-                if (rig.Target == null || _riders.Exists(r => r.rig == rig)) continue;
-                var motor = rig.Target.GetComponent<PlayerMotor>();
-                if (motor == null) continue;
-                _riders.Add(new Rider { rig = rig, motor = motor, shifter = motor.GetComponent<Shifter>(), holder = motor.GetComponent<WeaponHolder>() });
+                Rider r = _riders[i];
+                if (r.rig != null && r.motor != null && ReferenceEquals(r.rig.Target, r.body)) continue;
+                if (r.inside) Release(r);
+                _riders.RemoveAt(i);
+            }
+            IReadOnlyList<ShoulderCamera> rigs = ShoulderCamera.All;
+            for (int i = 0; i < rigs.Count; i++)
+            {
+                ShoulderCamera rig = rigs[i];
+                if (rig == null || rig.Target == null || HasRider(rig)) continue;
+                if (!rig.Target.TryGetComponent(out PlayerMotor motor)) continue;
+                var r = new Rider { rig = rig, motor = motor, body = rig.Target };
+                motor.TryGetComponent(out r.capsule); motor.TryGetComponent(out r.shifter); motor.TryGetComponent(out r.holder);
+                _riders.Add(r);
             }
         }
 
-        /// <summary>On foot, in Play, third person, in charge of its own body, and the right size.</summary>
+        private bool HasRider(ShoulderCamera rig)
+        {
+            for (int i = 0; i < _riders.Count; i++) if (ReferenceEquals(_riders[i].rig, rig)) return true;
+            return false;
+        }
+
+        /// <summary>On foot in Play, in charge of its own body, and the right size. A pause, the console or a menu that
+        /// only switches the input or the camera off changes nothing here: the zone holds on through them.</summary>
         private bool Fits(Rider r)
         {
-            if (r.motor == null || !r.motor.isActiveAndEnabled || r.rig == null || !r.rig.isActiveAndEnabled) return false;
-            if (GameMode.Current != GameMode.Mode.Play) return false;
-            if (r.holder != null && r.holder.FirstPerson) return false;
-            if (toyOnly && r.shifter != null && r.shifter.Size != ShiftSize.Toy && !r.shifter.Shifting) return false;
+            if (!r.motor.isActiveAndEnabled) return false;                // a car seat, Build Mode, the wake-up
+            if (GameMode.Current != GameMode.Mode.Play) return false;     // first person is a free look: no rail, no hold
+            if (toyOnly && r.shifter != null && (r.shifter.Size != ShiftSize.Toy || r.shifter.Shifting)) return false;
             return true;
         }
 
-        private static Vector3 BodyMiddle(PlayerMotor m) => m.transform.position + Vector3.up * (0.9f * m.Scale);
+        /// <summary>The body's middle (the capsule's own, so a crouch counts).</summary>
+        private static Vector3 Middle(Rider r) => r.capsule != null ? r.body.TransformPoint(r.capsule.center) : r.body.position;
 
-        private void Enter(Rider r)
+        private void Take(Rider r)
         {
-            r.inside = true;
-            r.motor.Flat = Lock;
-            r.rig.SetRail(Rail());
-            if (r.holder != null && r.holder.Drawn && r.holder.Current != null) { r.holder.SetDrawn(false); r.putAway = true; }
-            SetCut(true);
-            if (!string.IsNullOrEmpty(card) && Time.unscaledTime - _cardAt > 20f) { _cardAt = Time.unscaledTime; Toasts.ShowFor(r.motor, null, ToastKind.Core, card); }
+            // Another zone has this body (two boxes that overlap): first come, first served.
+            if (r.motor.Flat.HasValue) { UnityEngine.Object owner = r.motor.Flat.Value.owner; if (owner != null && !ReferenceEquals(owner, this)) return; }
+            r.inside = true; r.leaving = false;
+            FillRail();
+            r.motor.Flat = LockFor(r.motor);
+            r.rig.SetRail(_rail);
+            if (!string.IsNullOrEmpty(card) && Time.unscaledTime - _cardAt >= cardEvery)
+            {
+                _cardAt = Time.unscaledTime;
+                Toasts.ShowFor(r.motor, null, ToastKind.Core, card);
+            }
             onEntered?.Invoke();
+            Entered?.Invoke();
         }
 
-        private void Exit(Rider r)
+        /// <summary>Every frame a player is held: the hold and the rail follow this object's numbers and FlatView as they
+        /// stand (so both can be tuned in Play), and a gun that comes out is put away again (X, a slot key, a pick-up).</summary>
+        private void Keep(Rider r)
+        {
+            FillRail();
+            r.motor.Flat = LockFor(r.motor);
+            if (r.holder != null && r.holder.Drawn && r.holder.Current != null) { r.holder.SetDrawn(false); r.putAway = true; }
+        }
+
+        /// <summary>Gives back everything the zone took from this player: the hold, the rail, the gun. The cutaway goes
+        /// back in Update, once the camera has swung back. Safe when the player or its camera is already gone (a scene
+        /// closing).</summary>
+        private void Release(Rider r)
         {
             r.inside = false;
-            if (r.motor != null) r.motor.Flat = null;
-            if (r.rig != null && r.rig.Rail == _rail) r.rig.ClearRail();
-            if (r.putAway && r.holder != null) r.holder.SetDrawn(true);
+            if (r.motor != null && r.motor.Flat.HasValue && ReferenceEquals(r.motor.Flat.Value.owner, this)) r.motor.Flat = null;
+            if (r.rig != null && ReferenceEquals(r.rig.Rail, _rail)) { r.rig.ClearRail(); r.leaving = true; }
+            // The gun comes back out, unless the player's own scene is closing (nothing there should be woken).
+            if (r.putAway && r.holder != null && r.holder.gameObject.scene.isLoaded) r.holder.SetDrawn(true);
             r.putAway = false;
-            if (!AnyInside) SetCut(false);
             onExited?.Invoke();
+            Exited?.Invoke();
         }
 
-        private FlatRail Rail()
+        private FlatLock LockFor(PlayerMotor motor)
         {
-            if (_rail == null) _rail = new FlatRail();
+            FlatViewSettings v = _rail.View;
+            return new FlatLock(_rail.point, _rail.normal, v.laneSnap, v.laneSnapSpeed * motor.Scale, v.keepStickAngle, this);
+        }
+
+        /// <summary>The rail as this object's numbers stand now.</summary>
+        private void FillRail()
+        {
             Transform l = Lane;
             Vector3 n = l.forward; n.y = 0f;
             _rail.point = l.position;
@@ -199,106 +290,155 @@ namespace ShiftJam
             _rail.start = railStart; _rail.end = railEnd;
             _rail.floor = floor; _rail.ceiling = ceiling;
             _rail.view = Settings;
-            return _rail;
+        }
+
+        // ------------------------------------------------------------------ to check without Play
+
+        /// <summary>The rail this zone hands the camera, as its numbers stand now. Works in the editor, out of Play.</summary>
+        public FlatRail Rail { get { FillRail(); return _rail; } }
+
+        /// <summary>The rail camera's settled view of a body whose feet stand at <paramref name="feet"/> (world):
+        /// where the camera stands, how it is turned, its field of view, and how many world units of the lane the
+        /// screen shows top to bottom. <paramref name="lead"/>: how far ahead along the lane it looks (0 = standing
+        /// still). These are the camera's own sums (FlatRail, which ShoulderCamera.RailView uses every frame), so the
+        /// framing can be checked in the editor against numbers on paper.</summary>
+        public void ViewFor(Vector3 feet, float lead, float scale, out Vector3 position, out Quaternion rotation, out float fieldOfView, out float frameHeight)
+        {
+            FillRail();
+            _rail.Settled(feet, lead, scale, out position, out rotation);
+            fieldOfView = _rail.FieldOfView;
+            frameHeight = _rail.Frame(scale);
         }
 
         // ------------------------------------------------------------------ the cutaway
 
+        /// <summary>Hides (true) or puts back (false) what stands between the lane and the camera. Each thing's own
+        /// shadow setting is read at the moment it is hidden and put back as it was: one that casts shadows is drawn
+        /// as its shadow only (the light in the room does not change); one that casts none is simply not drawn, so it
+        /// does not start casting one. Materials are never touched.</summary>
         private void SetCut(bool on)
         {
             if (!cutaway) on = false;
             if (on == _cutOn) return;
-            if (on && !_cutFound) FindCut();
             _cutOn = on;
-            foreach (var (r, mode) in _cut) if (r != null) r.shadowCastingMode = on ? ShadowCastingMode.ShadowsOnly : mode;
+            if (on && !_cutFound)
+            {
+                _cutFound = true;
+                CutList(_found);
+                for (int i = 0; i < _found.Count; i++) _cut.Add(new Cut { drawn = _found[i] });
+                _found.Clear();
+            }
+            for (int i = 0; i < _cut.Count; i++)
+            {
+                Cut c = _cut[i];
+                Renderer r = c.drawn;
+                if (r == null) continue;
+                if (on)
+                {
+                    c.was = r.shadowCastingMode;
+                    c.how = Untouched;
+                    if (c.was == ShadowCastingMode.Off) { if (!r.forceRenderingOff) { r.forceRenderingOff = true; c.how = ByNotDrawing; } }
+                    else if (c.was != ShadowCastingMode.ShadowsOnly) { r.shadowCastingMode = ShadowCastingMode.ShadowsOnly; c.how = ByShadowsOnly; }
+                    _cut[i] = c;
+                }
+                else if (c.how == ByShadowsOnly) { if (r.shadowCastingMode == ShadowCastingMode.ShadowsOnly) r.shadowCastingMode = c.was; }   // changed by someone else meanwhile: theirs stands
+                else if (c.how == ByNotDrawing) r.forceRenderingOff = false;
+            }
         }
 
-        /// <summary>What to cut: the near wall(s) given, and every renderer between the lane (past Cut From) and where the
-        /// rail camera stands, across the stretch the camera can see. Players, cores, checkpoints and this zone's own
-        /// pieces are never cut. Found once, the first time anyone walks in.</summary>
-        private void FindCut()
+        /// <summary>True when these bounds lie in the stretch the rail camera can see (along the lane and in height) and
+        /// reach the camera's side of the lane past Cut From. <paramref name="near"/>: how far their nearest side is
+        /// from the lane, towards the camera (under 0: they cross the lane). Call FillRail first.</summary>
+        private bool InTheWay(Bounds b, out float near)
         {
-            _cutFound = true;
-            var seen = new HashSet<Renderer>();
-            if (alwaysCut != null) foreach (var r in alwaysCut) if (r != null && seen.Add(r)) _cut.Add((r, r.shadowCastingMode));
-
-            FlatViewSettings v = Settings;
-            FlatRail rail = Rail();
-            Vector3 along = rail.Along, n = rail.normal;
-            float frame = v.frameHeight;   // toy size (the hallway); a kid zone would need its own numbers
-            float distance = frame * 0.5f / Mathf.Tan(Mathf.Clamp(v.fieldOfView, 1f, 120f) * 0.5f * Mathf.Deg2Rad);
-            float halfWide = frame * 0.5f * 2.4f;   // as wide as an ultrawide frame
+            FlatViewSettings v = _rail.View;
+            Vector3 along = _rail.Along, n = _rail.normal;
+            float frame = v.frameHeight;   // toy size (the hallway); a kid's zone would be found for its own size
+            float halfWide = frame * 0.5f * cutAspect;
             float aLo = Mathf.Min(railStart, railEnd) - halfWide, aHi = Mathf.Max(railStart, railEnd) + halfWide;
-            float yLo = ceiling > floor ? floor - 2f : -1e6f, yHi = ceiling > floor ? ceiling + 2f : 1e6f;
-            foreach (var r in FindObjectsByType<Renderer>(FindObjectsSortMode.None))
-            {
-                if (seen.Contains(r) || r is ParticleSystemRenderer || r is TrailRenderer || r is LineRenderer) continue;
-                if (r.GetComponentInParent<PlayerMotor>() != null || r.GetComponentInParent<FlatZone>() != null || r.GetComponentInParent<FlatLetter>() != null
-                    || r.GetComponentInParent<FlagPole>() != null || r.GetComponentInParent<ShiftSource>() != null || r.GetComponentInParent<Checkpoint>() != null) continue;
-                Bounds b = r.bounds;
-                Vector3 c = b.center - rail.point, e = b.extents;
-                float ac = Vector3.Dot(c, along), ae = Mathf.Abs(e.x * along.x) + Mathf.Abs(e.z * along.z);
-                float nc = Vector3.Dot(c, n), ne = Mathf.Abs(e.x * n.x) + Mathf.Abs(e.z * n.z);
-                if (ac + ae < aLo || ac - ae > aHi) continue;
-                if (b.max.y < yLo || b.min.y > yHi) continue;
-                if (nc - ne < cutFrom || nc - ne > distance) continue;   // its near side: past Cut From, short of the camera
-                seen.Add(r);
-                _cut.Add((r, r.shadowCastingMode));
-            }
+            Vector3 c = b.center - _rail.point, e = b.extents;
+            float ac = Vector3.Dot(c, along), ae = Mathf.Abs(e.x * along.x) + Mathf.Abs(e.z * along.z);
+            float nc = Vector3.Dot(c, n), ne = Mathf.Abs(e.x * n.x) + Mathf.Abs(e.z * n.z);
+            near = nc - ne;
+            if (ac + ae < aLo || ac - ae > aHi) return false;
+            if (ceiling > floor && (b.max.y < floor || b.min.y > ceiling)) return false;   // wholly under the frame's floor or over its ceiling: never in the picture
+            return nc + ne > cutFrom;
         }
 
-        // ------------------------------------------------------------------ the pixel look
+        /// <summary>Never cut away: players, this zone's own pieces (and any other zone's), cores, checkpoints, and anything the player uses.</summary>
+        private static bool Spared(Renderer r)
+            => r.GetComponentInParent<FlatZone>() != null || r.GetComponentInParent<PlayerMotor>() != null
+               || r.GetComponentInParent<ShiftSource>() != null || r.GetComponentInParent<Checkpoint>() != null
+               // and anything the player uses (a weapon on its stand, a pickup, an ammo box): seen side-on it is the
+               // next thing to go to, and a stand with nothing on it reads as taken
+               || r.GetComponentInParent<IInteractable>() != null || r.GetComponentInParent<ISharedPickup>() != null;
 
-        private void ApplyPixel()
+        /// <summary>What the cutaway takes in the scene as it stands, into <paramref name="into"/> (emptied first): the
+        /// renderers given by hand (Always Cut), and every renderer that stands wholly on the camera's side of the
+        /// lane, past Cut From and short of where the rail camera stands, across the stretch the camera can see.
+        /// Particles, trails and lines are left alone. The game finds this once, the first time anyone walks in (it
+        /// reads every renderer in the scene: a few milliseconds, once); it also works in the editor, out of Play, so
+        /// the list can be looked at before anyone plays.</summary>
+        public void CutList(List<Renderer> into)
         {
-            if (pixelMaterial == null) return;
-            FlatViewSettings v = Settings;
-            float k = _pixel * _pixel * (3f - 2f * _pixel);
-            pixelMaterial.SetFloat(WeightId, k);
-            if (k > 0f)
+            into.Clear();
+            _seen.Clear();
+            if (alwaysCut != null) foreach (Renderer r in alwaysCut) if (r != null && _seen.Add(r)) into.Add(r);
+            FillRail();
+            float distance = _rail.Distance(1f);
+            foreach (Renderer r in FindObjectsByType<Renderer>(FindObjectsSortMode.None))
             {
-                Texture2D palette = v.palette != null ? v.palette : MadePalette();
-                pixelMaterial.SetFloat(RowsId, v.pixelRows);
-                pixelMaterial.SetTexture(PaletteId, palette);
-                pixelMaterial.SetFloat(PaletteSizeId, palette.width);
-                pixelMaterial.SetFloat(PaletteStrengthId, v.paletteStrength);
-                pixelMaterial.SetFloat(DitherId, v.dither);
+                if (r is ParticleSystemRenderer || r is TrailRenderer || r is LineRenderer) continue;
+                if (!InTheWay(r.bounds, out float near) || near < cutFrom || near > distance) continue;   // the cheap test first: it throws out nearly everything
+                if (Spared(r) || !_seen.Add(r)) continue;
+                into.Add(r);
             }
-            if (pixelFeature != null) pixelFeature.SetActive(k > 0f);
+            _seen.Clear();
         }
 
-        /// <summary>16 colours from his orb palette (white > cyan > blue > purple, a gold rim) and the toy room's warm
-        /// woods and greys, so the hallway still reads. A stand-in until he paints a strip of his own (FlatView > Palette).</summary>
-        private Texture2D MadePalette()
+        /// <summary>What is NOT cut away although it reaches the camera's side of the lane in the stretch the camera
+        /// sees, into <paramref name="into"/> (emptied first): things that cross the lane (the floor, the ceiling, the
+        /// steps: as it should be) and anything spared. For a look in the editor before playing: a thing in this list
+        /// that is neither is in front of the picture. The game itself never calls this.</summary>
+        public void KeptInTheWay(List<Renderer> into)
         {
-            if (_madePalette != null) return _madePalette;
-            Color32[] c =
+            into.Clear();
+            FillRail();
+            float distance = _rail.Distance(1f);
+            foreach (Renderer r in FindObjectsByType<Renderer>(FindObjectsSortMode.None))
             {
-                new Color32(0x0d, 0x07, 0x1a, 255), new Color32(0x2a, 0x12, 0x4a, 255), new Color32(0x4a, 0x1f, 0x86, 255), new Color32(0x6b, 0x3c, 0xc9, 255),
-                new Color32(0x2b, 0x4f, 0xd6, 255), new Color32(0x3f, 0x9b, 0xf0, 255), new Color32(0x6f, 0xe6, 0xf7, 255), new Color32(0xf4, 0xfb, 0xff, 255),
-                new Color32(0xf2, 0xc8, 0x4b, 255), new Color32(0xc2, 0x7a, 0x2c, 255), new Color32(0x7a, 0x47, 0x24, 255), new Color32(0x3e, 0x26, 0x1a, 255),
-                new Color32(0xe8, 0x6a, 0x8a, 255), new Color32(0x5d, 0x8c, 0x3a, 255), new Color32(0x8a, 0x86, 0x90, 255), new Color32(0x45, 0x42, 0x4c, 255),
-            };
-            _madePalette = new Texture2D(c.Length, 1, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "FlatPalette (made)" };
-            _madePalette.SetPixels32(c);
-            _madePalette.Apply(false, true);
-            return _madePalette;
+                if (r is ParticleSystemRenderer || r is TrailRenderer || r is LineRenderer) continue;
+                if (!InTheWay(r.bounds, out float near) || near > distance) continue;
+                if (near >= cutFrom && !Spared(r)) continue;   // that one is cut
+                if (r.GetComponentInParent<PlayerMotor>() != null) continue;
+                into.Add(r);
+            }
         }
 
         private void OnDrawGizmos()
         {
             Gizmos.matrix = transform.localToWorldMatrix;
-            Gizmos.color = new Color(0.95f, 0.75f, 0.2f, 0.12f);
-            Gizmos.DrawCube(centre, size);
             Gizmos.color = new Color(0.95f, 0.75f, 0.2f, 0.9f);
             Gizmos.DrawWireCube(centre, size);
             Gizmos.matrix = Matrix4x4.identity;
-            Transform l = Lane;
+            FillRail();
             Gizmos.color = Color.cyan;
-            Gizmos.DrawLine(l.position, l.position + l.forward * 4f);
-            Vector3 a = Vector3.Cross(Vector3.up, -l.forward).normalized;
-            Gizmos.DrawLine(l.position + a * railStart, l.position + a * railEnd);
+            Gizmos.DrawLine(_rail.point, _rail.point + _rail.normal * 4f);                                      // to the camera's side
+            Gizmos.DrawLine(_rail.point + _rail.Along * railStart, _rail.point + _rail.Along * railEnd);       // where the camera's middle may go
+        }
+
+        /// <summary>Selected: the box filled in, and the rail camera's view from the lane's own point (a 16:9 screen).</summary>
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.matrix = transform.localToWorldMatrix;
+            Gizmos.color = new Color(0.95f, 0.75f, 0.2f, 0.1f);
+            Gizmos.DrawCube(centre, size);
+            FillRail();
+            _rail.Settled(new Vector3(_rail.point.x, floor, _rail.point.z), 0f, 1f, out Vector3 position, out Quaternion rotation);
+            Gizmos.matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawFrustum(Vector3.zero, _rail.FieldOfView, _rail.Distance(1f), 0.5f, 16f / 9f);
+            Gizmos.matrix = Matrix4x4.identity;
         }
     }
 }
-#endif

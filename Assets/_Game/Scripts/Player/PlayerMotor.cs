@@ -117,12 +117,93 @@ namespace ShiftJam
         public float PushSpeed => settings.pushSpeed;
         /// <summary>The camera the stick is read against.</summary>
         public Transform View => cameraTransform;
-        /// <summary>A Flat Zone holds the body to a plane: the stick's depth part, the sideways speed along the plane's
-        /// normal and any drift off it are taken away. Null = free, as always.</summary>
-        public FlatLock? Flat { get; set; }
-        /// <summary>The stick, in world space on the ground, as the motor reads it (relative to its camera), with a Flat
-        /// Zone's depth part taken away. A rope reads the stick the same way.</summary>
-        public Vector3 FlatWish(Vector3 wish) => Flat.HasValue ? Flat.Value.Flatten(wish) : wish;
+        /// <summary>A Flat Zone holds the body to a plane (D-0198): the stick's depth part, the sideways speed along the
+        /// plane's normal and any drift off it are taken away. Null = free, as always. The zone sets it every frame it
+        /// holds the body. The moment it comes on or goes off, a stick that is held is kept (see <see cref="Stick"/>).</summary>
+        public FlatLock? Flat
+        {
+            get => _flat;
+            set
+            {
+                bool was = _flat.HasValue;
+                _flat = value;
+                if (value.HasValue) _keepStickCos = value.Value.keepStick > 0f ? Mathf.Cos(value.Value.keepStick * Mathf.Deg2Rad) : NeverKept;
+                if (was != value.HasValue) KeepStick();
+            }
+        }
+        /// <summary>A vector on the ground with a Flat Zone's depth part taken away; unchanged with no zone.</summary>
+        public Vector3 FlatWish(Vector3 wish) => _flat.HasValue ? _flat.Value.Flatten(wish) : wish;
+
+        private FlatLock? _flat;
+        // The kept stick (D-0198). The stick is read against the camera, and a Flat Zone's camera turns a quarter round
+        // on the way in and on the way out: W held on the way in would fade to a stop, D held at the finish would turn
+        // into "south" as the camera goes back behind the toy. So a stick that is held at that moment keeps meaning
+        // the way the player was going, until it is let go or moved by more than the zone's Keep Stick Angle.
+        private const float NeverKept = 2f;            // a cosine no stick can reach: nothing is kept (and with no zone ever met)
+        private const float KeepStickAtLeast = 0.3f;   // the stick must be pushed this far to be kept, and to stay kept
+        private float _keepStickCos = NeverKept;       // the cosine of the last zone's Keep Stick Angle
+        private bool _stickKept;                       // a stick is being kept now
+        private Vector2 _keptStick;                    // where the stick itself pointed then (unit)
+        private Vector3 _keptWay;                      // and what it meant in the world (unit, on the ground)
+
+        /// <summary>Where the stick points on the ground, by the camera: forward is the way the camera looks.</summary>
+        private Vector3 CameraWish(Vector2 move)
+        {
+            Vector3 forward = cameraTransform != null ? Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up) : Vector3.forward;
+            if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
+            forward.Normalize();
+            Vector3 right = Vector3.Cross(Vector3.up, forward);
+            return forward * move.y + right * move.x;
+        }
+
+        /// <summary>Where the stick (<paramref name="move"/>) points, in the world on the ground, as the motor steers by
+        /// it: relative to its camera; in a Flat Zone without the depth part; and a stick held through a zone's start
+        /// or end keeps the way it had. The walk and the rope both read the stick here. With no zone it is the
+        /// camera's answer, as it always was.</summary>
+        public Vector3 Stick(Vector2 move)
+        {
+            if (_stickKept)
+            {
+                float push = move.magnitude;
+                // First person steers by the eyes at once; a stick let go or moved is read afresh.
+                if (ViewYaw.HasValue || push < KeepStickAtLeast || Vector2.Dot(move / push, _keptStick) < _keepStickCos) _stickKept = false;
+                else return _keptWay * push;
+            }
+            return FlatWish(CameraWish(move));
+        }
+
+        /// <summary>A Flat Zone's hold came on or went off: the camera has not moved yet, so what the stick means right now
+        /// is what the player means. Kept if it is pushed, and (coming on) if it has a real part along the lane. A way
+        /// that is already being kept stays the one kept (W held all the way through a zone still means "onward" at
+        /// its end, where the side-on camera would read it as "into the wall").</summary>
+        private void KeepStick()
+        {
+            if (_keepStickCos > 1f || input == null) { _stickKept = false; return; }
+            Vector2 move = input.Move;
+            float pushSquared = move.sqrMagnitude;
+            if (pushSquared < KeepStickAtLeast * KeepStickAtLeast) { _stickKept = false; return; }
+            bool was = _stickKept;
+            Vector3 wish = Stick(move);   // a way still kept, else the camera's (its length is the stick's push, less what a zone took out)
+            bool same = was && _stickKept;
+            if (_flat.HasValue) wish = _flat.Value.Flatten(wish);
+            if (wish.sqrMagnitude < 0.25f * pushSquared) { _stickKept = false; return; }   // pushed mostly into the depth: nothing along the lane to keep
+            _keptWay = wish.normalized;
+            if (!same) _keptStick = move.normalized;   // a way already kept keeps the stick it was kept for
+            _stickKept = true;
+        }
+
+        /// <summary>A Flat Zone: a driven move (a dodge roll) goes along the lane with all of its speed. One aimed mostly
+        /// into the depth (the roll takes its way from the camera, and the camera is side-on) goes the way the kept
+        /// stick points, else the way the body was already going, else the way it faces.</summary>
+        private Vector3 DriveAlongLane(FlatLock hold, Vector3 drive, Vector3 goingBefore)
+        {
+            drive.y = 0f;
+            float speed = drive.magnitude;
+            Vector3 along = hold.Flatten(drive);
+            if (along.sqrMagnitude >= 0.25f * speed * speed) return along.normalized * speed;
+            Vector3 hint = _stickKept ? _keptWay : hold.Flatten(goingBefore).sqrMagnitude > 1e-4f * speed * speed ? goingBefore : transform.forward;
+            return hold.Along(hint) * speed;
+        }
 
         private const float SteerLeastSpeed = 0.5f;   // own units a second: slower than this the body is starting, not turning
 
@@ -253,7 +334,7 @@ namespace ShiftJam
                 // the way it travels, across the ground.
                 Vector3 v = Pull.Value;
                 Vector3 pullFix = Vector3.zero;
-                if (Flat.HasValue) { v = Flat.Value.Flatten(v); pullFix = Flat.Value.Correction(transform.position, dt); }
+                if (_flat.HasValue) { v = _flat.Value.Flatten(v); pullFix = _flat.Value.Correction(transform.position, dt); }   // a Flat Zone: the line pulls along the lane only
                 _planar = new Vector3(v.x, 0f, v.z); _vertical = v.y;
                 if (PullYaw.HasValue) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0f, PullYaw.Value, 0f), settings.turnSpeed * dt);
                 else if (_planar.sqrMagnitude > 1e-4f * scale * scale) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(_planar, Vector3.up), settings.turnSpeed * dt);
@@ -268,14 +349,14 @@ namespace ShiftJam
                 return;
             }
 
-            // Where the stick points, on the ground, relative to the camera.
-            Vector3 forward = cameraTransform != null ? Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up) : Vector3.forward;
-            if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
-            forward.Normalize();
-            Vector3 right = Vector3.Cross(Vector3.up, forward);
-            Vector2 move = SteerLocked || Drive.HasValue || HoldAt.HasValue ? Vector2.zero : input.Move;
-            Vector3 wish = forward * move.y + right * move.x;
+            // Where the stick points, on the ground, relative to the camera (Stick: in a Flat Zone, along its lane only).
+            // Read even while the stick is locked out, so a stick kept through a zone's start is not dropped by a hit.
+            Vector3 wish = Stick(input.Move);
+            if (SteerLocked || Drive.HasValue || HoldAt.HasValue) wish = Vector3.zero;
             bool steering = wish.sqrMagnitude > 0.0001f;
+            // A Flat Zone holds the body unless a grip has it (the grip's rule comes before every other).
+            bool flat = _flat.HasValue && !HoldAt.HasValue;
+            Vector3 goingBefore = _planar;
 
             // A fling is over once the plane or a grip has the sideways speed: after them the walk's rule is back.
             if (_flung && (Glide != null || HoldAt.HasValue)) _flung = false;
@@ -299,7 +380,7 @@ namespace ShiftJam
                 float topSpeed = Mathf.Min(input.Sprint && !SprintLocked ? settings.sprintSpeed : settings.walkSpeed, SpeedCap) * SpeedShare * AimShare * scale;
                 float rate = (steering ? settings.acceleration : settings.deceleration) * scale;
                 if (!Grounded) rate *= settings.airControl;
-                if (Drive.HasValue) _planar = Drive.Value;
+                if (Drive.HasValue) _planar = flat ? DriveAlongLane(_flat.Value, Drive.Value, goingBefore) : Drive.Value;
                 else if (Grounded && steering) _planar = Steered(wish, topSpeed, rate, scale, dt);
                 else _planar = Vector3.MoveTowards(_planar, wish * topSpeed, rate * dt);
             }
@@ -311,6 +392,8 @@ namespace ShiftJam
             else if (FaceYaw.HasValue)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0f, FaceYaw.Value, 0f), settings.turnSpeed * dt);
             else if (Glide != null && _planar.sqrMagnitude > 1e-6f * scale * scale)   // on the plane: facing the way it flies
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(_planar, Vector3.up), settings.turnSpeed * dt);
+            else if (flat && Drive.HasValue && _planar.sqrMagnitude > 1e-6f * scale * scale)   // a Flat Zone: a roll faces the way it goes along the lane
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(_planar, Vector3.up), settings.turnSpeed * dt);
             else if (steering)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(wish, Vector3.up), settings.turnSpeed * dt);
@@ -351,9 +434,9 @@ namespace ShiftJam
             }
 
             // A Flat Zone: nothing moves the body along the plane's normal (a knock, a fling, wind, the glider's heading),
-            // and any drift off the plane is eased away.
+            // and any drift off the plane is eased away (never faster than the zone's snap speed).
             Vector3 flatFix = Vector3.zero;
-            if (Flat.HasValue) { _planar = Flat.Value.Flatten(_planar); flatFix = Flat.Value.Correction(transform.position, dt); }
+            if (flat) { _planar = _flat.Value.Flatten(_planar); flatFix = _flat.Value.Correction(transform.position, dt); }
             CollisionFlags flags = _controller.Move((_planar + Vector3.up * _vertical) * dt + Vector3.up * pivot + flatFix);
             if ((flags & CollisionFlags.Above) != 0 && _vertical > 0f) _vertical = 0f;
             // A fling that meets a wall keeps only what the wall let through (the walk re-aims its speed every frame; a
@@ -462,6 +545,13 @@ namespace ShiftJam
             Vector3 flat = new Vector3(_planar.x, 0f, _planar.z);
             float speed = flat.magnitude;
             Vector3 heading = speed > 0.05f * scale ? flat / speed : Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+            if (_flat.HasValue)
+            {
+                // A Flat Zone: the plane flies along the lane. A heading into the depth (opened facing the wall) would
+                // be flattened to no speed at all, every frame: it takes the lane's way instead (the stick's, if pushed).
+                Vector3 along = _flat.Value.Flatten(heading);
+                heading = along.sqrMagnitude > 0.01f ? along.normalized : _flat.Value.Along(steering ? wish : heading);
+            }
             if (steering)
             {
                 float from = Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg, to = Mathf.Atan2(wish.x, wish.z) * Mathf.Rad2Deg;

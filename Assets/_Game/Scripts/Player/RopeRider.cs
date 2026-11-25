@@ -385,7 +385,9 @@ namespace ShiftJam
             if (since < settle) feet = Vector3.Lerp(_grabFrom, feet, Mathf.SmoothStep(0f, 1f, since / settle));
 
             // 8. The motor takes it there this frame (its capsule stops on what is in the way).
-            Vector3 pull = Vector3.ClampMagnitude((feet - transform.position) / dt, settings.maxPullSpeed * s);
+            // In a Flat Zone (D-0198) the motor takes the body along the lane only: what is expected of it is the same,
+            // so the depth it did not go is not read as a bump next frame. No zone: unchanged.
+            Vector3 pull = _motor.FlatWish(Vector3.ClampMagnitude((feet - transform.position) / dt, settings.maxPullSpeed * s));
             _expected = transform.position + pull * dt;
             _motor.SetPull(pull);
             _motor.PullYaw = _yaw;
@@ -420,17 +422,10 @@ namespace ShiftJam
         /// is tied: Hang Hold, never past the rope's end and never above the highest hold (<paramref name="least"/>).</summary>
         private float HangHold(float length, float least, float s) => Mathf.Clamp(settings.hangHold * s, least, length);
 
-        /// <summary>Where the stick points on the ground, by the camera the motor steers by (as the walk reads it).</summary>
-        private Vector3 StickWorld()
-        {
-            Vector2 move = _input.Move;
-            Transform view = _motor.View;
-            Vector3 forward = view != null ? Vector3.ProjectOnPlane(view.forward, Vector3.up) : Vector3.forward;
-            if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
-            forward.Normalize();
-            Vector3 right = Vector3.Cross(Vector3.up, forward);
-            return _motor.FlatWish(forward * move.y + right * move.x);   // a Flat Zone: no push along its depth
-        }
+        /// <summary>Where the stick points on the ground, as the walk reads it (PlayerMotor.Stick: by the camera the
+        /// motor steers by; in a Flat Zone, D-0198, with no push along its depth, and a stick held through the zone's
+        /// start or end keeps its way).</summary>
+        private Vector3 StickWorld() => _motor.Stick(_input.Move);
 
         // ---------- letting go ----------
 

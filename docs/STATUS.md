@@ -2,6 +2,26 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 21:5x — FLAT ZONE CUT A IS IN (D-0198 update): the hallway plays side-on. In his editor, checked without Play, NOT PLAYED.
+- **🔴 GREYBOX IS MARKED CHANGED AND NOT SAVED:** `FlatZone_Hall` was placed at the top level of his OPEN scene by
+  **Shift Jam > Flat > Land Hallway Scroller**. Ctrl+S keeps it; closing without saving drops it (run the menu item
+  again to bring it back). Off switch: untick `FlatZone_Hall`. **Untick it before a ship if it is still unplayed.**
+- **What it does:** from just past the hop (x -24) to the pennant (x 81) the camera swings out through the south wall
+  to side-on, the wall is cut away, the toy keeps to the lane (A / D only), a card says "FLAT SHIFT"; tag the paper
+  pennant on the pencil: it swings round, goes cyan, "BACK TO 3D", and the camera comes back behind the toy.
+- **HIS PLAYTEST, in order (the faults each would show are in the builder's notes, copied to DECISIONS):** (1) walk in
+  holding W: does the toy keep running as the camera swings; (2) let go, then A / D run, W / S do nothing; (3) jump,
+  roll, sprint; (4) the book stairs to the box top; (5) the four ropes side-on; (6) fall in the sprint gap on
+  purpose: back at the checkpoint, still side-on; (7) sprint the gap and tag the pennant; (8) Esc inside, V inside,
+  X (a gun) inside, walk back in from the east; (9) untick the zone: the hallway as before; (10) F12 on anything odd.
+- **Tune:** `Resources/FlatView` (frame height, lens, lead, blend, lane snap, keep stick) and the fields on
+  `FlatZone_Hall` (the box, the rail's ends, floor and ceiling, the two texts). A re-run of the menu item puts the
+  builder's numbers back on the zone (the two texts are carried over).
+- **RUNNING NOW:** one builder on paintball ammo for the title menu (his "proceed" at 21:4x; workflow
+  wf_c149237e-113), staged in `%TEMP%\shiftjam-stage\menu-paint` (BRIEF.md + NOTES.md); nothing of it in the project.
+- **NEXT:** his play of the title (letters, sounds, darts) and of the hallway; land the paint when its builder is
+  done; cuts B and C of the Flat Zone only on his word after he has played A.
+
 ## 24 Nov 2026 21:3x — THE TITLE IS FIVE TOY LETTERS (D-0200, playable menu step 4). In his editor, checked without Play, NOT SEEN.
 - **IN:** `UI/MenuTitle.cs` (S, H, I, F, T as solid letters on the menu model: brush, pull, shoot them; a hit flashes a
   letter and a hard one changes its colour set), four hue-turned colour sets in `Art/Title/Sets/`, the letters' shapes

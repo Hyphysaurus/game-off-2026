@@ -3696,7 +3696,7 @@
     camera, the mouse and the pad, the name field riding its slab: all unseen until Play.
   - **Not built yet:** springy slabs and the grab (step 2), darts and the two guns (3), the title as five soft
     letters that shift colour (4: until then the title art lies flat over the scene and does not lean), sounds (6).
-- **D-0198 (24 Nov 2026, 19:2x) Flat Zones, slice 1 (a stretch of the house goes side-on, 2D in 3D): STARTED BY THE UNITY
+- **D-0198 [CUT A BUILT 24 Nov 21:5x: see "D-0198 update" further down] (24 Nov 2026, 19:2x) Flat Zones, slice 1 (a stretch of the house goes side-on, 2D in 3D): STARTED BY THE UNITY
   AI ASSISTANT, PARKED MID-BUILD.** His words: "a 2D-3D transition beat and ecosystem, based and inspired by concepts
   in Mario Odyssey, DK Bananza, and Evoland, in which the world Shifts in perspectives". The assistant ran out of
   credits part-way; Claude parked it so the project compiles. The plan is `Assets/Plans/flat-zone-hallway-scroller.md`.
@@ -3764,3 +3764,41 @@
   - **The pauses of the 19:01 play** (four of about 1.5 s at the title) did not come back at 19:53 (worst frame
     119 ms in 1:30, a minute of it at the title). Most likely the Unity assistant working in the editor during
     that play; not traced further.
+- **D-0198 update (24 Nov 2026, 21:5x) Flat Zones, CUT A BUILT AND LANDED: the hallway's stretch plays side-on. NOT PLAYED.**
+  His decisions ("proceed" on my plan): build in cuts (A = the playable zone, now; B = the S-H-I-F-T letters to
+  collect; C = the pixel look; B and C only after he has played A); the game's own dressing, not Super Mario's (no
+  "WORLD 1-1", no "COURSE CLEAR!", no slide-down flagpole): the card reads "FLAT SHIFT", the finish is a paper
+  pennant on a pencil that the toy tags, then "BACK TO 3D" (both texts are fields on the zone).
+  - **In:** `Flat/FlatZone.cs` whole (the `#if` wrap gone), `Flat/FlatFinish.cs` (the pennant), `Debug/FlatPieces.cs`
+    (**Shift Jam > Flat > Land Hallway Scroller**: makes `Resources/FlatView.asset`, `Prefabs/Pieces/Traversal/
+    FlatFinish.prefab` and five `Data/FlatFinish*.mat` when missing and places `FlatZone_Hall` at the top level of the
+    open Greybox; refuses in Play and in any other scene; marks the scene changed and does NOT save, as Place Hallway
+    Ropes does). The zone: box x -24..81, y -27..15, z -161..-139; lane z -150, the camera on the south side
+    looking north through the cut south wall; the camera's middle travels x -14..76; 13 world units top to bottom,
+    never under y -2 or over 14; the finish at x 81. **It was placed in his open scene at 21:5x: the scene is
+    marked changed and NOT SAVED (his call: Ctrl+S keeps the zone).**
+  - **Faults found by reading the unplayed groundwork, fixed (all only while a zone holds the body; with no zone the
+    motor, the rope and the camera do what they did, read line by line):** the walk never took the depth out of the
+    stick (W/S turned the toy to the wall); the stick is read against a camera that turns a quarter round on the way
+    in and out, so W faded to a stop going in and D became "south" at the finish (now a held stick keeps its way:
+    FlatView > Keep Stick Angle, 0 = off); a roll aimed into the depth rolled on the spot; the glider opened facing
+    the wall flew nowhere; the slide back to the lane had no cap; the rope read the depth it was not pulled as a
+    bump; the camera's lead flipped side every half swing on a rope; a pause, the title and first person switch the
+    camera off and the zone took that for leaving; the cut wall came back before the camera was back inside.
+  - **Changed from the assistant's plan:** the box goes down to y -27 (at -2 the zone let go half-way down a fall in
+    the sprint gap); it ends AT the finish (x 81); the frame's floor is -2 (at 0 the feet sat on the screen's bottom
+    edge); the pixel look is taken OUT of FlatZone and FlatViewSettings (it drove a field that never existed and a
+    shader that is not written): cut C brings it back whole.
+  - **Checked without Play:** compiled (editor and player); the builder's report (it found the walls, the ceiling, the
+    three checkpoints, the step box and the four ropes by name, where the plan said); the camera at five places
+    against numbers worked out by hand (6.5 / tan 9 deg = 41.039 away, so z -191.014; 13.000 top to bottom at the
+    lane); the box at seven points; the rail; the finish. The cutaway takes the south wall and nine dressing props.
+    **It would also have hidden the tutorial's pistol on its stand just past the finish (x 89, 5 south of the lane):
+    the cutaway now spares anything the player uses (`IInteractable`, `ISharedPickup`).** Nothing scripted stands
+    off the lane inside the box, so the lock makes nothing unreachable.
+  - **Unsure (the builder's list, kept):** the kept stick is new behaviour nobody asked for by name; the picture sways
+    with each rope swing (FlatView > Follow Seconds); the tag is a trigger against the player's capsule, as the
+    checkpoints are; the card, the checkpoint and the pennant sound within a second of each other at the finish;
+    punches and kicks still take their way from the camera; a party is handled per player but untried; online
+    nothing is sent.
+  - **Off switch:** untick `FlatZone_Hall` in the Hierarchy: the hallway plays as before.

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -24,6 +25,8 @@ namespace ShiftJam
     /// wheel orbit and zoom round the parked car. Getting out blends back.
     /// <see cref="Shake"/> rattles the finished view for a moment and <see cref="PunchFov"/> kicks the field of view
     /// (DrivingFeel calls them for boosts, landings and crashes).
+    /// Inside a Flat Zone (D-0198) it rides a rail instead: side-on to the zone's lane, the look dropped (SetRail,
+    /// ClearRail, RailView; the sums are FlatRail's). Every rig that is awake is in <see cref="All"/>.
     /// </summary>
     [RequireComponent(typeof(Camera))]
     public sealed class ShoulderCamera : MonoBehaviour
@@ -77,6 +80,15 @@ namespace ShiftJam
         private float _railHeightGoal;   // where the height is headed (it waits in the air, D-0198)
         private float _railIn; private Vector3 _railFromPos; private Quaternion _railFromRot; private float _railFromFov;   // the swing in, 0..1
         private float _railAlong, _railAlongVelocity, _railLead, _railLeadVelocity, _railHeight, _railHeightVelocity; private bool _railReady;
+        private const float RailRunAtLeast = 0.5f;   // own units a second along the lane: slower than this the player is standing, and the lead stays where it is
+
+        private static readonly List<ShoulderCamera> Rigs = new List<ShoulderCamera>();
+        /// <summary>Every camera rig that is awake (single player: one; a party: one for each player), switched on or
+        /// not. A Flat Zone finds the local players through it, with no search of the scene.</summary>
+        public static IReadOnlyList<ShoulderCamera> All => Rigs;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => Rigs.Clear();
 
         private VehicleCameraSettings Vehicle
         {
@@ -165,6 +177,7 @@ namespace ShiftJam
 
         private void Awake()
         {
+            if (!Rigs.Contains(this)) Rigs.Add(this);
             _camera = GetComponent<Camera>();
             if (shifter == null && target != null) shifter = target.GetComponent<Shifter>();
             if (target != null)
@@ -185,8 +198,20 @@ namespace ShiftJam
             SetCursorLocked(true);
         }
 
-        private void OnEnable() { SetCursorLocked(!_menuHold); _trailReady = false; _blockShare = 1f; _followWeight = 0f; }   // coming back from a menu, Build Mode or first person: the give starts afresh
+        private void OnEnable()
+        {
+            SetCursorLocked(!_menuHold); _trailReady = false; _blockShare = 1f; _followWeight = 0f;   // coming back from a menu, Build Mode or first person: the give starts afresh
+            // A Flat Zone's rail (D-0198), with no rail in use both lines do nothing. Given the rail while switched
+            // off (a pause, the title, first person), or switched off part-way through the swing in: the swing starts
+            // from where the camera is now, not from where it was when the rail was given.
+            if (_rail != null && _railIn < 1f) { _railIn = 0f; _railFromPos = transform.position; _railFromRot = transform.rotation; if (_camera != null) _railFromFov = _camera.fieldOfView; }
+            // Taken off the rail while switched off, or switched off part-way through the swing back (first person
+            // started inside a zone): that swing is dropped. Kept, it would play from the old side-on place whenever
+            // the camera next came on, however far the player had walked since.
+            if (_rail == null && _leaveBlend > 0f) _leave = 0f;
+        }
         private void OnDisable() { SetCursorLocked(false); InsideBody = false; }
+        private void OnDestroy() => Rigs.Remove(this);
 
         private bool _menuHold;
 
@@ -474,6 +499,10 @@ namespace ShiftJam
         /// <summary>The rail in use (a Flat Zone, D-0198), or null.</summary>
         public FlatRail Rail => _rail;
 
+        /// <summary>True while the camera swings back from a rail to behind the player (ClearRail, over the zone's
+        /// blend). The zone keeps its cutaway until this is over: the camera is outside the cut wall for most of it.</summary>
+        public bool LeavingRail => _rail == null && _chase == null && _leave > 0f && _leaveBlend > 0f;
+
         /// <summary>Side-on along a Flat Zone's lane (D-0198) until ClearRail: the camera swings out from wherever it is to
         /// the rail over the zone's blend, then follows the player along the lane with a lead the way it runs, and its
         /// height only past a dead zone while in the air. Mouse look is dropped meanwhile. A car's chase wins over it.</summary>
@@ -494,10 +523,12 @@ namespace ShiftJam
         public void ClearRail()
         {
             if (_rail == null) return;
-            FlatViewSettings view = _rail.view;
-            _leave = 1f; _leavePos = transform.position; _leaveRot = transform.rotation;
-            _leaveBlend = view != null ? view.blendSeconds : 0.6f;
-            _leaveFov = _camera != null ? _camera.fieldOfView : -1f;
+            if (_chase == null)   // in a car the chase has the camera already (and getting out starts its own blend)
+            {
+                _leave = 1f; _leavePos = transform.position; _leaveRot = transform.rotation;
+                _leaveBlend = Mathf.Max(0.01f, _rail.View.blendSeconds);
+                _leaveFov = _camera != null ? _camera.fieldOfView : -1f;
+            }
             _rail = null;
             if (target != null) _yaw = target.eulerAngles.y;
             _pitch = settings.startPitch;
@@ -505,23 +536,22 @@ namespace ShiftJam
         }
 
         /// <summary>The rail camera (D-0198): a long lens on the lane's plane, framing Frame Height of the world, leading the
-        /// player the way it runs, kept between the rail's ends and (where it fits) its floor and ceiling.</summary>
+        /// player the way it runs, kept between the rail's ends and (where it fits) its floor and ceiling. Where it
+        /// stands and how it is turned are FlatRail's sums (Pose), the same ones FlatZone.ViewFor answers with in the
+        /// editor; this adds only the easing: the trail along the lane, the lead, the height that waits in the air,
+        /// and the swing in.</summary>
         private void RailView(float scale, float dt)
         {
             FlatRail r = _rail;
-            FlatViewSettings v = r.view != null ? r.view : (r.view = ScriptableObject.CreateInstance<FlatViewSettings>());
-            Vector3 along = r.Along;
-            float frame = Mathf.Max(0.1f, v.frameHeight * scale);
-            float fov = Mathf.Clamp(v.fieldOfView, 1f, 120f);
-            Quaternion rotation = Quaternion.LookRotation(-r.normal, Vector3.up) * Quaternion.Euler(v.pitch, 0f, 0f);
-            float distance = frame * 0.5f / Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad);
-
+            FlatViewSettings v = r.View;
             Vector3 feet = target.position;
-            float at = Vector3.Dot(feet - r.point, along);
-            float run = _motor != null ? Vector3.Dot(_motor.PlanarVelocity, along) : 0f;
-            float leadWant = Mathf.Abs(run) > 0.5f * scale ? Mathf.Sign(run) * v.lead * scale : _railLead;   // standing: the lead stays where it was
-            float heightWant = feet.y + frame * (0.5f - v.feetInFrame);
-            bool settledHeight = _motor == null || _motor.Grounded || _motor.Pull.HasValue || RopeRider.Holds(target.gameObject);
+            float at = r.AlongOf(feet);
+            // On a line (a rope swings back and forth, a zip line pulls): the lead and the height do not wait or flip.
+            bool onLine = (_motor != null && _motor.Pull.HasValue) || RopeRider.Holds(target.gameObject);
+            float run = _motor != null ? Vector3.Dot(_motor.PlanarVelocity, r.Along) : 0f;
+            float leadWant = !onLine && Mathf.Abs(run) > RailRunAtLeast * scale ? Mathf.Sign(run) * v.lead * scale : _railLead;   // standing or swinging: the lead stays where it was
+            float heightWant = r.HeightFor(feet.y, scale);
+            bool settledHeight = _motor == null || _motor.Grounded || onLine;
             if (!_railReady || dt <= 0f)
             {
                 _railLead = 0f; _railAlong = at; _railHeight = heightWant; _railHeightGoal = heightWant;
@@ -532,24 +562,15 @@ namespace ShiftJam
                 _railLead = Mathf.SmoothDamp(_railLead, leadWant, ref _railLeadVelocity, v.leadSeconds, Mathf.Infinity, dt);
                 float want = at + _railLead;
                 _railAlong = v.followSeconds > 0f ? Mathf.SmoothDamp(_railAlong, want, ref _railAlongVelocity, v.followSeconds, Mathf.Infinity, dt) : want;
-                // Super Mario World's rule: in the air the height waits, unless the player leaves the band round it.
+                // In the air the height waits for the landing, unless the player leaves the band round it.
                 float band = v.heightDeadZone * scale;
                 if (settledHeight || band <= 0f) _railHeightGoal = heightWant;
                 else if (heightWant > _railHeightGoal + band) _railHeightGoal = heightWant - band;
                 else if (heightWant < _railHeightGoal - band) _railHeightGoal = heightWant + band;
                 _railHeight = v.heightSeconds > 0f ? Mathf.SmoothDamp(_railHeight, _railHeightGoal, ref _railHeightVelocity, v.heightSeconds, Mathf.Infinity, dt) : _railHeightGoal;
             }
-            float lo = Mathf.Min(r.start, r.end), hi = Mathf.Max(r.start, r.end);
-            float alongNow = Mathf.Clamp(_railAlong, lo, hi);
-            float height = _railHeight;
-            if (r.ceiling > r.floor)
-            {
-                float bottom = r.floor + frame * 0.5f, top = r.ceiling - frame * 0.5f;
-                height = bottom <= top ? Mathf.Clamp(height, bottom, top) : (r.floor + r.ceiling) * 0.5f;
-            }
-            Vector3 centre = r.point + along * alongNow;
-            centre.y = height;
-            Vector3 position = centre - rotation * Vector3.forward * distance;
+            r.Pose(_railAlong, _railHeight, scale, out Vector3 position, out Quaternion rotation);
+            float fov = r.FieldOfView;
 
             if (_railIn < 1f)
             {

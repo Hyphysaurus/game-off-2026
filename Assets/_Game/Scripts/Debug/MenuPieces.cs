@@ -148,7 +148,7 @@ namespace ShiftJam
 
         private static bool Has(GameObject shape, string child)
         {
-            foreach (Transform t in shape.GetComponentsInChildren<Transform>(true)) if (t.name == child) return true;
+            foreach (Transform t in shape.GetComponentsInChildren<Transform>(true)) if (t.name.Contains(child)) return true;
             return false;
         }
 

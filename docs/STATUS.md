@@ -2,6 +2,26 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 24 Nov 2026 19:4x — CHECKPOINT AT THE USAGE LIMIT. The dart guns are IN (D-0199 step 3); two builders were cut mid-work.
+- **IN, compiled in his editor, NOT SEEN IN PLAY:** the dart blaster and the dart LMG on the title menu (`UI/MenuDarts.cs`,
+  maker `Debug/MenuPieces.cs`, menu **Shift Jam > Menu > Build Title Menu Model**, run once: it added the two guns, the
+  dart `Prefabs/Menu/MenuDart.prefab` and their sounds to `Resources/Titles/TitleMenuModel.prefab`). Read back in the
+  editor: Pistol1 and MG1 both have their barrel along +Z, 3 firing and 3 landing sounds each.
+- **Three fixes landed AFTER that read-back, compiled outside only (the editor compiles them at its next refresh):** the
+  dart is drawn at 0.45 of its size (it was nearly as long as the pistol), darts leave from the front of the barrel, and
+  a gun's see-through parts (glass, the sight's picture) are left out. The prefab's Dart Size and Sink were set by
+  hand in the file (0.45 and 0.015).
+- **HIS PLAYTEST (title):** click a button: a dart flies and chooses it; click the wall; hold and pull still stretches;
+  G or right mouse swaps to the LMG (hold to spray, it chooses nothing); Shift for 3D; arrows / pad. If the menu
+  misbehaves: rename `Resources/Titles/TitleMenuModel.prefab` and the title draws itself the old way.
+- **CUT MID-WORK (workflow wf_6d4b87ad-b8c, two builders, nothing of theirs is in the project):** their folders are
+  `%TEMP%\shiftjam-stage\menu-step4` (the title as five toy letters + the menu's sounds) and
+  `%TEMP%\shiftjam-stage\flat-cutA` (Flat Zone cut A). Each holds `BRIEF.md` (the whole task) and the builder's
+  `NOTES.md` and files so far. To go on: read NOTES.md, finish by hand or start ONE fresh builder told to continue from
+  its folder. The menu builder's base was `shiftjam-stage\menu-step3`; the three fixes above are NOT in it:
+  `diff -u menu-step3/X.cs <project>/X.cs | patch` onto its `MenuModel.cs` and `MenuDarts.cs` before landing.
+- **NEXT:** his word on the dart guns > land step 4 > Flat Zone cut A (land, run its builder in Greybox, he plays).
+
 ## 24 Nov 2026 19:2x — PARKED FOR HIS PLAYTEST. The project compiles in his editor. Two things are half-way:
 - **Flat Zones (D-0198), the Unity AI assistant's build, stopped when its credits ran out.** The lock on the player and
   the rail camera are in and do nothing yet; `Flat/FlatZone.cs` is held out of the build (`#if FLAT_ZONE_WIP`, read its

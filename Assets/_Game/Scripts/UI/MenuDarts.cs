@@ -17,6 +17,7 @@ namespace ShiftJam
     /// A gun model is read like the game's own: its barrel runs from the child "Magazine" to the child "Muzzle" (else
     /// along its longest side) and its top is its own up. A dart model points along +Z.
     /// </summary>
+    [DefaultExecutionOrder(50)]   // after the MenuModel has moved its camera and its slabs this frame: the gun and the darts ride both
     [RequireComponent(typeof(MenuModel))]
     public sealed class MenuDarts : MonoBehaviour
     {
@@ -45,11 +46,11 @@ namespace ShiftJam
         [SerializeField, Min(0f), Tooltip("How quickly that settles.")] private float kickSettle = 22f;
         [Header("Its darts")]
         [SerializeField, Tooltip("A dart's model, pointing along +Z. None = no gun at all.")] private GameObject dartModel;
-        [SerializeField, Min(0.01f), Tooltip("How many times its own size a dart is drawn.")] private float dartSize = 1.3f;
+        [SerializeField, Min(0.01f), Tooltip("How many times its own size a dart is drawn.")] private float dartSize = 0.45f;   // the game's dart is 0.3 m long, made large to be seen in a room: on a menu whose buttons are 0.13 m high it is drawn smaller
         [SerializeField, Min(0.1f), Tooltip("How fast a dart flies, metres a second.")] private float dartSpeed = 11f;
         [SerializeField, Tooltip("A flight never takes less or more than this, seconds (a choice must not feel late).")] private Vector2 flightSeconds = new Vector2(0.07f, 0.2f);
         [SerializeField, Min(0f), Tooltip("From a dart's middle to its tip, metres at its own size.")] private float tipAhead = 0.18f;
-        [SerializeField, Min(0f), Tooltip("How far its tip sinks into what it hits, metres.")] private float sink = 0.03f;
+        [SerializeField, Min(0f), Tooltip("How far its tip sinks into what it hits, metres.")] private float sink = 0.015f;
         [SerializeField, Min(0f), Tooltip("While flat a stuck dart lies this far above the slab, metres, so it is drawn over it.")] private float flatLift = 0.06f;
         [SerializeField, Min(1), Tooltip("The most darts stuck at once: the oldest goes for a new one.")] private int mostStuck = 40;
         [SerializeField, Min(0.1f), Tooltip("Seconds a stuck dart stays.")] private float stuckSeconds = 10f;
@@ -136,7 +137,9 @@ namespace ShiftJam
                 }
                 Bounds box = Box(holder, shape);
                 shape.transform.localPosition = -box.center;
-                Vector3 tip = muzzle != null ? holder.InverseTransformPoint(muzzle.position) : new Vector3(0f, 0f, box.extents.z);
+                // Where its darts leave it: at the socket's height and side, at the very front of whatever is fitted on the barrel.
+                Vector3 tip = new Vector3(0f, 0f, box.extents.z);
+                if (muzzle != null) { Vector3 socket = holder.InverseTransformPoint(muzzle.position); tip = new Vector3(socket.x, socket.y, Mathf.Max(socket.z, box.extents.z)); }
                 _model.Flatten(shape);
                 holder.gameObject.SetActive(false);
                 _held.Add(holder); _muzzles.Add(tip); _usable.Add(i);
@@ -149,7 +152,7 @@ namespace ShiftJam
 
         private static Transform Find(Transform under, string name)
         {
-            foreach (Transform t in under.GetComponentsInChildren<Transform>(true)) if (t.name == name) return t;
+            foreach (Transform t in under.GetComponentsInChildren<Transform>(true)) if (t.name.Contains(name)) return t;   // as the game's own guns are read
             return null;
         }
 

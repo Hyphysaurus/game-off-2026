@@ -239,7 +239,17 @@ namespace ShiftJam
 
         // ------------------------------------------------------------------ the same menu on a 3D model (D-0196, D-0197)
 
-        private const string ModelHintLine = "mouse, arrows or stick · Enter / A chooses · Esc / B goes back · Shift for 3D";
+        /// <summary>The model menu's hint: what the hands do, and which gun is out when the model has guns.</summary>
+        private string ModelHintLine
+        {
+            get
+            {
+                MenuDarts gun = _driver != null ? _driver.Darts : null;
+                if (gun == null) return "mouse, arrows or stick · Enter / A chooses · Esc / B goes back · Shift for 3D";
+                if (!gun.Chooses) return "the " + gun.Label + " only plays: hold to spray · G for the gun that chooses · Shift for 3D";
+                return "click: a dart chooses · hold and pull: stretch" + (gun.CanSwap ? " · G swaps guns" : "") + " · Shift for 3D · Esc goes back";
+            }
+        }
         private MenuDriver _driver;
         private TMP_InputField _nameField; private TMP_Text _nameLabel;
         private bool _pickForNewGame;   // the Saves page was opened by New Game: a slot chosen there starts over in it
@@ -276,6 +286,8 @@ namespace ShiftJam
             _driver = gameObject.AddComponent<MenuDriver>();
             _driver.Bind(_model);
             _driver.Chosen += OnChosen; _driver.Back += OnBack; _driver.Moved += OnMoved;
+            if (_driver.Darts != null) _driver.Darts.Swapped += () => { UiAudio.Play(UiAudio.Kind.Select); OnPartyStatus(); };
+            OnPartyStatus();   // the hint for the hands the model has
             ToPage("Main");
         }
 

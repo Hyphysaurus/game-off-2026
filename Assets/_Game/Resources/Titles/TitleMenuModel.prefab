@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7757157847921535357}
   - component: {fileID: 7202952454233237636}
+  - component: {fileID: 8361287138707671019}
   m_Layer: 0
   m_Name: TitleMenuModel
   m_TagString: Untagged
@@ -69,6 +70,14 @@ MonoBehaviour:
   settle: 16
   pageDrop: 0.22
   pageStagger: 0.04
+  toySpringiness: 240
+  toySettle: 13
+  pullReach: 0.32
+  pullStretch: 1.6
+  knockPower: 1
+  neighbourShare: 0.3
+  brushPower: 1
+  mostTip: 16
   font: {fileID: 0}
   wordColour: {r: 1, g: 0.9411765, b: 0.9882353, a: 1}
   wordsShare: 0.72
@@ -80,6 +89,67 @@ MonoBehaviour:
   drawnLike: []
   place: {x: 0, y: -5000, z: 0}
   enlarge: 100
+--- !u!114 &8361287138707671019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8085825475719980909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce33415b43c1275409fd5414a7abd228, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.MenuDarts
+  guns:
+  - label: dart blaster
+    model: {fileID: 3265787461906697658, guid: 1a64cbe4046047f3b3fdd4f89dbdfaa3, type: 3}
+    size: 0.93152034
+    chooses: 1
+    auto: 0
+    interval: 0.2
+    spread: 0
+    knock: 1
+    kick: 0.06
+    fireClips:
+    - {fileID: 8300000, guid: 5eabf462fb254281a1e8a28e0bd40466, type: 3}
+    - {fileID: 8300000, guid: fec9d8664e3349848bb60c8607f3c8fd, type: 3}
+    - {fileID: 8300000, guid: d7878722f85541708c13200344fd53ca, type: 3}
+    volume: 0.5
+  - label: dart LMG
+    model: {fileID: 2846988041165396039, guid: 48510fe9a48648a68bbccae36d6b6f5f, type: 3}
+    size: 0.8722308
+    chooses: 0
+    auto: 1
+    interval: 0.07
+    spread: 0.1
+    knock: 0.35
+    kick: 0.025
+    fireClips:
+    - {fileID: 8300000, guid: 5eabf462fb254281a1e8a28e0bd40466, type: 3}
+    - {fileID: 8300000, guid: fec9d8664e3349848bb60c8607f3c8fd, type: 3}
+    - {fileID: 8300000, guid: d7878722f85541708c13200344fd53ca, type: 3}
+    volume: 0.3
+  heldAt: {x: 0.86, y: 0.2}
+  flatInFront: 0.08
+  deepInFront: 0.95
+  kickSpringiness: 320
+  kickSettle: 22
+  dartModel: {fileID: 1131746747966839082, guid: 16784187054a232428612f153a050cc0, type: 3}
+  dartSize: 0.45
+  dartSpeed: 11
+  flightSeconds: {x: 0.07, y: 0.2}
+  tipAhead: 0.18
+  sink: 0.015
+  flatLift: 0.06
+  mostStuck: 40
+  stuckSeconds: 10
+  goSeconds: 0.25
+  landClips:
+  - {fileID: 8300000, guid: 3f7c924496b546bba8f590c9ec7b9167, type: 3}
+  - {fileID: 8300000, guid: afb21726e85b4b14979f4d615ca7bff8, type: 3}
+  - {fileID: 8300000, guid: e4fc2a58db194a22b96e74a0761e0e42, type: 3}
+  landVolume: 0.45
 --- !u!1001 &8171065679109353955
 PrefabInstance:
   m_ObjectHideFlags: 0

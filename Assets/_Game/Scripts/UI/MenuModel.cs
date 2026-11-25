@@ -112,7 +112,7 @@ namespace ShiftJam
         [SerializeField, Tooltip("Far from the world, so the game's own camera never has it in view.")] private Vector3 place = new Vector3(0f, -5000f, 0f);
         [SerializeField, Min(1f), Tooltip("How many times larger than made it stands there: that far from the middle of the world, a slab's millimetres would shimmer at their own size.")] private float enlarge = 100f;
 
-        private static readonly int BaseColour = Shader.PropertyToID("_BaseColor");
+        private static readonly int BaseColour = Shader.PropertyToID("_BaseColor"), BaseMap = Shader.PropertyToID("_BaseMap"), Surface = Shader.PropertyToID("_Surface");
 
         private readonly Dictionary<string, Control> _controls = new Dictionary<string, Control>();
         private readonly Dictionary<string, Transform> _named = new Dictionary<string, Transform>();
@@ -479,6 +479,82 @@ namespace ShiftJam
             c.Off.x += was.x; c.Off.y += was.y;
             c.LeanSpeed.x += was.x * 14f; c.LeanSpeed.z -= was.x * 6f;
             Knock(c, Vector2.zero, Mathf.Clamp(was.magnitude / pullReach, 0.2f, 1.2f));
+        }
+
+        // ---- for what plays on the model (its guns and darts, D-0199)
+        /// <summary>The camera is up: the model is on a screen.</summary>
+        public bool Staged => _view != null;
+        /// <summary>It is being drawn now (false while another panel has the screen).</summary>
+        public bool Showing => _view != null && _view.enabled;
+        /// <summary>World units to a metre of the model.</summary>
+        public float Scale => enlarge;
+        public float PixelsPerMetre => pixelsPerMetre;
+        /// <summary>The way toward the viewer, and up the screen, in the world.</summary>
+        public Vector3 Toward => -_look;
+        public Vector3 Up => _up;
+
+        /// <summary>A place of the menu in the world: metres across and up from its middle, and toward the viewer.</summary>
+        public Vector3 PlanePoint(Vector2 at, float toward = 0f) => _origin + (_right * at.x + _up * at.y - _look * toward) * enlarge;
+
+        /// <summary>The place in the world, now, of a point on a control's face (metres across and up from its middle): the
+        /// control may be swinging, tipped or pressed thin.</summary>
+        public Vector3 FacePoint(Control c, Vector2 at)
+        {
+            Quaternion tipped = c.Body.rotation * Quaternion.Inverse(c.RestTurn);
+            float half = c.Box.extents[c.DepthAxis] * Mathf.Abs(c.Body.lossyScale[c.DepthAxis]);
+            return c.Body.TransformPoint(c.Box.center) + tipped * ((_right * at.x + _up * at.y) * enlarge - _look * half);
+        }
+
+        /// <summary>The control on show whose place at rest holds a point of the menu (metres from its middle); null for none.</summary>
+        public Control ControlAt(Vector2 at)
+        {
+            Vector2 pixels = at * pixelsPerMetre;
+            foreach (Control c in _shown)
+                if (Mathf.Abs(pixels.x - c.Centre.x) <= c.Size.x * 0.5f && Mathf.Abs(pixels.y - c.Centre.y) <= c.Size.y * 0.5f) return c;
+            return null;
+        }
+
+        /// <summary>The place in the world seen at a point of the view (0, 0 its bottom left, 1, 1 its top right), this
+        /// many metres in front of the menu: a thing put there stays at that place of the screen, flat or deep.</summary>
+        public Vector3 ViewPoint(Vector2 view, float toward)
+        {
+            if (_view == null) return _origin;
+            Ray ray = _view.ViewportPointToRay(new Vector3(view.x, view.y, 0f));
+            float along = Vector3.Dot(ray.direction, _look);
+            if (Mathf.Abs(along) < 1e-6f) return _origin;
+            return ray.GetPoint(Vector3.Dot(_origin - _look * (toward * enlarge) - ray.origin, _look) / along);
+        }
+
+        /// <summary>Draws a thing the model's own flat way (unlit, each part in its material's colour and picture) on the
+        /// model's layer: a gun or a dart beside the slabs looks the same under any light of the scene.</summary>
+        public void Flatten(GameObject thing)
+        {
+            foreach (Transform t in thing.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = gameObject.layer;
+            foreach (Renderer r in thing.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!(r is MeshRenderer) && !(r is SkinnedMeshRenderer)) { r.enabled = false; continue; }
+                Material[] had = r.sharedMaterials;
+                // Glass and a sight's picture need a see-through material, which the slab's look is not: a part made of
+                // nothing else is left out (a part with no material at all is kept: it is given the slab's).
+                bool seeThrough = had.Length > 0;
+                foreach (Material m in had) if (m == null || !m.HasProperty(Surface) || m.GetFloat(Surface) < 0.5f) { seeThrough = false; break; }
+                if (seeThrough) { r.enabled = false; continue; }
+                var plain = new Material[had.Length];
+                for (int i = 0; i < had.Length; i++) plain[i] = slabMaterial;
+                r.sharedMaterials = plain;
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                r.receiveShadows = false;
+                for (int i = 0; i < had.Length; i++)
+                {
+                    if (had[i] == null) continue;
+                    var block = new MaterialPropertyBlock();
+                    Color colour = had[i].HasProperty(BaseColour) ? had[i].GetColor(BaseColour) : had[i].color; colour.a = 1f;
+                    block.SetColor(BaseColour, colour);
+                    Texture picture = had[i].HasProperty(BaseMap) ? had[i].GetTexture(BaseMap) : had[i].mainTexture;
+                    if (picture != null) block.SetTexture(BaseMap, picture);
+                    r.SetPropertyBlock(block, i);
+                }
+            }
         }
 
         /// <summary>A control's middle on the model's own plane, metres across and up from the model's middle.</summary>

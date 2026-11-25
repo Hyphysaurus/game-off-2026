@@ -50,6 +50,18 @@ namespace ShiftJam
         [Min(0f), Tooltip("The fastest the body is slid back onto the lane, own units a second (a sprint is 11). A toy that walks in at the hallway's wall is 9 off the lane: at 12 it is on the lane in under a second. 0 = no limit.")]
         public float laneSnapSpeed = 12f;
 
+        [Header("The letters (D-0208)")]
+        [Min(0f), Tooltip("Seconds the S-H-I-F-T strip stays on screen after a letter is found (it also shows the whole time a zone with letters holds the player).")]
+        public float stripSeconds = 3f;
+
+        [Header("The pixel look (D-0209: only in a zone with Pixel Look ticked)")]
+        [Min(0), Tooltip("How many rows of big pixels the screen is cut into while such a zone holds the player (224 = the SNES's height; fewer = chunkier). The pixels are square: the columns follow the screen's width (398 on a 16:9 screen). 0 = no pixel look anywhere.")]
+        public int pixelRows = 224;
+        [Range(0f, 1f), Tooltip("How far each big pixel is pulled to the nearest colour of the palette (his title's colours and a few warm ones, Art/Flat/PixelShiftPalette.png): 1 = only those colours, 0 = big pixels in the room's own colours.")]
+        public float paletteStrength = 1f;
+        [Range(0f, 0.25f), Tooltip("Ordered dither: each big pixel is nudged by up to half this (a share of full brightness, in a 4 by 4 pattern) before it is snapped to the palette, so smooth light breaks into the checkered steps of old games. 0 = flat bands.")]
+        public float dither = 0.06f;
+
         private static FlatViewSettings _defaults;
 
         /// <summary>Resources/FlatView, or the numbers above when the asset is not there (a copy of the project where the

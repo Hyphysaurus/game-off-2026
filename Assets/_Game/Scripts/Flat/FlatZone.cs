@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace ShiftJam
 {
@@ -22,7 +23,14 @@ namespace ShiftJam
     /// mid-shift; the player is let go and taken back once it fits again. A pause holds everything as it is.
     /// Clear (the exit gate calls it, FlatGate) lets a player go at once, with the exit card, and the zone leaves that
     /// player alone until its body has left the box: walking back in starts a new visit.
-    /// The zone's own pieces (anything under this object: its gates, its fill light) are never cut away.
+    /// The zone's own pieces (anything under this object: its gates, its fill light, its letters) are never cut away.
+    /// LETTERS (D-0208): the S-H-I-F-T letters under this object (FlatLetter) are taken by a player the zone holds and
+    /// saved per save slot under this zone's Id; the HUD's strip (FlatHud) shows them while the zone holds the player.
+    /// When the last one that is switched on is found, the zone gives its reward once per slot (a shift charge, a big
+    /// card, a sound). A zone with no letters works as before.
+    /// PIXEL LOOK (D-0209, off unless ticked): while a player is held the picture goes to big square pixels in his
+    /// title's palette (the PixelShift full-screen pass, FlatView > Pixel Rows, Palette Strength, Dither), easing in
+    /// and out with the camera's swing; the renderer feature is switched on only while the look is above 0.
     /// OFF SWITCH: switch this object off (or untick the script) and the stretch plays exactly as it did without it.
     /// Local players only (one per camera rig: single player has one, a party one each); online, another player's copy
     /// on this PC has no rig and is not held, and what the zone does to this PC's player is not sent to the others.
@@ -60,6 +68,17 @@ namespace ShiftJam
         [SerializeField, Tooltip("A player was let go: walked out, went out through the exit, or stopped fitting (first person, a car, a shift).")] private UnityEvent onExited;
         [SerializeField, Tooltip("A player went out through the exit (Clear).")] private UnityEvent onCleared;
 
+        [Header("The letters (D-0208)")]
+        [SerializeField, Tooltip("The big card when the last of this zone's letters is found (once per save slot). Empty: none.")] private string allFoundText = "S-H-I-F-T!";
+        [SerializeField, Tooltip("That card's colour (the toasts' gold: a thing got).")] private Color allFoundColour = new Color32(0xFF, 0xD1, 0x66, 0xFF);
+        [SerializeField, Min(0), Tooltip("Shift charges given with it (up to the most the player can hold: with the charge already full it stays full).")] private int allFoundCharges = 1;
+        [SerializeField, Tooltip("The sound when the last letter is found (it plays instead of that letter's own). No clip: silent.")] private CourseSounds.Cue allFoundSound = new CourseSounds.Cue(null, 0.5f);
+        [SerializeField, Tooltip("Raised when the last of this zone's letters is found (once per save slot).")] private UnityEvent onAllFound;
+
+        [Header("The pixel look (D-0209)")]
+        [SerializeField, Tooltip("While a player is held the picture goes to big square pixels in his title's palette (FlatView > Pixel Rows, Palette Strength, Dither), coming in and going out with the camera's swing. OFF for the hallway (he liked it as it is): tick it to see it, in Play too. Needs Pixel Feature.")] private bool pixelLook;
+        [SerializeField, Tooltip("The PixelShift Full Screen Pass feature on the renderer (Assets/Settings/PC_Renderer). Switched on only while the look shows, as the shift warp's is. Shift Jam > Flat > Add Pixel Look adds it to the renderer; Land Hallway Scroller sets it here. Empty: no pixel look.")] private ScriptableRendererFeature pixelFeature;
+
         /// <summary>One local player: its camera rig and what the zone needs of its body.</summary>
         private sealed class Rider
         {
@@ -84,6 +103,12 @@ namespace ShiftJam
         private bool _cutFound, _cutOn;
         private float _cardAt = float.NegativeInfinity;
         private float _fillShare;   // the fill light, 0 (off) to 1 (full): eases with the camera's swing
+        private float _pixelShare;  // the pixel look, 0 (off) to 1 (full): eases with the camera's swing
+        private bool _pixelDriving; // this zone has the pixel pass on: only it switches it off again (another zone's is left alone)
+
+        // The pixel pass's numbers are globals (PixelShift.shader), so playing never writes its material asset.
+        private static readonly int PixelWeightId = Shader.PropertyToID("_PixelShiftWeight"), PixelRowsId = Shader.PropertyToID("_PixelShiftRows"),
+            PixelDitherId = Shader.PropertyToID("_PixelShiftDither"), PixelPaletteId = Shader.PropertyToID("_PixelShiftPalette");
 
         /// <summary>A zone some local player is in now, or null.</summary>
         public static FlatZone Current { get; private set; }
@@ -98,7 +123,7 @@ namespace ShiftJam
         public FlatViewSettings Settings => settings != null ? settings : FlatViewSettings.Load();
         /// <summary>True while a local player is held.</summary>
         public bool AnyInside { get { for (int i = 0; i < _riders.Count; i++) if (_riders[i].inside) return true; return false; } }
-        /// <summary>The zone's name for saves (its object's name).</summary>
+        /// <summary>The zone's name for saves (its object's name: renaming the object forgets the letters it has found).</summary>
         public string Id => name;
         private Transform Lane => lane != null ? lane : transform;
 
@@ -112,6 +137,7 @@ namespace ShiftJam
             SetCut(false);   // at once: nobody is left to wait for
             _fillShare = 0f;
             if (fill != null) fill.enabled = false;
+            StopPixel();
             if (Current == this) Current = null;
         }
 
@@ -200,6 +226,7 @@ namespace ShiftJam
             if (any) Current = this; else if (Current == this) Current = null;
             SetCut(hold);
             KeepFill(any);
+            KeepPixel(any);
         }
 
         /// <summary>The local players, one per camera rig (ShoulderCamera.All: no search). A rig that is gone, or that
@@ -259,6 +286,7 @@ namespace ShiftJam
                 _cardAt = Time.unscaledTime;
                 Toasts.CardFor(r.motor, card, cardColour);
             }
+            FlatHud.Get();   // the letters' strip (it shows only for a zone with letters)
             onEntered?.Invoke();
             Entered?.Invoke();
         }
@@ -312,6 +340,28 @@ namespace ShiftJam
             _rail.view = Settings;
         }
 
+        // ------------------------------------------------------------------ the letters (D-0208)
+
+        /// <summary>One of this zone's letters was just taken by <paramref name="who"/> and saved (FlatLetter calls this):
+        /// the HUD's strip shows. When every letter of this zone that is switched on is found now and the active save slot
+        /// has not had the reward, it is given: the charges (ShiftCharge, up to its most), the big card, the sound and
+        /// On All Found. True when the reward was given just now (the letter then plays no sound of its own).</summary>
+        public bool LetterFound(FlatLetter letter, PlayerMotor who)
+        {
+            FlatHud.Flash(this);
+            FlatLetter.Mask(this, out int present, out int found);
+            if (present == 0 || found != present) return false;
+            string key = FlatLetter.RewardKeyOf(Id);
+            int slot = SaveGame.Slot;
+            if (SaveGame.Seen(slot, key)) return false;
+            SaveGame.MarkSeen(slot, key);
+            if (who != null && allFoundCharges > 0 && who.TryGetComponent(out ShiftCharge charge)) charge.SetCharges(charge.Charges + allFoundCharges);
+            Toasts.CardFor(who, allFoundText, allFoundColour);
+            UiAudio.Play(allFoundSound);
+            onAllFound?.Invoke();
+            return true;
+        }
+
         // ------------------------------------------------------------------ the fill light
 
         /// <summary>The fill light (D-0203): it eases on over the blend while anyone is held and off over the blend after,
@@ -350,6 +400,39 @@ namespace ShiftJam
                 fill.spotAngle = Mathf.Min(170f, cone);
                 fill.innerSpotAngle = fill.spotAngle * 0.8f;
             }
+        }
+
+        // ------------------------------------------------------------------ the pixel look (D-0209)
+
+        /// <summary>The pixel look: it eases on over the blend while anyone is held (and Pixel Look is ticked) and off over
+        /// the blend after, smoothed at both ends like the swing. Its weight and FlatView's numbers go to the shader as
+        /// globals every frame it shows (tunable in Play); the feature is on only while the weight is above 0, so the pass
+        /// costs nothing outside the zone (the shift warp's way). A zone that is not showing it never touches it.</summary>
+        private void KeepPixel(bool any)
+        {
+            if (pixelFeature == null) return;
+            FlatViewSettings v = _rail.View;
+            bool want = any && pixelLook && v.pixelRows > 0;
+            if (!want && !_pixelDriving) return;
+            _pixelShare = Mathf.MoveTowards(_pixelShare, want ? 1f : 0f, Time.unscaledDeltaTime / Mathf.Max(0.01f, v.blendSeconds));
+            float weight = _pixelShare * _pixelShare * (3f - 2f * _pixelShare);
+            if (weight <= 0f) { StopPixel(); return; }
+            Shader.SetGlobalFloat(PixelWeightId, weight);
+            Shader.SetGlobalFloat(PixelRowsId, v.pixelRows);
+            Shader.SetGlobalFloat(PixelDitherId, v.dither);
+            Shader.SetGlobalFloat(PixelPaletteId, v.paletteStrength);
+            _pixelDriving = true;
+            if (!pixelFeature.isActive) pixelFeature.SetActive(true);
+        }
+
+        /// <summary>The pixel look off at once (weight 0, the feature off), if this zone had it on.</summary>
+        private void StopPixel()
+        {
+            _pixelShare = 0f;
+            if (!_pixelDriving) return;
+            _pixelDriving = false;
+            Shader.SetGlobalFloat(PixelWeightId, 0f);
+            if (pixelFeature != null && pixelFeature.isActive) pixelFeature.SetActive(false);
         }
 
         // ------------------------------------------------------------------ to check without Play

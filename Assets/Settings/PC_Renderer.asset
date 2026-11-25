@@ -49,7 +49,8 @@ MonoBehaviour:
   - {fileID: 7833122117494664109}
   - {fileID: 1753084703293937907}
   - {fileID: -8256491887987778715}
-  m_RendererFeatureMap: ad6b866f10d7b46cf39801d93f355418651b98655f0c6b8d
+  - {fileID: 7049384999994194876}
+  m_RendererFeatureMap: ad6b866f10d7b46cf39801d93f355418651b98655f0c6b8dbcfb9ee94e72d461
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
@@ -95,6 +96,26 @@ MonoBehaviour:
   fetchColorBuffer: 1
   requirements: 0
   passMaterial: {fileID: 2100000, guid: 70c29dbacd493704eae2e6bd12ae1e0a, type: 2}
+  passIndex: 0
+  bindDepthStencilAttachment: 0
+  m_Version: 1
+--- !u!114 &7049384999994194876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b00045f12942b46c698459096c89274e, type: 3}
+  m_Name: PixelShift
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.FullScreenPassRendererFeature
+  m_Active: 0
+  injectionPoint: 600
+  fetchColorBuffer: 1
+  requirements: 0
+  passMaterial: {fileID: 2100000, guid: e1b502cbb5c615f42a052d6a7dc8bab2, type: 2}
   passIndex: 0
   bindDepthStencilAttachment: 0
   m_Version: 1

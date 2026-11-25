@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 00:0x — S-H-I-F-T LETTERS IN THE HALLWAY (D-0208) + THE PIXEL LOOK, OFF (D-0209). Landed in a hidden batch run, Greybox SAVED. NOT PLAYED.
+- **HIS PLAYTEST (hallway):** the strip top left on the way in; S: jump from the fifth book; H, I, F: swing the ropes
+  (30 degrees reaches them); T: the sprint jump over the gap; all five: "S-H-I-F-T!" and a charge; a respawn and a
+  Continue: found letters stay ghosts. Then tick **Pixel Look** on FlatZone_Hall and run it again: too crunchy / not
+  enough is FlatView > Pixel Rows (224) and Palette Strength.
+- **WAITING ON HIM:** the second sound pass (audition folder `%TEMP%\shiftjam-stage\sound-audition\pass2`: 18
+  folders, "proceed" = the a's, folder 18 the opening's spark only on his word), the music question, which Flat Zone
+  spot next (survey: wardrobe tower first), his own rifts.
+- **Pushed:** origin/main = e0a8ebd (24 Nov 23:3x). Everything after it is local.
+
 ## 24 Nov 2026 23:1x — PORTALS IN AND OUT OF THE FLAT ZONE (D-0203), PAUSE / OPTIONS / PARTIES IN THE NEW MENU STYLE (D-0204), NEW SOUNDS (D-0202). Checked without Play, NOT PLAYED.
 - **🔴 GREYBOX IS MARKED CHANGED AND UNSAVED:** FlatZone_Hall (with its two portals and the fill light) was placed again
   in his open scene. Ctrl+S keeps it; without saving, run **Shift Jam > Flat > Land Hallway Scroller** again.

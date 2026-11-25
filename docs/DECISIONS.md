@@ -3901,3 +3901,25 @@
   - **Checked without Play:** the FBX carries no path; both gates made and placed (the report names the prefab each
     uses); a hidden editor camera's pictures show the pixel rift at the foot of the book stairs and the 3D rift at the
     end of the hallway. **NOT PLAYED.** The itch page lists the rifts as made by Claude.
+- **D-0208 (25 Nov 2026, 00:0x) Flat Zones cut B: five S-H-I-F-T letters to find in the hallway's side-on stretch.** His
+  "proceed with all outstanding tasks" (cut B was listed as next after he played cut A).
+  - **The letters are his title's own letters** (the baked meshes of D-0200) at 1.8 tall, shimmering with his sheet's
+    frames, spinning and bobbing (`Flat/FlatLetter.cs`). Only a toy the zone holds can take one: it pops, plays a
+    sound (UiSounds > Confirm), is saved per zone and save slot (SaveGame's seen list: `flat:<zone>:<0..4>`), and
+    stays as a see-through ghost. All five: a big "S-H-I-F-T!" card (gold), one shift charge, the core's power-up
+    sound, once per slot. A strip of the five letters top left (`UI/FlatHud.cs`) while in a zone with letters and 3 s
+    after a find. `SaveGame` got only a Changed event (old saves load).
+  - **Where, and why reachable (worked out from the scene's own books, ropes and the toy's jump):** S over the sixth
+    book (a full jump from the fifth takes it; walking up never does); H, I, F halfway between the ropes at the
+    height of a 30-degree swing; T over the middle of the sprint gap (every jump that clears the gap takes it).
+  - **Unsure:** H may be easy (the walk-off catch carries speed); the letters' heights use a plain pendulum model,
+    not the rope's own code; a full shift charge makes the reward's charge invisible.
+- **D-0209 (25 Nov 2026, 00:0x) Flat Zones cut C: the pixel look, OFF on the hallway.** `Shaders/PixelShift.shader`
+  (pixelate to 224 rows, quantize to his title's 14 colours plus 7 warm ones in `Art/Flat/PixelShiftPalette.png`, a
+  light dither) as a Full Screen Pass on `Settings/PC_Renderer.asset` (feature 4, off until a zone that asks for it
+  holds the player; the weight eases with the camera's swing; its numbers are shader globals, so the material asset
+  is never written while playing). **Tick Pixel Look on FlatZone_Hall to see it.** The itch build is Windows, which
+  uses PC_Renderer (the Mobile renderer for WebGL has neither the shift warp nor this).
+  - **Landed with the editor closed:** a hidden batch Unity run added the renderer feature (a second run keeps it),
+    compiled the shader (no errors), placed the letters (the numbers above, exactly the builder's), and SAVED
+    Greybox (no editor was open to save it). **NOT PLAYED.**

@@ -7,6 +7,7 @@ namespace ShiftJam
     /// Three save slots in PlayerPrefs (they survive stopping Play and quitting). A slot holds where the player stood at
     /// the last save point, their facing, size and the room's name. Slot is the active one; the title menu picks it,
     /// save points write to it, Respawn reads it.
+    /// <see cref="Changed"/> (D-0208) tells parts that show what a slot holds (the Flat Zone letters) to read it again.
     /// </summary>
     public static class SaveGame
     {
@@ -17,11 +18,19 @@ namespace ShiftJam
 
         public struct Data { public Vector3 position; public float yaw; public ShiftSize size; public string room; public string when; }
 
+        /// <summary>Raised when what the game in play reads from the saves may have changed: another slot made the active
+        /// one, a slot cleared (New Game), a moment marked seen (D-0208: the Flat Zone letters read again what was found).
+        /// Nothing in a save's format changed for it.</summary>
+        public static event System.Action Changed;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => Changed = null;
+
         /// <summary>The active slot, 0..2.</summary>
         public static int Slot
         {
             get => Mathf.Clamp(PlayerPrefs.GetInt(SlotKey, 0), 0, Slots - 1);
-            set { PlayerPrefs.SetInt(SlotKey, Mathf.Clamp(value, 0, Slots - 1)); PlayerPrefs.Save(); }
+            set { PlayerPrefs.SetInt(SlotKey, Mathf.Clamp(value, 0, Slots - 1)); PlayerPrefs.Save(); Changed?.Invoke(); }
         }
 
         public static bool Has(int slot) => PlayerPrefs.HasKey(Key(slot));
@@ -50,7 +59,7 @@ namespace ShiftJam
         }
 
         /// <summary>Clears the slot, and what it has seen (reveals play again).</summary>
-        public static void Clear(int slot) { PlayerPrefs.DeleteKey(Key(slot)); PlayerPrefs.DeleteKey(SeenKey(slot)); PlayerPrefs.Save(); }
+        public static void Clear(int slot) { PlayerPrefs.DeleteKey(Key(slot)); PlayerPrefs.DeleteKey(SeenKey(slot)); PlayerPrefs.Save(); Changed?.Invoke(); }
 
         private static string SeenKey(int slot) => "ShiftJam.Seen.v1." + slot;
         /// <summary>One-time moments (the playroom reveal) this slot has already played.</summary>
@@ -59,6 +68,7 @@ namespace ShiftJam
         {
             if (Seen(slot, id)) return;
             string s = PlayerPrefs.GetString(SeenKey(slot), ""); PlayerPrefs.SetString(SeenKey(slot), s.Length == 0 ? id : s + "|" + id); PlayerPrefs.Save();
+            Changed?.Invoke();
         }
     }
 }

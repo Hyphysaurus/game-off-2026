@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
 namespace ShiftJam
@@ -22,9 +23,16 @@ namespace ShiftJam
     ///    they are missing; what is there is kept as it is. It is NOT in Pieces/Traversal: Build Catalog would list it
     ///    as a Build Mode piece, and a gate without its zone does nothing;
     /// 3. places ONE object, FlatZone_Hall, at the TOP LEVEL of the open Greybox scene (a hallway rebuild wipes
-    ///    everything under R3_SkirtingRun), with its entrance gate, its exit gate and its fill light under it. A
-    ///    FlatZone_Hall already there is taken out and made again (its card texts and colours and its gates' colours
-    ///    are carried over); nothing else in the scene is touched.
+    ///    everything under R3_SkirtingRun), with its entrance gate, its exit gate, its fill light and its five
+    ///    S-H-I-F-T letters (D-0208) under it. A FlatZone_Hall already there is taken out and made again (its card
+    ///    texts and colours, its letters' card, and its gates' colours are carried over); nothing else in the scene
+    ///    is touched.
+    /// The letters' two materials (Data/FlatLetter.mat, unlit, and Data/FlatLetterGhost.mat, unlit and see-through,
+    /// both copies of the menu slab's) are made when missing; the letters' shapes are the title's own
+    /// (Art/Title/Letters/Title_X.asset, baked by Shift Jam > Menu > Build Title Menu Model): without them the zone
+    /// gets no letters and the report says so. Where each letter stands is worked out from the hallway's own things
+    /// (a book of the stairs, the ropes, the sprint gap's checkpoints) and the toy's jump (Data/MovementSettings) and
+    /// the ropes' hold (Resources/Rope); the report gives every number and why each letter is reachable.
     /// It finds the hallway's things by name (the near wall WallS to cut away, the far wall, the ceiling, the three
     /// checkpoints, the step box, the four ropes) and falls back to the numbers measured on 24 Nov where one is not
     /// found; the report says which, and every number it used.
@@ -32,6 +40,12 @@ namespace ShiftJam
     /// Place Hallway Ropes (the other maker that lands things at the top level of the open Greybox), it marks the
     /// scene changed and leaves the saving to him (Ctrl+S), so a run that turns out wrong is undone by not saving, or
     /// by Ctrl+Z.
+    /// THE PIXEL LOOK (D-0209): "Add Pixel Look (renderer feature)" (<see cref="AddPixelLook"/>, the report as text) makes
+    /// the palette (Art/Flat/PixelShiftPalette.png, one texel a colour: his title's 14 and 7 warm ones for the toy room)
+    /// and Data/PixelShift.mat (Shaders/PixelShift.shader) when missing, and adds a Full Screen Pass feature "PixelShift"
+    /// to Assets/Settings/PC_Renderer when it has none (made the way the renderer's own Inspector adds one, as
+    /// PaintBuilder adds the Decal feature; off, after post-processing, after the shift warp's). Land Hallway Scroller
+    /// then hands that feature to the zone, with Pixel Look OFF (his choice on an older FlatZone_Hall is kept).
     /// <see cref="LandHallway"/> does the same as the menu and hands the report back as text.
     /// "Rebuild Portal Gate (its look)" makes the gate's piece again in place (its ids stay, so the gates in the scene
     /// follow): run it after the car portals change; a number changed by hand on the piece's parts is written over.
@@ -108,6 +122,61 @@ namespace ShiftJam
         private const float CutAFrameHeight = 13f;        // FlatView's Frame Height in cut A: replaced by the script's new one (only if still this)
         private const float CutFrom = 3f;
 
+        // ---- the letters (D-0208): his title's letters to find, side-on. Where they stand, and why:
+        // S: over a tread of the book stairs (Book5, the sixth book, its tread x -10 to -7.6, top 6.64), its bottom 0.2
+        //    over the head of a toy standing on the NEXT book (Book6, top 7.74): walking up never touches it; a full jump
+        //    from Book5 does (the head rises 2.0 to 10.44, 0.69 into it); a tapped jump (a quarter of the height) does not.
+        // H, I, F: halfway between rope 1 and 2, 2 and 3, 3 and 4 ("mid-swing between the ropes"), their bottom where the
+        //    head of a toy swinging on the rope before reaches at a 30 degree swing (hands Hang Hold 5 under the tie):
+        //    hanging or a small swing never touches them, a real swing or a let-go on the way up does.
+        //    (The plan had H over the step box's top: the box top is 12.17 and the ceiling 14, so a toy (1.8) on it
+        //    cannot jump and a 1.8 letter does not fit over it; a letter ON it would be taken by everyone walking by.)
+        // T: over the middle of the sprint gap, its bottom 0.8 over a standing toy's head: the top of a jump's arc
+        //    (feet 2.0 up, head 3.8) goes 1.2 into it; walking up to the edge never touches it.
+        private static readonly string[] LetterShapes =
+        {
+            "Assets/_Game/Art/Title/Letters/Title_S.asset", "Assets/_Game/Art/Title/Letters/Title_H.asset", "Assets/_Game/Art/Title/Letters/Title_I.asset",
+            "Assets/_Game/Art/Title/Letters/Title_F.asset", "Assets/_Game/Art/Title/Letters/Title_T.asset",
+        };
+        private const string TitleSheet = "Assets/_Game/Art/Title/ShiftJamTitlePixelRiftCandySprite.png";   // 64 frames of 75 x 35
+        private const int TitleFrames = 64;
+        private const string LetterLook = Data + "FlatLetter.mat", GhostLook = Data + "FlatLetterGhost.mat";
+        private const string UiSoundsPath = "Assets/_Game/Resources/UiSounds.asset";
+        private const string MovesPath = Data + "MovementSettings.asset", ShiftPath = Data + "ShiftSettings.asset";
+        private const float LetterTall = 1.8f;            // as tall as the toy (the brief: 1.6 to 2 at toy size)
+        private const float LetterClear = 0.2f;           // a letter a walk must not take has its bottom this far over the walking head
+        private const float LetterBob = 0.15f;            // FlatLetter's bob: the letter's top plus this stays under the ceiling
+        private const int SBook = 5;                      // S stands over this book's tread (Book5, the sixth)
+        private const float BookTread = 2.4f, BookRiseMost = 1.2f;   // CourseBuilder.BookStairs: each book shows a 2.4 tread, risers at most 1.2
+        private const float StairsFromX = -22f;           // CourseBuilder.House: the first book's back end (HallStairs)
+        private const float GoodSwing = 30f;              // degrees: the swing on a rope at which the head reaches H, I, F
+        private const float HeadOverHands = 0.38f;        // a toy on a rope: the capsule's top over the hands (RopeSettings, Min Hold)
+        private const float TOver = 0.6f;                 // T's middle over the middle of a toy at the top of a jump
+        private const float GapFromCheckpoint = 6f;       // CourseBuilder.House: CP_beforeSprint stands 6 before the gap, CP_afterSprint 6 after
+        private const float FallbackJump = 2f, FallbackHang = 5f;   // the toy's jump and the ropes' Hang Hold as on 24 Nov, if the assets are not found
+        private static readonly Color AllFoundColour = new Color32(0xFF, 0xD1, 0x66, 0xFF);   // the toasts' gold ("got it")
+
+        // ---- the pixel look (D-0209)
+        private const string RendererPath = "Assets/Settings/PC_Renderer.asset";
+        private const string PixelShaderPath = "Assets/_Game/Shaders/PixelShift.shader";
+        private const string PixelMaterialPath = Data + "PixelShift.mat";
+        private const string PalettePath = RiftArt + "PixelShiftPalette.png";
+        public const string PixelFeatureName = "PixelShift";
+        // His title sheet's 14 colours (read off the sheet: from its near-black ink to its white), then 7 warm ones so
+        // the toy room's wood, cardboard and painted toys have somewhere to go. Written only when the file is missing:
+        // repaint the PNG (one texel a colour, in a row; up to 32) and the look follows (the material's count with it:
+        // run Add Pixel Look again).
+        private static readonly Color32[] PaletteColours =
+        {
+            new Color32(0x0a, 0x08, 0x12, 0xff), new Color32(0x0e, 0x0d, 0x18, 0xff), new Color32(0x49, 0x23, 0x93, 0xff), new Color32(0x57, 0x34, 0x9c, 0xff),
+            new Color32(0xb2, 0x4d, 0xff, 0xff), new Color32(0xff, 0x72, 0xcc, 0xff), new Color32(0xff, 0x83, 0xd2, 0xff), new Color32(0xff, 0x93, 0xd8, 0xff),
+            new Color32(0xff, 0xa8, 0xe0, 0xff), new Color32(0x73, 0xf1, 0xff, 0xff), new Color32(0x94, 0xf4, 0xff, 0xff), new Color32(0xc3, 0xf9, 0xff, 0xff),
+            new Color32(0xff, 0xf0, 0xfc, 0xff), new Color32(0xff, 0xff, 0xff, 0xff),
+            // warm, for the toy room: dark wood, wood, cardboard, tan, cream, toy red, toy yellow
+            new Color32(0x3a, 0x22, 0x20, 0xff), new Color32(0x74, 0x46, 0x2c, 0xff), new Color32(0xb9, 0x77, 0x3f, 0xff), new Color32(0xe6, 0xb3, 0x73, 0xff),
+            new Color32(0xff, 0xe4, 0xb5, 0xff), new Color32(0xd9, 0x53, 0x3f, 0xff), new Color32(0xf5, 0xc8, 0x4c, 0xff),
+        };
+
         // ---- the gate's piece (his drawing as the car portals have it; pack units: the toy is 1.8 tall)
         private const float CarPortalOpening = 7f;        // the car portals' opening across (RacingPieces.PortalHole): their Model is sized to it
         private const float GateOpening = 4f;             // the gate's opening across: a toy and more (it reads as a doorway from far off)
@@ -124,6 +193,13 @@ namespace ShiftJam
         public static void LandHallwayMenu()
         {
             string report = LandHallway();
+            if (report.StartsWith(Tag + " NOT ")) Debug.LogWarning(report); else Debug.Log(report);
+        }
+
+        [MenuItem("Shift Jam/Flat/Add Pixel Look (renderer feature)")]
+        public static void AddPixelLookMenu()
+        {
+            string report = AddPixelLook();
             if (report.StartsWith(Tag + " NOT ")) Debug.LogWarning(report); else Debug.Log(report);
         }
 
@@ -241,6 +317,7 @@ namespace ShiftJam
             // ---- 4. the object: an old one out (what he chose on it kept), the new one in
             const string UndoName = "Land Hallway Scroller";
             string keptCard = null, keptClear = null; Color keptCardColour = default, keptClearColour = default; bool hadOld = false;
+            string keptAllFound = null; Color keptAllFoundColour = AllFoundColour; bool keptPixelLook = false;
             Color entranceColour = EntranceColour, exitColour = ExitColour; bool keptEntrance = false, keptExit = false;
             int removed = 0;
             foreach (GameObject root in scene.GetRootGameObjects())
@@ -252,6 +329,10 @@ namespace ShiftJam
                     var so = new SerializedObject(old);
                     keptCard = so.FindProperty("card").stringValue; keptClear = so.FindProperty("clearText").stringValue;
                     keptCardColour = so.FindProperty("cardColour").colorValue; keptClearColour = so.FindProperty("clearColour").colorValue;
+                    SerializedProperty allFound = so.FindProperty("allFoundText");   // an older zone (before D-0208) has none
+                    if (allFound != null) { keptAllFound = allFound.stringValue; keptAllFoundColour = so.FindProperty("allFoundColour").colorValue; }
+                    SerializedProperty pixel = so.FindProperty("pixelLook");   // his tick, if he gave it (before D-0209 there is none)
+                    if (pixel != null) keptPixelLook = pixel.boolValue;
                     hadOld = true;
                 }
                 foreach (FlatGate gate in root.GetComponentsInChildren<FlatGate>(true))
@@ -295,6 +376,14 @@ namespace ShiftJam
                 WorkshopPieces.Set(zone, "card", keptCard); WorkshopPieces.Set(zone, "clearText", keptClear);
                 WorkshopPieces.Set(zone, "cardColour", keptCardColour); WorkshopPieces.Set(zone, "clearColour", keptClearColour);
             }
+            if (keptAllFound != null) { WorkshopPieces.Set(zone, "allFoundText", keptAllFound); WorkshopPieces.Set(zone, "allFoundColour", keptAllFoundColour); }
+            else WorkshopPieces.Set(zone, "allFoundColour", AllFoundColour);
+            // The pixel look (D-0209): the renderer's feature handed to the zone when it is there; OFF for the hallway
+            // (he liked it as it is) unless an older FlatZone_Hall had it ticked.
+            FullScreenPassRendererFeature pixelFeature = FindPixelFeature(out string pixelWhere);
+            WorkshopPieces.Set(zone, "pixelFeature", pixelFeature);
+            WorkshopPieces.Set(zone, "pixelLook", keptPixelLook);
+            if (pixelFeature == null) warn.Add($"no {PixelFeatureName} feature on {RendererPath}: the zone has no pixel look (run Shift Jam > Flat > Add Pixel Look, then land again)");
 
             // The gates. The way in is met in 3D, so it stands across the lane facing the toy that comes to it (its forward,
             // the blue arrow, points east, the way the toy goes through). The way out is met side-on, so it faces the side
@@ -310,6 +399,18 @@ namespace ShiftJam
                 Vector3 size = exitTouch.size;   // made as (across, up, along) for a gate across the lane: turned to face the camera, across and along swap
                 exitTouch.size = new Vector3(ExitTouchAlong, size.y, size.x);
             }
+            // The letters (D-0208), under the zone; the reward's sound on the zone.
+            var letterLines = new List<string>();
+            int letterCount = PlaceLetters(zoneGo.transform, scene, hall, laneZ, ceilingY, beforeX, afterX, letterLines, warn);
+            if (sounds != null)
+            {
+                var zs = new SerializedObject(zone);
+                zs.FindProperty("allFoundSound.clip").objectReferenceValue = sounds.coreAwake.clip;
+                zs.FindProperty("allFoundSound.volume").floatValue = sounds.coreAwake.clip != null && sounds.coreAwake.volume > 0f ? sounds.coreAwake.volume : 0.5f;
+                zs.FindProperty("allFoundSound.pitchSpread").floatValue = 0f;
+                zs.ApplyModifiedPropertiesWithoutUndo();
+            }
+
             EditorSceneManager.MarkSceneDirty(scene);
             Selection.activeGameObject = zoneGo;
 
@@ -326,6 +427,13 @@ namespace ShiftJam
                 + $"FRAME: never under y {Say(frameFloor)} or over y {Say(frameCeiling)} (cut A: over {Say(ceilingY)}, the ceiling's underside: the toy's head on the screen's top edge on the step box).");
             report.AppendLine("GATES (under " + ZoneName + "; the way in is " + PieceName(entrance) + ", the way out " + PieceName(exit) + "): " + GateLine(entrance) + " | " + GateLine(exit) + ".");
             report.AppendLine($"FILL LIGHT: 'Fill' under {ZoneName}, a spot with no shadows, off until a player is held; then it rides with that player's camera, fading in and out with the swing (FlatView > Fill Light {Say(view.fillLight)} at the lane, 0 = off).");
+            var zoneSo = new SerializedObject(zone);
+            UnityEngine.Object rewardClip = zoneSo.FindProperty("allFoundSound.clip").objectReferenceValue;
+            report.AppendLine($"LETTERS (D-0208): {letterCount} placed under {ZoneName} on the lane (z {Say(laneZ)}). " + string.Join(" | ", letterLines)
+                + $". ALL FOUND (once per save slot): {zoneSo.FindProperty("allFoundCharges").intValue} shift charge, the big card \"{zoneSo.FindProperty("allFoundText").stringValue}\" ({Say(zoneSo.FindProperty("allFoundColour").colorValue)}), sound {(rewardClip != null ? rewardClip.name : "silent")}. "
+                + $"THE STRIP: top left, shown while the zone holds the player and {Say(view.stripSeconds)} s after a letter is found (FlatView > Strip Seconds).");
+            report.AppendLine($"PIXEL LOOK (D-0209): {(zoneSo.FindProperty("pixelLook").boolValue ? "ON (kept: an older FlatZone_Hall had it ticked)" : "OFF (tick Pixel Look on FlatZone_Hall to see it)")}; feature: {pixelWhere}; "
+                + $"FlatView > Pixel Rows {view.pixelRows} ({PixelColumns(view.pixelRows, 16f / 9f)} columns on a 16:9 screen, {PixelColumns(view.pixelRows, 21f / 9f)} on 21:9; a big pixel is {Say(1080f / Mathf.Max(1, view.pixelRows))} screen pixels at 1080 high), Palette Strength {Say(view.paletteStrength)}, Dither {Say(view.dither)}.");
 
             FlatRail rail = zone.Rail;
             FlatViewSettings v = rail.View;
@@ -349,7 +457,8 @@ namespace ShiftJam
             if (sounds == null) warn.Add($"no {SoundsPath}: the gates are silent");
             if (warn.Count > 0) report.AppendLine("LOOK AT: " + string.Join("; ", warn) + ".");
             report.Append("SAVING: the scene is marked changed and NOT saved (as Place Hallway Ropes does): save Greybox (Ctrl+S) to keep the zone, or close without saving to drop it. "
-                + "OFF SWITCHES: untick FlatZone_Hall in the Hierarchy (the hallway plays as before, no gates); FlatView > Fill Light 0 (no fill light); a gate's object unticked (that gate gone; with the Exit gone nobody is let go but by walking out).");
+                + "OFF SWITCHES: untick FlatZone_Hall in the Hierarchy (the hallway plays as before, no gates); FlatView > Fill Light 0 (no fill light); a gate's object unticked (that gate gone; with the Exit gone nobody is let go but by walking out); "
+                + "a letter's object unticked (that letter gone; the reward counts the letters that are on; all five unticked = no strip, the zone as before D-0208).");
             return report.ToString();
         }
 
@@ -387,6 +496,299 @@ namespace ShiftJam
             light.shadows = LightShadows.None;
             light.enabled = false;
             return light;
+        }
+
+        // ================================================================== the pixel look (D-0209)
+
+        /// <summary>What the menu item does, with the report handed back as text. A report that starts "[Flat] NOT " means
+        /// the renderer was not changed. Run again, it changes nothing that is there (a palette or material he changed
+        /// is kept; only the material's colour count follows the palette's width).</summary>
+        public static string AddPixelLook()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+                return $"{Tag} NOT done: Add Pixel Look does not run in Play. Stop the game first. Nothing was changed.";
+            var did = new List<string>();
+            Texture2D palette = PaletteTexture(did);
+            Material look = PixelMaterial(palette, did);
+            if (look == null) return $"{Tag} NOT done: {string.Join("; ", did)}. The renderer was not changed.";
+            var data = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(RendererPath);
+            if (data == null) return $"{Tag} NOT done: no URP renderer at {RendererPath} ({string.Join("; ", did)}). The renderer was not changed.";
+
+            FullScreenPassRendererFeature feature = FindPixelFeature(out _);
+            if (feature != null)
+            {
+                did.Add($"{RendererPath} already has the {PixelFeatureName} feature: kept as it is ({(feature.isActive ? "ON in the asset: the zone switches it itself, so it should be off; it is switched OFF now" : "off")}; its material {(feature.passMaterial != null ? feature.passMaterial.name : "NONE: set to " + look.name)})");
+                if (feature.isActive) { feature.SetActive(false); EditorUtility.SetDirty(data); }
+                if (feature.passMaterial == null) { feature.passMaterial = look; EditorUtility.SetDirty(feature); EditorUtility.SetDirty(data); }
+            }
+            else
+            {
+                // As the renderer's own Inspector adds a feature (and PaintBuilder.EnsureDecalFeature does): a sub-asset
+                // of the renderer, listed in its features with its file id in the map.
+                feature = ScriptableObject.CreateInstance<FullScreenPassRendererFeature>();
+                feature.name = PixelFeatureName;
+                feature.injectionPoint = FullScreenPassRendererFeature.InjectionPoint.AfterRenderingPostProcessing;   // as the shift warp's: after it in the list, so a warp is pixelated too
+                feature.fetchColorBuffer = true;
+                feature.requirements = ScriptableRenderPassInput.None;
+                feature.passMaterial = look;
+                feature.passIndex = 0;
+                feature.bindDepthStencilAttachment = false;
+                feature.SetActive(false);   // the zone switches it on only while its look shows
+                AssetDatabase.AddObjectToAsset(feature, data);
+                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(feature, out _, out long localId);
+                var so = new SerializedObject(data);
+                SerializedProperty features = so.FindProperty("m_RendererFeatures"), map = so.FindProperty("m_RendererFeatureMap");
+                features.arraySize++; features.GetArrayElementAtIndex(features.arraySize - 1).objectReferenceValue = feature;
+                map.arraySize++; map.GetArrayElementAtIndex(map.arraySize - 1).longValue = localId;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                data.SetDirty();
+                EditorUtility.SetDirty(data);
+                did.Add($"ADDED the {PixelFeatureName} feature to {RendererPath} (Full Screen Pass, after post-processing, fetch colour on, off until a zone shows its look, material {look.name}; feature {data.rendererFeatures.Count} of {data.rendererFeatures.Count}, after ShiftWarp)");
+            }
+            AssetDatabase.SaveAssets();
+            FullScreenPassRendererFeature check = FindPixelFeature(out string where);
+            if (check == null) return $"{Tag} NOT done: the feature was not found on {RendererPath} after adding it ({string.Join("; ", did)}). Add it by hand: see the notes of D-0209.";
+            return $"{Tag} Add Pixel Look (D-0209): {string.Join("; ", did)}. NOW: {where}. Run Shift Jam > Flat > Land Hallway Scroller to hand it to FlatZone_Hall (Pixel Look stays off: tick it to see).";
+        }
+
+        /// <summary>The PixelShift feature on PC_Renderer, or null; <paramref name="where"/> says which it is and its state.</summary>
+        private static FullScreenPassRendererFeature FindPixelFeature(out string where)
+        {
+            var data = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(RendererPath);
+            if (data == null) { where = $"NO renderer at {RendererPath}"; return null; }
+            for (int i = 0; i < data.rendererFeatures.Count; i++)
+                if (data.rendererFeatures[i] is FullScreenPassRendererFeature f && f.name == PixelFeatureName)
+                {
+                    where = $"{RendererPath} feature {i + 1} of {data.rendererFeatures.Count} '{f.name}' ({(f.isActive ? "ON in the asset" : "off in the asset")}, {f.injectionPoint}, material {(f.passMaterial != null ? f.passMaterial.name : "NONE")})";
+                    return f;
+                }
+            where = $"NOT on {RendererPath} (run Shift Jam > Flat > Add Pixel Look)";
+            return null;
+        }
+
+        /// <summary>The palette picture: kept when it is there, written from PaletteColours when it is not; its import
+        /// settings are the pixel sheet's (point, no mip maps, not rescaled, uncompressed, clamped).</summary>
+        private static Texture2D PaletteTexture(List<string> did)
+        {
+            if (!System.IO.File.Exists(PalettePath))
+            {
+                WorkshopPieces.EnsureFolder(RiftArt.TrimEnd('/'));
+                var picture = new Texture2D(PaletteColours.Length, 1, TextureFormat.RGBA32, false);
+                picture.SetPixels32(PaletteColours); picture.Apply();
+                System.IO.File.WriteAllBytes(PalettePath, picture.EncodeToPNG());
+                Object.DestroyImmediate(picture);
+                AssetDatabase.ImportAsset(PalettePath, ImportAssetOptions.ForceUpdate);
+                did.Add($"{PalettePath} MADE ({PaletteColours.Length} colours: his title's 14 and 7 warm ones)");
+            }
+            else did.Add($"{PalettePath} was there: kept");
+            SheetImport(PalettePath, did);
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(PalettePath);
+        }
+
+        /// <summary>The pass's material: made from the shader when missing, kept when there; its palette set when it has
+        /// none, and its colour count set to the palette's width.</summary>
+        private static Material PixelMaterial(Texture2D palette, List<string> did)
+        {
+            var look = AssetDatabase.LoadAssetAtPath<Material>(PixelMaterialPath);
+            if (look == null)
+            {
+                var shader = AssetDatabase.LoadAssetAtPath<Shader>(PixelShaderPath);
+                if (shader == null) { did.Add($"no shader at {PixelShaderPath}"); return null; }
+                look = new Material(shader) { name = "PixelShift" };
+                AssetDatabase.CreateAsset(look, PixelMaterialPath);
+                did.Add($"{PixelMaterialPath} MADE");
+            }
+            else did.Add($"{PixelMaterialPath} was there: kept");
+            if (look.GetTexture("_Palette") == null && palette != null) { look.SetTexture("_Palette", palette); did.Add("its palette set"); }
+            Texture used = look.GetTexture("_Palette");
+            if (used != null && !Mathf.Approximately(look.GetFloat("_PaletteCount"), used.width)) { look.SetFloat("_PaletteCount", used.width); did.Add($"its colour count set to {used.width}"); }
+            EditorUtility.SetDirty(look);
+            return look;
+        }
+
+        private static int PixelColumns(int rows, float aspect) => Mathf.Max(1, Mathf.FloorToInt(rows * aspect));
+
+        // ================================================================== the letters (D-0208)
+
+        /// <summary>The five letters under the zone, each where its line says (see the constants), with its shape, its
+        /// materials, the sheet and its sound. One line per letter into <paramref name="lines"/> (its place, its size,
+        /// what its trigger touches in the scene, why it is reachable); anything that does not add up into
+        /// <paramref name="warn"/>. Returns how many were placed (0 without the title's letter shapes).</summary>
+        private static int PlaceLetters(Transform zone, Scene scene, Transform hall, float laneZ, float ceilingY, float beforeX, float afterX, List<string> lines, List<string> warn)
+        {
+            var shapes = new Mesh[LetterShapes.Length];
+            for (int i = 0; i < shapes.Length; i++)
+            {
+                shapes[i] = AssetDatabase.LoadAssetAtPath<Mesh>(LetterShapes[i]);
+                if (shapes[i] == null) { warn.Add($"no {LetterShapes[i]}: NO LETTERS were placed (run Shift Jam > Menu > Build Title Menu Model, which bakes them, then land again)"); return 0; }
+            }
+            var sheet = AssetDatabase.LoadAssetAtPath<Texture2D>(TitleSheet);
+            if (sheet == null) warn.Add($"no {TitleSheet}: the letters show their material's own colour");
+            Material solid = LetterMaterial(LetterLook, "FlatLetter", false, sheet, lines);
+            Material ghost = LetterMaterial(GhostLook, "FlatLetterGhost", true, sheet, lines);
+            if (solid == null) { warn.Add("no material for the letters: NO LETTERS were placed"); return 0; }
+
+            // The toy's numbers: its jump at toy size, the ropes' hold.
+            var moves = AssetDatabase.LoadAssetAtPath<MovementSettings>(MovesPath);
+            var shift = AssetDatabase.LoadAssetAtPath<ShiftSettings>(ShiftPath);
+            float toy = shift != null ? shift.toyScale : 1f;
+            float jump = moves != null ? moves.jumpHeight * toy : FallbackJump;
+            RopeSettings ropeSettings = RopeSettings.Load();
+            float hang = ropeSettings != null ? ropeSettings.hangHold : FallbackHang;
+            lines.Add($"the toy's numbers: a full jump lifts the feet {Say(jump)} ({(moves != null ? MovesPath + " Jump Height " + Say(moves.jumpHeight) + " x toy scale " + Say(toy) : "NOT FOUND, the 24 Nov number")}), the toy is {Say(ToyTall)} tall, a rope's grab settles {Say(hang)} under the tie ({(ropeSettings != null ? "Resources/Rope Hang Hold" : "NOT FOUND, the 24 Nov number")})");
+
+            var sounds = AssetDatabase.LoadAssetAtPath<UiSounds>(UiSoundsPath);
+            CourseSounds.Cue taken = sounds != null ? sounds.confirm : default;
+            if (taken.clip == null) warn.Add($"no clip in {UiSoundsPath} > Confirm: a letter is taken in silence");
+
+            var places = new Vector3[LetterShapes.Length];
+            var why = new string[LetterShapes.Length];
+
+            // S: over the tread of Book5, clear of a walking head on Book6; a full jump from Book5 reaches it.
+            float half = LetterTall * 0.5f;
+            Transform stairs = hall != null ? hall.Find("UpStairs") : null;
+            Transform b5 = stairs != null ? stairs.Find("Book" + SBook) : null, b6 = stairs != null ? stairs.Find("Book" + (SBook + 1)) : null;
+            float treadFrom, treadTo, top5, top6; string from;
+            if (b5 != null && b6 != null && DrawnBounds(b5.gameObject, out Bounds bb5) && DrawnBounds(b6.gameObject, out Bounds bb6))
+            {
+                treadFrom = bb5.min.x; treadTo = bb6.min.x; top5 = bb5.max.y; top6 = bb6.max.y;
+                from = $"UpStairs/Book{SBook} (x {Say(bb5.min.x)} to {Say(bb5.max.x)}, top {Say(top5)}) and Book{SBook + 1} (from x {Say(bb6.min.x)}, top {Say(top6)})";
+            }
+            else
+            {
+                float boxTop = StepBoxTop;
+                int n = Mathf.CeilToInt(boxTop / BookRiseMost);
+                float rise = boxTop / n;
+                treadFrom = StairsFromX + SBook * BookTread; treadTo = treadFrom + BookTread;
+                top5 = (SBook + 1) * rise; top6 = (SBook + 2) * rise;
+                from = $"UpStairs/Book{SBook} or Book{SBook + 1} NOT FOUND: the stairs as CourseBuilder lays them (tread x {Say(treadFrom)} to {Say(treadTo)}, tops {Say(top5)} and {Say(top6)})";
+            }
+            float sBottom = Mathf.Max(top5, top6) + ToyTall + LetterClear;
+            places[0] = new Vector3((treadFrom + treadTo) * 0.5f, sBottom + half, laneZ);
+            why[0] = $"{from}: its bottom {Say(sBottom)} is {Say(LetterClear)} over the head of a toy on Book{SBook + 1} ({Say(top6 + ToyTall)}), so walking up never takes it; "
+                + $"a full jump from Book{SBook} lifts the head to {Say(top5 + ToyTall + jump)} ({Say(top5 + ToyTall + jump - sBottom)} into it); a tapped jump (a quarter as high) to {Say(top5 + ToyTall + jump * 0.25f)} (not)";
+            if (top5 + ToyTall + jump <= sBottom) warn.Add($"S CANNOT BE REACHED: a jump from Book{SBook} lifts the head to {Say(top5 + ToyTall + jump)}, under its bottom {Say(sBottom)}");
+
+            // H, I, F: halfway between two ropes, the bottom at the head of a toy on the first one at a 30 degree swing.
+            var ropeAt = new Vector3[RopeNames.Length];
+            var ropeFound = new bool[RopeNames.Length];
+            for (int i = 0; i < RopeNames.Length; i++)
+            {
+                Transform rope = RootNamed(scene, RopeNames[i]);
+                ropeFound[i] = rope != null;
+                ropeAt[i] = rope != null ? rope.position : new Vector3(RopeXs[i], ceilingY, laneZ);
+            }
+            float cos = Mathf.Cos(GoodSwing * Mathf.Deg2Rad), sin = Mathf.Sin(GoodSwing * Mathf.Deg2Rad);
+            for (int k = 0; k < 3; k++)
+            {
+                Vector3 a = ropeAt[k], b = ropeAt[k + 1];
+                float headAt = a.y - hang * cos + HeadOverHands;          // the head at a 30 degree swing on rope a
+                float bottom = headAt;
+                places[k + 1] = new Vector3((a.x + b.x) * 0.5f, bottom + half, laneZ);
+                float head40 = a.y - hang * Mathf.Cos(40f * Mathf.Deg2Rad) + HeadOverHands;
+                why[k + 1] = $"halfway between {RopeNames[k]} (x {Say(a.x)}, tied at y {Say(a.y)}{(ropeFound[k] ? "" : ", NOT FOUND: measured")}) and {RopeNames[k + 1]} (x {Say(b.x)}{(ropeFound[k + 1] ? "" : ", NOT FOUND: measured")}): "
+                    + $"held {Say(hang)} under the tie, the hands are {Say(hang * sin)} out at a {Say(GoodSwing)} degree swing with the head at {Say(headAt)} = its bottom; at 40 degrees the head is at {Say(head40)} ({Say(head40 - bottom)} into it), {Say(hang * Mathf.Sin(40f * Mathf.Deg2Rad))} out; "
+                    + $"hanging still the head is at {Say(a.y - hang + HeadOverHands)} (under it), and a let-go on the way up flies higher";
+            }
+
+            // T: over the middle of the sprint gap, at the top of a jump's arc.
+            float gapWest = beforeX + GapFromCheckpoint, gapEast = afterX - GapFromCheckpoint;
+            float tMiddle = jump + ToyTall * 0.5f + TOver;
+            places[4] = new Vector3((gapWest + gapEast) * 0.5f, tMiddle, laneZ);
+            why[4] = $"over the middle of the sprint gap (x {Say(gapWest)} to {Say(gapEast)}, from CP_beforeSprint + {Say(GapFromCheckpoint)} and CP_afterSprint - {Say(GapFromCheckpoint)}): its bottom {Say(tMiddle - half)} is {Say(tMiddle - half - ToyTall)} over a standing toy's head; "
+                + $"at the top of a jump the head is at {Say(jump + ToyTall)} ({Say(jump + ToyTall - (tMiddle - half))} into it): a sprint jump that clears the gap passes through it near the top of its arc";
+
+            int placed = 0;
+            for (int i = 0; i < places.Length; i++)
+            {
+                Mesh shape = shapes[i];
+                var go = new GameObject("Letter_" + FlatLetter.Word[i]);
+                go.transform.SetParent(zone, true);
+                go.transform.SetPositionAndRotation(places[i], Quaternion.identity);   // the shape's viewer side (-z) faces the side camera (south)
+                go.AddComponent<BoxCollider>().isTrigger = true;
+                var lookT = new GameObject("Look").transform;
+                lookT.SetParent(go.transform, false);
+                lookT.gameObject.AddComponent<MeshFilter>().sharedMesh = shape;
+                var r = lookT.gameObject.AddComponent<MeshRenderer>();
+                var mats = new Material[Mathf.Max(1, shape.subMeshCount)];
+                for (int m = 0; m < mats.Length; m++) mats[m] = solid;
+                r.sharedMaterials = mats;
+                r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false;
+                var letter = go.AddComponent<FlatLetter>();
+                WorkshopPieces.Set(letter, "zone", zone.GetComponent<FlatZone>());
+                WorkshopPieces.Set(letter, "index", i);
+                WorkshopPieces.Set(letter, "look", r);
+                WorkshopPieces.Set(letter, "height", LetterTall);
+                WorkshopPieces.Set(letter, "sheet", sheet);
+                WorkshopPieces.Set(letter, "frames", TitleFrames);
+                WorkshopPieces.Set(letter, "solid", solid);
+                WorkshopPieces.Set(letter, "ghost", ghost);
+                WorkshopPieces.Set(letter, "bob", LetterBob);
+                var so = new SerializedObject(letter);
+                so.FindProperty("sound.clip").objectReferenceValue = taken.clip;
+                so.FindProperty("sound.volume").floatValue = taken.clip != null && taken.volume > 0f ? taken.volume : 0.5f;
+                so.FindProperty("sound.pitchSpread").floatValue = 0.04f;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                letter.Fit();
+                placed++;
+
+                BoxCollider touch = go.GetComponent<BoxCollider>();
+                Vector3 size = touch.size;
+                Vector3 lo = places[i] - size * 0.5f, hi = places[i] + size * 0.5f;
+                if (hi.y + LetterBob > ceilingY) warn.Add($"{go.name}'s top ({Say(hi.y)} and its bob {Say(LetterBob)}) reaches the ceiling (y {Say(ceilingY)})");
+                lines.Add($"{FlatLetter.Word[i]} at {Say(places[i])}: {Say(size.x)} wide, {Say(size.y)} tall (x {Say(lo.x)} to {Say(hi.x)}, y {Say(lo.y)} to {Say(hi.y)}), its trigger {Say(size.z)} across the lane; {Touches(touch)}; WHY: {why[i]}");
+            }
+            return placed;
+        }
+
+        /// <summary>What a letter's trigger box overlaps in the scene that is solid (not a trigger, not the zone's own):
+        /// "clear of everything solid" is what is wanted. The editor's physics is brought up to date first.</summary>
+        private static string Touches(BoxCollider touch)
+        {
+            Physics.SyncTransforms();
+            Transform t = touch.transform;
+            Collider[] hits = Physics.OverlapBox(t.TransformPoint(touch.center), touch.size * 0.5f, t.rotation, ~0, QueryTriggerInteraction.Ignore);
+            var names = new List<string>();
+            foreach (Collider c in hits)
+            {
+                if (c == null || c == touch || c.GetComponentInParent<FlatZone>() != null) continue;
+                names.Add(c.transform.parent != null ? c.transform.parent.name + "/" + c.name : c.name);
+            }
+            return names.Count == 0 ? "clear of everything solid" : "IT OVERLAPS " + string.Join(", ", names) + " (move it: a letter must not stand inside the hallway's things)";
+        }
+
+        /// <summary>A letter's material, made when missing (kept when there): a copy of the menu slab's unlit material
+        /// with his title sheet on it; the ghost's is see-through (drawn after the room, no depth written, no shadow).</summary>
+        private static Material LetterMaterial(string path, string name, bool seeThrough, Texture2D sheet, List<string> did)
+        {
+            var have = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (have != null) return have;
+            var source = AssetDatabase.LoadAssetAtPath<Material>(SlabLook);
+            if (source == null) { did.Add($"no {SlabLook} to copy for {path}"); return null; }
+            var m = new Material(source) { name = name };
+            m.SetColor("_BaseColor", Color.white);
+            if (sheet != null) { m.SetTexture("_BaseMap", sheet); m.SetTextureScale("_BaseMap", Vector2.one); m.SetTextureOffset("_BaseMap", Vector2.zero); }   // the shape's boxes carry their own pixels of the first frame
+            if (seeThrough)
+            {
+                m.SetFloat("_Surface", 1f);
+                m.SetFloat("_Blend", 0f);
+                m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+                m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+                m.SetFloat("_SrcBlendAlpha", (float)BlendMode.One);
+                m.SetFloat("_DstBlendAlpha", (float)BlendMode.OneMinusSrcAlpha);
+                m.SetFloat("_ZWrite", 0f);
+                m.SetFloat("_AlphaClip", 0f);
+                m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                m.DisableKeyword("_ALPHATEST_ON");
+                m.SetOverrideTag("RenderType", "Transparent");
+                m.renderQueue = (int)RenderQueue.Transparent;
+                m.SetShaderPassEnabled("ShadowCaster", false);
+                m.SetShaderPassEnabled("DepthOnly", false);
+                m.SetShaderPassEnabled("MotionVectors", false);
+            }
+            AssetDatabase.CreateAsset(m, path);
+            did.Add($"{path} MADE ({(seeThrough ? "unlit, see-through" : "unlit")}, a copy of {SlabLook})");
+            return m;
         }
 
         // ================================================================== the gate's piece

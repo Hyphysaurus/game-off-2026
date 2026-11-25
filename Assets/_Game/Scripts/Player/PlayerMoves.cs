@@ -103,7 +103,8 @@ namespace ShiftJam
         private bool OnFoot => settings != null && _motor.enabled && _cc != null && _cc.enabled && GameMode.OnFoot && Time.timeScale > 0f;
         private bool MayStart => Free && OnFoot && _motor.Grounded && !HandsFull;
         /// <summary>A click belongs to the game only while the mouse is captured (the click that captures it is not a punch).</summary>
-        private static bool Captured => Cursor.lockState == CursorLockMode.Locked;
+        // The side view's aim frees the cursor on purpose (D-0216): its clicks still punch and kick.
+        private static bool Captured => Cursor.lockState == CursorLockMode.Locked || FlatAim.CursorTaken;
 
         /// <summary>Roll now; in the air the press is remembered for the landing (D-0171), so a jump runs straight into a
         /// roll. Only a press that failed for being in the air is kept: full hands or a move under way still drop it.</summary>

@@ -7,6 +7,8 @@ namespace ShiftJam
     /// depth part, any sideways speed along the normal and any drift off the plane are taken away by the motor (and the
     /// rope's stick read), so the 3D body plays as a 2D one. The zone hands the motor a fresh one every frame it holds
     /// the body, so the numbers (FlatView) can be tuned while playing.
+    /// Its plane is also the one the 2D aim lives in (D-0216, FlatAim): Right is the screen's right, Meet finds where
+    /// the cursor's ray lands on it, OnPlane puts a point on it.
     /// </summary>
     public struct FlatLock
     {
@@ -55,8 +57,29 @@ namespace ShiftJam
         /// part along the lane (straight into the depth, or nothing): the way to the camera's right.</summary>
         public Vector3 Along(Vector3 hint)
         {
-            Vector3 right = Vector3.Cross(Vector3.up, -normal);   // the camera stands on the normal's side and looks along -normal
+            Vector3 right = Right;
             return Vector3.Dot(hint, right) < 0f ? -right : right;
+        }
+
+        /// <summary>The way along the lane to the side camera's right (flat, unit length): the camera stands on the
+        /// normal's side and looks along -normal. The screen's right in the side view (D-0216).</summary>
+        public Vector3 Right => Vector3.Cross(Vector3.up, -normal);
+
+        /// <summary>The point on the plane straight across from <paramref name="position"/> (its depth taken away).</summary>
+        public Vector3 OnPlane(Vector3 position) => position - normal * Off(position);
+
+        /// <summary>Where <paramref name="ray"/> meets the plane, from the camera's side (D-0216: the mouse cursor's ray
+        /// in the side view). False when it runs along the plane, away from it, or meets it behind its start: a camera
+        /// still swinging in from behind the player, or one on the wrong side.</summary>
+        public bool Meet(Ray ray, out Vector3 point)
+        {
+            point = default;
+            float facing = Vector3.Dot(ray.direction, normal);
+            if (facing > -0.05f) return false;   // along the plane or away from it: no useful meeting
+            float distance = Off(ray.origin) / -facing;
+            if (distance <= 0f) return false;
+            point = ray.origin + ray.direction * distance;
+            return true;
         }
     }
 }

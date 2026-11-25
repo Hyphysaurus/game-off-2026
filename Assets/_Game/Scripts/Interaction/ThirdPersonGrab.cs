@@ -352,7 +352,7 @@ namespace ShiftJam
 
         private void OnThrow()
         {
-            if (!Holding || !Listening || Cursor.lockState != CursorLockMode.Locked) return;
+            if (!Holding || !Listening || (Cursor.lockState != CursorLockMode.Locked && !FlatAim.CursorTaken)) return;   // the side view's free cursor still throws (D-0216)
             var was = _was; var carry = _heldCarry; _was = null; _heldCarry = null;
             _phase = Phase.None;
             var rb = _hold.Release();

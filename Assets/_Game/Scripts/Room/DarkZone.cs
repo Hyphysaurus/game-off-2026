@@ -17,6 +17,9 @@ namespace ShiftJam
     /// (the box's burst) gives a lamp back only as far as the other zones still dark allow.
     /// Release (D-0214, the bedroom's light switch) lifts a zone's dark for good over a few seconds and then switches it
     /// off; Restore brings it back (a New Game in the same loaded scene).
+    /// Soften (D-0218, the bedroom's star lamp) lifts the dark part-way while it lasts: the lamps and the ambient go no
+    /// lower than the soft shares given (a toy's own starlight, between the dark and the lamps). The darkest-wins rule
+    /// reads the softened share, so a darker zone inside this one (the cave under the bed) stays darker.
     /// </summary>
     public sealed class DarkZone : MonoBehaviour
     {
@@ -33,6 +36,8 @@ namespace ShiftJam
         private float _dark;          // 0 lit .. 1 dark, eased
         private float _release = -1f; // seconds the dark takes to lift for good; below 0 = not lifting
         private bool _started;
+        private float _soft;                            // Soften: 0 none .. 1 the soft shares in full
+        private float _softLights = 1f, _softAmbient = 1f;   // the soft shares (never darker than the zone's own)
 
         // Every zone switched on, a lamp's own brightness (kept by the first zone to find it), and the ambient as the scene
         // had it, kept while any zone is dark (the darkest zone sets it).
@@ -132,6 +137,24 @@ namespace ShiftJam
             _release = seconds;
         }
 
+        /// <summary>Lifts the dark part-way (D-0218: the star lamp awake): the lamps dim no lower than
+        /// <paramref name="lightsShare"/> of their own and the ambient no lower than <paramref name="ambientShare"/>, as far as
+        /// <paramref name="amount"/> says (0 = not at all, 1 = in full; the caller eases it). Shares under the zone's own
+        /// Lights To / Ambient To change nothing. Applied at once; it lasts until changed (0 takes it away).</summary>
+        public void Soften(float lightsShare, float ambientShare, float amount)
+        {
+            amount = Mathf.Clamp01(amount);
+            if (amount == _soft && lightsShare == _softLights && ambientShare == _softAmbient) return;
+            _soft = amount; _softLights = lightsShare; _softAmbient = ambientShare;
+            Apply();
+            ApplyAmbient();
+        }
+
+        /// <summary>The share the lamps dim to now (Lights To, lifted by Soften).</summary>
+        private float LightsFloor => Mathf.Lerp(lightsTo, Mathf.Max(lightsTo, _softLights), _soft);
+        /// <summary>The share the ambient dims to now (Ambient To, lifted by Soften).</summary>
+        private float AmbientFloor => Mathf.Lerp(ambientTo, Mathf.Max(ambientTo, _softAmbient), _soft);
+
         /// <summary>Back on and dark again where the view is inside (a New Game in a scene where the dark had been lifted).</summary>
         public void Restore()
         {
@@ -155,7 +178,7 @@ namespace ShiftJam
         }
 
         /// <summary>This zone's share of a lamp's own brightness now.</summary>
-        private float Share => Mathf.Lerp(1f, lightsTo, Mathf.SmoothStep(0f, 1f, _dark));
+        private float Share => Mathf.Lerp(1f, LightsFloor, Mathf.SmoothStep(0f, 1f, _dark));
 
         /// <summary>Each of this zone's lamps at its own brightness times the darkest share among the zones (switched on)
         /// that dim it.</summary>
@@ -180,7 +203,7 @@ namespace ShiftJam
         private static void ApplyAmbient()
         {
             float share = 1f;
-            foreach (DarkZone z in Zones) share = Mathf.Min(share, Mathf.Lerp(1f, z.ambientTo, Mathf.SmoothStep(0f, 1f, z._dark)));
+            foreach (DarkZone z in Zones) share = Mathf.Min(share, Mathf.Lerp(1f, z.AmbientFloor, Mathf.SmoothStep(0f, 1f, z._dark)));
             if (share >= 1f)
             {
                 if (!_saved) return;

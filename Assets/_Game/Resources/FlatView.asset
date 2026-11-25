@@ -34,3 +34,14 @@ MonoBehaviour:
   pixelRows: 224
   paletteStrength: 1
   dither: 0.06
+  aim2D: 1
+  stickDeadZone: 0.3
+  stickReach: 4
+  mouseTakesOver: 3
+  aimTurnSpeed: 720
+  aimTurnBand: 0.3
+  faceAimEmptyHanded: 0
+  hideCursorForStick: 1
+  reticleSize: 30
+  reticleThickness: 4
+  reticleGap: 6

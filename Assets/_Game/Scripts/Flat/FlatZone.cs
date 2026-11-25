@@ -14,7 +14,7 @@ namespace ShiftJam
     /// - its camera rides the rail side-on (ShoulderCamera.SetRail), mouse look dropped,
     /// - what stands between the lane and the camera is cut away (not drawn, its shadow kept: the room's light is
     ///   unchanged), and put back exactly as it was once the camera has swung back,
-    /// - a drawn gun is put away (aiming means nothing side-on) and comes back on the way out,
+    /// - a drawn gun stays out and aims inside the side view (D-0216: FlatAim; it was put away before),
     /// - the shift warp plays as the camera swings (D-0203: outward on the way in, inward on the way out, over the
     ///   blend; a size shift running wins), a big card says so ("FLAT SHIFT", "BACK TO 3D"), and a fill light the zone
     ///   owns rides with that player's camera, fading in and out with the swing, so the toy and the far wall read.
@@ -45,6 +45,14 @@ namespace ShiftJam
     /// PIXEL LOOK (D-0209, off unless ticked): while a player is held the picture goes to big square pixels in his
     /// title's palette (the PixelShift full-screen pass, FlatView > Pixel Rows, Palette Strength, Dither), easing in
     /// and out with the camera's swing; the renderer feature is switched on only while the look is above 0.
+    /// ONTO THE LANE (D-0217, his play 25 Nov: taken beside the book stairs, the pull could not get him past the books;
+    /// four seconds stuck behind them, hidden from the side camera). While a held player is not yet on the lane, the
+    /// zone draws it straight in at the lane's own snap (FlatView > Lane Snap, Lane Snap Speed) and the stick does not
+    /// walk it along the lane meanwhile (the motor's grip hold, PlayerMotor.HoldAt: a grip the player has already, a
+    /// Grabbable, comes first and the zone waits). When that straight way is blocked (a capsule sweep, stepping over what
+    /// the capsule's Step Offset steps over), it is put on the lane at once: the highest free standing spot at its place
+    /// along the lane within Reach Up over and Reach Down under its feet, facing along the lane, under the zone's own
+    /// warp. No such spot: the old way (the lock's ease, the stick free). Onto Lane off: the old way always.
     /// OFF SWITCH: switch this object off (or untick the script) and the stretch plays exactly as it did without it.
     /// Optional Once Done off: the first run's rule always (anyone walking in at the way-in side is taken, done or not).
     /// Local players only (one per camera rig: single player has one, a party one each); online, another player's copy
@@ -69,6 +77,12 @@ namespace ShiftJam
         [Header("Who it takes (D-0212)")]
         [SerializeField, Tooltip("Once this save slot has gone through the stretch and out of its exit (done), the zone takes only a player who walks in through its entrance gate (the rift); walking in beside it, or coming back from the far end, stays 3D. OFF: anyone who walks in across the way-in side is taken, done or not (the first run's rule, always).")] private bool optionalOnceDone = true;
         [SerializeField, Min(0.1f), Tooltip("A body that moves further than this in one frame (own units: toy units at toy size) was put there (a respawn, a portal, the console), not walked in: such a move never takes it. A sprint is 11 a second, so even a quarter-second hitch moves under 3.")] private float walkedMost = 6f;
+
+        [Header("Onto the lane (D-0217)")]
+        [SerializeField, Tooltip("A held player off the lane is drawn straight in with the stick not walking it along the lane, and put on the lane at once when that straight way is blocked (the book stairs). OFF: the old way (the lock eases it over while it walks).")] private bool ontoLane = true;
+        [SerializeField, Min(0.01f), Tooltip("A held body this close to the lane (own units) is on it: the draw stops and the stick is its own again (the lock eases the rest).")] private float onLaneWithin = 0.15f;
+        [SerializeField, Min(0f), Tooltip("Blocked: the spot on the lane may stand at most this far over the feet (own units). The hallway's stuck spot needed 2.21 (Book1's top at x -18); a toy jumps 2.")] private float reachUp = 4f;
+        [SerializeField, Min(0f), Tooltip("Blocked: the spot on the lane may stand at most this far under the feet (own units).")] private float reachDown = 4f;
 
         [Header("The cutaway")]
         [SerializeField, Tooltip("What stands between the lane and the camera is not drawn while the zone is on (its shadow stays). Off: nothing is hidden.")] private bool cutaway = true;
@@ -105,12 +119,17 @@ namespace ShiftJam
             public Shifter shifter; public WeaponHolder holder;
             public ShiftWarp warp;   // the course player's screen warp (a party's copies have none: no warp)
             public bool inside;    // held now
-            public bool putAway;   // we put its gun away: it comes back on the way out
             public bool admitted;  // it walked in as the take rule allows: held whenever it fits, until it leaves the box or goes out through the exit
             public bool leaving;   // let go, and its camera is still swinging back: the cutaway waits for it
             public Vector3 last;   // its middle last frame (the take rule asks where it came from)
             public bool hasLast;   // false until a frame has been seen, and after a carry back: no walk to read
             public float invitedUntil = float.NegativeInfinity;   // it walked through the way-in gate: may be taken until then
+            public int mask;       // the layers its capsule collides with (the sweep and the spot search ask only those)
+            public int takenFrame = -1;   // the frame it was taken (the warp plays then already)
+            public bool drawing;   // the zone is drawing it onto the lane (it set the motor's grip hold)
+            public Vector3 drawAt; // the grip point it set this frame (only that one is taken back)
+            public float drawYaw;  // the way it faces while drawn in
+            public bool gaveUp;    // blocked with no spot on the lane: the old way until it is on the lane or taken again
         }
 
         /// <summary>One thing the cutaway hides, and how: its own shadow setting (read at the moment of the cut) is put back.</summary>
@@ -133,6 +152,11 @@ namespace ShiftJam
         // The pixel pass's numbers are globals (PixelShift.shader), so playing never writes its material asset.
         private static readonly int PixelWeightId = Shader.PropertyToID("_PixelShiftWeight"), PixelRowsId = Shader.PropertyToID("_PixelShiftRows"),
             PixelDitherId = Shader.PropertyToID("_PixelShiftDither"), PixelPaletteId = Shader.PropertyToID("_PixelShiftPalette");
+
+        // Onto the lane (D-0217): one buffer each for the sweep, the spot's ray and its room check (no allocation).
+        private static readonly RaycastHit[] LaneHits = new RaycastHit[16];
+        private static readonly Collider[] LaneOverlaps = new Collider[16];
+        private const float LaneSkin = 0.02f;   // own units: a spot stands this hair over the surface found, the sweep's capsule is this much thinner
 
         /// <summary>A zone some local player is in now, or null.</summary>
         public static FlatZone Current { get; private set; }
@@ -341,7 +365,7 @@ namespace ShiftJam
                 bool fits = r.admitted && Fits(r);
                 if (fits && !r.inside) Take(r);
                 else if (!fits && r.inside) Release(r, true);
-                if (r.inside) { any = true; Keep(r); }
+                if (r.inside) { any = true; Keep(r); OntoLane(r); }
                 // Let go: the wall stays cut until this camera is back off the rail's side (it is outside the wall for
                 // most of the swing back). A camera that is switched off (first person, a menu) is not waited for.
                 if (r.leaving && !(r.rig != null && r.rig.isActiveAndEnabled && r.rig.LeavingRail)) r.leaving = false;
@@ -370,7 +394,7 @@ namespace ShiftJam
                 ShoulderCamera rig = rigs[i];
                 if (rig == null || rig.Target == null || HasRider(rig)) continue;
                 if (!rig.Target.TryGetComponent(out PlayerMotor motor)) continue;
-                var r = new Rider { rig = rig, motor = motor, body = rig.Target };
+                var r = new Rider { rig = rig, motor = motor, body = rig.Target, mask = CollisionMaskOf(motor.gameObject.layer) };
                 motor.TryGetComponent(out r.capsule); motor.TryGetComponent(out r.shifter); motor.TryGetComponent(out r.holder);
                 motor.TryGetComponent(out r.warp);
                 _riders.Add(r);
@@ -401,6 +425,7 @@ namespace ShiftJam
             // Another zone has this body (two boxes that overlap): first come, first served.
             if (r.motor.Flat.HasValue) { UnityEngine.Object owner = r.motor.Flat.Value.owner; if (owner != null && !ReferenceEquals(owner, this)) return; }
             r.inside = true; r.leaving = false;
+            r.takenFrame = Time.frameCount; r.gaveUp = false;
             FillRail();
             r.motor.Flat = LockFor(r.motor);
             r.rig.SetRail(_rail);
@@ -416,12 +441,11 @@ namespace ShiftJam
         }
 
         /// <summary>Every frame a player is held: the hold and the rail follow this object's numbers and FlatView as they
-        /// stand (so both can be tuned in Play), and a gun that comes out is put away again (X, a slot key, a pick-up).</summary>
+        /// stand (so both can be tuned in Play). A gun stays out: it aims inside the side view (D-0216).</summary>
         private void Keep(Rider r)
         {
             FillRail();
             r.motor.Flat = LockFor(r.motor);
-            if (r.holder != null && r.holder.Drawn && r.holder.Current != null) { r.holder.SetDrawn(false); r.putAway = true; }
         }
 
         /// <summary>Gives back everything the zone took from this player: the hold, the rail, the gun. The cutaway goes
@@ -432,6 +456,7 @@ namespace ShiftJam
         private void Release(Rider r, bool swing)
         {
             r.inside = false;
+            StopDrawing(r);
             if (r.motor != null && r.motor.Flat.HasValue && ReferenceEquals(r.motor.Flat.Value.owner, this)) r.motor.Flat = null;
             if (r.rig != null && ReferenceEquals(r.rig.Rail, _rail))
             {
@@ -439,9 +464,6 @@ namespace ShiftJam
                 if (swing && r.warp != null && r.rig.isActiveAndEnabled && r.motor != null && r.motor.isActiveAndEnabled && GameMode.Current == GameMode.Mode.Play)
                     r.warp.Play(false, _rail.View.blendSeconds);   // inward, as it swings back (a shift that let it go wins)
             }
-            // The gun comes back out, unless the player's own scene is closing (nothing there should be woken).
-            if (r.putAway && r.holder != null && r.holder.gameObject.scene.isLoaded) r.holder.SetDrawn(true);
-            r.putAway = false;
             onExited?.Invoke();
             Exited?.Invoke();
         }
@@ -463,6 +485,157 @@ namespace ShiftJam
             _rail.floor = floor; _rail.ceiling = ceiling;
             _rail.view = Settings;
         }
+
+        // ------------------------------------------------------------------ onto the lane (D-0217)
+
+        /// <summary>Every frame a held player is off the lane (after Keep: the hold is this frame's): drawn straight in at
+        /// the lock's own ease, the stick not walking it along the lane meanwhile; put on the lane at once when that
+        /// straight way is blocked; the old way (the lock's ease, the stick free) when there is no spot for it.</summary>
+        private void OntoLane(Rider r)
+        {
+            if (!ontoLane || r.capsule == null || !r.motor.Flat.HasValue) { StopDrawing(r); return; }
+            PlayerMotor motor = r.motor;
+            FlatLock hold = motor.Flat.Value;
+            float scale = Mathf.Max(0.01f, motor.Scale);
+            BodyCapsule(r.body, r.capsule, out Vector3 feet, out float radius, out float height, out float step);
+            float off = hold.Off(feet);
+            if (Mathf.Abs(off) <= onLaneWithin * scale) { StopDrawing(r); r.gaveUp = false; return; }   // on the lane: the stick is its own
+            if (r.gaveUp) return;
+            // A grip the player already has (a Grabbable, the armory bench) comes first, as it does in the motor: the zone waits.
+            if (motor.HoldAt.HasValue && !(r.drawing && motor.HoldAt.Value == r.drawAt)) { r.drawing = false; return; }
+            if (WayToLaneBlocked(feet, radius, height, step, scale, r.mask, r.body, out _))
+            {
+                StopDrawing(r);
+                if (LaneSpot(feet, radius, height, r.capsule.slopeLimit, scale, r.mask, r.body, out Vector3 spot)) PutOnLane(r, r.body.position + (spot - feet), hold);
+                else r.gaveUp = true;   // nowhere on the lane at its place: the old way, until it is on the lane or taken again
+                return;
+            }
+            // Drawn in: the motor's grip hold moves the body to this frame's step (the lock's Lane Snap, at most Lane Snap
+            // Speed) with the stick going nowhere; gravity and a jump still work. A long way in is walked facing the lane.
+            Vector3 pull = hold.Correction(feet, Time.deltaTime);
+            if (!r.drawing)
+            {
+                Vector3 toLane = off > 0f ? -hold.normal : hold.normal;
+                r.drawYaw = Mathf.Abs(off) > scale ? Quaternion.LookRotation(toLane, Vector3.up).eulerAngles.y : r.body.eulerAngles.y;
+            }
+            Vector3 at = r.body.position;
+            r.drawAt = new Vector3(at.x + pull.x, at.y, at.z + pull.z);
+            motor.HoldAt = r.drawAt;
+            motor.HoldYaw = r.drawYaw;
+            r.drawing = true;
+        }
+
+        /// <summary>Gives the motor's grip hold back, if it is still the one the zone set (a grip that took over keeps its own).</summary>
+        private static void StopDrawing(Rider r)
+        {
+            if (r.drawing && r.motor != null && r.motor.HoldAt.HasValue && r.motor.HoldAt.Value == r.drawAt) r.motor.HoldAt = null;
+            r.drawing = false;
+        }
+
+        /// <summary>Puts the player's body at <paramref name="to"/> (its own position: the spot's feet plus its pivot's
+        /// height over its feet) facing along the lane the way it faced most, with the zone's warp (unless the take's
+        /// warp is playing this very frame).</summary>
+        private void PutOnLane(Rider r, Vector3 to, FlatLock hold)
+        {
+            Vector3 way = hold.Along(r.body.forward);
+            r.motor.Warp(to, Quaternion.LookRotation(way, Vector3.up));   // first person and the rope follow it (Warped)
+            if (r.warp != null && Time.frameCount != r.takenFrame) r.warp.Play(true, Settings.blendSeconds);
+            r.last = Middle(r); r.hasLast = true;
+        }
+
+        /// <summary>The body's capsule in the world: where its feet are (the capsule's bottom), its radius and height,
+        /// and how high a step it walks up (the controller's Step Offset), all grown with the body's scale.</summary>
+        private static void BodyCapsule(Transform body, CharacterController c, out Vector3 feet, out float radius, out float height, out float step)
+        {
+            Vector3 s = body.lossyScale;
+            float across = Mathf.Max(Mathf.Abs(s.x), Mathf.Abs(s.z)), tall = Mathf.Abs(s.y);
+            radius = c.radius * across;
+            height = Mathf.Max(c.height * tall, 2f * radius);
+            step = c.stepOffset * tall;
+            feet = body.TransformPoint(c.center) - Vector3.up * (height * 0.5f);
+        }
+
+        /// <summary>The layers a body on <paramref name="layer"/> collides with (Physics settings' matrix).</summary>
+        public static int CollisionMaskOf(int layer)
+        {
+            int mask = 0;
+            for (int i = 0; i < 32; i++) if (!Physics.GetIgnoreLayerCollision(layer, i)) mask |= 1 << i;
+            return mask;
+        }
+
+        /// <summary>True when a capsule (feet at <paramref name="feet"/>, world) cannot go straight across to the lane:
+        /// something solid stands in the way, other than what the capsule steps over (its bottom is lifted by
+        /// <paramref name="stepOffset"/>), the body itself (<paramref name="ignore"/>) or a player. <paramref name="clear"/>:
+        /// how far it can go (the whole way when not blocked). Already on the lane (On Lane Within): false. The game's
+        /// own test; works out of Play (the maker's report).</summary>
+        public bool WayToLaneBlocked(Vector3 feet, float radius, float height, float stepOffset, float scale, int mask, Transform ignore, out float clear)
+        {
+            FillRail();
+            float off = Vector3.Dot(feet - _rail.point, _rail.normal);
+            float distance = Mathf.Abs(off) - onLaneWithin * scale;
+            clear = Mathf.Max(0f, distance);
+            if (distance <= 0f) return false;
+            Vector3 way = off > 0f ? -_rail.normal : _rail.normal;
+            float thin = Mathf.Max(0.01f, radius - LaneSkin * scale);
+            Vector3 top = feet + Vector3.up * Mathf.Max(radius, height - radius);
+            Vector3 bottom = feet + Vector3.up * (radius + Mathf.Max(0f, stepOffset) + LaneSkin * scale);
+            if (bottom.y > top.y) bottom = top;
+            int count = Physics.CapsuleCastNonAlloc(bottom, top, thin, way, LaneHits, distance, mask, QueryTriggerInteraction.Ignore);
+            bool blocked = false;
+            for (int i = 0; i < count; i++)
+            {
+                RaycastHit h = LaneHits[i];
+                if (h.distance <= 0f || Ignored(h.collider, ignore)) continue;   // touching at the start: not in the way ahead
+                if (h.distance < clear) { clear = h.distance; blocked = true; }
+            }
+            return blocked;
+        }
+
+        /// <summary>The highest free standing spot on the lane at the place along it of <paramref name="feet"/> (world),
+        /// at most Reach Up over and Reach Down under them (own units, times <paramref name="scale"/>): a surface found by a
+        /// ray straight down the lane's plane, no steeper than <paramref name="slopeLimit"/>, with room over it for the
+        /// whole capsule. <paramref name="spot"/>: where the feet go. False: no such spot. The game's own search; works
+        /// out of Play (the maker reports the books' spot with it).</summary>
+        public bool LaneSpot(Vector3 feet, float radius, float height, float slopeLimit, float scale, int mask, Transform ignore, out Vector3 spot)
+        {
+            FillRail();
+            Vector3 n = _rail.normal;
+            Vector3 at = feet - n * Vector3.Dot(feet - _rail.point, n);
+            float up = reachUp * scale, down = reachDown * scale, skin = LaneSkin * scale;
+            int count = Physics.RaycastNonAlloc(new Vector3(at.x, feet.y + up, at.z), Vector3.down, LaneHits, up + down, mask, QueryTriggerInteraction.Ignore);
+            for (int i = 1; i < count; i++)   // highest first (a few hits: a plain insertion sort, no allocation)
+            {
+                RaycastHit h = LaneHits[i];
+                int j = i - 1;
+                while (j >= 0 && LaneHits[j].point.y < h.point.y) { LaneHits[j + 1] = LaneHits[j]; j--; }
+                LaneHits[j + 1] = h;
+            }
+            float minUp = Mathf.Cos(Mathf.Clamp(slopeLimit, 0f, 89f) * Mathf.Deg2Rad);
+            for (int i = 0; i < count; i++)
+            {
+                RaycastHit h = LaneHits[i];
+                if (h.normal.y < minUp || Ignored(h.collider, ignore)) continue;
+                Vector3 standing = new Vector3(at.x, h.point.y + skin, at.z);
+                if (Room(standing, radius, height, mask, ignore)) { spot = standing; return true; }
+            }
+            spot = feet;
+            return false;
+        }
+
+        /// <summary>True when a capsule standing at <paramref name="feet"/> touches nothing solid (the body itself and
+        /// players aside).</summary>
+        private static bool Room(Vector3 feet, float radius, float height, int mask, Transform ignore)
+        {
+            float thin = Mathf.Max(0.01f, radius * 0.95f);
+            Vector3 bottom = feet + Vector3.up * radius, top = feet + Vector3.up * Mathf.Max(radius, height - radius);
+            int count = Physics.OverlapCapsuleNonAlloc(bottom, top, thin, LaneOverlaps, mask, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++) if (!Ignored(LaneOverlaps[i], ignore)) return false;
+            return true;
+        }
+
+        /// <summary>Never in the way: the body itself, or any player (they move).</summary>
+        private static bool Ignored(Collider c, Transform ignore)
+            => c == null || (ignore != null && c.transform.IsChildOf(ignore)) || c.GetComponentInParent<PlayerMotor>() != null;
 
         // ------------------------------------------------------------------ the letters (D-0208)
 

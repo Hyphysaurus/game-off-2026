@@ -4031,3 +4031,50 @@
     awake ChargeCoreTall: maybe generous; untick it or give it Uses 1).
   - Also: Pixel Look is ON on FlatZone_Hall for now (his "leave it on for now", 25 Nov; D-0209 had it off). **D-0214 and
     D-0215 NOT PLAYED.**
+- **D-0216 (25 Nov 2026, 13:2x) Aiming in 2D: the flashlight and the guns aim inside the side view.** His 25 Nov play: in
+  the Flat Zone with the flashlight "the character seems to be focused facing the wall"; then "definitely the flashlight
+  direction. I do love being able to use it in 2D...". Cause: held tools aimed where the camera looks, and side-on the
+  camera looks into the far wall.
+  - **The aim** (`Flat/FlatAim.cs`, added at run time by WeaponHolder): while a Flat Zone holds the local player, the aim
+    point is where the mouse cursor's ray meets the lane's plane (the cursor shown and free, a four-stroke reticle on it in
+    place of the centre dot), or along the pad's right stick (past 0.3; let go = the way the toy faces, level). The device
+    used last wins. `WeaponHolder.AimOrigin/AimForward` come from it, so the beam, hit scan, darts, grenades and the arms
+    all follow.
+  - **Facing:** the toy turns left or right toward the aim, through facing the camera (`PlayerMotor.FaceYaw`), only with a
+    gun drawn, a tool in hand or aim held; empty-handed it faces the way it runs (FlatView > Face Aim Empty Handed).
+  - **Guns stay out in a zone** (FlatZone no longer puts them away). Punches, kicks (`PlayerMoves`) and throws
+    (`ThirdPersonGrab`) accept clicks while the aim has the cursor (`FlatAim.CursorTaken`: false while a menu, the console
+    or the key sheet is up or the game is paused).
+  - `PlayerInput` got two read-only members (`LookStick`, `PointerAt`): the stick value and the party's mouse pairing live
+    there. Numbers: FlatView > Aiming in 2D (D-0216). Off: FlatView > Aim 2D. Leaving the zone locks and hides the
+    cursor again and brings the dot back.
+- **D-0217 (25 Nov 2026, 13:2x) Onto the lane at once.** His 12:50 play: on a new slot he walked into the hallway's zone
+  beside the rift, behind the book stairs (z -143.8); the pull could not get him past the books: four seconds stuck,
+  hidden from the side camera. Now a held player off the lane is drawn straight in, and the stick does not walk him
+  along the lane meanwhile (the motor's grip hold); if the straight way is blocked he is put at once, under the zone's
+  warp, on the highest free standing spot on the lane at his x (Reach Up 4, Reach Down 4); no such spot: the old pull.
+  His spot: blocked after 0.02, put at (-18, 2.23, -150) on Book1's top. Off: FlatZone_Hall > Onto Lane.
+- **D-0218 (25 Nov 2026, 13:2x) The bedroom star lamp, woken by the flashlight.** His "definitely the flashlight
+  direction" for the interactive star lamp.
+  - The night lamp he placed by hand on the bedside (`Night_Lamp_01`, the pack's star dome) wakes when a switched-on
+    flashlight shines on its dome for 0.5 s (a LightTarget; room lights and the toy's glow do not count). Asleep: a faint
+    violet breathing glow. Awake: 5 spot lights wearing the pack's own star picture (`Stars_BaseColor`, used in place) as
+    a cookie, turning 4 degrees a second, rising over 2 s, a chime (Star_Light_On), and the dark room lifted to soft
+    starlight (lamps 0.2, ambient 0.42; `DarkZone.Soften`: the cave under the bed stays darker).
+  - Saved per slot (`bedroom:stars`): Continue and a respawn find it awake, New Game asleep. Once the wall switch's lamps
+    are on, the stars fade to 0.35.
+  - Reach: from the bed's top (15.9 from the dome) or the kid holding a light; from the floor the bedside table blocks it.
+  - **Unseen:** each spot is 4000 (0.4 where it lands 100 away, 8.3 on the east wall 22 away): it may glare near the lamp
+    and barely reach the far west wall. Off: untick StarLamp on NightLamp.
+- **D-0219 (25 Nov 2026, 13:2x) The claw machine in the bedroom (a prop).** His "might as well drop the claw machine into
+  the starting room as well".
+  - `Toy_Claw_01` from the free ithappy Claw Machine pack (git-ignored), meshes only: none of the pack's scripts (they
+    read the old Input class, which throws in this Input System project), no camera, no lights. All 7 materials were
+    already URP Lit: no conversion package.
+  - 85 tall (the maker found no RealDoor to measure; the kid is 63, the bed's top 40.2), on the floor at (-95, 95) turned
+    123 degrees to face the room, at least 25 from every route piece. 21 static mesh colliders; its lowest ledge is 2.5 up,
+    out of a toy's 2.0 jump (it needs a leg-up).
+  - **Open:** its emissive materials (4.9 and 3.4) glow at full brightness in the dark room (a Dark Zone does not dim
+    emission), against D-0214's "only hints of light". Off: switch off Room/Bedroom/ClawMachine.
+  - Maker for D-0218 and D-0219: Shift Jam > House > Land Start Room Toys (`Debug/CourseBuilder.StartRoom.cs`). Landed in
+    his editor and Greybox saved. **D-0216 to D-0219 NOT PLAYED.**

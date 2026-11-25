@@ -12,7 +12,8 @@ namespace ShiftJam
     /// aim or kick, X put down what is carried or holster / draw, Z drop the weapon, R reload, G throw a grenade.
     /// A car reads it as its driver (ICarDriver: Move, JumpHeld and Sprint, as they are).
     /// The look: a stick's held value comes through the Look action; a mouse's movement is read from the mouse itself,
-    /// once a frame, when a camera asks for it (ConsumeLook, D-0174).
+    /// once a frame, when a camera asks for it (ConsumeLook, D-0174). The side view's aim (D-0216) reads the stick as held
+    /// (LookStick) and where this player's mouse points (PointerAt), without using up the look.
     /// </summary>
     public sealed class PlayerInput : MonoBehaviour, ICarDriver
     {
@@ -252,6 +253,24 @@ namespace ShiftJam
                 foreach (var d in Paired) if (d is Mouse) return true;
                 return false;
             }
+        }
+
+        /// <summary>The look stick as it is held now (the pad's right stick; -1 to 1 each way), the mouse left out. Read,
+        /// never used up: the side view's aim reads it (D-0216, FlatAim) while the rail camera drops the look.</summary>
+        public Vector2 LookStick => _stickLook;
+
+        /// <summary>Where the mouse that drives this player points on the screen, pixels from the bottom left (D-0216: the
+        /// side view's aim). False with no such mouse (a party's pad seat, no mouse plugged in) or the keys switched off.</summary>
+        public bool PointerAt(out Vector2 pixels)
+        {
+            pixels = default;
+            if (_look == null || !_look.enabled) return false;
+            Mouse mouse = null;
+            if (Paired != null) { foreach (InputDevice device in Paired) if (device is Mouse m && m.added) { mouse = m; break; } }
+            else mouse = Mouse.current;
+            if (mouse == null) return false;
+            pixels = mouse.position.ReadValue();
+            return true;
         }
 
         /// <summary>

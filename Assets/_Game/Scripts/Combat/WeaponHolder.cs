@@ -25,6 +25,10 @@ namespace ShiftJam
     /// brings the gun's own sight to the middle of the view (Weapon.SightFit). Melee sits in front of the camera the
     /// same way, the swing turning it there, with the hand on its handle (no sight). Weapons are parented to the player
     /// so they shift size with it.
+    /// In a Flat Zone's side view (D-0216) the aim ray is not the camera's (which looks into the far wall): while the zone
+    /// holds this player its FlatAim gives the ray, from the chest on the lane toward the mouse cursor or the pad's
+    /// stick, so the shots, the arm, the dart line, grenades and the flashlight's arm aim inside the side view, and a click
+    /// fires with the cursor free.
     /// </summary>
     [DefaultExecutionOrder(100)]   // after the Carrier's arm weight and the cameras, so the weapon never lags a frame
     public sealed class WeaponHolder : MonoBehaviour
@@ -76,6 +80,7 @@ namespace ShiftJam
         private Vector3 _handScale = Vector3.one;   // the right hand bone's own scale, put back after a worn weapon
         private bool _folded;                // the right hand is folded away inside a worn weapon
         private Inventory _inventory;        // the slots (D-0108): how many it can carry, and the keys that choose
+        private FlatAim _flat;               // the side view's aim (D-0216): the aim ray while a Flat Zone holds this player
 
         /// <summary>False while the weapon is holstered (X): it is carried but put away, and the hands are empty.</summary>
         public bool Drawn { get; private set; } = true;
@@ -124,9 +129,14 @@ namespace ShiftJam
         public Transform FirstPersonBodyRoot => _fpBody;
         private Transform View => _fpView != null ? _fpView : (aimCamera != null ? aimCamera.transform : OwnView());
         private Transform OwnView() { Camera view = PlayerSlot.ViewFor(this); return view != null ? view.transform : null; }   // a party player's own (D-0110)
-        /// <summary>Where the aim ray starts: the camera.</summary>
-        public Vector3 AimOrigin => View != null ? View.position : AttackOrigin;
-        public Vector3 AimForward => _puppet ? PuppetForward : View != null ? View.forward : transform.forward;
+        /// <summary>True while a Flat Zone holds this player and the side view's aim gives the aim ray (D-0216).</summary>
+        public bool AimsInSideView => _flat != null && _flat.Active && !_puppet && _fpView == null;
+        /// <summary>The side view's aim (D-0216), for the HUD's reticle; null on a holder with no keys.</summary>
+        public FlatAim SideAim => _flat;
+        /// <summary>Where the aim ray starts: the camera; in a Flat Zone's side view the chest, on the lane (D-0216).</summary>
+        public Vector3 AimOrigin => AimsInSideView ? _flat.Origin : View != null ? View.position : AttackOrigin;
+        /// <summary>The way the aim ray runs: the view's; in a Flat Zone's side view toward the 2D aim point, in the lane's plane (D-0216).</summary>
+        public Vector3 AimForward => _puppet ? PuppetForward : AimsInSideView ? _flat.Forward : View != null ? View.forward : transform.forward;
         /// <summary>Where melee and the muzzle check start: the eyes in first person, the chest in third.</summary>
         public Vector3 AttackOrigin => _fpView != null ? _fpView.position : transform.position + Vector3.up * (chestHeight * Scale);
         /// <summary>Which way melee hits: the view in first person, the body's facing in third.</summary>
@@ -168,6 +178,8 @@ namespace ShiftJam
             if (input != null && !TryGetComponent(out HitConfirm _)) gameObject.AddComponent<HitConfirm>();
             // ...and carries what it holds in slots (D-0108): weapons and hand tools in one bar.
             if (input != null && !TryGetComponent(out _inventory)) _inventory = gameObject.AddComponent<Inventory>();
+            // ...and aims inside a Flat Zone's side view while one holds it (D-0216; its own piece, numbers in Resources/FlatView).
+            if (input != null && !TryGetComponent(out _flat)) _flat = gameObject.AddComponent<FlatAim>();
         }
 
         private void Start() { if (input != null) WeaponHud.Create(this); }   // a player's holder shows its ammo on screen
@@ -556,7 +568,7 @@ namespace ShiftJam
         {
             if (!isActiveAndEnabled || Time.timeScale <= 0f || HandsFull || Locked) return false;
             if (GameMode.Current == GameMode.Mode.Build) return false;
-            if (Cursor.lockState != CursorLockMode.Locked) return false;   // that click was to capture the mouse
+            if (Cursor.lockState != CursorLockMode.Locked && !FlatAim.CursorTaken) return false;   // that click was to capture the mouse (in a Flat Zone the cursor is free on purpose, D-0216)
             if (_fpHands != null && _fpHands.BusyThisFrame) return false;    // the click threw the held prop
             if (_grab != null && _grab.BusyThisFrame) return false;
             return true;
@@ -582,10 +594,12 @@ namespace ShiftJam
             return true;
         }
 
-        /// <summary>Third person: turn the body to the camera's heading so the attack goes where you look.</summary>
+        /// <summary>Third person: turn the body to the camera's heading so the attack goes where you look. Not in a Flat
+        /// Zone's side view (D-0216): there FlatAim turns the body left or right toward the aim (never into the wall), and
+        /// the shot runs along the side view's own ray whichever way the body is turned.</summary>
         private void FaceAim()
         {
-            if (FirstPerson) return;
+            if (FirstPerson || AimsInSideView) return;
             Vector3 flat = Vector3.ProjectOnPlane(AimForward, Vector3.up);
             if (flat.sqrMagnitude > 1e-4f) transform.rotation = Quaternion.LookRotation(flat.normalized, Vector3.up);
         }

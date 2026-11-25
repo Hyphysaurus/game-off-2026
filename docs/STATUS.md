@@ -2,6 +2,27 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 13:2x — 2D AIM (D-0216), ONTO THE LANE AT ONCE (D-0217), THE STAR LAMP (D-0218), THE CLAW MACHINE (D-0219), LANDED, Greybox saved. NOT PLAYED.
+- **HIS TEST, hallway zone:** (1) flashlight on, move the mouse round the toy: the beam follows the cursor up, down,
+  left, right; the toy turns to the cursor's side through facing the camera; a small reticle on the cursor; wake a
+  sleeping core in 2D. (2) Draw the pistol in the zone (guns now stay out): darts fly toward the cursor; punches and
+  kicks still work. (3) A pad: the right stick aims. (4) Leave the zone: the cursor locks and hides at once, mouse look
+  works without a click; Esc inside: the pause menu as always, the cursor free again after Resume. (5) New slot, walk in
+  beside the rift behind the books: drawn onto the lane in about half a second or popped onto a book top, never stuck.
+- **HIS TEST, dark bedroom:** (6) the violet breathing glow on the bedside lamp; shine the flashlight on its dome for
+  half a second (from the bed's top, or as the kid): a chime, stars rise over 2 s and turn, the room lifts to soft
+  starlight; Continue and a respawn: awake; New Game: asleep; the wall switch after: the stars fade to a third. (7) The
+  claw machine in the north half: solid, steals no keys, no HUD, camera or sound.
+- **Look for:** stars glaring near the lamp (each spot 4000: NightLamp/StarProjector/Stars); the claw machine's lamps
+  glowing at full brightness in the dark room (emission is not dimmed by a Dark Zone).
+- **WAITING ON HIM:** the claw machine's glow in the dark (dark until the lights come on, always lit, or never lit);
+  the six free Dungeon Mason packs (RPG Monster Partners, RPG Monster Duo PBR Polyart, Party Monster Duo Polyart, Mini
+  Legion Rock Golem, Dragon for Boss Monster HP, RPG Monster Buddy): once he has downloaded them in the Package Manager,
+  I import them into the git-ignored `_Imports/DungeonMason/`; enemies hurting the toy in the house (still off).
+- **Building next:** the objective layer (D-0220: the goal line, 10 gold stars, the first-minute goal), then D-0221
+  (helpers + the downstairs fix).
+- **Pushed:** origin/main = e0a8ebd. Ten local commits after it.
+
 ## 25 Nov 2026 12:4x — THE DARK BEDROOM (D-0214) + THE HALLWAY'S DARK STRETCH AS A TEST (D-0215), LANDED, Greybox saved. NOT PLAYED. Pixel Look ON (his).
 - **HIS TEST:** New Game in the dark (beam, door glow, moonlight, the box core breathing and humming, a soft light on
   the toy); beam on the core, grow, the room stays dark; the warm switch glow beside the big door ("Lights", kid only);

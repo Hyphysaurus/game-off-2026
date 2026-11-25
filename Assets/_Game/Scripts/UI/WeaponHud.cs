@@ -17,6 +17,9 @@ namespace ShiftJam
     /// none; it listens to GameEvents.GrenadesChanged), and a grenade's blast flashes the same hit marker
     /// (GrenadeWentOff). Like the rest it is on screen only while a blaster is out. Numbers in Resources/Grenades.
     /// Later lines stack above with AddLine.
+    /// In a Flat Zone's side view (D-0216) the screen-centre dot means nothing (the aim is the cursor or the pad's stick,
+    /// not the middle of the view): a small reticle, four short strokes round the aim point, sits there instead while a
+    /// blaster is out or a tool is in hand, and the hit marker flashes round it. Its numbers are in Resources/FlatView.
     /// </summary>
     public sealed class WeaponHud : MonoBehaviour
     {
@@ -41,6 +44,10 @@ namespace ShiftJam
         private float _flashAt = -100f, _flashSeconds = 0.2f, _flashScale = 1.25f;
         private GrenadeThrower _thrower;        // the holder's grenades, when it throws any
         private TextMeshProUGUI _grenades;      // their count, the line above the rounds
+        private RectTransform _reticle;         // the side view's reticle (D-0216): four strokes round the aim point
+        private RectTransform[] _strokes;       // its strokes, dark behind and white in front, by pairs
+        private Vector3 _reticleFit;            // the size, thickness and gap it was last laid out for
+        private bool _markerMoved;              // the hit marker is at the reticle, not the middle of the screen
 
         /// <summary>What the count shows now ("12 / 48", "RELOADING").</summary>
         public string CountText => _count.text;
@@ -83,6 +90,10 @@ namespace ShiftJam
         }
         /// <summary>True while the dot crosshair is on screen.</summary>
         public bool DotShowing => Showing && _dot.activeSelf;
+        /// <summary>True while the side view's reticle is on screen (D-0216).</summary>
+        public bool ReticleShowing => Showing && _reticle.gameObject.activeSelf;
+        /// <summary>Where the side view's reticle is, pixels from the bottom left of the screen.</summary>
+        public Vector2 ReticleAt => _reticle.position;
         /// <summary>True while the hit marker's flash is on screen.</summary>
         public bool MarkerShowing => Showing && _markerGroup.alpha > 0f;
         /// <summary>The colour of the hit marker's last flash.</summary>
@@ -158,16 +169,61 @@ namespace ShiftJam
             bool show = _holder.isActiveAndEnabled && _holder.Armed && _holder.Current is BlasterWeapon && free;
             if (_carrier == null) _carrier = _holder.GetComponent<Carrier>();
             bool lightAim = free && _carrier != null && _carrier.AimHeld;   // aiming the light shows the dot too (D-0147)
-            _group.alpha = show || lightAim ? 1f : 0f;
+            // The side view (D-0216): a gun out or a tool in hand is always aimed at the cursor or the stick's way, so the
+            // reticle shows while either is; the centre dot never does there.
+            bool side = _holder.isActiveAndEnabled && _holder.AimsInSideView;
+            Vector2 aimAt = default;
+            bool reticle = side && free && (show || (_carrier != null && _carrier.ToolUp)) && _holder.SideAim.ScreenPoint(out aimAt);
+            _group.alpha = show || lightAim || reticle ? 1f : 0f;
             if (_box.gameObject.activeSelf != show) _box.gameObject.SetActive(show);   // the ammo read-out is the gun's
             // The dot only while it means something (D-0154, Alan Wake 2): a gun raised (aim held, or a shot on its way) or
             // the light aimed. A gun hanging at the side does not point at it.
-            _dot.SetActive(((show && _holder.Aiming) || lightAim) && !_holder.FirstPerson);
+            _dot.SetActive(!side && ((show && _holder.Aiming) || lightAim) && !_holder.FirstPerson);
+            ShowReticle(reticle, aimAt);
             if (show && _stale) Refresh();
             // The hit marker: big and solid as the shot lands, back to its size and gone over the flash.
             float flash = (Time.time - _flashAt) / _flashSeconds;
             if (flash >= 1f) { if (_markerGroup.alpha > 0f) _markerGroup.alpha = 0f; }
             else { _markerGroup.alpha = 1f - flash; _marker.localScale = Vector3.one * Mathf.Lerp(_flashScale, 1f, flash); }
+        }
+
+        /// <summary>The side view's reticle at <paramref name="at"/> (screen pixels) while <paramref name="on"/>, its numbers
+        /// read from FlatView as they stand (tunable in Play); the hit marker goes with it, and back to the middle after.</summary>
+        private void ShowReticle(bool on, Vector2 at)
+        {
+            if (_reticle.gameObject.activeSelf != on) _reticle.gameObject.SetActive(on);
+            if (on)
+            {
+                FitReticle(_holder.SideAim.Settings);
+                _reticle.position = at;   // an overlay canvas: its positions are screen pixels
+                _marker.position = at;
+                _markerMoved = true;
+            }
+            else if (_markerMoved)
+            {
+                _marker.anchoredPosition = Vector2.zero;
+                _markerMoved = false;
+            }
+        }
+
+        /// <summary>Lays the reticle's four strokes out for FlatView's Reticle Size, Thickness and Gap (pixels on a
+        /// 1080-high screen): each runs outward from the gap to half the size, dark and a little wider behind, white in
+        /// front. Only when the numbers changed.</summary>
+        private void FitReticle(FlatViewSettings v)
+        {
+            var want = new Vector3(v.reticleSize, v.reticleThickness, v.reticleGap);
+            if (want == _reticleFit) return;
+            _reticleFit = want;
+            float half = v.reticleSize * 0.5f, gap = Mathf.Min(v.reticleGap, half - 1f), length = Mathf.Max(1f, half - gap);
+            _reticle.sizeDelta = Vector2.one * v.reticleSize;
+            for (int i = 0; i < 4; i++)
+            {
+                var way = new Vector2(Mathf.Cos(i * 90f * Mathf.Deg2Rad), Mathf.Sin(i * 90f * Mathf.Deg2Rad));
+                RectTransform behind = _strokes[i * 2], front = _strokes[i * 2 + 1];
+                behind.anchoredPosition = front.anchoredPosition = way * gap;
+                behind.sizeDelta = new Vector2(length + 2f, v.reticleThickness + 3f);
+                front.sizeDelta = new Vector2(length, v.reticleThickness);
+            }
         }
 
         /// <summary>Writes the read-out from the gun in hand.</summary>
@@ -209,6 +265,24 @@ namespace ShiftJam
             var dot = BuildUiKit.Rect("Dot", dark, centre, centre, centre, Vector2.zero, Vector2.one * _s.dotSizes.y);
             BuildUiKit.Panel(dot, Color.white).raycastTarget = false;
             _dot = dark.gameObject;
+
+            // The side view's reticle (D-0216): four strokes round the aim point, dark behind and white in front, laid out
+            // by FitReticle from FlatView's numbers; moved to the aim point every frame it shows.
+            _reticle = BuildUiKit.Rect("Reticle2D", canvasGo.transform, Vector2.zero, Vector2.zero, centre, Vector2.zero, Vector2.zero);
+            _strokes = new RectTransform[8];
+            var startEnd = new Vector2(0f, 0.5f);   // each stroke runs outward from its inner end
+            for (int i = 0; i < 4; i++)
+            {
+                Quaternion turn = Quaternion.Euler(0f, 0f, 90f * i);
+                _strokes[i * 2] = BuildUiKit.Rect("StrokeDark", _reticle, centre, centre, startEnd, Vector2.zero, Vector2.zero);
+                _strokes[i * 2].localRotation = turn;
+                BuildUiKit.Panel(_strokes[i * 2], TickDark).raycastTarget = false;
+                _strokes[i * 2 + 1] = BuildUiKit.Rect("Stroke", _reticle, centre, centre, startEnd, Vector2.zero, Vector2.zero);
+                _strokes[i * 2 + 1].localRotation = turn;
+                BuildUiKit.Panel(_strokes[i * 2 + 1], Color.white).raycastTarget = false;
+            }
+            _reticleFit = new Vector3(-1f, -1f, -1f);   // laid out the first time it shows
+            _reticle.gameObject.SetActive(false);
 
             // The hit marker: four short ticks on the diagonals round the middle, dark behind, the flash's colour in front.
             _marker = BuildUiKit.Rect("HitMarker", canvasGo.transform, centre, centre, centre, Vector2.zero, Vector2.zero);

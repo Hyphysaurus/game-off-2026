@@ -10,6 +10,7 @@ namespace ShiftJam
     /// the camera reads it every frame, so a number changed in Play shows at once.
     /// The rifts (D-0212): how long the way in stays open behind a player who walked through it, and the way out's
     /// link back to the way in (its rest, where the player lands).
+    /// Aiming in 2D (D-0216): how the flashlight, the guns and the toy's facing aim inside the side view (FlatAim).
     /// </summary>
     [CreateAssetMenu(menuName = "Shift Jam/Flat View Settings", fileName = "FlatView")]
     public sealed class FlatViewSettings : ScriptableObject
@@ -71,6 +72,30 @@ namespace ShiftJam
         public float paletteStrength = 1f;
         [Range(0f, 0.25f), Tooltip("Ordered dither: each big pixel is nudged by up to half this (a share of full brightness, in a 4 by 4 pattern) before it is snapped to the palette, so smooth light breaks into the checkered steps of old games. 0 = flat bands.")]
         public float dither = 0.06f;
+
+        [Header("Aiming in 2D (D-0216)")]
+        [Tooltip("While a zone holds the player, the flashlight, the guns and the way the toy faces aim inside the side view: at the mouse cursor (shown and free) where it meets the lane, or along the pad's right stick. OFF: they aim along the camera as before (into the far wall).")]
+        public bool aim2D = true;
+        [Range(0f, 0.9f), Tooltip("How far the pad's right stick must be pushed (0 to 1) before it aims. Under it the stick is at rest: the aim is the way the toy faces, level.")]
+        public float stickDeadZone = 0.3f;
+        [Min(0f), Tooltip("Own units from the chest the reticle sits at while the pad's stick (or nothing yet) aims: the mouse puts it at the cursor, a stick only gives a way.")]
+        public float stickReach = 4f;
+        [Min(0f), Tooltip("Screen pixels the mouse must move to take the aim back from the pad's stick (a mouse at rest beside a pad player never steals it).")]
+        public float mouseTakesOver = 3f;
+        [Min(1f), Tooltip("Degrees a second the toy turns to face the aim, left or right along the lane (it turns through facing the camera, never into the wall). The body's own turn speed (Movement) caps it.")]
+        public float aimTurnSpeed = 720f;
+        [Min(0f), Tooltip("Own units the aim must be to one side of the chest, along the lane, before the toy turns to that side: aiming nearly straight up or down does not flip it back and forth.")]
+        public float aimTurnBand = 0.3f;
+        [Tooltip("Empty hands: the toy faces the aim too (it then walks backwards when running away from the cursor). OFF: only with a gun drawn, a tool in hand or aim held; empty-handed it faces the way it runs.")]
+        public bool faceAimEmptyHanded = false;
+        [Tooltip("Hide the mouse's own arrow while the pad's stick is aiming (it shows again as soon as the mouse moves).")]
+        public bool hideCursorForStick = true;
+        [Min(4f), Tooltip("The 2D reticle's width, pixels on a 1080-high screen: four short strokes round the aim, in place of the screen-centre dot while a gun is drawn or a tool is in hand.")]
+        public float reticleSize = 30f;
+        [Min(1f), Tooltip("How thick the reticle's strokes are, pixels on a 1080-high screen.")]
+        public float reticleThickness = 4f;
+        [Min(0f), Tooltip("The gap from the reticle's middle to where each stroke starts, pixels on a 1080-high screen (the cursor's tip shows in it).")]
+        public float reticleGap = 6f;
 
         private static FlatViewSettings _defaults;
 

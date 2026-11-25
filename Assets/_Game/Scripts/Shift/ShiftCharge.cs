@@ -28,6 +28,7 @@ namespace ShiftJam
         [SerializeField] private ShiftSettings settings;
 
         private Shifter _shifter; private PlayerMotor _motor; private PlayerInput _input; private CharacterController _controller;
+        private Respawn _respawn;
         private ShiftChargeHud _hud;
         private float _readyAt, _lastGrounded = -10f;
         private bool _free;   // this scene's shift costs no charge (TitleMenu.IsFreeShift)
@@ -46,7 +47,7 @@ namespace ShiftJam
         private void Awake()
         {
             _shifter = GetComponent<Shifter>();
-            TryGetComponent(out _motor); TryGetComponent(out _input); TryGetComponent(out _controller);
+            TryGetComponent(out _motor); TryGetComponent(out _input); TryGetComponent(out _controller); TryGetComponent(out _respawn);
         }
 
         private void Start()
@@ -110,6 +111,9 @@ namespace ShiftJam
         {
             // Not on foot in Play (driving, a menu, the console, Build Mode, first person): the press is not ours. Silent.
             if (!_shifter.enabled || _shifter.Shifting || Time.time < _readyAt || Time.timeScale <= 0f) return;
+            // Not while a fall reset's black cut runs (D-0212 fix, his 25 Nov play): the reset has just refilled the charge,
+            // and a grow taken in the pit he fell into put a kid-size body back into the toy-only hallway, out through its ceiling.
+            if (_respawn != null && _respawn.Busy) return;
             if (GameMode.Current != GameMode.Mode.Play || PauseMenu.IsOpen || TitleMenu.IsOpen || DebugConsole.IsOpen) return;
             if (_motor == null || !_motor.enabled || _controller == null || !_controller.enabled) return;
             var moves = GetComponent<PlayerMoves>();   // no size shift mid-roll (or mid-punch, block, hit)

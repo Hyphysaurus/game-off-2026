@@ -3970,3 +3970,38 @@
     keeps its own source (a replay could break it).
   - Landed with the editor closed (a hidden batch run; every step run twice, the second kept everything). Raceway,
     Workshop and ColourCorner were saved with their music fields only. **NOT PLAYED.**
+- **D-0212 (25 Nov 2026, 12:4x) Flat Zones are optional after their first run; the rifts link back; a 3D route through the
+  hallway's stretch.** His play (Playtests/play-20261125-113741.txt 8:11 to 8:43): walking back west, the zone took him at
+  its east edge and the exit let him go five times in six seconds, then flat mode stuck him at the cardboard StepBox's
+  east face. His rule: "make these zones OPTIONAL for the most part unless designed for specific beats. THIS first beat
+  should be mandatory at FIRST but we need a gate or trigger that will allow exploring the FLATZONE in original 3D. Maybe
+  it revolves around the rifts themselves."
+  - **Who the zone takes (`Flat/FlatZone.cs`):** only a short walk in across its way-in (west) face; never from the east,
+    the top or the bottom, never a respawn or a warp (a move longer than Walked Most). Before the run is done for the save
+    slot (`flat:<zone>:done`, marked when the exit rift lets a player go) that crossing takes him (the first run stays
+    mandatory); after it, only walking through the pixel rift does (FlatView > Rift Window), so walking past beside it
+    stays in 3D. Optional Once Done on the zone.
+  - **The rifts link (`Flat/FlatGate.cs`):** a player the zone does not hold who walks west into the exit rift is carried
+    to the way in's far side with the shift warp, both rifts' flash and sound, and his respawn point set there.
+  - **A 3D route (`FlatRoute_Hall`, made by Land Hallway Scroller):** 10 steps (Wooden_Bar_01) up to the stair books' ends
+    that stick out of the box's east face (the books run through the box: Book11's end, top 12.09, out to x 21.38), then
+    the box's top; a ruler (Ruler_Small_01) over the sprint gap against the near wall. All in the band the side view cuts
+    away, so the 2D picture is unchanged. The builder first put the top steps inside the books; fixed while landing.
+  - **The S-H-I-F-T letters** draw only while the zone holds the player.
+  - **Fixes after his 12:26 play (his "go with your suggested fixes"):** (1) the carry back landed 2 past the rift, facing
+    the hop's 3.5 drop 2.5 ahead: he walked into it, grew to kid size during the reset's black cut (the pit has room; the
+    reset had refilled the charge) and the reset put a kid into the 14-high toy hallway, out through its ceiling onto the
+    roof. Now FlatView > Link Landing 11 (x -35, past the hop, solid floor to x -60) and `ShiftCharge` ignores F while a
+    reset's black cut runs (`Respawn.Busy`). (2) His "in flat zone, FPS breaks the mode": `FirstPersonMode` refuses first
+    person while a Flat Zone holds the player (a Refused toast: "No first person in a Flat Zone").
+  - Known edge, not fixed: a player who is ALREADY in first person walking in is not taken (the zone holds only in Play),
+    so before the run is done first person could skip it. **Fixes NOT PLAYED.**
+- **D-0213 (25 Nov 2026, 12:4x) The toy's wake-up line, his words.** His "we also need our character model to have a
+  'Geez, things got shifty last night..how did I get here? Am I dreaming?' dialogue toast when they first awaken".
+  - The line (only his ".." made an ellipsis): "Geez, things got shifty last night... How did I get here? Am I dreaming?"
+    It is his text, so it is not AI-written text for Steam's disclosure.
+  - A new toast kind `Say` (`UI/Toasts.cs`, `UI/ToastHud.cs`): a cream speech sticker with a tail at the top middle, typed
+    letter by letter on real time through Text Animator, a wave on "shifty", one soft sound (UiSounds > Toast).
+  - `UI/WakeLine.cs` hooks New Game's get-up (and a skipped opening) at run time: once per save slot (New Game clears it,
+    so every New Game), never on Continue or a respawn. Numbers and the text on OpeningSettings (no asset yet: the code's
+    defaults play; make `Resources/OpeningSettings` to edit the line). **NOT seen in Play yet.**

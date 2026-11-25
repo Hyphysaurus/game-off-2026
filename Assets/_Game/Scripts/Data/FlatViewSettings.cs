@@ -57,8 +57,8 @@ namespace ShiftJam
         public float riftWindow = 1f;
         [Min(0f), Tooltip("Seconds both rifts of a zone rest after the way out has carried a player back to the way in: neither carries anyone back, and the way in takes nobody through it, until they are up. The way out still lets a held player go at any time.")]
         public float linkCooldown = 1.5f;
-        [Min(0f), Tooltip("Where a player carried back from the way out lands: this far behind the way in's middle (on the side it is walked into from), world units, on the floor, facing away from it. The hallway's way in is 1.6 deep (0.8 each side of its middle) and the toy 0.3 round: 2 leaves the body 0.9 clear of its trigger, and 2.5 short of the hop's drop behind it.")]
-        public float linkLanding = 2f;
+        [Min(0f), Tooltip("Where a player carried back from the way out lands: this far behind the way in's middle (on the side it is walked into from), world units, on the floor, facing away from it. The hallway's way in stands at x -24 with the hop's 3.5 gap behind it (x -32 to -28.5): 11 lands the body past that gap (x -35, solid floor to x -60), so walking on goes home, not into the drop (D-0212 fix, his 25 Nov play: at 2 the drop was 2.5 ahead and he walked into it).")]
+        public float linkLanding = 11f;
 
         [Header("The letters (D-0208)")]
         [Min(0f), Tooltip("Seconds the S-H-I-F-T strip stays on screen after a letter is found (it also shows the whole time a zone with letters holds the player).")]

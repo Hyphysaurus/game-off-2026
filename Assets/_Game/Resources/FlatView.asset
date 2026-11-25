@@ -27,3 +27,10 @@ MonoBehaviour:
   fillColour: {r: 1, g: 0.95, b: 0.88, a: 1}
   laneSnap: 10
   laneSnapSpeed: 12
+  riftWindow: 1
+  linkCooldown: 1.5
+  linkLanding: 11
+  stripSeconds: 3
+  pixelRows: 224
+  paletteStrength: 1
+  dither: 0.06

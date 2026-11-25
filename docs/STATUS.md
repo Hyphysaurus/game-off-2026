@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 12:4x — FLAT ZONES OPTIONAL AFTER THE FIRST RUN + LINKED RIFTS + A 3D ROUTE (D-0212), THE WAKE-UP LINE (D-0213), FIXES FROM HIS 12:26 PLAY. Local, not pushed.
+- **His 12:26 play:** the mandatory first run and the exit worked; the link back carried him from x 85 to x -27; then
+  the landing faced the hop's drop, he fell, grew during the reset and was put back as a kid onto the hallway's roof. Fixed:
+  landing 11 past the rift (x -35), no shifting during a reset's black cut, no first person inside a Flat Zone. FIXES NOT PLAYED.
+- **HIS TEST NEXT:** the link back (lands past the hop, facing home); first person refused in the flat run (a toast);
+  walking past beside the pixel rift on a done slot (3D through the stretch: books, box, the new steps, the ruler).
+  Still unanswered by him: did the wake-up line show; were the letters hidden until the flat run; the pixel look.
+- **Greybox has HIS unsaved changes** from his play (likely the Pixel Look tick): not saved by me.
+- **Building now:** the dark bedroom (D-0214) and the hallway's dark stretch as a no-sign test (D-0215), staged.
+
 ## 25 Nov 2026 09:5x — MUSIC IN (D-0211), all from his bought ithappy Playroom pack. NOT PLAYED.
 - **HIS LISTEN, in order:** (1) the title: Toy Room Menu Music rises over 2.5 s; (2) Continue: it crossfades into
   Calm Adventure; (3) Back to Title, then New Game: the menu track fades, the opening has no music, Calm Adventure

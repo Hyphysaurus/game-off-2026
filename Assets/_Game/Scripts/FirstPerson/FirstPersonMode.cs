@@ -99,10 +99,17 @@ namespace ShiftJam
             if (Active == this) Active = null;
         }
 
-        /// <summary>On foot and free: not driving, not in a menu or a cutscene, not mid-shift.</summary>
+        /// <summary>The words when the first-person key is pressed while a Flat Zone holds the player.</summary>
+        public const string NotInFlatZone = "No first person in a Flat Zone";
+
+        /// <summary>A Flat Zone holds this player: the side-on view is the zone's, so first person waits until it lets go
+        /// (D-0212 fix, his 25 Nov play: "in flat zone, FPS breaks the mode").</summary>
+        private bool HeldFlat => FlatZone.Current != null && _motor != null && FlatZone.Current.Holds(_motor);
+
+        /// <summary>On foot and free: not driving, not in a menu or a cutscene, not mid-shift, not held by a Flat Zone.</summary>
         private bool CanEnter =>
             settings != null && _motor != null && _motor.enabled && _cc != null && _cc.enabled && input != null && input.enabled
-            && (_shifter == null || !_shifter.Shifting) && (_moves == null || _moves.Free) && Time.timeScale > 0f;
+            && (_shifter == null || !_shifter.Shifting) && (_moves == null || _moves.Free) && Time.timeScale > 0f && !HeldFlat;
 
         private void Update()
         {
@@ -112,6 +119,7 @@ namespace ShiftJam
                 if (k[toggleKey].wasPressedThisFrame)
                 {
                     if (GameMode.Current == GameMode.Mode.FirstPerson) GameMode.Set(GameMode.Mode.Play);
+                    else if (HeldFlat) Toasts.ShowFor(_motor, NotInFlatZone, ToastKind.Refused);   // the zone keeps its side-on view
                     else if (CanEnter || GameMode.Current == GameMode.Mode.Build) GameMode.Set(GameMode.Mode.FirstPerson);
                 }
                 // Not on the frame the armory bench's screen closed on this same Esc (D-0167): that screen runs before

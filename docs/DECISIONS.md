@@ -4499,3 +4499,16 @@
   found: GlintMaterial switches it on and saves, and a plain switch-on and save afterwards keeps it); Keep Emission On
   covers it in play, and the material is committed with it on. **NOT PLAYED.**
 
+- **D-0247 (26 Nov 2026, 09:0x) The star lamp moves under the bed.** His idea: "is the star lamp under the bed? a really
+  cool mechanic would be to stun them with it by shining the light on it" (the light-fill sweep was already the lamp's job,
+  D-0241; it had reached no monster from the bedside table). Land Bedroom Gate now moves Room/Bedroom/NightLamp off the table
+  (113.0, 32.1, -70.7) onto the cave floor at (83.0, 0.0, -42.6): 0.4 of its size (6.1 tall under 9.8 of room), 12.2 past
+  the bed's edge, 25.6 from the way in, 34.2 from the dart gun, clear of the monsters' way and spots, in view from the way
+  in; its dome sees all 4 monster spots and 582 of 700 cave floor points. Its stars light the bed's underside as they lit
+  the ceiling, all alike (0.505 on what they light, the middle of the table's: brightness 4000 -> 17.5 to 31.7; one star had
+  lit a near wall and would have glared at 369), reach 30 at rest so they never shine up through the bed; during a sweep the
+  side stars reach Sweep Range 130 (their shadows are on then), and the stun reaches as far as they do (StarLamp > Sweep Range,
+  new; 0 = as placed). Sweep Through Furniture off (nothing in the way there). Done once: a lamp already under the bed stays.
+  Back on the table: the numbers are in the maker's report (Lamp Under Bed off, then the old place, scale and brightness).
+  Two stills checked (from the way in, and close): the stars and moons soft on the bed's underside. **NOT PLAYED.**
+

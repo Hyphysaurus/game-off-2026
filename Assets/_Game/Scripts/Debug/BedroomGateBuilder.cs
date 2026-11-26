@@ -135,7 +135,7 @@ namespace ShiftJam
             // 5. The words.
             Steps(scene, s, gateT, snatchT.Find(PickupName));
             GoalLine(s);
-            Lamp(bedroom, s, ms, monsters);
+            Lamp(bedroom, s, ms, monsters, toyScale);
 
             EditorSceneManager.MarkSceneDirty(scene);
             Log.AppendLine("Greybox MARKED CHANGED, not saved: Ctrl+S keeps it.");
@@ -723,7 +723,7 @@ namespace ShiftJam
 
         /// <summary>The star lamp's sweep sound (from its wake sound when empty) and what its sweeping spots can reach: each
         /// monster's spot and the cave's floor, in the tilted cones' band, within reach, nothing solid between.</summary>
-        static void Lamp(Transform bedroom, BedroomGateSettings s, MonsterSettings ms, List<DarkMonster> monsters)
+        static void Lamp(Transform bedroom, BedroomGateSettings s, MonsterSettings ms, List<DarkMonster> monsters, float toyScale)
         {
             StarLamp lamp = bedroom.GetComponentInChildren<StarLamp>(true);
             if (lamp == null) { Log.AppendLine("STAR LAMP: none under Room/Bedroom: no sweep."); return; }
@@ -737,6 +737,7 @@ namespace ShiftJam
                 if (PrefabUtility.IsPartOfPrefabInstance(lamp)) PrefabUtility.RecordPrefabInstancePropertyModifications(lamp);
                 sound = $"its sweep sound filled from its wake sound ({wakeClip.objectReferenceValue.name})";
             }
+            if (s.lampUnderBed) UnderBed(lamp, bedroom, s, ms, monsters, toyScale);   // D-0247: before the reach is measured
             Light side = null, any = null;
             foreach (Light l in lamp.Stars)
             {
@@ -746,7 +747,7 @@ namespace ShiftJam
             }
             if (side == null) { Log.AppendLine($"STAR LAMP {Path(lamp.transform)}: {(any == null ? "no star spots" : "no side spot (only the straight-up one)")}: the sweep can stun nothing. {sound}."); return; }
             Vector3 dome = side.transform.position;
-            float half = side.spotAngle * 0.5f, range = side.range, pitch = lamp.SweepPitch;
+            float half = side.spotAngle * 0.5f, range = lamp.SweepRange > 0f ? lamp.SweepRange : side.range, pitch = lamp.SweepPitch;   // D-0247: the stun reaches as far as the sweep's light
             Log.AppendLine($"STAR LAMP {Path(lamp.transform)}: Sweep {(lamp.SweepOn ? "ON" : "OFF (the D-0218 lamp)")}; the dome at {Fmt(dome)}; a side spot's cone {side.spotAngle} degrees, reach {range}; swept {pitch} degrees under the level, so the spots cross what lies {Mathf.Max(0f, pitch - half):F0} to {Mathf.Min(90f, pitch + half):F0} degrees under the dome (turning, every way round); {sound}.");
 
             float tall = 2f;   // a monster's height, for the cave floor's points below (the last monster's own)
@@ -788,6 +789,201 @@ namespace ShiftJam
                 if (through != null && through.boolValue)
                     Log.AppendLine("  THE LAMP'S SWEEP (D-0245): Sweep Through Furniture is ON: the bed and the table do not shield the monsters, so a swept spot stuns any cave monster in its cone and reach (the counts above are the old rule's, with nothing allowed between).");
             }
+        }
+
+        /// <summary>D-0247 (his idea: stun the monsters by shining the light on the lamp, under the bed). Moves the night
+        /// lamp off the bedside table onto the cave floor under the bed: Lamp Scale of its size, at least Lamp Min In past
+        /// the bed's edge, clear of the monsters' way, their spots, the bed's own things and the dart gun, with room over it,
+        /// in view from the way in; of those, the place whose dome sees the most monster spots, then the nearest the way in.
+        /// Its stars light the bed's underside as brightly as they lit the room's ceiling (all alike: the middle of what they
+        /// gave there, so a star that lit a near wall does not glare), never brighter than they were, and reach Lamp Star
+        /// Range at rest; during a sweep the side stars (and the stun) reach Lamp Sweep Range. Sweep Through Furniture goes off: nothing is in the way there.
+        /// Done once: a lamp already under the bed stays where it is (its settings are written again).</summary>
+        static void UnderBed(StarLamp lamp, Transform bedroom, BedroomGateSettings s, MonsterSettings ms, List<DarkMonster> monsters, float toyScale)
+        {
+            Transform lt = lamp.transform;
+            if (monsters.Count == 0) { Log.AppendLine("LAMP UNDER THE BED: no cave monsters to measure the cave by: the lamp stays where it is."); return; }
+            var mso = new SerializedObject(monsters[0]);
+            Bounds cave = mso.FindProperty("cave").boundsValue;
+            Vector3 mouth = mso.FindProperty("laneFrom").vector3Value;
+            Vector3 torch = mso.FindProperty("laneTo").vector3Value;
+            float laneHalf = mso.FindProperty("laneHalfWidth").floatValue;
+            float floorY = mouth.y;
+            Transform bed = bedroom.Find("Bed");
+            GameObject toyBoxGo = GameObject.Find("Room/ToyBox");
+            if (cave.size.x <= 0f || bed == null || toyBoxGo == null) { Log.AppendLine("LAMP UNDER THE BED: no cave box, no Room/Bedroom/Bed or no Room/ToyBox: the lamp stays where it is."); return; }
+            BoxReach(toyBoxGo.transform, out Vector3 boxAt, out _);
+            Vector3 outDir = Level(boxAt - mouth).normalized;
+            if (outDir.sqrMagnitude < 0.5f) outDir = Vector3.left;
+
+            Vector3 lp = lt.position;
+            if (lp.x > cave.min.x && lp.x < cave.max.x && lp.z > cave.min.z && lp.z < cave.max.z && lp.y < floorY + 2f)
+            {
+                string kept = LampSettings(lamp, s);
+                Log.AppendLine($"LAMP UNDER THE BED (D-0247): already there at {Fmt(lp)}: kept where it is, its lights as they are; {kept}.");
+                return;
+            }
+
+            // Its size under the bed, from what shows on the table.
+            Bounds b = default; bool shows = false;
+            foreach (Renderer r in lt.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r == null || !r.enabled || r is ParticleSystemRenderer) continue;
+                if (!shows) { b = r.bounds; shows = true; } else b.Encapsulate(r.bounds);
+            }
+            if (!shows) { Log.AppendLine("LAMP UNDER THE BED: the lamp shows nothing to measure: it stays where it is."); return; }
+            float k = s.lampScale;
+            float halfW = Mathf.Max(b.extents.x, b.extents.z) * k, tallNew = b.size.y * k, below = (b.min.y - lp.y) * k;
+            Vector3 centreOff = Level(b.center - lp) * k;   // the footprint's middle from the pivot, once shrunk
+
+            // What its stars and its glow light on the table, before it moves (their brightness keeps that look).
+            Physics.SyncTransforms();
+            IReadOnlyList<Light> stars = lamp.Stars;
+            var tableHit = new float[stars.Count];
+            for (int i = 0; i < stars.Count; i++)
+                if (stars[i] != null) tableHit[i] = FirstHit(stars[i].transform.position, stars[i].transform.forward, stars[i].range, lt);
+            Light glow = new SerializedObject(lamp).FindProperty("glow").objectReferenceValue as Light;
+            float glowTable = glow != null ? FirstHit(glow.transform.position, Vector3.down, 200f, lt) : 0f;
+
+            GameObject player = GameObject.Find("Player");
+            var pcc = player != null ? player.GetComponent<CharacterController>() : null;
+            float toyH = (pcc != null ? pcc.height : 1.8f) * toyScale;
+            var things = new List<(string name, Vector3 at)>();
+            Transform under = bedroom.Find("UnderBed");
+            if (under != null) foreach (Transform t in under) if (t.GetComponent<DarkZone>() == null) things.Add((t.name, t.position));
+            Transform gun = bedroom.Find(SnatchName + "/" + PickupName);
+            float wander = ms != null ? ms.wanderRadius : 3f;
+            Vector3 eye = new Vector3(mouth.x, floorY + toyH * 0.8f, mouth.z) + outDir * 2f;
+
+            Vector3 best = Vector3.zero; float bestY = floorY, bestNear = float.MaxValue; int bestSees = -1, tried = 0, keptN = 0;
+            var why = new Dictionary<string, int>();
+            float margin = halfW + 1f;
+            for (float x = cave.min.x + margin; x <= cave.max.x - margin; x += s.pickupGridStep)
+                for (float z = cave.min.z + margin; z <= cave.max.z - margin; z += s.pickupGridStep)
+                {
+                    tried++;
+                    var foot = new Vector3(x, floorY, z);   // the footprint's middle
+                    if (Vector3.Dot(Level(foot - mouth), -outDir) < s.lampMinIn + halfW) { TallyWhy(why, "less than Lamp Min In past the bed's edge"); continue; }
+                    if (LaneGap(foot, mouth, torch) < laneHalf + s.pickupLaneClear + halfW) { TallyWhy(why, "too near the monsters' way"); continue; }
+                    bool nearMonster = false;
+                    foreach (DarkMonster m in monsters)
+                    {
+                        var cc = m.GetComponent<CharacterController>();
+                        float mr = cc != null ? cc.radius * m.transform.lossyScale.y : 1f;
+                        if (Level(foot - m.transform.position).magnitude < wander + mr + s.pickupMonsterClear + halfW) { nearMonster = true; break; }
+                    }
+                    if (nearMonster) { TallyWhy(why, "too near a monster's spot"); continue; }
+                    bool nearThing = false;
+                    foreach (var (name, at) in things) if (Level(foot - at).magnitude < s.pickupThingsClear + halfW) { nearThing = true; break; }
+                    if (nearThing) { TallyWhy(why, "too near the bed's own things"); continue; }
+                    if (gun != null && Level(foot - gun.position).magnitude < s.lampGunClear + halfW) { TallyWhy(why, "too near the dart gun"); continue; }
+                    float cy = FloorAt(foot, floorY + 3f, bed, out bool found);
+                    if (!found || Mathf.Abs(cy - floorY) > 0.5f) { TallyWhy(why, "no cave floor"); continue; }
+                    if (Headroom(new Vector3(x, cy, z), bed) < tallNew + 0.5f) { TallyWhy(why, "too little room overhead"); continue; }
+                    bool solid = false;
+                    foreach (Collider col in Physics.OverlapBox(new Vector3(x, cy + tallNew * 0.5f + 0.1f, z), new Vector3(halfW, tallNew * 0.5f, halfW), Quaternion.identity, ~0, QueryTriggerInteraction.Ignore))
+                        if (col != null && col.GetComponentInParent<DarkMonster>() == null && !col.transform.IsChildOf(lt)) { solid = true; break; }
+                    if (solid) { TallyWhy(why, "something solid there"); continue; }
+                    Vector3 dome = new Vector3(x, cy + tallNew * 0.85f, z);
+                    if (!ClearLine(eye, dome, monsters, lt)) { TallyWhy(why, "out of view from the way in"); continue; }
+                    keptN++;
+                    int sees = 0;
+                    foreach (DarkMonster m in monsters) if (ClearLine(dome, MonsterMiddle(m), monsters, lt)) sees++;
+                    float near = Level(foot - mouth).magnitude;
+                    if (sees > bestSees || (sees == bestSees && near < bestNear)) { bestSees = sees; bestNear = near; best = foot; bestY = cy; }
+                }
+            var reasons = new StringBuilder();
+            foreach (var kv in why) reasons.Append(reasons.Length > 0 ? ", " : "").Append(kv.Value).Append(' ').Append(kv.Key);
+            if (keptN == 0)
+            {
+                Log.AppendLine($"LAMP UNDER THE BED NOT moved: none of {tried} cave floor points is free for a lamp {halfW * 2f:F1} across and {tallNew:F1} tall ({reasons}). Lower Lamp Scale, Lamp Min In or Lamp Gun Clear, or untick Lamp Under Bed.");
+                return;
+            }
+
+            // The move: shrunk, its footprint's middle on the place, its bottom on the floor, its turn kept.
+            Vector3 tablePos = lt.position, tableScale = lt.localScale, tableTurn = lt.eulerAngles;
+            lt.localScale = tableScale * k;
+            lt.position = new Vector3(best.x, bestY + 0.01f - below, best.z) - centreOff;
+            PrefabUtility.RecordPrefabInstancePropertyModifications(lt);
+            Physics.SyncTransforms();
+
+            // One light on the bed's underside for every star: the middle of what they gave on the table.
+            var onTable = new List<float>();
+            for (int i = 0; i < stars.Count; i++) if (stars[i] != null) onTable.Add(stars[i].intensity / Mathf.Max(1e-4f, tableHit[i] * tableHit[i]));
+            onTable.Sort();
+            float lightOn = onTable.Count > 0 ? onTable[onTable.Count / 2] : 0f;
+            var lines = new StringBuilder();
+            for (int i = 0; i < stars.Count; i++)
+            {
+                Light l = stars[i];
+                if (l == null) continue;
+                float now = FirstHit(l.transform.position, l.transform.forward, s.lampStarRange, lt);
+                float was = Mathf.Max(0.01f, tableHit[i]);
+                float iWas = l.intensity, rWas = l.range;
+                l.intensity = Mathf.Min(iWas, lightOn * now * now);
+                l.range = s.lampStarRange;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(l);
+                lines.Append(lines.Length > 0 ? "; " : "").Append($"{l.name}: lit {was:F1} away on the table, {now:F1} now, brightness {iWas:F1} -> {l.intensity:F2}, reach {rWas:F0} -> {l.range:F0}");
+            }
+            string glowLine = "no glow light";
+            if (glow != null)
+            {
+                float now = FirstHit(glow.transform.position, Vector3.down, 200f, lt);
+                float f = Mathf.Clamp(now * now / Mathf.Max(0.01f, glowTable * glowTable), 0.0005f, 1f);
+                float iWas = glow.intensity, rWas = glow.range;
+                glow.intensity = iWas * f;
+                glow.range = Mathf.Min(glow.range, s.lampStarRange);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(glow);
+                glowLine = $"its glow {glow.name}: {glowTable:F1} over the table, {now:F1} over the floor now, brightness {iWas:F1} x {f:F3} = {glow.intensity:F2}, reach {rWas:F0} -> {glow.range:F0}";
+            }
+            string settings = LampSettings(lamp, s);
+            float pastEdge = Vector3.Dot(Level(best - mouth), -outDir);
+            Log.AppendLine($"LAMP UNDER THE BED (D-0247): moved {Path(lt)} off the bedside table {Fmt(tablePos)} (scale {tableScale.x:F2}, turned {tableTurn.y:F0}) to {Fmt(lt.position)} (scale {lt.localScale.x:F2}: {halfW * 2f:F1} across, {tallNew:F1} tall under {Headroom(new Vector3(best.x, bestY, best.z), bed):F1} of room), its middle {pastEdge:F1} past the bed's edge and {bestNear:F1} from the way in{(gun != null ? $", {Level(best - gun.position).magnitude:F1} from the dart gun" : "")}; its dome sees {bestSees} of {monsters.Count} monster spots; the best of {keptN} free of {tried} cave floor points (ruled out: {reasons}).");
+            Log.AppendLine($"  ITS STARS light the bed's underside as they lit the ceiling, all alike ({lightOn:F3} on what they light: the middle of the table's): {lines}. {glowLine}. {settings}.");
+            Log.AppendLine($"  BACK ON THE TABLE, if he wants it: untick Lamp Under Bed, then put Room/Bedroom/NightLamp at {Fmt(tablePos)}, turned {tableTurn.y:F0}, scale {tableScale.x:F2}, and set each star's brightness and reach back to what they were (above).");
+        }
+
+        /// <summary>D-0247: the lamp under the bed's own settings: the sweep (and the stun) reaches Lamp Sweep Range, and Sweep
+        /// Through Furniture goes off (nothing is in the way there).</summary>
+        static string LampSettings(StarLamp lamp, BedroomGateSettings s)
+        {
+            var so = new SerializedObject(lamp);
+            so.FindProperty("sweepRange").floatValue = s.lampSweepRange;
+            so.FindProperty("sweepThroughFurniture").boolValue = false;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            PrefabUtility.RecordPrefabInstancePropertyModifications(lamp);
+            return $"Sweep Range {s.lampSweepRange} (the stun reaches as far), Sweep Through Furniture off";
+        }
+
+        /// <summary>The nearest thing a ray meets, not part of <paramref name="skip"/>, or <paramref name="max"/> when nothing.</summary>
+        static float FirstHit(Vector3 from, Vector3 dir, float max, Transform skip)
+        {
+            float best = max;
+            foreach (RaycastHit h in Physics.RaycastAll(from, dir, max, ~0, QueryTriggerInteraction.Ignore))
+                if (!h.collider.transform.IsChildOf(skip) && h.distance < best) best = h.distance;
+            return best;
+        }
+
+        /// <summary>Nothing solid between the two points (the monsters and <paramref name="skip"/> do not count).</summary>
+        static bool ClearLine(Vector3 from, Vector3 to, List<DarkMonster> monsters, Transform skip)
+        {
+            Vector3 d = to - from;
+            float len = d.magnitude;
+            if (len < 1e-3f) return true;
+            foreach (RaycastHit h in Physics.RaycastAll(from, d / len, len, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (skip != null && h.collider.transform.IsChildOf(skip)) continue;
+                if (h.collider.GetComponentInParent<DarkMonster>() != null) continue;
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>A monster's middle, from its CharacterController.</summary>
+        static Vector3 MonsterMiddle(DarkMonster m)
+        {
+            var cc = m.GetComponent<CharacterController>();
+            return cc != null ? m.transform.TransformPoint(cc.center) : m.transform.position + Vector3.up * m.transform.lossyScale.y;
         }
 
         /// <summary>Null when a swept spot crosses <paramref name="point"/> (in the band, in reach, nothing solid between);

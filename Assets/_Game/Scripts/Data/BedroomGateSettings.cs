@@ -128,6 +128,20 @@ namespace ShiftJam
         [Tooltip("Seconds one slow glint lasts (it rises and falls).")]
         [Min(0.05f)] public float glintIdleSeconds = 0.7f;
 
+        [Header("The star lamp under the bed (D-0247)")]
+        [Tooltip("D-0247 (his idea, 26 Nov: stun them by shining the light on the lamp, under the bed): the maker moves the bedroom's night lamp off the bedside table onto the floor under the bed, near the monsters' way in, shrunk to fit, its stars' light kept short at rest so it never shines up through the bed. Done once: a lamp already under the bed stays where it is. Off = the lamp is left where it is.")]
+        public bool lampUnderBed = true;
+        [Tooltip("The lamp's size under the bed, as a share of its size on the table (there it is about 15 tall; the room under the bed is about 8.4).")]
+        [Range(0.1f, 1f)] public float lampScale = 0.4f;
+        [Tooltip("At least this many toy units past the bed's edge, straight in from the monsters' way in.")]
+        [Min(0f)] public float lampMinIn = 6f;
+        [Tooltip("At least this many toy units between the lamp's edge and the dart gun's place under the bed.")]
+        [Min(0f)] public float lampGunClear = 6f;
+        [Tooltip("Under the bed, how far each star's light reaches at rest (world units): the bed's underside round it, well short of the bed's top. Their brightness is set so the stars look as bright on the bed's underside as they did on the room's ceiling.")]
+        [Min(1f)] public float lampStarRange = 30f;
+        [Tooltip("Under the bed, how far the side stars reach during a sweep, and so the stun (world units): the whole room under the bed. Their shadows are on during a sweep, so the bed still stops the light.")]
+        [Min(1f)] public float lampSweepRange = 130f;
+
         [Header("The maker's layout (Land Bedroom Gate)")]
         [Tooltip("How far out from the bed's mouth, toward the toy box, the gun lies before the snatch (toy units).")]
         [Min(1f)] public float gunOut = 10f;

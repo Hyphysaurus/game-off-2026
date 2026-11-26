@@ -21,6 +21,9 @@ namespace ShiftJam
     /// another (its dome breathes again: ready). The spots cast shadows only during a sweep, so the furniture keeps the
     /// light off what the stun cannot reach either (the bed's frame over the cave). The wake still earns the bedroom's
     /// light-bedroom star and saves the lamp awake; a sweep is never saved. Sweep On unticked: the D-0218 lamp.
+    /// UNDER THE BED (D-0247, his idea: stun them by shining the light on the lamp): the gate's maker can move it under the
+    /// bed, its stars' light kept short at rest so it never shines up through the bed; during a sweep the side stars reach
+    /// Sweep Range (their shadows are on then, so the bed still stops the light), and the stun reaches as far as they do.
     /// OFF SWITCH: untick this script and the lamp stays as placed (its lights as the maker left them: off).
     /// </summary>
     public sealed class StarLamp : MonoBehaviour
@@ -64,6 +67,7 @@ namespace ShiftJam
         private bool sweepShadows = true;
         [SerializeField, Min(0.02f), Tooltip("Seconds between looks for monsters in the spots during a sweep (rays: not every frame).")] private float sweepCheckEvery = 0.1f;
         [SerializeField, Tooltip("D-0245 (his call): the sweep stuns a cave monster in a spot's cone and reach even with the bed or a table between them. With nothing allowed between, it reached none of them: the bedside table and the bed's frame were always in the way. Off = only with nothing solid between.")] private bool sweepThroughFurniture = true;
+        [SerializeField, Min(0f), Tooltip("D-0247: during a sweep the side stars reach this far (world units), and so does the stun; their shadows are on during a sweep, so furniture still stops the light. 0 = as placed (the lamp on the table).")] private float sweepRange;
         [SerializeField, Min(0f), Tooltip("The dome's glow during a sweep, times its awake glow.")] private float sweepGlow = 1.6f;
         [SerializeField, Tooltip("Played as each sweep after the first starts (the wake's own sound plays for the first). No clip: silent.")]
         private CourseSounds.Cue sweepSound = new CourseSounds.Cue(null, 0.5f);
@@ -71,6 +75,7 @@ namespace ShiftJam
         private static readonly RaycastHit[] Hits = new RaycastHit[16];
 
         private float[] _starsOwn;
+        private float[] _rangeOwn;   // D-0247: each star's reach as placed (its reach at rest)
         private float _glowOwn, _share = -1f, _shown = -1f;
         private bool _bound;
         // The sweep: each star's turn as placed and whether it tilts (a side star) toward which heading; the tilt now.
@@ -90,6 +95,8 @@ namespace ShiftJam
         /// <summary>D-0241: the sweep's numbers (the bedroom gate's maker reports what the spots reach).</summary>
         public bool SweepOn => sweepOn;
         public float SweepPitch => sweepPitch;
+        /// <summary>D-0247: how far the side stars (and so the stun) reach during a sweep; 0 = as placed.</summary>
+        public float SweepRange => sweepRange;
         /// <summary>D-0241: the star spots (the maker measures their reach).</summary>
         public System.Collections.Generic.IReadOnlyList<Light> Stars => stars ?? System.Array.Empty<Light>();
 
@@ -97,6 +104,8 @@ namespace ShiftJam
         {
             _starsOwn = new float[stars != null ? stars.Length : 0];
             for (int i = 0; i < _starsOwn.Length; i++) if (stars[i] != null) _starsOwn[i] = stars[i].intensity;
+            _rangeOwn = new float[_starsOwn.Length];
+            for (int i = 0; i < _rangeOwn.Length; i++) if (stars[i] != null) _rangeOwn[i] = stars[i].range;
             if (glow != null) _glowOwn = glow.intensity;
 
             // D-0241: each star's turn as placed (in the spinner's space, whose up is the world's); a side star sweeps to
@@ -171,6 +180,7 @@ namespace ShiftJam
             _nextCheck = Time.time;
             if (target != null) target.enabled = false;   // no new fill while it sweeps and rests
             Shadows(true);
+            SweepReach(true);   // D-0247
             if (withSound) UiAudio.Play(sweepSound);
             Playtest.PlayLog.Tell("star lamp: stun sweep");
             return true;
@@ -195,6 +205,7 @@ namespace ShiftJam
             _sweeping = _resting = false;
             if (_tilt != 0f) { _tilt = 0f; Tilt(0f); }
             Shadows(false);
+            SweepReach(false);   // D-0247
         }
 
         /// <summary>D-0241, once a frame: the sweep's clock, the spots' tilt, the looks for monsters, the rest's end.</summary>
@@ -208,7 +219,7 @@ namespace ShiftJam
             {
                 _tilt = Mathf.MoveTowards(_tilt, want, dt / sweepTilt);
                 Tilt(Mathf.SmoothStep(0f, 1f, _tilt));
-                if (_tilt <= 0f) Shadows(false);
+                if (_tilt <= 0f) { Shadows(false); SweepReach(false); }
             }
             if (_sweeping && _tilt >= 0.5f && now >= _nextCheck) { _nextCheck = now + sweepCheckEvery; StunCrossed(); }
             if (_resting && _tilt <= 0f && now >= _readyAt)
@@ -234,6 +245,15 @@ namespace ShiftJam
             _shadowsOn = on;
             for (int i = 0; i < _restShadows.Length; i++)
                 if (stars[i] != null) stars[i].shadows = on ? LightShadows.Soft : _restShadows[i];
+        }
+
+        /// <summary>D-0247: the side stars reach Sweep Range during a sweep (and so does the stun: it asks each spot's reach),
+        /// their own reach at rest. Nothing changes with Sweep Range 0.</summary>
+        private void SweepReach(bool on)
+        {
+            if (sweepRange <= 0f || _rangeOwn == null || _tilts == null) return;
+            for (int i = 0; i < _rangeOwn.Length; i++)
+                if (stars[i] != null && _tilts[i]) stars[i].range = on ? sweepRange : _rangeOwn[i];
         }
 
         /// <summary>Every cave monster a spot crosses now (its middle or the top of its body in the spot's cone, within its

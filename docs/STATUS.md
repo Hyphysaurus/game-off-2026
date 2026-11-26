@@ -26,6 +26,10 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   in (was 55 in at the back wall), with a slow glint every 2.2 s even without a beam. The lamp's sweep now stuns through
   the bed and the table. NOT PLAYED. His test: after the snatch, shrink, go to the bed's edge where the slime went in, look
   a little left: the gun should glint. Off switches: Pickup Near Mouth, Glint Idle Peak 0, Sweep Through Furniture.
+- **The star lamp under the bed (D-0247, 09:0x):** off the bedside table, onto the floor under the bed (12 past the
+  edge, down from where the gun waits, toward the bed's foot), shrunk to fit; shine the flashlight on it and its stars sweep
+  the floor and stun the monsters (it reaches all 4 spots now). NOT PLAYED. Off: BedroomGateSettings > Lamp Under Bed (then
+  put it back by the report's numbers).
 - **Monster juice and sounds (D-0246):** being built in stage monsterjuice/ (his "proceed", 08:3x).
 
 ## 26 Nov 2026 00:3x — THE START HUB'S NEW ORDER (D-0241), LANDED, Greybox saved. NOT PLAYED.

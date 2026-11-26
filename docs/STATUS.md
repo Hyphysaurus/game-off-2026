@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 19:1x — MAGICA CLOTH (D-0233) LANDED (his "2": the flags plus the blinds), Greybox saved. NOT PLAYED.
+- **HIS TEST:**
+  - Press Play: the console shows 12 "[Cloth D-0233] ... built in t s" lines (10 blinds, 2 flags).
+  - The bedroom: a folded blind high on the north wall, its pull cord hanging beside the sill and swaying a little.
+    Walk the kid past it: the cord swings away and back. Jump the toy through it, and shoot it: it swings.
+  - The fort flags (the playroom's, the Tan Splinter's) ripple; the kid's feet and darts push them.
+  - First person: the same pushes.
+- **Faults to watch:**
+  - a blind inside a wall or floating off it (the R6 one has a 2.6 gap behind its brackets, known);
+  - a cord dead still, stretching or flying off, or swinging in slow motion (then set Units Per Metre to 1 and tell me);
+  - the slats moving; a flag hanging straight down or peeling off its pole;
+  - a long freeze at start.
+
 ## 25 Nov 2026 18:3x — THE CLAW MACHINE YOU CAN PLAY (D-0229) LANDED, Greybox saved. NOT PLAYED. CLOTH HELD FOR HIS CALL.
 - **HIS TEST:**
   - As the kid at the machine's front: "E Play". The view swings to the glass; WASD or the stick steers; E or Space

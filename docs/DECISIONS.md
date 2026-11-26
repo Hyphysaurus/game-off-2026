@@ -4317,3 +4317,26 @@
     hole in this mesh is a closed patch, so a won prize sinks out of sight rather than falling through; a prize that was
     leaning on the one taken stays leaning.
   - Off: ClawGameSettings > On; untick ClawGame; untick its ObjectiveHook (the star only). **NOT PLAYED.**
+- **D-0233 (25 Nov 2026, 19:1x) Magica Cloth 2: the fort flags wave, and blinds at the windows swing their pull cords.**
+  His "i really want to explore ... magicacloth" and then "2" (the flags plus the blinds as built). Built by a builder from
+  the D-0233 brief, landed with its maker.
+  - The catch: the Playroom pack's `Curtain_01` is a raised, folded blind (a headrail, 17 slats, two lift tapes, one pull
+    cord with a tassel), not a curtain. Only the cord can move, and it is a single tube with no points along it, so it
+    swings like a stick. Curtains that sway and part would need another model (script-made drapes were offered; he
+    picked the blinds).
+  - Blinds on 10 windows (the bedroom's, the R6 end window, downstairs Window_1 to 8), each moved out to its wall's face
+    (the pack's fit put their backs inside the walls); the R6 one keeps the pack's depth, with a 2.6 gap behind its
+    brackets. Their colliders are off. Each cord hangs beside its sill and sways in a breeze; the toy, the kid and
+    darts push it.
+  - Both fort flags (the playroom's, the Tan Splinter's) are cloth: held along the pole, rippling in a breeze, pushed by
+    the kid's feet and by darts.
+  - Built from code as the scene starts (`ClothDresser`, one a frame), so no Magica paint data sits in the public scene.
+    The players' pushers (`ClothPlayerColliders`) are added at run time and follow the size shift and first person.
+    Untested: Magica works in metres and the house is about 50 units a metre, so a blind is built at 1/50 scale for one
+    call and set back in the same frame (Units Per Metre 50; set 1 to turn that off).
+  - Read/Write is turned on for two git-ignored pack meshes (Curtain_01.fbx, Army_Flag_01.fbx), on his PC only; the
+    maker and every build turn it on again after a pack re-import.
+  - The game's code now uses Magica's types: a clone without the git-ignored `Assets/MagicaCloth2` does not compile.
+  - Numbers on `Resources/ClothSettings` (a breeze per place, stiffness, pokes). Off: Cloth On, Curtain / Flag On, a
+    place's On or its Breeze at 0, Player Pushes, Shots Poke. Re-run the maker after any CourseBuilder rebuild of Room.
+    **NOT PLAYED.**

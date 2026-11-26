@@ -24,6 +24,11 @@ namespace ShiftJam
     /// (StickerChart.OpenPage); Esc, Start and the pad's East button come back to the pause page with the slab
     /// selected. Its second line is the stars held of all. Left off the menu where the chart cannot open (online, a team
     /// match, ObjectiveSet > Chart On unticked). Resume stays the one selected when the menu opens.
+    /// ICONS AND THE FOOTER (D-0226, his pixel menu mockup): every slab (and every button of the old menu) carries its
+    /// icon of Resources/IconSet left of its words: Sticker Chart, Resume, Options, Back to Title (a house; Leave Party a
+    /// door while online), Quit. A footer of button prompts (PromptBar, on a canvas of its own over the chart's) says
+    /// Move, Select and Back under the model's hint line (on the old menu, at the screen's bottom), and Back alone over
+    /// the Sticker Chart page, in the glyphs of the hands used last. Off: IconSet > Icons On, Footer On.
     /// </summary>
     [DefaultExecutionOrder(-100)]
     public sealed class PauseMenu : MonoBehaviour
@@ -36,7 +41,9 @@ namespace ShiftJam
         public static bool IsOpen { get; private set; }
 
         private GameObject _root;
-        private Button _resume, _optionsButton, _chartButton;
+        private Button _resume, _optionsButton, _chartButton, _backButton, _quitButton;
+        private PromptBar _prompts;          // the button-prompt footer (D-0226); null = none
+        private const int PromptsSorting = 58;   // over the chart's page (57), under the key sheet and the toasts (60)
         // D-0224: the chart is the page now, and whether it was opened from the model (else from the old menu); whether
         // this scene's model has the chart's slab.
         private bool _chartPage, _chartFromModel, _chartOnModel;
@@ -54,6 +61,7 @@ namespace ShiftJam
         private bool _modelFailed;          // the model could not be had in this scene: not tried again until the next
         private GameObject _modelCanvas;    // the few flat words over the model: its heading and its hint
         private TMPro.TextMeshProUGUI _heading, _hint;
+        private Vector2 _hintAnchor;        // the model's Anchor_Hint: the footer sits under it (D-0226)
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Boot()
@@ -69,6 +77,7 @@ namespace ShiftJam
         {
             Build();
             _options = OptionsPanel.Create(transform, 56);
+            _prompts = PromptBar.Make(transform, "PausePrompts", PromptsSorting);
         }
 
         private void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
@@ -81,6 +90,7 @@ namespace ShiftJam
             _root.SetActive(false);
             HideModel();
             StickerChart.ClosePage(); _chartPage = false;
+            if (_prompts != null) _prompts.Hide();
             if (_model != null) Destroy(_model.gameObject);
             _model = null; _modelOptions = null; _modelFailed = false; _chartOnModel = false;
             IsOpen = false;
@@ -147,8 +157,20 @@ namespace ShiftJam
             if (_onModel) { ShowModel(); return; }
             if (_backLabel != null) _backLabel.text = NetSession.Online ? "Leave Party" : "Back to Title";
             ChartButton();
-            _root.SetActive(true);
+            ShowOld();
             EventSystem.current?.SetSelectedGameObject(_resume.gameObject);
+        }
+
+        /// <summary>The old menu on the screen: its buttons' icons for their words as they are now (D-0226), its footer.</summary>
+        private void ShowOld()
+        {
+            _root.SetActive(true);
+            MenuIcons.OnButton(_chartButton, IconSet.StickerChart);
+            MenuIcons.OnButton(_resume, IconSet.Resume);
+            MenuIcons.OnButton(_optionsButton, IconSet.Options);
+            MenuIcons.OnButton(_backButton, NetSession.Online ? IconSet.LeaveParty : IconSet.Title);
+            MenuIcons.OnButton(_quitButton, IconSet.Quit);
+            if (_prompts != null) { _prompts.AtBottom(); _prompts.Show(PromptBar.Prompts.All); }
         }
 
         private void Resume()
@@ -156,6 +178,7 @@ namespace ShiftJam
             if (_chartPage) { StickerChart.ClosePage(); _chartPage = false; }
             _root.SetActive(false);
             HideModel();
+            if (_prompts != null) _prompts.Hide();
             IsOpen = false;
             UiAudio.Play(UiAudio.Kind.Back);
             Time.timeScale = _timeScale;
@@ -168,9 +191,10 @@ namespace ShiftJam
         private void OpenOptions()
         {
             _root.SetActive(false);
+            if (_prompts != null) _prompts.Hide();     // the old Options panel has its own hint line
             _options.Open(() =>
             {
-                _root.SetActive(true);
+                ShowOld();
                 EventSystem.current?.SetSelectedGameObject(_optionsButton.gameObject);
             });
         }
@@ -180,7 +204,7 @@ namespace ShiftJam
 
         private void BackToTitle()
         {
-            if (NetSession.Online) { IsOpen = false; _root.SetActive(false); HideModel(); NetSession.Leave(); return; }   // leave the party, then the title (D-0111)
+            if (NetSession.Online) { IsOpen = false; _root.SetActive(false); HideModel(); if (_prompts != null) _prompts.Hide(); NetSession.Leave(); return; }   // leave the party, then the title (D-0111)
             Time.timeScale = 1f;
             AudioListener.pause = false;
             GameMode.ResetQuietly();
@@ -263,6 +287,7 @@ namespace ShiftJam
             if (_model != null) _model.Show(false);
             if (_driver != null) _driver.enabled = false;
             if (_modelCanvas != null) _modelCanvas.SetActive(false);
+            if (_prompts != null && _onModel) _prompts.Hide();
         }
 
         /// <summary>The pause page, with <paramref name="select"/> selected (null: Resume; the Sticker Chart's slab is above
@@ -274,6 +299,21 @@ namespace ShiftJam
             if (_model.TryGet(select, out MenuModel.Control c) && c.Shown) _model.Selected = c;
             _heading.text = "<b>PAUSED</b>";
             ShowHint();
+            // D-0226: the slabs' icons (their words are set and their page is up), and the footer under the hint.
+            MenuIcons.OnSlab(_model, Chart_, IconSet.StickerChart);
+            MenuIcons.OnSlab(_model, Resume_, IconSet.Resume);
+            MenuIcons.OnSlab(_model, Options_, IconSet.Options);
+            MenuIcons.OnSlab(_model, Title_, NetSession.Online ? IconSet.LeaveParty : IconSet.Title);
+            MenuIcons.OnSlab(_model, Quit_, IconSet.Quit);
+            ShowPrompts(PromptBar.Prompts.All);
+        }
+
+        /// <summary>The footer under the model's hint line (D-0226).</summary>
+        private void ShowPrompts(PromptBar.Prompts which)
+        {
+            if (_prompts == null) return;
+            _prompts.UnderHint(_hintAnchor);
+            _prompts.Show(which);
         }
 
         private void ShowHint()
@@ -289,6 +329,7 @@ namespace ShiftJam
             _model.ShowPage(MenuOptions.Page);
             _heading.text = "<b>OPTIONS</b>";
             ShowHint();
+            ShowPrompts(PromptBar.Prompts.All);
         }
 
         private static void OnMoved() => UiAudio.Play(UiAudio.Kind.Select);
@@ -335,6 +376,8 @@ namespace ShiftJam
             else _root.SetActive(false);
             _chartPage = true;
             _chartFromModel = fromModel;
+            // The footer over the chart (D-0226): Back only, at the screen's bottom (the chart's card keeps clear of it).
+            if (_prompts != null) { _prompts.AtBottom(); _prompts.Show(PromptBar.Prompts.Back); }
         }
 
         /// <summary>Back from the chart: the pause page again, the chart's slab (or button) selected.</summary>
@@ -343,7 +386,7 @@ namespace ShiftJam
             _chartPage = false;
             if (_chartFromModel && _model != null) { ShowModel(Chart_); return; }
             ChartButton();
-            _root.SetActive(true);
+            ShowOld();
             EventSystem.current?.SetSelectedGameObject(_chartButton != null && _chartButton.gameObject.activeSelf ? _chartButton.gameObject : _resume.gameObject);
         }
 
@@ -372,7 +415,9 @@ namespace ShiftJam
                 _modelCanvas.SetActive(false);
             }
             ((RectTransform)_heading.transform).anchoredPosition = _model.Point("Anchor_Title", out Vector2 top) ? top : new Vector2(0f, 400f);
-            ((RectTransform)_hint.transform).anchoredPosition = _model.Point("Anchor_Hint", out Vector2 bottom) ? bottom : new Vector2(0f, -500f);
+            _hintAnchor = _model.Point("Anchor_Hint", out Vector2 bottom) ? bottom : new Vector2(0f, -500f);
+            // D-0226: the footer goes under the hint place; the hint moves up a little to make room.
+            ((RectTransform)_hint.transform).anchoredPosition = _hintAnchor + new Vector2(0f, _prompts != null ? _prompts.HintLift : 0f);
         }
 
         // ------------------------------------------------------------------ building the canvas
@@ -393,10 +438,10 @@ namespace ShiftJam
             _resume = MenuKit.Button(_root.transform, "Resume", new Vector2(0.5f, y), 0f, 380f, 40f, Resume); y -= 0.075f;
             UiSound.On(_resume).Press = UiAudio.Kind.None;   // Resume plays Back itself (Esc too)
             _optionsButton = MenuKit.Button(_root.transform, "Options", new Vector2(0.5f, y), 0f, 380f, 40f, OpenOptions); y -= 0.075f;
-            var back = MenuKit.Button(_root.transform, "Back to Title", new Vector2(0.5f, y), 0f, 380f, 40f, BackToTitle);
-            UiSound.On(back).Press = UiAudio.Kind.Confirm; y -= 0.075f;
-            _backLabel = back.GetComponentInChildren<TMPro.TMP_Text>();
-            MenuKit.Button(_root.transform, "Quit", new Vector2(0.5f, y), 0f, 380f, 40f, Quit);
+            _backButton = MenuKit.Button(_root.transform, "Back to Title", new Vector2(0.5f, y), 0f, 380f, 40f, BackToTitle);
+            UiSound.On(_backButton).Press = UiAudio.Kind.Confirm; y -= 0.075f;
+            _backLabel = _backButton.GetComponentInChildren<TMPro.TMP_Text>();
+            _quitButton = MenuKit.Button(_root.transform, "Quit", new Vector2(0.5f, y), 0f, 380f, 40f, Quit);
             MenuKit.Text("Hint", _root.transform, "Esc / Start to resume · progress keeps from the last save point", 22, new Vector2(0.5f, 0.05f), new Vector2(1000, 40)).alpha = 0.6f;
             _root.SetActive(false);
         }

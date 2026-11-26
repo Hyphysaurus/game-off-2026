@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e54813791ce6d344aae54f52268ff5a, type: 3}
+  m_Name: IconSet
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.IconSet
+  iconsOn: 1
+  icons:
+  - id: workshop
+    sprite: {fileID: 21300000, guid: 88db755ad5facf947b7f0bb1e57d1726, type: 3}
+  - id: raceway
+    sprite: {fileID: 21300000, guid: dc1e6cab0b68cbd4f9b040f67b337f43, type: 3}
+  - id: colours
+    sprite: {fileID: 21300000, guid: bff7d656f2d4e6346a8693e499909d36, type: 3}
+  - id: online
+    sprite: {fileID: 21300000, guid: 0060f2b884e37ff4a88915f0a2636a51, type: 3}
+  - id: parties
+    sprite: {fileID: 21300000, guid: e01a322dc0cee604caec8ed5e2a4688a, type: 3}
+  - id: options
+    sprite: {fileID: 21300000, guid: c1507165a7c279b4d9adc8fdbeee91ca, type: 3}
+  - id: quit
+    sprite: {fileID: 21300000, guid: c4a2ee98747b95d4dae8fb1585d7d77a, type: 3}
+  - id: resume
+    sprite: {fileID: 21300000, guid: 05f5ff23aa39af941b3c4b5c7fd1f0b6, type: 3}
+  - id: title
+    sprite: {fileID: 21300000, guid: e02280d516a5d9c44b55713f8f435f5a, type: 3}
+  - id: leave-party
+    sprite: {fileID: 21300000, guid: 69bea15e9d698b74a8c2ff91f6b6b2b1, type: 3}
+  - id: sticker-chart
+    sprite: {fileID: 21300000, guid: 6e1b1511d9f327843b3ef722f31e2538, type: 3}
+  - id: playground
+    sprite: {fileID: 21300000, guid: b81d47ca93d67bc4e8208b5966574889, type: 3}
+  - id: quick-play
+    sprite: {fileID: 21300000, guid: 6e5adbc1dc318894384ccdcdc541daa8, type: 3}
+  - id: volume
+    sprite: {fileID: 21300000, guid: dcc886d3e013a6147a26df1a96fce3bb, type: 3}
+  iconShare: 0.7
+  iconPixels: 16
+  iconGap: 14
+  unusableAlpha: 0.4
+  footerOn: 1
+  moveWords: Move
+  selectWords: Select
+  backWords: Back
+  capitals: 1
+  separator: '|'
+  keyboard:
+    move: {fileID: 21300000, guid: 98c40dac8bddbef44a139e0a65d127e1, type: 3}
+    select: {fileID: 21300000, guid: 74950009daaa7434cb55e8b82056ceed, type: 3}
+    back: {fileID: 21300000, guid: 2da864fd00431fe448869a994ea4b7b9, type: 3}
+  xbox:
+    move: {fileID: 21300000, guid: bc067c537eb860249bd4d3bfd08a2525, type: 3}
+    select: {fileID: 21300000, guid: c3462d0746f75de459d1534fd7cf6f73, type: 3}
+    back: {fileID: 21300000, guid: 1bafa48642ea28d46804d597c13516b6, type: 3}
+  playstation:
+    move: {fileID: 21300000, guid: d2126e034938119488d7eb46d9b52631, type: 3}
+    select: {fileID: 21300000, guid: dcba849ef431d8b41a13edcd43262b6d, type: 3}
+    back: {fileID: 21300000, guid: a49743cae24b3774ea706b0493845bb1, type: 3}
+  glyphSize: 32
+  wordsSize: 22
+  wordsColour: {r: 1, g: 0.9411765, b: 0.9882353, a: 1}
+  separatorColour: {r: 0.9607843, g: 0.78431374, b: 0.29803923, a: 1}
+  font: {fileID: 0}
+  glyphGap: 8
+  itemGap: 22
+  belowHint: 22
+  hintLift: 14
+  fromBottom: 22

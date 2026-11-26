@@ -22,6 +22,7 @@ namespace ShiftJam
     /// One for the whole game, made at the first scene and kept across loads; built in code like the other HUDs. Its
     /// parts are made once and only filled and placed when it opens or something changes while it is open: nothing is
     /// made or allocated per frame. Words: Resources/ObjectiveSet. OFF SWITCH: ObjectiveSet > Chart On.
+    /// The heading carries the IconSet's sticker-chart icon on its left (D-0226; none without it).
     /// </summary>
     public sealed class StickerChart : MonoBehaviour
     {
@@ -373,6 +374,7 @@ namespace ShiftJam
             _title = Text(titleRt, TitleLetters, Label, FontStyles.Bold | FontStyles.UpperCase);
             _title.alignment = TextAlignmentOptions.MidlineLeft;
             _title.characterSpacing = 6f;
+            MenuIcons.BeforeHeading(titleRt, IconSet.StickerChart);   // D-0226: the heading's icon; the words move right of it
             var totalRt = BuildUiKit.Rect("Total", _panel, topRight, topRight, topRight, new Vector2(-Pad, -Pad), new Vector2(Wide * 0.3f, TitleHigh));
             _total = Text(totalRt, TotalLetters, Ink, FontStyles.Bold);
             _total.alignment = TextAlignmentOptions.MidlineRight;

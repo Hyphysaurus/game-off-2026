@@ -79,7 +79,10 @@ flashlight.
   is optional and asked for).
 - **Effects:** Polygon Arsenal (Archanor VFX).
 - **3D lettering:** Modular 3D Text (Tiny Giant Studio). **Text effects:** Text Animator for Unity (Febucci).
-- **Fonts:** Fredoka and Teko (SIL Open Font License). **Key icons:** Kenney (CC0).
+- **Fonts:** Fredoka and Teko (SIL Open Font License). **Key icons:** Kenney (CC0). **Button prompts:** Kenney Input
+  Prompts (CC0). **Menu icons:** at-icons by Valentin Fossati (Voxybuns), MIT licence (recoloured to pixel art, D-0226).
+- **Monsters:** Dungeon Mason (RPG Monster Duo, RPG Monster Couple, RPG Monster Partners and Party Monster Duo, the free
+  Polyart packs). **Claw machine:** ithappy, Claw Machine Free.
 - **Tools:** Feel (More Mountains), Shapes (Freya Holmér), Linework Lite (Alexander Ameye), DOTween (Demigiant),
   Fraggo (Unluck Software: it cut the breakable props into their pieces), In-game Debug Console and Dynamic Panels
   (yasirkula), Unity's Netcode for GameObjects and Multiplayer Services (online play), TextMesh Pro, Unity Splines.

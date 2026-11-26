@@ -16,6 +16,12 @@ namespace ShiftJam
     /// On the model, Options and Parties are pages of the model too (D-0204: MenuOptions, MenuParties, slabs copied from
     /// the model's own by Made Controls on its prefab); Back goes to the page each was opened from. Without their slabs
     /// they are the old panels over the title, as before.
+    /// ICONS AND THE FOOTER (D-0226, his pixel menu mockup): each slab of the model carries its icon of Resources/IconSet
+    /// left of its words (Online, Playground, Options, Quit; Quick Play, Parties; Workshop, Raceway, Colours), placed as
+    /// its page comes up; under the hint line a footer of button prompts (PromptBar): Move and Select on the main page,
+    /// Back too on the others, in the glyphs of the hands used last. The menu that draws itself puts the same icons on
+    /// its buttons where the words leave room beside them (a button whose words fill it gets none) and has no footer
+    /// (its last row and its hint line leave no room for one). Off: IconSet > Icons On, Footer On.
     /// </summary>
     public sealed class TitleMenu : MonoBehaviour
     {
@@ -52,6 +58,7 @@ namespace ShiftJam
 
         private OptionsPanel _options; private Button _optionsButton;
         private MenuModel _model;   // the menu's look as a 3D model (D-0196); null = it draws itself
+        private PromptBar _prompts; // the button-prompt footer on the model (D-0226); null = none
 
         /// <summary>The controls the menu needs from a model; with one missing the menu draws itself.</summary>
         private static readonly string[] ModelControls =
@@ -217,16 +224,19 @@ namespace ShiftJam
             y -= 0.02f;
             // The three sandboxes and online play share a row (a row more would run into the hint line), in smaller
             // letters to fit. Host makes a party and copies its code; Join reads a code from the clipboard (D-0111).
-            MenuButton("Workshop", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); }, 118f, 26f, -252f);
-            MenuButton("Raceway", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(RacewayScene); }, 118f, 26f, -126f);
-            MenuButton("Colours", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(ColourCornerScene); }, 118f, 26f, 0f);
+            // Each with its icon of the IconSet (D-0226) where the words leave room beside it.
+            MenuIcons.OnButton(MenuButton("Workshop", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(WorkshopScene); }, 118f, 26f, -252f), IconSet.Workshop);
+            MenuIcons.OnButton(MenuButton("Raceway", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(RacewayScene); }, 118f, 26f, -126f), IconSet.Raceway);
+            MenuIcons.OnButton(MenuButton("Colours", y, () => { Time.timeScale = 1f; SceneManager.LoadScene(ColourCornerScene); }, 118f, 26f, 0f), IconSet.Colours);
             // Online (D-0122): Play Online drops you into an open world or starts one; Parties lists them (and keeps host
             // and code joins for private games).
-            MenuButton("Online", y, () => NetSession.PlayOnline(), 118f, 26f, 126f);
+            MenuIcons.OnButton(MenuButton("Online", y, () => NetSession.PlayOnline(), 118f, 26f, 126f), IconSet.Online);
             _partiesButton = MenuButton("Parties", y, OpenParties, 118f, 26f, 252f); y -= 0.062f;
+            MenuIcons.OnButton(_partiesButton, IconSet.Parties);
             // Options and Quit share the last row (a full row more would run into the hint line).
             _optionsButton = MenuButton("Options", y, OpenOptions, 185f, 40f, -97.5f);
-            MenuButton("Quit", y, Quit, 185f, 40f, 97.5f);
+            MenuIcons.OnButton(_optionsButton, IconSet.Options);
+            MenuIcons.OnButton(MenuButton("Quit", y, Quit, 185f, 40f, 97.5f), IconSet.Quit);
             _hint = Text("Hint", _root.transform, HintLine, 20, new Vector2(0.5f, 0.017f), new Vector2(1400, 30)); _hint.alpha = 0.6f;
             // The name others see online (D-0118), top right: kept between runs; empty = the PC's user name.
             var nameLabel = Text("NameLabel", _root.transform, "Your name online", 18, new Vector2(0.9f, 0.965f), new Vector2(300, 26)); nameLabel.alpha = 0.6f;
@@ -277,7 +287,11 @@ namespace ShiftJam
                 t.fontStyle = FontStyles.Bold; t.characterSpacing = 18f;
             }
             if (!_model.Point("Anchor_Hint", out at)) at = new Vector2(0f, -500f);
-            _hint = At("Hint", ModelHintLine, 20f, at, new Vector2(1500f, 30f), TextAlignmentOptions.Center); _hint.alpha = 0.6f;
+            // The button-prompt footer (D-0226) under the hint line, which moves up a little to make room: shown by ToPage
+            // with what that page takes.
+            _prompts = PromptBar.Make(_root.transform, "Prompts");
+            if (_prompts != null) _prompts.UnderHint(at);
+            _hint = At("Hint", ModelHintLine, 20f, at + new Vector2(0f, _prompts != null ? _prompts.HintLift : 0f), new Vector2(1500f, 30f), TextAlignmentOptions.Center); _hint.alpha = 0.6f;
             // Which build this is (D-0040), as in the menu that draws itself.
             if (!_model.Point("Anchor_Version", out at)) at = new Vector2(620f, -520f);
             var version = At("Version", "v" + Application.version + (Debug.isDebugBuild && !Application.isEditor ? " dev" : ""), 20f, at, new Vector2(170f, 32f), TextAlignmentOptions.Right);
@@ -324,6 +338,24 @@ namespace ShiftJam
             bool online = page == "Online";
             _nameField.gameObject.SetActive(online); _nameLabel.gameObject.SetActive(online);
             OnPartyStatus();     // the hint line for this page
+            ModelIcons();        // this page's slabs are up now: their icons can be measured and placed (D-0226)
+            // Back does nothing on the main page: its footer says Move and Select only.
+            if (_prompts != null) _prompts.Show(page == "Main" ? PromptBar.Prompts.MoveSelect : PromptBar.Prompts.All);
+        }
+
+        /// <summary>The icons of the IconSet on the model's slabs (D-0226), left of their words. Only the slabs of the page
+        /// on show are placed (the others' words are asleep); each page's are placed as it comes up.</summary>
+        private void ModelIcons()
+        {
+            MenuIcons.OnSlab(_model, "Btn_Online", IconSet.Online);
+            MenuIcons.OnSlab(_model, "Btn_Playground", IconSet.Playground);
+            MenuIcons.OnSlab(_model, "Btn_Options", IconSet.Options);
+            MenuIcons.OnSlab(_model, "Btn_Quit", IconSet.Quit);
+            MenuIcons.OnSlab(_model, "Btn_QuickPlay", IconSet.QuickPlay);
+            MenuIcons.OnSlab(_model, "Btn_Parties", IconSet.Parties);
+            MenuIcons.OnSlab(_model, "Btn_Workshop", IconSet.Workshop);
+            MenuIcons.OnSlab(_model, "Btn_Raceway", IconSet.Raceway);
+            MenuIcons.OnSlab(_model, "Btn_Colours", IconSet.Colours);
         }
 
         /// <summary>A value of the Options page stepped (left / right, or a click on its side).</summary>

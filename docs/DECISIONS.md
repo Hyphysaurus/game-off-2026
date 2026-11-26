@@ -4169,3 +4169,18 @@
   stores the plain address in commits, and a local pre-commit hook refuses any commit that would still add the key
   (tested). DOTween Pro's import switched on every add-on; EPO Outline, 2D Toolkit, DeAudio and DeUnityExtended (none
   installed) broke compiling and are off again on every platform.
+- **D-0226 (25 Nov 2026, 16:1x) Menu and button icons in his pixel menu style, and a button-prompt footer.** His "i also
+  want to polish menu and button icons, dont i have some free ones already in?" and "proceed". The look: his pixel menu
+  mockup (`Art/Mockups/SHIFT Pixel Menu Mockup.png`).
+  - **Icons** (`Art/UI/Icons/`, 14): at-icons (MIT, licence copied beside them) rasterized on their own 16 x 16 grid with
+    hard pixels, recoloured to his neon palette, a 1-pixel dark outline: workshop (wrench), raceway (checkered flag),
+    colours (three drops), online (globe), parties (three faces), options (gear), quit (exit), resume (play), title
+    (house), leave-party (door), sticker-chart (a sticky note), playground (cube), quick-play (bolt), volume (speaker, not
+    used yet). Made by `docs/tools/make_menu_icons.py` (cairosvg + Pillow; the Asset Library path is an argument).
+  - **Prompts** (`Art/UI/Prompts/`, 9): Kenney Input Prompts (CC0) for keyboard, Xbox and PlayStation: move, select, back.
+  - **Where:** `Resources/IconSet.asset` (`UI/IconSet.cs`, swappable per id) feeds the title's slabs (Workshop, Raceway,
+    Colours, Online, Parties, Playground, Quick Play, Options, Quit), the pause menu's slabs (Sticker Chart, Resume,
+    Options, Back to Title / Leave Party, Quit) and the Sticker Chart's heading; `UI/PromptBar.cs` is the footer
+    ("MOVE | SELECT | BACK") on the title, the pause menu and the chart page, with the glyphs of the device used last.
+  - Maker: Shift Jam > UI > Land Menu Icons (D-0226). Off: IconSet > Icons On / Footer On. Unsure: a Switch pad gets the
+    Xbox glyphs; the model's own hint line still repeats "Enter / A chooses". **NOT PLAYED.**

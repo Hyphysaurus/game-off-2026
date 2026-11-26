@@ -165,6 +165,10 @@ MonoBehaviour:
       - Room/Bedroom/BedMonsters/BlueSlime_4
       scene: Greybox
       needed: 0
+  - id: claw-champ
+    title: Claw champ
+    room: Bedroom
+    doneWhen: []
   - id: skittles
     title: Skittle strike
     room: Hallway

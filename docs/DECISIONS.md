@@ -4294,3 +4294,26 @@
   - Also in the save: URP's own light data on four lights (two Glow, EmberLight, LandingLight), added by the editor when
     the scene was drawn.
   - **NOT PLAYED.**
+- **D-0229 (25 Nov 2026, 18:3x) The claw machine you can play.** His "claw machine wasnt interactable". Built by a builder
+  from the D-0229 brief, landed with its maker.
+  - As the kid, E at the machine's front ("Play"; a trigger in front of the panel, so the front only; the toy gets no
+    prompt): the view swings to a framed shot of the glass (in third or first person; the kid is hidden meanwhile).
+    Move steers the carriage (inside the glass and the pack's own area), E or Space drops, Esc (pad B) gives up (the
+    pause menu stands aside; first person stays), and after 20 s it drops by itself.
+  - The claw (DOTween on the pack's own parts) drops, closes its fingers and rises. A prize under it with enough
+    overlap is lifted on a 75% chance (a near miss can slip on the way up), carried to the chute and let go. It sinks
+    into the hole, the view moves to the flap, the flap opens, and the prize rolls out as a toy to carry (Carryable)
+    while a toast names it. Won prizes are saved per slot (`claw:won:<name>`), so a reload keeps them out.
+  - The first win earns the gold star "Claw champ" (Bedroom; placeholder words; 12 stars now) through an ObjectiveHook
+    on the machine, outside the hooks Build Objectives rebuilds (which lists the star as "NO RULE", wrongly for this one).
+  - Sounds from the claw pack; every number and word on `Resources/ClawGameSettings` (the words are placeholders).
+  - The one edit outside its files: first person does not leave on the Esc a round takes (`ClawGame.TookEsc`, as the
+    armory bench does).
+  - Maker report (18:2x): every part found; the glass 30 x 35.9 x 25.2; both views clear; the 7 prizes inside the glass;
+    the kid's ideal standing spot overlaps the machine, but its E search still reaches the play spot. Its warning "the
+    floor under the let-go point is 2.217" is a false alarm: that is a ledge near the case's top, and the hole's floor
+    (1.061) is straight below it (probed 18:2x).
+  - Known edges: V during a round in first person drops to third person mid-round (the kid then shows in the shot); the
+    hole in this mesh is a closed patch, so a won prize sinks out of sight rather than falling through; a prize that was
+    leaning on the one taken stays leaning.
+  - Off: ClawGameSettings > On; untick ClawGame; untick its ObjectiveHook (the star only). **NOT PLAYED.**

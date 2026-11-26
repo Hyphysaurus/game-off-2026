@@ -1,0 +1,144 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0badf9e4ccf67447bfd1af8416c839a, type: 3}
+  m_Name: ClawGameSettings
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ClawGameSettings
+  on: 1
+  online: 0
+  playPrompt: Play
+  emptyPrompt: Empty
+  emptyToast: No prizes left in the claw machine.
+  hudTitle: CLAW MACHINE
+  hudKeys: '<color=#8FE3FF>Move</color> steer  <color=#8FE3FF>E/Space</color> drop 
+    <color=#8FE3FF>Esc</color> give up  <color=#7F8C99>(pad: stick, A/Y, B)</color>'
+  hudTimeFormat: '{0}'
+  wonToast: You won the {0}!
+  missToast: Missed.
+  slipToast: So close! It slipped.
+  prizeNames:
+  - kind: Slime
+    words: Slime
+  - kind: TurtleShell
+    words: Turtle Shell
+  - kind: BlueSlime
+    words: Blue Slime
+  - kind: StarFish
+    words: Starfish
+  - kind: Beholder
+    words: Beholder
+  - kind: ChestMonster
+    words: Chest Monster
+  - kind: PartyC01
+    words: Party Monster
+  - kind: PartyP01
+    words: Party Monster
+  timeLimit: 20
+  steerSpeed: 0.29
+  steerEase: 0.12
+  deadZone: 0.15
+  wallGap: 0.02
+  leaveDistance: 3
+  playReach: 2.2
+  dropSpeed: 0.3
+  riseSpeed: 0.25
+  carrySpeed: 0.35
+  fingerOpen: -43
+  fingerClosed: 23
+  fingerSpeed: 90
+  settleSeconds: 0.25
+  floorGap: 0.008
+  topGap: 0.004
+  fingerGap: 0.01
+  maxSwing: 5
+  swingKick: 45
+  swingSpring: 30
+  swingDamping: 3
+  grabJolt: 12
+  leverTilt: 22
+  leverEase: 0.05
+  buttonDepth: 0.012
+  buttonSeconds: 0.24
+  graspReach: 0.12
+  overlapNeeded: 0.3
+  grabChance: 0.75
+  firmOverlap: 0.7
+  slipChance: 0.5
+  slipBetween: {x: 0.25, y: 0.75}
+  slipFallSeconds: 0.35
+  fallSeconds: 0.35
+  fallTumble: 30
+  hatchOpenAngle: -100
+  hatchOpenSeconds: 0.45
+  hatchCloseSeconds: 0.4
+  insideDepth: 0.43
+  exitSeconds: 0.45
+  landSeconds: 0.3
+  rollSpeed: 0.6
+  rollSpin: 1.5
+  prizeMass: 1
+  showSeconds: 1.4
+  wonSpacing: 0.24
+  viewFieldOfView: 40
+  viewPitch: 22
+  viewYaw: 0
+  viewMargin: 0.08
+  chuteViewPitch: 28
+  chuteViewSpan: 1.1
+  viewClearance: 0.04
+  blendIn: 0.6
+  blendOut: 0.8
+  chuteBlend: 0.55
+  missHold: 0.8
+  hideBodyAt: 0.5
+  button:
+    clip: {fileID: 8300000, guid: c3a3bb75034b1424a9f61bb1234765f6, type: 3}
+    volume: 0.7
+    pitchSpread: 0.05
+  moveLoop:
+    clip: {fileID: 8300000, guid: 3c88c0fb160e9e242a162a229594b133, type: 3}
+    volume: 0.45
+    pitchSpread: 0
+  dropLoop:
+    clip: {fileID: 8300000, guid: 1f305749c02ce7548b0f49fe8a939c9a, type: 3}
+    volume: 0.5
+    pitchSpread: 0
+  fingerLoop:
+    clip: {fileID: 8300000, guid: 8f123c06c67846f4db69ab9aae2336c0, type: 3}
+    volume: 0.4
+    pitchSpread: 0
+  toyDrop:
+    clip: {fileID: 8300000, guid: d191cc53be5ccf1438dcdb49cded5606, type: 3}
+    volume: 0.8
+    pitchSpread: 0.05
+  win:
+    clip: {fileID: 8300000, guid: 049857533f5bde341b5e2693d3791a4a, type: 3}
+    volume: 0.8
+    pitchSpread: 0
+  miss:
+    clip: {fileID: 8300000, guid: 23e34fe5a7bc6c147b921136b1ce42d9, type: 3}
+    volume: 0.7
+    pitchSpread: 0
+  slip:
+    clip: {fileID: 8300000, guid: 5611d36e6ce62ee408dbbb71bd61b75c, type: 3}
+    volume: 0.7
+    pitchSpread: 0.05
+  land:
+    clip: {fileID: 8300000, guid: ad75df6220de31542bd531cd86e47e20, type: 3}
+    volume: 0.6
+    pitchSpread: 0.1
+  soundSpace: 0.75
+  soundNear: 1.5
+  soundFar: 9
+  starId: claw-champ
+  starTitle: Claw champ
+  starRoom: Bedroom
+  saveKey: 'claw:won:'

@@ -23450,6 +23450,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 290753681}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &291465600
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 291465601}
+  m_Layer: 0
+  m_Name: ClawExit (D-0229)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &291465601
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 291465600}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 6.0163574, y: 14.735153, z: 22.63893}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1099001506}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &291536699
 GameObject:
   m_ObjectHideFlags: 0
@@ -50915,6 +50946,16 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -996734243440884908, guid: 55285df901c50d54899cdd456ba019e3, type: 3}
+--- !u!4 &636491549 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1433322551057006511, guid: 89f666045e3af1b4682a7ab4b2884b05, type: 3}
+  m_PrefabInstance: {fileID: 636491521}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &636491552 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4758629078245503297, guid: 89f666045e3af1b4682a7ab4b2884b05, type: 3}
+  m_PrefabInstance: {fileID: 636491521}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &636511282
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -58779,6 +58820,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -8076322239202618655, guid: 2e5eeed035e35ca4099a559c200ef726, type: 3}
+--- !u!4 &769949941 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3904749787644340753, guid: 89f666045e3af1b4682a7ab4b2884b05, type: 3}
+  m_PrefabInstance: {fileID: 636491521}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &770271422
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -65287,6 +65333,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2811163308960908111, guid: 2c078703d888a0e4281ceef46e70205f, type: 3}
   m_PrefabInstance: {fileID: 864372987}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &864430218
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 864430219}
+  m_Layer: 0
+  m_Name: ClawView (D-0229)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &864430219
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 864430218}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.9816272, z: 0.19080901, w: 0}
+  m_LocalPosition: {x: -0.03886032, y: 73.50764, z: 63.47564}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1099001506}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &865595084
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66110,6 +66187,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7328759759584156428, guid: c500900ee2d205f489921d5f9adede2c, type: 3}
   m_PrefabInstance: {fileID: 876511800}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &877867775
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 877867776}
+  m_Layer: 0
+  m_Name: ClawChuteView (D-0229)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &877867776
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 877867775}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.9702957, z: 0.24192192, w: 0}
+  m_LocalPosition: {x: 6.0163536, y: 30.467062, z: 60.723732}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1099001506}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &878305126
 GameObject:
   m_ObjectHideFlags: 0
@@ -89351,6 +89459,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1099001506}
+  - component: {fileID: 1099001509}
+  - component: {fileID: 1099001507}
+  - component: {fileID: 1099001508}
   m_Layer: 0
   m_Name: ClawMachine
   m_TagString: Untagged
@@ -89372,8 +89483,94 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 636491522}
+  - {fileID: 1441534555}
+  - {fileID: 291465601}
+  - {fileID: 864430219}
+  - {fileID: 877867776}
   m_Father: {fileID: 1579133429}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1099001507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099001505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09a7aee8ffe0c394db086969b90fead6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ClawGame
+  machine: {fileID: 636491522}
+  body: {fileID: 636491548}
+  rail: {fileID: 636491549}
+  carriage: {fileID: 1486720821}
+  rod: {fileID: 1874989224}
+  head: {fileID: 1713954743}
+  fingers:
+  - {fileID: 1332621251}
+  - {fileID: 1381350127}
+  - {fileID: 769949941}
+  hatch: {fileID: 1637333454}
+  lever: {fileID: 1596473824}
+  button: {fileID: 636491552}
+  prizes: {fileID: 1522115531}
+  view: {fileID: 864430219}
+  chuteView: {fileID: 877867776}
+  exit: {fileID: 291465601}
+  playSpot: {fileID: 1441534555}
+  caseBox:
+    m_Center: {x: -0.0013614297, y: 1.6726515, z: -0.010152042}
+    m_Extent: {x: 0.52570903, y: 0.62925464, z: 0.4412265}
+  steerArea: {x: -0.3, y: 0.3, z: -0.24, w: 0.226}
+  chuteAt: {x: 0.22595225, y: 0.226}
+  floorY: 1.1612715
+  holeY: 1.0608978
+  fingerTip: {x: 0, y: -0.183, z: 0.011}
+  fingerClose: 1
+  actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  onWon:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1099001508}
+        m_TargetAssemblyTypeName: ShiftJam.ObjectiveHook, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &1099001508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099001505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd6de94fe4d538548856b5801b6feecc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveHook
+  id: claw-champ
+  kind: 1
+  needed: 1
+--- !u!114 &1099001509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099001505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bf239f822f691d48aecaaf5133330f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ClawGameView
 --- !u!1 &1099056064
 GameObject:
   m_ObjectHideFlags: 0
@@ -107521,6 +107718,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -8076322239202618655, guid: 2e5eeed035e35ca4099a559c200ef726, type: 3}
+--- !u!4 &1332621251 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5812566728031984446, guid: 89f666045e3af1b4682a7ab4b2884b05, type: 3}
+  m_PrefabInstance: {fileID: 636491521}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1333994390
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -109566,6 +109768,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -8076322239202618655, guid: 2e5eeed035e35ca4099a559c200ef726, type: 3}
+--- !u!4 &1381350127 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5251353576456839142, guid: 89f666045e3af1b4682a7ab4b2884b05, type: 3}
+  m_PrefabInstance: {fileID: 636491521}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1384008872
 GameObject:
   m_ObjectHideFlags: 0
@@ -113090,6 +113297,73 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5550138031721761530, guid: 7518431c199a5da48ab34132805def34, type: 3}
   m_PrefabInstance: {fileID: 1441326649}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1441534554
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1441534555}
+  - component: {fileID: 1441534557}
+  - component: {fileID: 1441534556}
+  m_Layer: 2
+  m_Name: ClawPlaySpot (D-0229)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1441534555
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1441534554}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.023658752, y: 29.906015, z: 22.559797}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1099001506}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1441534556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1441534554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 645d8d1b914aa9c469aedfc8e66da4c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ClawGamePlaySpot
+  game: {fileID: 1099001507}
+--- !u!65 &1441534557
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1441534554}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 16.293848, y: 11.417735, z: 7.992414}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &1441721602
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -121888,6 +122162,11 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!4 &1486720821 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1039763191542895398, guid: 89f666045e3af1b4682a7ab4b2884b05, type: 3}
+  m_PrefabInstance: {fileID: 636491521}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1491249526
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -128978,6 +129257,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 1221633221682130131, guid: 82414c2f3785bab448c96e4fdcc81ea9, type: 3}
+--- !u!4 &1596473824 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8721971276826537962, guid: 89f666045e3af1b4682a7ab4b2884b05, type: 3}
+  m_PrefabInstance: {fileID: 636491521}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1599878464
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -131308,6 +131592,11 @@ Transform:
   - {fileID: 412569162}
   m_Father: {fileID: 384406161}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1637333454 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8432260997188701685, guid: 89f666045e3af1b4682a7ab4b2884b05, type: 3}
+  m_PrefabInstance: {fileID: 636491521}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1638397095
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -135514,6 +135803,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 1991725555915917884, guid: 3c6266309e8e35f41baa4656fabaf437, type: 3}
+--- !u!4 &1713954743 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7639839687002921314, guid: 89f666045e3af1b4682a7ab4b2884b05, type: 3}
+  m_PrefabInstance: {fileID: 636491521}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1715851270
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -150432,6 +150726,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -7938359791221998717, guid: ac54131c6ab94fd44843752c6652247e, type: 3}
+--- !u!4 &1874989224 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 341960585159509126, guid: 89f666045e3af1b4682a7ab4b2884b05, type: 3}
+  m_PrefabInstance: {fileID: 636491521}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1875120524
 GameObject:
   m_ObjectHideFlags: 0

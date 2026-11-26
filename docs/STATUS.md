@@ -2,6 +2,17 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 18:3x — THE CLAW MACHINE YOU CAN PLAY (D-0229) LANDED, Greybox saved. NOT PLAYED. CLOTH HELD FOR HIS CALL.
+- **HIS TEST:**
+  - As the kid at the machine's front: "E Play". The view swings to the glass; WASD or the stick steers; E or Space
+    drops; Esc gives up; after 20 s it drops by itself.
+  - A win: the prize goes to the chute, the flap opens, it rolls out, a toast names it, and the first win gives the gold
+    star "Claw champ". Try it in first person too. The toy gets no prompt.
+- **Faults to watch:** the camera in a wall or the case cut off; the claw going through a prize or the floor; a prize
+  floating after a miss; the prize falling visibly through the cabinet; the pause menu opening on Esc.
+- **Cloth (D-0233) is staged, NOT landed:** the Playroom "curtain" turned out to be a raised blind whose only moving part
+  is its pull cord. His call: flags only (recommended), flags and the blinds, or flags and script-made drapes.
+
 ## 25 Nov 2026 17:3x — GRABBIT PART 2 (D-0236) LANDED, Greybox saved. NOT PLAYED. WAVE 2 BUILDING.
 - **HIS TEST:**
   - Under the bed with the flashlight: lost toys in the far half (alphabet blocks, toppled chess pieces, a gamepad, a

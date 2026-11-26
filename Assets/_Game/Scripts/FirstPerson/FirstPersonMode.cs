@@ -126,8 +126,9 @@ namespace ShiftJam
                     else if (CanEnter || GameMode.Current == GameMode.Mode.Build) GameMode.Set(GameMode.Mode.FirstPerson);
                 }
                 // Not on the frame the armory bench's screen closed on this same Esc (D-0167): that screen runs before
-                // this script and has already used the key, so Esc at the bench only closes the bench.
-                else if (_inside && !BenchScreen.TookEsc && k.escapeKey.wasPressedThisFrame) GameMode.Set(GameMode.Mode.Play);
+                // this script and has already used the key, so Esc at the bench only closes the bench. Nor while the claw
+                // machine has a round on (D-0229): Esc there gives the round up, and first person stays.
+                else if (_inside && !BenchScreen.TookEsc && !ClawGame.TookEsc && k.escapeKey.wasPressedThisFrame) GameMode.Set(GameMode.Mode.Play);
             }
 
             // On the player itself (D-0194): the body faces wherever the eyes look, at once. Told every frame before the

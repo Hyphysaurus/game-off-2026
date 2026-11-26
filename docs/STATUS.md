@@ -20,6 +20,8 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   length (range 350 x its share) and runs on through walls, drawn outside the box. FIXED: D-0244, landed 08:0x,
   not played. His test: the opening seen from outside the toy box shows no glow past the cardboard; beams fade out
   softly at walls; a beam on a core still passes round it. Off switch: Flashlight > Shaft Stops.
+- **The first goal line (his words, 08:3x):** the objective card's goal now says "Figure out what happened" (was
+  "Get to the end of the garden", which pointed at the garden from the start): ObjectiveSet + BackyardSettings.
 
 ## 26 Nov 2026 00:3x — THE START HUB'S NEW ORDER (D-0241), LANDED, Greybox saved. NOT PLAYED.
 - **HIS TEST (New Game):** the second toast says "Am I in a box?"; turn the light onto the core and grow: a monster

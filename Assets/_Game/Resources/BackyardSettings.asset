@@ -237,7 +237,7 @@ MonoBehaviour:
   roundBend: 0.8
   insideTreesOff: 1
   seed: 2390
-  goal: Get to the end of the garden
+  goal: Figure out what happened
   openingGoalLine: I need to get to the end of the garden.
   stepOutWindow: Out the window
   fenceStepId: back-fence

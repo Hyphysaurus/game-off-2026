@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ObjectiveSet
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveSet
   on: 1
-  goal: Get to the end of the garden
+  goal: Figure out what happened
   starToast: Gold star {0} of {1}. Shift charge full.
   counterFormat: '{0} / {1}'
   endCardFormat: '{0} of {1} gold stars'

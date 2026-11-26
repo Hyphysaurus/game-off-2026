@@ -3,6 +3,20 @@
 Order = priority. "His" = editor / feel / art / audio; "mine" = scripts, builder runs, docs. One playable loop
 first, then juice, then the page. Nothing here is a deadline pressure, it is the order to pick from.
 
+## HIS IDEAS, 25 Nov 2026 evening (from his 19:20 play; NOT decided, NOT built; jam or post-jam still his call)
+- **The end goal: the backyard, not the window.** His "i think our end goal will be not the window but the backyard".
+  Today's ending (DESIGN.md) is the toy back on the sill at dawn, looking at the garden it will never see again; the
+  backyard was parked as post-jam (NORTH STAR below). A backyard goal turns the ending into an escape.
+- **The Colour Corner and the Raceway joined without hallway sections.** His "figure out how to get the color corner
+  and the raceway into a seamless transition mode between sections instead of a hallway per se" and "we can use
+  rooms, but the house should start to feel more of a unified location". Today both are separate scenes loaded
+  through playroom doors (a load and a cut).
+- **Monsters with rarities, gacha style.** His "making it a gatcha style game with different rarities for the monsters
+  or something like that". No real money, no paid pulls.
+- **The HUD gives information away without its context.** His "it still gives a lot of information away without the
+  context being clear or obvious" (with D-0162's steps 2 and 3 still unbuilt).
+- **In-game menus in his pixel menu style** (claw machine, armory, garage), from the 25 Nov UI plan.
+
 
 ## NORTH STAR (his words, 20 Nov 2026): "i sort of want this to feel like a GTA type toy world"
 Post-jam direction, not jam scope. The house is the city (rooms are districts, the backyard and street beyond),

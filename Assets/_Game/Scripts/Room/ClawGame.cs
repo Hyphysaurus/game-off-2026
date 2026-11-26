@@ -822,12 +822,15 @@ namespace ShiftJam
             return floor;
         }
 
-        /// <summary>The floor straight down from just under the glass's top at <paramref name="point"/>'s x, z, on the
-        /// body's own collider (the machine's own height); the measured prize floor when the ray finds nothing.</summary>
+        /// <summary>The floor straight down from <paramref name="point"/> (never from above the glass's top), on the body's own
+        /// collider (the machine's own height); the measured prize floor when the ray finds nothing.</summary>
         private float FloorAt(Vector3 point)
         {
             Vector3 local = machine.InverseTransformPoint(point);
-            local.y = caseBox.max.y - 0.02f;
+            // From the point's own height (the claw before it drops), not the glass's top: the body has ledges up there (2.217
+            // by the chute and near the sides, probed 25 Nov), and one taken for the floor kept the claw from coming down at all
+            // (his 19:20 play: "down 0.000" near the case's sides).
+            local.y = Mathf.Min(caseBox.max.y - 0.02f, local.y + 0.01f);
             var ray = new Ray(machine.TransformPoint(local), -machine.up);
             if (body.Raycast(ray, out RaycastHit hit, caseBox.size.y * 2f * machine.lossyScale.y))
                 return machine.InverseTransformPoint(hit.point).y;

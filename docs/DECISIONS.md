@@ -4317,6 +4317,11 @@
     hole in this mesh is a closed patch, so a won prize sinks out of sight rather than falling through; a prize that was
     leaning on the one taken stays leaning.
   - Off: ClawGameSettings > On; untick ClawGame; untick its ObjectiveHook (the star only). **NOT PLAYED.**
+  - **Fix (25 Nov 19:5x):** in his 19:20 play, drops near the case's sides did not come down at all ("down 0.000").
+    `ClawGame.FloorAt` aimed down from just under the glass's top and met the body's ledges up there (2.217), above the
+    claw, and took one for the floor. It now aims from the claw's own height. Still open from that play: 12 drops gave
+    1 grab (it slipped), most "too far off its middle": depth is hard to judge from the front view (his call: a landing
+    ring under the claw, a looser grab reach, a higher view).
 - **D-0233 (25 Nov 2026, 19:1x) Magica Cloth 2: the fort flags wave, and blinds at the windows swing their pull cords.**
   His "i really want to explore ... magicacloth" and then "2" (the flags plus the blinds as built). Built by a builder from
   the D-0233 brief, landed with its maker.
@@ -4340,3 +4345,7 @@
   - Numbers on `Resources/ClothSettings` (a breeze per place, stiffness, pokes). Off: Cloth On, Curtain / Flag On, a
     place's On or its Breeze at 0, Player Pushes, Shots Poke. Re-run the maker after any CourseBuilder rebuild of Room.
     **NOT PLAYED.**
+  - **Fix (25 Nov 19:5x):** in his 19:20 play all 12 cloths stood still. Magica's own Start runs its auto build once
+    even after BuildAndRun has switched auto building off, and calls back "not built" with no error while the real
+    build is under way; `ClothDresser.OnBuilt` took that for a failure and tore each cloth down. Now only a "not built"
+    that carries an error fails, and the warning prints Magica's own reason. **NOT PLAYED.**

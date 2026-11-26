@@ -268,8 +268,13 @@ namespace ShiftJam
             if (cloth == null || cloth != _cloth) return;
             if (!ok)
             {
+                // Magica's own Start still runs its auto build once after BuildAndRun has switched auto building off, and that
+                // calls back "not built" with no error while the real build is under way (ClothProcess.AutoBuild). Taken for a
+                // failure, it tore every cloth down (his 25 Nov 19:20 play: all 12 "stays still"). Only a false that carries
+                // an error is one; the real build calls back again when it is done.
+                if (cloth.Process.IsState(MC.ClothProcess.State_DisableAutoBuild) && !cloth.Process.Result.IsError()) return;
                 TearDown();
-                Fail("Magica Cloth's build failed (its own line above says why)");
+                Fail("Magica Cloth's build failed: " + cloth.Process.Result.GetResultString());
                 return;
             }
             _ready = true;

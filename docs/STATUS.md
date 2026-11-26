@@ -2,6 +2,14 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 19:5x — FIXES FROM HIS 19:20 PLAY: THE CLOTH BUILDS, THE CLAW COMES DOWN BY THE SIDES. NOT PLAYED.
+- **HIS TEST:** the console shows 12 "[Cloth D-0233] ... built in t s" lines and no "stays still"; the bedroom's blind
+  cord and the fort flags move. At the claw machine, a drop near the left or right side comes down.
+- **Waiting on him:** what "my flashlight broke on fall" looked like (his 19:20 play, the reset at 6:49; nothing in the
+  play log records the flashlight); the claw's aiming (a landing ring, a looser reach, a higher view); the bedroom
+  window sunk 3.7 inside its wall (the kit's window-hole wall as the fix); his new ideas (BACKLOG top: the backyard
+  ending, the Raceway and Colour Corner joined into one house, monster rarities, the HUD's context).
+
 ## 25 Nov 2026 19:1x — MAGICA CLOTH (D-0233) LANDED (his "2": the flags plus the blinds), Greybox saved. NOT PLAYED.
 - **HIS TEST:**
   - Press Play: the console shows 12 "[Cloth D-0233] ... built in t s" lines (10 blinds, 2 flags).

@@ -4417,3 +4417,33 @@
   slip through again). Maker `GateBuilder`, run after Land Backyard. Online, the host runs it like the other 21
   breakables in Greybox. The maker's "the kid does NOT pass" line is its sweep reaching the end seal 36 behind the wall;
   a kid stepping into the gap is already in the goal strip. **NOT PLAYED.**
+- **D-0241 (26 Nov 2026, 00:3x) The start hub's new order.** His "box spawn > light rotated to orb > shift > small door
+  still locked until monsters are first addressed, room lights cannot go on and claw machine cannot be used until this
+  happens > lights are on, small door can be unlocked and traveled through"; "the monsters should never go calm unless
+  in end game, they should always respawn and attack, we can stun them with the light, and the dart gun should be found
+  under the bed"; "knocked out with darts"; then his picks of my options: the star lamp as a stun sweep, the sign to go
+  under the bed as a snatch with a glint backup; "PROCEEED". Built by a staged builder, landed in his open editor.
+  - **The lock** (`Room/BedroomGate.cs`, words and numbers on `Resources/BedroomGateSettings`): the shelf switch (its
+    dart path too), the light switch and the claw machine say "Not yet" and refuse until each of the four Roam monsters
+    has been knocked out once by a dart (a dart's knockout is told from a punch by the shot landing in the same moment).
+    Saved per slot ("bedroom:monsters-cleared"); online it is always open. Opening it ticks the new step and awards the
+    "monsters" star. Switch and ClawGame got one "Held Shut By" field each, empty everywhere else.
+  - **The monsters** (MonsterSettings > Never Calm, Light Stuns, Stay Down): no freeze in the room lights and no
+    sleepiness in the starlight, only at the game's end; a beam makes them dizzy instead of sending them to hide (the kid
+    still scares them off); a knocked-out monster gets up at its spot after 5 s. Their attack stays a push (no damage:
+    his call).
+  - **The star lamp's stun sweep**: each light that fills it tilts its star spots down and spins them for 5 s, stunning
+    any monster in a cone with a clear line, then rests 8 s. **Measured: it reaches 0 of the 4 monster spots and 0 of 700
+    cave points: the bedside table and the bed hide the cave.** It only stuns a monster that comes out. His call: move
+    the lamp low by the bed's mouth, or let the sweep ignore the bed.
+  - **The snatch** (`Monsters/GunSnatch.cs`): the dart gun lies out at (60.6, 0, -20); on the first growth Slime_1 runs
+    out, takes it ("Hey! My dart gun!", a placeholder) and drags it under the bed (about 6.4 s of held controls, the view
+    turned). The gun waits at (125.9, 0, -8.4) on a stand that gives it once, toy only (the kid's reach falls 18 short),
+    and glints in any beam. Landing fix: the maker found no model in the stand prefab's display (a plain object there,
+    not a placed prefab) and would have dragged an invisible gun; it now copies that object, sized to the toy.
+  - **Steps**: "Turn the light onto the core" (was "Shine the flashlight on the box core"), new "Find what's under the
+    bed" (WeaponTaken), new "Knock out the monsters" (the gate), then the little door and through it. The opening's second
+    toast is his "Am I in a box?" (was "I need to get to the end of the garden.").
+  - Open: the old D-0228 rule can still award the monsters star early (four down in one visit, punches too); the little
+    door's hint still says "Shut. A switch opens it."; Gap, Pit and Dab have no lines for the two new steps. The soldiers
+    are unchanged. **NOT PLAYED.**

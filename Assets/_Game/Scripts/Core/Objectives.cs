@@ -12,7 +12,8 @@ namespace ShiftJam
     /// every earlier one done too (a player who skips ahead is never told to go back).
     /// It listens to the facts the game already announces (GameEvents) and matches them to the set's rules by the
     /// object's name or path; parts that only raise UnityEvents reach it through an ObjectiveHook the maker wires; the
-    /// Raceway's finish and the Colour Corner's end are heard in code in their own scenes.
+    /// Raceway's finish and the Colour Corner's end are heard in code in their own scenes. D-0241: also a weapon taken
+    /// (GameEvents.WeaponTaken, matched by the stand it came from) and the bedroom gate opening (BedroomGate.Opened).
     /// A star earned: a Got toast with its title, one sound, the shift charge refilled for the player on this PC (each
     /// star refills your charge), and <see cref="StarAwarded"/> (the HUD's counter pops).
     /// Nothing is networked: online (a party is a sandbox with no ending, D-0125, and other players' copies raise the same
@@ -93,6 +94,8 @@ namespace ShiftJam
             GameEvents.GoalReached -= OnGoal; GameEvents.GoalReached += OnGoal;
             GameEvents.PickedUp -= OnPickedUp; GameEvents.PickedUp += OnPickedUp;
             GameEvents.SetDown -= OnSetDown; GameEvents.SetDown += OnSetDown;
+            GameEvents.WeaponTaken -= OnWeaponTaken; GameEvents.WeaponTaken += OnWeaponTaken;   // D-0241
+            BedroomGate.Opened -= OnGateOpened; BedroomGate.Opened += OnGateOpened;               // D-0241 (it clears its own at SubsystemRegistration)
             RaceState.Finished -= OnRaceFinished; RaceState.Finished += OnRaceFinished;
             SaveGame.Changed -= OnSaveChanged; SaveGame.Changed += OnSaveChanged;
             SceneManager.sceneLoaded -= OnSceneLoaded; SceneManager.sceneLoaded += OnSceneLoaded;
@@ -583,6 +586,30 @@ namespace ShiftJam
         private static void OnGoal(Goal goal) { if (goal != null) Heard(ObjectiveEvent.GoalReached, goal.transform); }
         private static void OnPickedUp(Transform thing) { if (thing != null) Heard(ObjectiveEvent.PickedUp, thing); }
         private static void OnSetDown(Transform thing) { if (thing != null) Heard(ObjectiveEvent.SetDown, thing); }
+        private static void OnGateOpened(BedroomGate gate) { if (gate != null) Heard(ObjectiveEvent.GateOpened, gate.transform); }   // D-0241
+
+        /// <summary>D-0241: a weapon was taken. A stand hands out copies of a prefab (GameEvents names the prefab), so the
+        /// thing matched is the stand it came from: the nearest stand to the taker handing out that weapon. A loose weapon
+        /// hands over itself and keeps its name in the hand. Looked up only when some rule listens for it.</summary>
+        private static void OnWeaponTaken(WeaponHolder holder, Weapon weapon)
+        {
+            if (holder == null || weapon == null || !Live) return;
+            Ensure();
+            if (!AnyRule(ObjectiveEvent.WeaponTaken)) return;
+            Transform thing = weapon.transform;
+            if (!weapon.gameObject.scene.IsValid())
+            {
+                Vector3 at = holder.transform.position;
+                float best = float.MaxValue;
+                foreach (WeaponPickup stand in Object.FindObjectsByType<WeaponPickup>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                {
+                    if (stand.Weapon != weapon) continue;
+                    float d = (stand.transform.position - at).sqrMagnitude;
+                    if (d < best) { best = d; thing = stand.transform; }
+                }
+            }
+            Heard(ObjectiveEvent.WeaponTaken, thing);
+        }
 
         /// <summary>The player's car finished a race: a win if it came home first (or raced alone).</summary>
         private static void OnRaceFinished()

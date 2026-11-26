@@ -24,12 +24,32 @@ MonoBehaviour:
   fadeSeconds: 0.25
   steps:
   - id: wake-box
-    text: Shine the flashlight on the box core
+    text: Turn the light onto the core
     target: 
     doneWhen:
     - when: 0
       objects:
       - Room/ToyBox/ShiftCore
+      scene: Greybox
+      needed: 1
+    room: Bedroom
+  - id: under-bed
+    text: Find what's under the bed
+    target: 
+    doneWhen:
+    - when: 17
+      objects:
+      - Room/Bedroom/GunSnatch/BedDartGun
+      scene: Greybox
+      needed: 1
+    room: Bedroom
+  - id: knock-out
+    text: Knock out the monsters
+    target: 
+    doneWhen:
+    - when: 18
+      objects:
+      - Room/Bedroom/BedroomGate
       scene: Greybox
       needed: 1
     room: Bedroom
@@ -176,6 +196,11 @@ MonoBehaviour:
       - Room/Bedroom/BedMonsters/BlueSlime_4
       scene: Greybox
       needed: 0
+    - when: 18
+      objects:
+      - Room/Bedroom/BedroomGate
+      scene: Greybox
+      needed: 1
   - id: claw-champ
     title: Claw champ
     room: Bedroom

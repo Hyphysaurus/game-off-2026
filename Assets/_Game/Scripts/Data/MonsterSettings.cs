@@ -10,7 +10,8 @@ namespace ShiftJam
     /// go dizzy in a beam, how they are knocked down and stay down, how a frozen one tips over, their size, eyes, glow,
     /// "!" and sounds, and the state names each kind's own Animator uses (the pack's controllers have no parameters: states
     /// are played by name). Also the maker's layout numbers. Lengths and speeds are toy units (the toy is about 2 tall and
-    /// walks 7 a second), whatever size a monster is drawn at.
+    /// walks 7 a second), whatever size a monster is drawn at. D-0241 adds two switches (Never Calm, Light Stuns: the start
+    /// hub's new order) and turns Stay Down off (they always get up again).
     /// Loaded from Resources/MonsterSettings; Shift Jam > House > Land Bedroom Monsters (D-0222, D-0223, D-0228) makes the
     /// asset (the numbers on an existing asset are kept, apart from the D-0228 pass below; a missing kind is added).
     /// </summary>
@@ -95,6 +96,12 @@ namespace ShiftJam
         [Tooltip("The maker's pass these numbers were last brought up to (228 = D-0228: leash 14, sight 20, the cowering state no longer the dizzy one). Below 228 the maker raises them once and sets this; leave it alone.")]
         public int pass;
 
+        [Header("The start hub's new order (D-0241)")]
+        [Tooltip("D-0241, his \"the monsters should never go calm unless in end game\": on, the cave's monsters ignore the wall switch's lights (no freezing, no tipping over) and the star lamp's starlight (no sleepiness); they freeze only once the game has ended (a Goal reached in their scene). Off: the D-0228 light rule below. The claw machine's prizes keep the light rule either way.")]
+        public bool neverCalm = true;
+        [Tooltip("D-0241, his \"we can stun them with the light\": on, a flashlight's beam no longer sends a cave monster running to hide: Dizzy After seconds of beam make it DIZZY (one hit knocks it down), and again Dizzy After seconds after it comes round if the beam is still on it. A kid near still sends it running. Off: D-0228's flinch, flee and hide, then dizzy.")]
+        public bool lightStuns = true;
+
         [Header("The light rule (D-0228)")]
         [Range(0.1f, 1f), Tooltip("In the star lamp's starlight they are SLEEPY (awake, slower): every speed is this share of its own. Only the wall switch's full lights freeze them.")]
         public float sleepySpeed = 0.55f;
@@ -172,7 +179,7 @@ namespace ShiftJam
         [Min(1f), Tooltip("Its health: a dart takes 15, a punch 10, a kick 20 (30 = two darts, three punches, two kicks).")] public float health = 30f;
         [Min(0f), Tooltip("Seconds after a hit during which further hits are ignored.")] public float hitSafeSeconds = 0.1f;
         [Min(0f), Tooltip("Seconds it stops and flinches when a hit does not knock it down.")] public float hurtSeconds = 0.5f;
-        [Tooltip("D-0228: on, a knocked-down monster stays down for the rest of the visit (a reload, a New Game or the console's 'bedroom reset' brings it back). Off: it gets up at its spot after Down Seconds (D-0222).")]
+        [Tooltip("D-0228: on, a knocked-down monster stays down for the rest of the visit (a reload, a New Game or the console's 'bedroom reset' brings it back). Off: it gets up at its spot after Down Seconds (D-0222). D-0241, his \"they should always respawn and attack\": Land Bedroom Gate turns this OFF once (its first run); tick it again to keep them down.")]
         public bool stayDown = true;
         [Min(0.5f), Tooltip("Stay Down off: seconds it lies knocked down before it gets up again at its spot.")] public float downSeconds = 5f;
 

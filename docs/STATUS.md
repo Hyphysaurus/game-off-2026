@@ -2,6 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 26 Nov 2026 00:3x — THE START HUB'S NEW ORDER (D-0241), LANDED, Greybox saved. NOT PLAYED.
+- **HIS TEST (New Game):** the second toast says "Am I in a box?"; turn the light onto the core and grow: a monster
+  runs out and drags the dart gun under the bed. Shrink, go under the bed as the toy, take the gun (it glints in your
+  beam). The shelf switch, the light switch and the claw machine say "Not yet" until each of the four monsters has been
+  knocked out once by a dart ("n of 4"); a beam stuns them; they get up after 5 s and never calm. Then the room opens:
+  lights, claw, the little door.
+- **Faults to watch:** an empty-handed snatch; the view stuck after the snatch; a monster frozen in the room lights; the
+  gate opening on punches; a dart pressing the shelf switch while shut; the star lamp's sweep stunning nothing (measured:
+  the bed hides the cave from it).
+- **Open, his call:** the lamp's place (low by the bed's mouth?) or a sweep through the bed; monster damage (push only).
+- Also tonight: the pixel HUD and menus mockup (artifact "SHIFT pixel HUD and menus", 6 boards; the build is next after
+  his OK); the Remotion project paused at `~/dev/shiftjam-trailer` (STATE.md); his demo reel is next.
+
 ## 25 Nov 2026 22:0x — THE BACKYARD (D-0239) AND THE BREAKABLE GATE (D-0240), LANDED HEADLESS, Greybox saved. NOT PLAYED.
 - **HIS TEST:**
   - As the toy, reach the end window's sill: the glass fades. Walk out onto the ledge, take the spare paper plane and

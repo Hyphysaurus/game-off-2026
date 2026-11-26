@@ -7,7 +7,9 @@ namespace ShiftJam
     /// What finishes a step or earns a star (D-0220). The first seven are facts the game already announces (GameEvents):
     /// the objects are matched by name or path when the event names one of them. The next nine are UnityEvents on
     /// scene parts: the objectives maker (Shift Jam > Objectives) wires each listed object's event to an ObjectiveHook,
-    /// so nothing in those parts' scripts changes. The last two are heard in code, in their own scene (Scene).
+    /// so nothing in those parts' scripts changes. Race Won and Colour Back are heard in code, in their own scene (Scene).
+    /// D-0241 added two at the end, matched by name or path like the first seven: Weapon Taken (GameEvents.WeaponTaken: the
+    /// weapon stand it came from) and Gate Opened (BedroomGate.Opened: the bedroom gate).
     /// New kinds go at the END (the asset stores the number).
     /// </summary>
     public enum ObjectiveEvent
@@ -47,6 +49,11 @@ namespace ShiftJam
         RaceWon,
         /// <summary>In code: a Colour Corner reached its end (all the colour back).</summary>
         ColourBack,
+        /// <summary>D-0241: a weapon was taken (GameEvents.WeaponTaken). The object is the weapon stand it came from (the
+        /// nearest stand handing out that weapon), or a loose weapon itself (it keeps its name in the hand).</summary>
+        WeaponTaken,
+        /// <summary>D-0241: the bedroom gate opened, every monster under the bed knocked out once (BedroomGate.Opened).</summary>
+        GateOpened,
     }
 
     /// <summary>One way a step or star is done (D-0220): an event, the objects it must name, the scene it happens in.</summary>
@@ -238,11 +245,17 @@ namespace ShiftJam
 
         private static ObjectiveRule Rule(ObjectiveEvent when, params string[] objects) => Rule(when, House, 1, objects);
 
-        /// <summary>The route as built on 25 Nov (every object checked by name in Greybox): the defaults the maker writes.</summary>
+        /// <summary>The route as built on 25 Nov (every object checked by name in Greybox): the defaults the maker writes.
+        /// D-0241: the box core's words, and two new steps after it (the dart gun under the bed, the monsters knocked out:
+        /// the bedroom gate), placed by Land Bedroom Gate.</summary>
         public static ObjectiveStep[] DefaultSteps() => new[]
         {
-            new ObjectiveStep { id = "wake-box", text = "Shine the flashlight on the box core",
+            new ObjectiveStep { id = "wake-box", text = "Turn the light onto the core",
                 doneWhen = new[] { Rule(ObjectiveEvent.SourceAwakened, "Room/ToyBox/ShiftCore") } },
+            new ObjectiveStep { id = "under-bed", text = "Find what's under the bed", room = "Bedroom",
+                doneWhen = new[] { Rule(ObjectiveEvent.WeaponTaken, "Room/Bedroom/GunSnatch/BedDartGun") } },
+            new ObjectiveStep { id = "knock-out", text = "Knock out the monsters", room = "Bedroom",
+                doneWhen = new[] { Rule(ObjectiveEvent.GateOpened, "Room/Bedroom/BedroomGate") } },
             new ObjectiveStep { id = "little-door", text = "Open the little door: the switch on the shelf",
                 doneWhen = new[] { Rule(ObjectiveEvent.SwitchPressed, "Room/Bedroom/ShelfSwitch") } },
             new ObjectiveStep { id = "through-door", text = "Go through the little door", target = "Room/Bedroom/Goal",

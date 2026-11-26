@@ -18,7 +18,8 @@ namespace ShiftJam
     /// A second run reuses the hooks and replaces every listener that points at a hook (no duplicates; the parts' other
     /// listeners are left alone); a hook no rule uses any more is deleted. Marks the scene changed; it never saves it
     /// (Ctrl+S keeps it) and never opens a scene. (3) Reports every step and star: what it listens to and whether each
-    /// object was found (and has the part it needs).
+    /// object was found (and has the part it needs). D-0241's Weapon Taken and Gate Opened are heard in code: reported,
+    /// nothing wired.
     /// The report's first line says whether this was the first run or a second; one that starts "[Objectives] NOT" changed
     /// nothing.
     /// </summary>
@@ -178,7 +179,7 @@ namespace ShiftJam
                 bool here = string.IsNullOrEmpty(rule.scene) || rule.scene == scene.name;
                 bool hook = ObjectiveSet.IsHook(rule.when);
                 int need = rule.needed <= 0 ? objects.Length : Mathf.Min(rule.needed, objects.Length);
-                log.AppendLine($"  {(r > 0 ? "or " : "")}{rule.when} in {where}{(hook ? $", hook ({(need > 1 ? need + " different of " + objects.Length : "any one of " + objects.Length)})" : ", GameEvents")}:");
+                log.AppendLine($"  {(r > 0 ? "or " : "")}{rule.when} in {where}{(hook ? $", hook ({(need > 1 ? need + " different of " + objects.Length : "any one of " + objects.Length)})" : rule.when == ObjectiveEvent.GateOpened ? ", heard in code (BedroomGate.Opened, D-0241)" : ", GameEvents")}:");
                 if (objects.Length == 0) { log.AppendLine("    NO OBJECTS listed: it can never fire."); continue; }
                 if (!here) { log.AppendLine($"    in '{rule.scene}', not the open scene: not checked or wired (open it and run this again)."); continue; }
 
@@ -260,6 +261,10 @@ namespace ShiftJam
                 case ObjectiveEvent.PickedUp:
                 case ObjectiveEvent.SetDown:
                     return t.GetComponentInChildren<Carryable>(true) != null || t.GetComponentInChildren<Rigidbody>(true) != null ? ", something the hands can take" : ", but nothing the hands can take (no Carryable or Rigidbody)";
+                case ObjectiveEvent.WeaponTaken:   // D-0241
+                    return t.GetComponent<WeaponPickup>() != null ? ", a WeaponPickup (matched as the stand nearest the taker that hands out its weapon)" : ", but NO WeaponPickup on it";
+                case ObjectiveEvent.GateOpened:    // D-0241
+                    return t.GetComponent<BedroomGate>() != null ? ", a BedroomGate" : ", but NO BedroomGate on it";
                 default: return "";
             }
         }

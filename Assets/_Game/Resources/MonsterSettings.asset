@@ -15,6 +15,8 @@ MonoBehaviour:
   on: 1
   online: 1
   pass: 228
+  neverCalm: 1
+  lightStuns: 1
   sleepySpeed: 0.55
   sleepySight: 0.5
   sleepyEyes: 0.6
@@ -73,7 +75,7 @@ MonoBehaviour:
   health: 30
   hitSafeSeconds: 0.1
   hurtSeconds: 0.5
-  stayDown: 1
+  stayDown: 0
   downSeconds: 5
   freezeSeconds: 0.25
   tipAngle: 80

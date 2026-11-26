@@ -50,6 +50,6 @@ MonoBehaviour:
   wakeLinePause: 0.3
   wakeLineHold: 4.5
   wakeLineSound: 7
-  goalLine: I need to get to the end of the garden.
+  goalLine: Am I in a box?
   goalLineGap: 0.4
   goalLineHold: 4

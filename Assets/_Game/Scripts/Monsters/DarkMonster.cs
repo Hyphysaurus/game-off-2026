@@ -29,6 +29,19 @@ namespace ShiftJam
     ///   ObjectiveHook on each one's On Died, wired by the maker).
     /// Stay Put (D-0223, the claw machine's prizes): only the light rule: idling with its eye glint in the dark and the
     /// starlight, frozen in the wall switch's light; it never looks, moves, bumps or takes a hit.
+    /// D-0241, the start hub's new order (his "the monsters should never go calm unless in end game, they should always
+    /// respawn and attack, we can stun them with the light"), each part behind its own MonsterSettings switch:
+    /// - NEVER CALM (Never Calm): a cave monster ignores the wall switch's lights and the star lamp's starlight; it freezes
+    ///   only once the game has ended (a Goal reached in its own scene: every Goal in the house ends the game). The prizes
+    ///   keep the light rule above.
+    /// - THE LIGHT STUNS (Light Stuns): a beam no longer sends it running to hide: Dizzy After seconds of beam make it DIZZY
+    ///   (as above), and again Dizzy After seconds after it comes round if the beam is still on it. The kid near still
+    ///   sends it running. The star lamp's sweep stuns it the same way (<see cref="Stun"/>).
+    /// - THEY RESPAWN: with Stay Down off (the bedroom gate's maker turns it off once) a knocked-down monster gets up at its
+    ///   spot after Down Seconds.
+    /// - BORROWED (the gun snatch, <see cref="Borrow"/>): a scene moment runs it for a while: its own brain stops, nothing
+    ///   hurts it, it does not move itself (the moment moves it, its collider off) and it shows the clip it is told; given
+    ///   back, it walks home.
     /// Online: nothing is networked. Each PC's monsters react to that PC's own player (the one named Player, as the rest of
     /// the house finds it) and to any beam its own PC shows. MonsterSettings > Online off keeps them still toys online.
     /// Numbers, colours and each kind's Animator state names: Resources/MonsterSettings. OFF SWITCH: MonsterSettings > On.
@@ -40,7 +53,11 @@ namespace ShiftJam
         /// <summary>Roam: the cave's monsters. Stay Put: the prizes (only the light rule).</summary>
         public enum Mode { Roam, StayPut }
 
-        private enum State { None, Frozen, Idle, Wander, Sense, Chase, Windup, Strike, Back, Flinch, Flee, Hide, Dizzy, Return, Hurt, Down }
+        /// <summary>D-0241: what a borrowed monster shows (the gun snatch asks): on guard, running, taking something (its
+        /// attack and a squeak), backing away.</summary>
+        public enum Act { Watch, Run, Grab, Drag }
+
+        private enum State { None, Frozen, Idle, Wander, Sense, Chase, Windup, Strike, Back, Flinch, Flee, Hide, Dizzy, Return, Hurt, Down, Borrowed }
         private enum Clip { None = -1, Idle, Alert, Walk, Run, Back, Attack, Hit, Hide, Die, Rest, Sense, Dizzy, Count }
         private enum Mood { None, Calm, Hunt, Dizzy }
         private enum Tip { None, Falling, Lying, Rising }
@@ -90,6 +107,7 @@ namespace ShiftJam
         private State _state = State.None;
         private Mood _mood = Mood.None;
         private bool _sleepy, _bound;
+        private bool _theEnd;   // D-0241: the game has ended (a Goal in this scene): still for good, never calm or not
         private Vector3 _home;
         private Quaternion _homeTurn;
         private float _stateAt, _downAt, _freezeAt, _vertical;
@@ -164,6 +182,88 @@ namespace ShiftJam
             return n;
         }
 
+        // ------------------------------------------------------------------------------------------------ D-0241
+
+        /// <summary>The cave monster in play at <paramref name="index"/> (0 to RoamCount - 1), or null (the star lamp's
+        /// sweep and the gun snatch walk them with it: no list is made).</summary>
+        public static DarkMonster RoamAt(int index) => index >= 0 && index < Roamers.Count ? Roamers[index] : null;
+
+        /// <summary>The middle of its body (where a light must land on it).</summary>
+        public Vector3 BodyMiddle => Middle;
+        /// <summary>How tall its body stands, in the world.</summary>
+        public float BodyTall => _cc != null ? _cc.height * BodyScale : BodyScale;
+        /// <summary>True while a scene moment runs it (the gun snatch).</summary>
+        public bool Borrowed => _state == State.Borrowed;
+
+        /// <summary>D-0241: stunned by a light (the star lamp's sweep): DIZZY now, as Dizzy After seconds of a beam make it.
+        /// False when it is not awake to be stunned (down, frozen, borrowed, a prize, not started) or already dizzy.</summary>
+        public bool Stun()
+        {
+            if (mode != Mode.Roam || !isActiveAndEnabled || _s == null) return false;
+            if (_state == State.None || _state == State.Frozen || _state == State.Down || _state == State.Borrowed || _state == State.Dizzy) return false;
+            if (animator != null) animator.speed = 1f;
+            _held = false;
+            StartDizzy(Time.time);
+            return true;
+        }
+
+        /// <summary>D-0241: a scene moment takes it (the gun snatch): its own brain stops, nothing hurts it, its collider is
+        /// off (the moment moves it out from under the bed and back) and it shows <see cref="BorrowedAct"/>'s clips with its
+        /// hunting eyes. False when it cannot be taken (down, frozen, a prize, switched off, already taken).</summary>
+        public bool Borrow()
+        {
+            if (mode != Mode.Roam || !isActiveAndEnabled || _s == null) return false;
+            if (_state == State.Down || _state == State.Frozen || _state == State.Borrowed) return false;
+            if (animator != null) { if (!animator.enabled) { animator.enabled = true; _shown = Clip.None; } animator.speed = 1f; }
+            _held = false;
+            EndTip();
+            if (_mark != null) _mark.Hide();
+            _health.DamageScale = 0f;
+            if (_cc != null) _cc.enabled = false;
+            _beam = _seesToy = _kidNear = false;
+            _beamFor = 0f; _toy = null;
+            _state = State.Borrowed; _stateAt = Time.time;
+            SetMood(Mood.Hunt);
+            SetClip(Clip.Alert, 0.1f, true);
+            return true;
+        }
+
+        /// <summary>D-0241: what a borrowed monster shows now. Nothing when it is not borrowed.</summary>
+        public void BorrowedAct(Act act)
+        {
+            if (_state != State.Borrowed) return;
+            switch (act)
+            {
+                case Act.Run: SetClip(Clip.Run); break;
+                case Act.Grab: SetClip(Clip.Attack, 0.1f, true); PlayCue(_s.spotSqueak, _s.spotPitch); break;
+                case Act.Drag: SetClip(Clip.Back); break;
+                default: SetClip(Clip.Alert); break;
+            }
+        }
+
+        /// <summary>D-0241: the moment is over: it is itself again where the moment left it, and walks home.</summary>
+        public void GiveBack()
+        {
+            if (_state != State.Borrowed) return;
+            EndBorrow();
+            StartReturn();
+        }
+
+        /// <summary>Its collider and its hits back (given back, reset or switched off while borrowed).</summary>
+        private void EndBorrow()
+        {
+            if (_cc != null && !_cc.enabled) _cc.enabled = true;   // on again where the moment left it: the controller takes that spot
+            _health.DamageScale = 1f;
+            _vertical = 0f;
+        }
+
+        /// <summary>A Goal in its own scene was reached: the game has ended (every Goal in the house ends it; GameFlow has
+        /// no event of its own). It stands still for good: as frozen as in the wall switch's light.</summary>
+        private void OnGoalReached(Goal goal)
+        {
+            if (goal != null && goal.gameObject.scene == gameObject.scene) _theEnd = true;
+        }
+
         private float BodyScale => Mathf.Max(0.001f, transform.lossyScale.y);
         private float BodyRadius => _cc != null ? _cc.radius * BodyScale : 0.5f * BodyScale;
         private Vector3 Middle => _cc != null ? transform.TransformPoint(_cc.center) : transform.position + Vector3.up * BodyScale;
@@ -207,6 +307,7 @@ namespace ShiftJam
             if (_bound) return;
             _health.Damaged += OnDamaged; _health.Died += OnDied; _health.Blocked += OnBlocked;
             GameEvents.OpeningEnded += OnNewGame;
+            GameEvents.GoalReached += OnGoalReached;   // D-0241: the game's end
             if (mode == Mode.Roam && !Roamers.Contains(this)) Roamers.Add(this);
             _bound = true;
         }
@@ -217,9 +318,11 @@ namespace ShiftJam
             {
                 _health.Damaged -= OnDamaged; _health.Died -= OnDied; _health.Blocked -= OnBlocked;
                 GameEvents.OpeningEnded -= OnNewGame;
+                GameEvents.GoalReached -= OnGoalReached;
                 Roamers.Remove(this);
                 _bound = false;
             }
+            if (_state == State.Borrowed) { EndBorrow(); _state = State.None; }   // D-0241: switched off mid-moment
             _health.DamageScale = 1f;
             if (animator != null) { if (!animator.enabled) animator.enabled = true; animator.speed = 1f; }
             _shown = Clip.None; _held = false;
@@ -233,6 +336,8 @@ namespace ShiftJam
         /// <summary>F9 and the like, a New Game, "bedroom reset": whole, standing at its spot, deciding afresh on the next frame.</summary>
         public void ResetState()
         {
+            if (_state == State.Borrowed) EndBorrow();   // D-0241: a reset takes it back from a moment (the moment sees it and stops)
+            _theEnd = false;
             if (animator != null) { if (!animator.enabled) animator.enabled = true; animator.speed = 1f; }
             _shown = Clip.None; _held = false;
             EndTip();
@@ -257,10 +362,13 @@ namespace ShiftJam
             float dt = Time.deltaTime;
             if (dt <= 0f || _s == null) return;
             if (_state == State.Down) { TickDown(); ApplyClip(); return; }
+            if (_state == State.Borrowed) { Glints(); ApplyClip(); return; }   // D-0241: a moment runs it
 
             // The wall switch (or switched off): an ordinary toy. Decided here, after every Start: the lights read the save there.
-            bool still = !_s.on || (NetSession.InParty && !_s.online);
-            if (still || (roomLights != null && roomLights.On))
+            // D-0241: a cave monster with Never Calm ignores the lights and the starlight; only the game's end stills it.
+            bool still = !_s.on || (NetSession.InParty && !_s.online) || _theEnd;
+            bool calmByLight = mode == Mode.StayPut || !_s.neverCalm;
+            if (still || (calmByLight && roomLights != null && roomLights.On))
             {
                 if (_state != State.Frozen) Freeze(_state == State.None);
                 else if (animator != null && animator.enabled && _tip == Tip.None && Time.time >= _freezeAt) animator.enabled = false;   // settled: the pose stays
@@ -269,7 +377,7 @@ namespace ShiftJam
                 return;
             }
             if (_state == State.Frozen || _state == State.None) Wake();
-            _sleepy = starLamp != null && starLamp.Woken;
+            _sleepy = calmByLight && starLamp != null && starLamp.Woken;
             if (GameMode.Current == GameMode.Mode.Build) { ApplyClip(); return; }   // held still while the room is edited
 
             Glints();
@@ -509,12 +617,13 @@ namespace ShiftJam
             {
                 bool scared = _state == State.Flinch || _state == State.Flee || _state == State.Hide;
                 if (_beam && _beamFor >= _s.dizzyAfter) { StartDizzy(now); return Vector3.zero; }
+                bool beamScares = _beam && !_s.lightStuns;   // D-0241: the light stuns; it no longer sends them running
                 if (!scared)
                 {
-                    if (_beam) StartFlinch();
+                    if (beamScares) StartFlinch();
                     else if (_kidNear) StartFlee(_kidAt);
                 }
-                else if (_state == State.Hide && (_beam || _kidNear)) _scareFrom = _beam ? _beamFrom : _kidAt;
+                else if (_state == State.Hide && (beamScares || _kidNear)) _scareFrom = beamScares ? _beamFrom : _kidAt;
             }
 
             switch (_state)
@@ -646,7 +755,7 @@ namespace ShiftJam
                     {
                         _health.DamageScale = 1f;
                         _beamFor = 0f;
-                        if (_beam) StartFlinch();
+                        if (_beam && !_s.lightStuns) StartFlinch();   // D-0241: still in the beam, it is stunned again Dizzy After later
                         else if (_seesToy) { _state = State.Chase; _stateAt = now; }
                         else StartReturn();
                     }
@@ -797,7 +906,7 @@ namespace ShiftJam
 
         private void OnDamaged(DamageInfo hit)
         {
-            if (_state == State.Down || _state == State.Frozen || _health.Dead || mode == Mode.StayPut) return;
+            if (_state == State.Down || _state == State.Frozen || _state == State.Borrowed || _health.Dead || mode == Mode.StayPut) return;
             if (_state == State.Dizzy) return;   // a hit while dizzy knocks it down (Died follows)
             if (animator != null) animator.speed = 1f;
             _held = false;

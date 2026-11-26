@@ -35,6 +35,8 @@ namespace ShiftJam
     /// Numbers, sounds and words: Resources/ClawGameSettings. The maker (Shift Jam > House > Land Claw Game (D-0229)) finds
     /// the parts, measures the case and places the play spot, the views and the exit. OFF SWITCH: ClawGameSettings > On
     /// (or untick this). Online: Settings > Online (off: no prompt in a party; nothing is networked either way).
+    /// D-0241: Held Shut By (the bedroom gate, set by Land Bedroom Gate) may hold the machine shut for now: its words beside
+    /// E, and E is refused with its toast and the refusal sound (as an empty machine refuses). Empty: never held.
     /// Runs at order -60, as the armory bench does: after the pause menu has looked at this frame's Esc, before first person.
     /// </summary>
     [DefaultExecutionOrder(-60)]
@@ -84,6 +86,9 @@ namespace ShiftJam
         private InputActionAsset actions;
         [SerializeField, Tooltip("Raised each time a prize drops into the chute (a win). The maker wires the gold star's ObjectiveHook here: the first win earns the star.")]
         private UnityEvent onWon = new UnityEvent();
+        [SerializeField, Tooltip("D-0241: a lock that may hold the machine shut for now (a component that is an IShutLock: the bedroom gate, set by Land Bedroom Gate). While it holds: its words beside E, and E is refused with its toast and the refusal sound. Empty: never held.")]
+        private MonoBehaviour heldShutBy;
+        private IShutLock _lock;
 
         private const float MinSeconds = 0.05f;   // no tween is shorter than this (a move of nothing still takes a moment)
         private const float SoundStill = 0.12f;   // the motor's sound stops once nothing has moved for this long (no stutter between moves)
@@ -159,6 +164,7 @@ namespace ShiftJam
         private void Awake()
         {
             _s = ClawGameSettings.Load();
+            _lock = heldShutBy as IShutLock;   // D-0241: anything else in the field is no lock
             _view = GetComponent<ClawGameView>();
             _claw = new ClawGameClaw(machine, rail, carriage, rod, head, fingers, lever, button, fingerTip, fingerClose);
             _getDepth = () => _claw.Depth; _setDepth = v => _claw.Depth = v;
@@ -261,6 +267,7 @@ namespace ShiftJam
             Shifter size = who.Shifter;
             if (size == null || size.Size != ShiftSize.Kid || size.Shifting) return "";
             if (!InFront(who.transform.position)) return "";
+            if (heldShutBy != null && _lock != null && _lock.Holds(this, out string shut) && !string.IsNullOrEmpty(shut)) return shut;   // D-0241
             return AnyLeft ? _s.playPrompt : _s.emptyPrompt;
         }
 
@@ -351,6 +358,7 @@ namespace ShiftJam
             if (input == null || !input.enabled) return;
             PlayerMoves moves = who.GetComponent<PlayerMoves>();   // plain form: Fast Script Reload breaks `TryGetComponent(out ...) &&`
             if (moves != null && !moves.Free) return;
+            if (heldShutBy != null && _lock != null && _lock.Holds(this, out _)) { _lock.Refuse(this, who); return; }   // D-0241: the lock's toast and the refusal sound
             if (!AnyLeft)
             {
                 Toasts.ShowFor(who, _s.emptyToast, ToastKind.Refused);

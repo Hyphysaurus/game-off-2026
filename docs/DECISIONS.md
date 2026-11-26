@@ -4196,3 +4196,21 @@
   shelf switch in first person). `CauseCamera` only ran in `GameMode.Play`; first person is its own mode. It now runs in
   FirstPerson as well: first person steers the same camera (`FirstPersonLook`, order 50) and `CauseCamera` turns it after
   that (order 1000), with the player's input held as before. **NOT PLAYED.**
+- **D-0232 (25 Nov 2026, 16:3x) Grabbit's collision shapes on the playroom toys.** His "go grabbit" (the offer: "proper
+  collision shapes for the toys that currently get cut-down ones"). 18 toys in `Room/Course/R4_Playroom` each had one
+  convex MeshCollider over Unity's 255-face limit, so each collided as one rough lump (the dumbbell filled in between its
+  weights, a car one blob). Grabbit 2's bake (its MCP tool) put new shapes on a child `Grabbit Colliders` of each: the
+  two balls a true sphere (Performance: Ball_01 r 8.26, Basketball_Ball_01 r 7.48, matching the models), the other 16
+  2 to 9 convex pieces (Balance, 66 in all: Car_02 9, Wooden_Plane_01 9, Constructor_03 8 each, Constructor_01 and _05 5,
+  Clip_02 5, Wooden_Train_01 4, Wooden_Ship_01 4, Car_03 3, Dumbbell_01 3, the three skittles 2, Wooden_Wagon_01 1).
+  - The old collider is switched OFF, not removed: turn it back on to undo one toy.
+  - Checked: every set matches the old collider's size within 0.2. The skittle and dumbbell bases are as wide as the
+    models' (1.52 vs 1.53; 4.82 vs 4.81). They sit 0.05 to 0.06 higher, so they settle that much when play starts.
+  - Left alone: the wheels and axles (their shapes already fit), Wooden_Cylinder_01 (its hull is already exact, and
+    Breakable turns all its colliders back on at a reset), Eraser_01 and Pencil_01 (already convex), the turntable
+    flashlight.
+  - Hits and shoves still find the toy: the game looks up the parent (`GetComponentInParent`, `hit.rigidbody`).
+  - The shape files live in git-ignored `Assets/Grabbit Baked Colliders/` (made from the licensed meshes): a fresh
+    checkout needs them baked again, like the packs themselves. A re-run of CourseBuilder's playroom pass spawns these
+    toys fresh from the pack and drops the shapes: bake again (Grabbit: Balance, the balls Performance; old collider off).
+  - **NOT PLAYED.**

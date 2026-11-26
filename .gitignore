@@ -195,6 +195,9 @@ Logs/
 **/KINEMATION.meta
 **/MagicaCloth2/
 **/MagicaCloth2.meta
+# Grabbit 2's baked collision shapes (D-0232): made from the licensed toy meshes, so they stay out of the public repo
+/Assets/Grabbit Baked Colliders/
+/Assets/Grabbit Baked Colliders.meta
 # Embedded Asset Store packages (no redistribution)
 /Packages/com.febucci.text-animator-unity/
 /Packages/com.heath.lattice/

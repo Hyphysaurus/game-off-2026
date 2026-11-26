@@ -2,6 +2,21 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 16:3x — MENU ICONS (D-0226), INSTANT SHOTS BY DEFAULT (D-0227), THE SWITCH'S CAMERA TURN IN FIRST PERSON (D-0231), GRABBIT TOY SHAPES (D-0232) LANDED, Greybox saved. NOT PLAYED.
+- **HIS TEST:**
+  - Menus: icons on the title and pause slabs, the Sticker Chart heading, the Move / Select / Back prompt bar (keys or pad).
+  - Options > Shots: "Instant" (the new default) or "Foam darts". The Stadium stays Instant for everyone.
+  - First person: the shelf switch turns the camera to the small door opening, as it does in third person.
+  - Playroom: shove the cars, the skateboard and the dumbbell, roll the two balls, bowl the skittles. They should roll
+    and tip like their shapes (the balls smoothly, the dumbbell on its weights).
+- **Faults to watch:** a skittle tipping over on its own at the start; a toy sinking or hopping when play starts; a
+  toy the toy can't shove any more.
+- **Building now (wave 1):** the monsters rework (D-0228: readable, alive, beatable, a new star) and Artificer (D-0230:
+  the title builds itself, the toy rebuilds itself at a reset). Then wave 2: Magica Cloth 2 and the playable claw
+  machine (D-0229).
+- **Grabbit, after wave 1 lands:** clutter dropped under the bed (cover in the monsters' cave), and the claw prizes
+  tumbled into a heap. These wait because the monsters' maker re-places the cave monsters and the prizes.
+
 ## 25 Nov 2026 15:2x — THE STICKER CHART (D-0224) LANDED, Greybox saved. NOT PLAYED. HIS IMPORTS MADE SAFE (D-0225).
 - **HIS TEST:** New Game: the card slides in after the opening (goal, step, "0 / 1 Bedroom", "Tab: Sticker Chart"), then
   hides after 5 s. Hold Tab: the chart (the Bedroom row open, the rest "???"). The hallway: its arrival card and the card

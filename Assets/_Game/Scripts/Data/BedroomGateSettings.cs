@@ -121,6 +121,12 @@ namespace ShiftJam
         [Min(0.01f)] public float glintFillSeconds = 0.25f;
         [Tooltip("Seconds it fades once the beam leaves.")]
         [Min(0f)] public float glintDrainSeconds = 1.2f;
+        [Tooltip("D-0245: while it waits, the gun glints by itself every Glint Idle Every seconds, this share of its full glint, so it can be found in the dark with no beam on it. 0 = none (only a beam shows it).")]
+        [Range(0f, 1f)] public float glintIdlePeak = 0.45f;
+        [Tooltip("Seconds from one slow glint to the next.")]
+        [Min(0.5f)] public float glintIdleEvery = 2.2f;
+        [Tooltip("Seconds one slow glint lasts (it rises and falls).")]
+        [Min(0.05f)] public float glintIdleSeconds = 0.7f;
 
         [Header("The maker's layout (Land Bedroom Gate)")]
         [Tooltip("How far out from the bed's mouth, toward the toy box, the gun lies before the snatch (toy units).")]
@@ -135,6 +141,10 @@ namespace ShiftJam
         [Min(0f)] public float pickupThingsClear = 5f;
         [Tooltip("The least room over the gun's floor under the bed for a toy to reach it (the toy is 1.8 tall).")]
         [Min(0.5f)] public float pickupHeadroom = 3f;
+        [Tooltip("D-0245 (his \"can't find the dart gun\", 26 Nov): the gun waits near the bed's edge, where the toy sees it from the monsters' way in. Off = the old rule, the cave spot a kid's E reaches least (it chose the far back corner, 55 in). The kid still cannot take it: Toy Only.")]
+        public bool pickupNearMouth = true;
+        [Tooltip("With Pickup Near Mouth: at least this many toy units past the bed's edge, straight in from the monsters' way in, so it lies under the bed, not at its edge.")]
+        [Min(0f)] public float pickupMinIn = 10f;
 
         [Header("The steps, the star and the opening's line (the maker writes them once; his words are kept)")]
         [Tooltip("The new step after the box core's: its id (saved per slot as step:<id>).")]

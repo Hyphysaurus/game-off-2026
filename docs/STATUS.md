@@ -22,6 +22,11 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   softly at walls; a beam on a core still passes round it. Off switch: Flashlight > Shaft Stops.
 - **The first goal line (his words, 08:3x):** the objective card's goal now says "Figure out what happened" (was
   "Get to the end of the garden", which pointed at the garden from the start): ObjectiveSet + BackyardSettings.
+- **The dart gun under the bed (D-0245, 08:4x):** now 10 past the bed's edge, in view from where the slime goes
+  in (was 55 in at the back wall), with a slow glint every 2.2 s even without a beam. The lamp's sweep now stuns through
+  the bed and the table. NOT PLAYED. His test: after the snatch, shrink, go to the bed's edge where the slime went in, look
+  a little left: the gun should glint. Off switches: Pickup Near Mouth, Glint Idle Peak 0, Sweep Through Furniture.
+- **Monster juice and sounds (D-0246):** being built in stage monsterjuice/ (his "proceed", 08:3x).
 
 ## 26 Nov 2026 00:3x — THE START HUB'S NEW ORDER (D-0241), LANDED, Greybox saved. NOT PLAYED.
 - **HIS TEST (New Game):** the second toast says "Am I in a box?"; turn the light onto the core and grow: a monster

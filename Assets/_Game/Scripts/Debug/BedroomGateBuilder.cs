@@ -293,7 +293,8 @@ namespace ShiftJam
             gunLight.enabled = false;
             prop.gameObject.SetActive(false);   // Play shows it (GunSnatch reads the slot); unticked GunSnatch = no prop
 
-            // The gun under the bed: the cave floor point a kid's E reaches least.
+            // The gun under the bed (D-0245): with Pickup Near Mouth, the free cave floor point nearest the bed's edge that
+            // the toy sees from the way in (at least Pickup Min In under); without it, the one a kid's E reaches least.
             Interactor hands = Object.FindFirstObjectByType<Interactor>(FindObjectsInactive.Include);
             float reach = 1.6f, height = 0.9f;
             if (hands != null)
@@ -325,17 +326,31 @@ namespace ShiftJam
                     var c = new Vector3(x, floorY, z);
                     string no = PickupProblem(c, s, ms, monsters, mouth, torch, laneHalf, things, bed, floorY, toyR, toyH, out float room, out float cy);
                     if (no != null) { why[no] = why.TryGetValue(no, out int n) ? n + 1 : 1; continue; }
-                    kept++;
                     c.y = cy;
-                    float score = KidMargin(c, kidSpots, reach * kidScale * 0.5f, height * kidScale);
-                    score += 0.001f * Level(c - mouth).magnitude;   // a tie goes deeper
+                    float score;
+                    if (s.pickupNearMouth)
+                    {
+                        // D-0245 (his "can't find the dart gun"): near the bed's edge and in view from the way in. Toy
+                        // Only keeps it from the kid, so it need not hide from the kid's reach.
+                        Vector3 fromMouth = Level(c - mouth);
+                        float pastEdge = Vector3.Dot(fromMouth, -outDir);   // how far past the bed's edge, straight in
+                        if (pastEdge < s.pickupMinIn) { TallyWhy(why, "less than Pickup Min In past the bed's edge"); continue; }
+                        if (!SeenFromMouth(c, mouth, outDir, floorY, toyH, toyScale, monsters)) { TallyWhy(why, "out of view from the way in"); continue; }
+                        score = -fromMouth.magnitude;   // then the nearest the way in wins
+                    }
+                    else
+                    {
+                        score = KidMargin(c, kidSpots, reach * kidScale * 0.5f, height * kidScale);
+                        score += 0.001f * Level(c - mouth).magnitude;   // a tie goes deeper
+                    }
+                    kept++;
                     if (score > pickScore) { pickScore = score; pick = c; pickRoom = room; }
                 }
             var reasons = new StringBuilder();
             foreach (var kv in why) reasons.Append(reasons.Length > 0 ? ", " : "").Append(kv.Value).Append(' ').Append(kv.Key);
             if (kept == 0)
             {
-                Log.AppendLine($"THE GUN UNDER THE BED NOT placed: none of {tried} cave floor points (every {s.pickupGridStep}) is free ({reasons}). Lower Pickup Lane Clear / Monster Clear / Things Clear in BedroomGateSettings and run again.");
+                Log.AppendLine($"THE GUN UNDER THE BED NOT placed: none of {tried} cave floor points (every {s.pickupGridStep}) is free ({reasons}). Lower Pickup Lane Clear / Monster Clear / Things Clear / Min In in BedroomGateSettings (or untick Pickup Near Mouth) and run again.");
                 pick = new Vector3(cave.center.x, floorY, cave.center.z);
             }
 
@@ -367,6 +382,10 @@ namespace ShiftJam
             var lgso = new SerializedObject(glint);
             SetRenderers(lgso.FindProperty("parts"), standParts);
             lgso.FindProperty("glow").colorValue = s.glintColour;
+            lgso.FindProperty("idlePeak").floatValue = s.glintIdlePeak;          // D-0245: a slow glint with no beam on it
+            lgso.FindProperty("idleEvery").floatValue = s.glintIdleEvery;
+            lgso.FindProperty("idleSeconds").floatValue = s.glintIdleSeconds;
+            lgso.FindProperty("keepEmissionOn").boolValue = true;                // D-0245: the glow needs the material's emission on
             lgso.ApplyModifiedPropertiesWithoutUndo();
             while (target.OnFill.GetPersistentEventCount() > 0) UnityEventTools.RemovePersistentListener(target.OnFill, 0);
             UnityEventTools.AddPersistentListener(target.OnFill, glint.GlowOn);
@@ -375,14 +394,17 @@ namespace ShiftJam
             // What reaches it.
             float kidMargin = KidMargin(pick, kidSpots, reach * kidScale * 0.5f, height * kidScale, out Vector3 kidFrom);
             string toyWay = Sweep(mouth + outDir * 2f, pick, toyR, toyH, floorY, stand.transform, null);
-            Log.AppendLine($"THE GUN UNDER THE BED: {Path(stand.transform)} at {Fmt(pick)} (the best of {kept} free of {tried} cave floor points{(reasons.Length > 0 ? "; ruled out: " + reasons : "")}), a {standAsset.name} giving the gun ONCE (Respawn Seconds 0), scale {toyScale} (toy-sized). {Level(pick - mouth).magnitude:F1} from the mouth, {Level(pick - torch).magnitude:F1} from BedFlashlight, {LaneGap(pick, mouth, torch):F1} from the way's middle line, {NearestHome(pick, monsters, out string nearestName):F1} from the nearest monster's spot ({nearestName}).");
+            string pickRule = s.pickupNearMouth
+                ? "the nearest the way in (D-0245: in view from it, at least " + s.pickupMinIn + " past the bed's edge) of " + kept + " free of " + tried
+                : "the best of " + kept + " free of " + tried;
+            Log.AppendLine($"THE GUN UNDER THE BED: {Path(stand.transform)} at {Fmt(pick)} ({pickRule} cave floor points{(reasons.Length > 0 ? "; ruled out: " + reasons : "")}), a {standAsset.name} giving the gun ONCE (Respawn Seconds 0), scale {toyScale} (toy-sized). {Level(pick - mouth).magnitude:F1} from the mouth, {Level(pick - torch).magnitude:F1} from BedFlashlight, {LaneGap(pick, mouth, torch):F1} from the way's middle line, {NearestHome(pick, monsters, out string nearestName):F1} from the nearest monster's spot ({nearestName}).");
             Log.AppendLine($"  THE TOY: {pickRoom:F2} of room over it (the toy is {toyH:F1} tall); the toy's capsule from the mouth to it: {toyWay}.");
             Log.AppendLine(kidSpots.Count == 0
                 ? "  THE KID: no spot round the bed where a kid can stand was found: its E cannot reach the gun."
                 : kidMargin > 0f
                     ? $"  THE KID: its E falls {kidMargin:F1} short of the gun from the nearest place it can stand ({Fmt(kidFrom)}): it cannot reach it. (Toy Only {(s.toyOnly ? "holds it for the toy anyway" : "is off")}.)"
                     : $"  THE KID: its E WOULD reach the gun from {Fmt(kidFrom)} (by {-kidMargin:F1}): the bed is too narrow for any spot to be out of its reach. Toy Only {(s.toyOnly ? "ON holds it for the toy (the stand says nothing to a kid)" : "is OFF: a kid can take it from beside the bed")}.");
-            Log.AppendLine($"  THE GLINT: LightTarget on it (any beam, {s.glintFillSeconds} s to full, {s.glintDrainSeconds} s to fade, its point {GlintPointName} {DisplayUp} over the floor), On Fill wired to its LightGlow (GlowOn) on the {standParts.Length} parts of its display, glow {s.glintColour}. Wired in the scene: it works with GunSnatch unticked too.");
+            Log.AppendLine($"  THE GLINT: LightTarget on it (any beam, {s.glintFillSeconds} s to full, {s.glintDrainSeconds} s to fade, its point {GlintPointName} {DisplayUp} over the floor), On Fill wired to its LightGlow (GlowOn) on the {standParts.Length} parts of its display, glow {s.glintColour}. Wired in the scene: it works with GunSnatch unticked too. While it waits it also glints by itself, {s.glintIdlePeak:F2} of full every {s.glintIdleEvery} s for {s.glintIdleSeconds} s, and switches its material's emission on at start (D-0245).");
 
             // The way: out from the snatcher's spot through the mouth to just short of the gun, and back.
             float grip = bodyR + s.gripGap + propHalf;
@@ -463,6 +485,26 @@ namespace ShiftJam
                 if (free) spots.Add(p);
             }
             return spots;
+        }
+
+        static void TallyWhy(Dictionary<string, int> why, string reason) => why[reason] = why.TryGetValue(reason, out int n) ? n + 1 : 1;
+
+        /// <summary>D-0245: the toy, standing just outside the bed's edge on the monsters' way in, sees the gun's display:
+        /// nothing solid between its eyes and the display (the monsters do not count: they move).</summary>
+        static bool SeenFromMouth(Vector3 at, Vector3 mouth, Vector3 outDir, float floorY, float toyH, float toyScale, List<DarkMonster> monsters)
+        {
+            Vector3 eye = new Vector3(mouth.x, floorY + toyH * 0.8f, mouth.z) + outDir * 2f;
+            Vector3 display = new Vector3(at.x, at.y + DisplayUp * toyScale, at.z);
+            Vector3 to = display - eye;
+            float d = to.magnitude;
+            if (d < 1e-3f) return true;
+            foreach (RaycastHit h in Physics.RaycastAll(eye, to / d, d, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                bool monster = false;
+                foreach (DarkMonster m in monsters) if (m != null && h.transform.IsChildOf(m.transform)) { monster = true; break; }
+                if (!monster) return false;
+            }
+            return true;
         }
 
         static float KidMargin(Vector3 gun, List<Vector3> spots, float ball, float up) => KidMargin(gun, spots, ball, up, out _);
@@ -578,11 +620,13 @@ namespace ShiftJam
                 copy.CopyPropertiesFromMaterial(source);
             }
             copy.EnableKeyword("_EMISSION");
-            copy.SetColor("_EmissionColor", Color.black);
+            // All but black (D-0245): an emission colour of pure black lets Unity switch the material's emission off when it
+            // checks it again, and then no beam could make the gun glint. LightGlow sets the real glow per renderer.
+            copy.SetColor("_EmissionColor", new Color(0.004f, 0.004f, 0.004f));
             copy.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             EditorUtility.SetDirty(copy);
             AssetDatabase.SaveAssetIfDirty(copy);
-            line = $"{(made ? "MADE" : "refreshed")} {GlintMaterialPath} from {(source != null ? AssetDatabase.GetAssetPath(source) : "itself")} ({copy.shader.name}, emission on and black: the glint lights it). Worn by the two guns only.";
+            line = $"{(made ? "MADE" : "refreshed")} {GlintMaterialPath} from {(source != null ? AssetDatabase.GetAssetPath(source) : "itself")} ({copy.shader.name}, emission on, all but black (D-0245): the glint lights it). Worn by the two guns only.";
             return copy;
         }
 
@@ -737,6 +781,13 @@ namespace ShiftJam
                     minX = Mathf.Min(minX, x); maxX = Mathf.Max(maxX, x); minZ = Mathf.Min(minZ, z); maxZ = Mathf.Max(maxZ, z);
                 }
             Log.AppendLine($"  WHAT THE SWEEP CAN REACH: {reached} of {monsters.Count} monster spots ({lines}). The cave floor (a monster's middle over every {s.pickupGridStep}): {seen} of {all} points in a clear line from the dome{(seen > 0 ? $", within x {minX:F0}..{maxX:F0}, z {minZ:F0}..{maxZ:F0}" : "")}. {(seen == 0 ? "The bed's frame hides the whole cave from the lamp: as placed, the sweep stuns only a monster out from under the bed (the snatcher on its errand is not stunned while borrowed). His call: move the lamp low by the bed's mouth, or let the sweep ignore the bed." : seen < all / 4 ? "Only that part of the cave is open to the lamp: most of it is hidden by the bed's frame." : "")}");
+            if (lamp != null)
+            {
+                var lso = new SerializedObject(lamp);
+                SerializedProperty through = lso.FindProperty("sweepThroughFurniture");
+                if (through != null && through.boolValue)
+                    Log.AppendLine("  THE LAMP'S SWEEP (D-0245): Sweep Through Furniture is ON: the bed and the table do not shield the monsters, so a swept spot stuns any cave monster in its cone and reach (the counts above are the old rule's, with nothing allowed between).");
+            }
         }
 
         /// <summary>Null when a swept spot crosses <paramref name="point"/> (in the band, in reach, nothing solid between);

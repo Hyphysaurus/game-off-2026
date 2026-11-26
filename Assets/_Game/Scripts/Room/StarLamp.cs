@@ -60,9 +60,10 @@ namespace ShiftJam
         [SerializeField, Tooltip("Degrees a second the field of stars turns at the height of a sweep (eased from Spin Speed and back).")] private float sweepSpin = 70f;
         [SerializeField, Min(0f), Tooltip("Seconds it rests after a sweep before a light can start another: its dome glows steady meanwhile, and breathes again once it is ready.")]
         private float restSeconds = 8f;
-        [SerializeField, Tooltip("The spots cast soft shadows during a sweep only, so the furniture keeps their light off what the stun cannot reach either (the bed's frame over the cave). Off: the light goes through the furniture (only the look: the stun asks the real line either way).")]
+        [SerializeField, Tooltip("The spots cast soft shadows during a sweep only, so the furniture keeps their light off the cave under the bed (the bed's frame over it; with Sweep Through Furniture the stun reaches it all the same). Off: the light goes through the furniture (only the look: the stun asks the real line either way).")]
         private bool sweepShadows = true;
         [SerializeField, Min(0.02f), Tooltip("Seconds between looks for monsters in the spots during a sweep (rays: not every frame).")] private float sweepCheckEvery = 0.1f;
+        [SerializeField, Tooltip("D-0245 (his call): the sweep stuns a cave monster in a spot's cone and reach even with the bed or a table between them. With nothing allowed between, it reached none of them: the bedside table and the bed's frame were always in the way. Off = only with nothing solid between.")] private bool sweepThroughFurniture = true;
         [SerializeField, Min(0f), Tooltip("The dome's glow during a sweep, times its awake glow.")] private float sweepGlow = 1.6f;
         [SerializeField, Tooltip("Played as each sweep after the first starts (the wake's own sound plays for the first). No clip: silent.")]
         private CourseSounds.Cue sweepSound = new CourseSounds.Cue(null, 0.5f);
@@ -236,7 +237,7 @@ namespace ShiftJam
         }
 
         /// <summary>Every cave monster a spot crosses now (its middle or the top of its body in the spot's cone, within its
-        /// reach, nothing solid between) is stunned. Rays only after the cone's own test; no list is made.</summary>
+        /// reach, nothing solid between unless Sweep Through Furniture) is stunned. Rays only after the cone's own test; no list is made.</summary>
         private void StunCrossed()
         {
             for (int m = 0; m < DarkMonster.RoamCount; m++)
@@ -261,6 +262,7 @@ namespace ShiftJam
             float distance = to.magnitude;
             if (distance < 1e-4f || distance > spot.range) return false;
             if (Vector3.Angle(spot.transform.forward, to) > spot.spotAngle * 0.5f) return false;
+            if (sweepThroughFurniture) return true;   // D-0245: the bed and the table do not shield them
             int count = Physics.RaycastNonAlloc(origin, to / distance, Hits, distance, ~0, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
             {

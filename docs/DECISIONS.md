@@ -4483,3 +4483,17 @@
   torch goes round CoreC_Grow. The light itself already stopped at walls: the Windows build uses the PC quality level,
   whose spot lights cast shadows (the Mobile level's do not). **NOT PLAYED.**
 
+- **D-0245 (26 Nov 2026, 08:4x) The dart gun waits near the bed's edge and glints by itself; the lamp's stun goes
+  through furniture.** His playtest: "cant find the dart gun underneath the bed?" (his run at 08:24: as the toy he came within
+  18 of it). The maker had put it where a kid's E reaches least: the back wall, 55 in past the bed's edge, in the dark, and
+  its glint only showed with a beam right on it. Now (BedroomGateSettings > Pickup Near Mouth, on): at least Pickup Min In
+  (10) past the bed's edge, in view from the monsters' way in (a ray from the toy's eyes just outside), then the nearest the
+  way in: (80.9, -8.4), 16.9 from the way in; the snatch's drag under the bed is 1.9 s (was 6.4). Toy Only still keeps it
+  from the kid. The gun also glints by itself while it waits (LightGlow idle glint: 0.45 of full every 2.2 s for 0.7 s;
+  Glint Idle Peak 0 = off), and its glint material keeps its emission: the maker saved it with a pure black emission
+  colour and Unity had dropped _EMISSION once (then no beam could light it); now all but black (0.004), and the gun's
+  LightGlow switches emission on at start (Keep Emission On). The star lamp's sweep (his call): StarLamp > Sweep Through
+  Furniture (on) lets a swept spot stun any cave monster in its cone and reach; with nothing allowed between it reached
+  none (the bedside table and the bed's frame). Land Bedroom Gate re-run (third run, nothing duplicated), Greybox saved,
+  roots as before. **NOT PLAYED.**
+

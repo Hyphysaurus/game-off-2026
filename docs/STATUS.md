@@ -3807,6 +3807,13 @@ tutorial room in Greybox.unity, Feel hooks on ShiftSource/Switch/Door, a Core sc
 → STEP 3 room greybox + shift beat → feel pass → commit → v1.
 
 ## Versions
+- v19 — 26 Nov 2026: ON ITCH 09:21 as build #2509219 (his "push, and make this build our live build on itch"; a 71 MB patch
+  on v18). Built 5.0 min and checked (5 scenes, 0 errors). Everything since v18 (D-0181 to D-0247); tonight's: the backyard
+  ending (D-0239), the breakable gate (D-0240), the start hub's new order (D-0241: the bedroom lock until the monsters are
+  knocked out, the gun snatch), the pixel HUD (D-0243), the beam stopping at walls (D-0244), the dart gun near the bed's
+  edge with its glint (D-0245), the star lamp under the bed (D-0247), the goal line "Figure out what happened". Most of
+  tonight's is NOT PLAYED. NOT in it: the monster juice and sounds (D-0246, landed after). Built with 4 packages added
+  outside this work and not in git (PSD Importer, glTFast, Post Processing v2 with its define, Vector Graphics).
 - v18 — 24 Nov 2026: ON ITCH 02:36 as build #2486172 (his "ship"; an 18 MB patch on v17). Built and checked 02:29 (5 scenes, 0 errors). Everything since v17, D-0136 to D-0180: the one-hand arm reach, the flashlight with its light targets and dark zones, grabbing heavy things and the turntable, the sights, the armory bench, the jump's pose, the roll out of a landing, the ropes, the hit scan shot seen as a flying dart (the Stadium), the three aim fixes, first person at third person's speeds, the camera's give and the rest of the first feel batch, the first shift's freeze, corners that turn with the stick, the soldier's flinch. `Builds/Windows/ShiftJam_v18` (local).
 - v17 — 21 Nov 2026: on itch 23:13 as build #2464944 (ship.ps1): D-0132 to D-0135 (the flashlight held at its handle, the smaller hotbar, the hitch catcher, doors take the group, the jam page).
 - v16 — 21 Nov 2026: on itch 20:55 as build #2464190: D-0131 (co-op step 2: the host runs soldiers, props and pickups).

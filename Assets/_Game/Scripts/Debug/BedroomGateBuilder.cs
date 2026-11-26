@@ -615,11 +615,9 @@ namespace ShiftJam
                 copy = new Material(source) { name = "DartGunGlint" };
                 AssetDatabase.CreateAsset(copy, GlintMaterialPath);
             }
-            else if (source != null)
-            {
-                copy.shader = source.shader;
-                copy.CopyPropertiesFromMaterial(source);
-            }
+            // An existing glint material is kept as it is (D-0245): copying the pack's material over it again (its shader set
+            // again, every property copied) made Unity switch its emission off as it imported it afterwards, and then no
+            // beam could light the gun. Delete Art/Bedroom/DartGunGlint.mat to make it again from the gun's own material.
             copy.EnableKeyword("_EMISSION");
             // All but black (D-0245): an emission colour of pure black lets Unity switch the material's emission off when it
             // checks it again, and then no beam could make the gun glint. LightGlow sets the real glow per renderer.
@@ -627,7 +625,7 @@ namespace ShiftJam
             copy.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             EditorUtility.SetDirty(copy);
             AssetDatabase.SaveAssetIfDirty(copy);
-            line = $"{(made ? "MADE" : "refreshed")} {GlintMaterialPath} from {(source != null ? AssetDatabase.GetAssetPath(source) : "itself")} ({copy.shader.name}, emission on, all but black (D-0245): the glint lights it). Worn by the two guns only.";
+            line = $"{(made ? "MADE" : "KEPT")} {GlintMaterialPath}{(made ? " from " + (source != null ? AssetDatabase.GetAssetPath(source) : "itself") : " as it was (not copied over again, D-0245)")} ({copy.shader.name}, emission on, all but black (D-0245): the glint lights it). Worn by the two guns only.";
             return copy;
         }
 

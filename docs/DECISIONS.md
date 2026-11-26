@@ -4511,4 +4511,8 @@
   new; 0 = as placed). Sweep Through Furniture off (nothing in the way there). Done once: a lamp already under the bed stays.
   Back on the table: the numbers are in the maker's report (Lamp Under Bed off, then the old place, scale and brightness).
   Two stills checked (from the way in, and close): the stars and moons soft on the bed's underside. **NOT PLAYED.**
+  The glint material (D-0245) still loses _EMISSION in its FILE during a Land Bedroom Gate run (cause not found: not the
+  pack copy, which the maker no longer does, nor URP's black-emission rule; a plain switch-on and save outside a run holds).
+  Play is safe (the gun's LightGlow switches it on at start). After a run, `git checkout` DartGunGlint.mat; never commit it
+  with `m_ValidKeywords: []`.
 

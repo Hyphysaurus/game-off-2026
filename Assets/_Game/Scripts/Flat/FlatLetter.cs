@@ -14,6 +14,8 @@ namespace ShiftJam
     ///   slot (SaveGame's seen list, so Continue keeps it and New Game clears it), and the HUD's strip lights it.
     /// - A letter already found shows as a ghost (see-through, faint): still there to see, not to take again.
     /// - When the last letter of the zone is found the zone gives its reward, once per slot (FlatZone.LetterFound).
+    /// - D-0230: when it is taken it bursts into its pixel cubes (LetterBurst, with Artificer) and its ghost shows at once;
+    ///   with BuildFx > Letter Burst On off (or nothing to cut) it pops as before.
     /// - It is SEEN only during the flat run (D-0212): its look is drawn while its zone holds a local player (and while
     ///   it pops), so a player walking the stretch in 3D sees no letters hanging in the hallway.
     /// Only a player the zone is holding takes it (side-on, at toy size, in Play): anyone else runs through it. The
@@ -201,6 +203,8 @@ namespace ShiftJam
             _popAt = Time.time;
             _found = true;
             if (_key != null) SaveGame.MarkSeen(SaveGame.Slot, _key);   // raises SaveGame.Changed: Read keeps the solid look while it pops
+            // D-0230: a copy in the solid look bursts into its cubes, and the letter goes to its ghost at once (no pop).
+            if (LetterBurst.Play(look, by != null ? by.gameObject.layer : -1)) _popAt = float.NegativeInfinity;
             bool rewarded = zone.LetterFound(this, by);
             if (!rewarded) UiAudio.Play(sound);
             onTaken?.Invoke();

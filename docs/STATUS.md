@@ -2,6 +2,31 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 17:2x — FIRST-PERSON FIXES (D-0234 invisible body, D-0235 reach), MONSTERS REWORK (D-0228), ARTIFICER (D-0230) LANDED, Greybox saved. NOT PLAYED.
+- **HIS TEST, first person:**
+  - As the kid in a tight spot with a gun out, go into first person and back: the body shows.
+  - In first person, E works on the exit switch, cores and pickups by your feet without exact aiming; the words under
+    the dot say what E will do.
+- **HIS TEST, monsters:** type `bedroom reset` in the console first (` then type it). Your slot has the star lamp on, so
+  without it they are sleepy.
+  - In the dark as the toy: a monster stares, a "!" pops, a squeak, red eyes and glow. It chases, then rears back about
+    half a second before the bump; step away to dodge.
+  - The flashlight: it runs, and after a second of beam it wobbles, dizzy (green).
+  - Two darts, or one while dizzy, knock it down for the visit. All four down: the gold star "Monsters under the bed".
+  - The star lamp makes them sleepy (awake, slow). The wall switch freezes them into toys that tip over when hit.
+- **HIS TEST, Artificer:**
+  - Start the game: the title flies together (any key skips), then the menu.
+  - Fall or reset: the toy bursts, the shift warp sweeps to the checkpoint, the pieces fly back, then you move
+    (about 2.3 s).
+  - Find a Flat Zone letter: it bursts.
+- **Faults to watch:**
+  - the title's pieces looking like flat tiles and thin strips instead of cubes (it can build real cubes instead);
+  - a monster in the way to the flashlight, T-poses, the wind-up looking like a freeze;
+  - the reset feeling slow (BuildFx numbers, or Rebuild On off);
+  - a body still invisible after first person.
+- **Next:** wave 2, Magica Cloth curtains and flags (D-0233) and the playable claw machine (D-0229); both briefs are
+  ready. Then Grabbit's clutter under the bed and the prize heap.
+
 ## 25 Nov 2026 16:3x — MENU ICONS (D-0226), INSTANT SHOTS BY DEFAULT (D-0227), THE SWITCH'S CAMERA TURN IN FIRST PERSON (D-0231), GRABBIT TOY SHAPES (D-0232) LANDED, Greybox saved. NOT PLAYED.
 - **HIS TEST:**
   - Menus: icons on the title and pause slabs, the Sticker Chart heading, the Move / Select / Back prompt bar (keys or pad).

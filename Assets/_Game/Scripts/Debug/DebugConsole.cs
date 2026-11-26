@@ -135,6 +135,7 @@ namespace ShiftJam
                         Say("glider: gives (or takes back) the paper-plane glider; as a toy, Jump in the air opens it");
                         Say("workshop (load the Workshop sandbox) | course (back to the course scene)");
                         Say("save (here, active slot) | save clear (empties the active slot)");
+                        Say("bedroom reset: the slot forgets the bedroom's lights and star lamp; dark room, lamp asleep, the monsters back whole (D-0228)");
                         Say("note <text> -> docs/PLAYTEST_NOTES.md with room, size, position   mark (F12) = numbered note + still in the play log (Playtests/)   shot   clear");
                         break;
                     case "clear": _log.Clear(); break;
@@ -193,6 +194,10 @@ namespace ShiftJam
                     case "save":
                         if (a.Length > 1 && a[1] == "clear") { SaveGame.Clear(SaveGame.Slot); Say("slot " + (SaveGame.Slot + 1) + " cleared"); }
                         else { SaveGame.Save(_player.transform.position, _player.transform.eulerAngles.y, _shifter.Size, Room()); Say("saved to slot " + (SaveGame.Slot + 1)); }
+                        break;
+                    case "bedroom":
+                        if (a.Length > 1 && a[1].ToLowerInvariant() == "reset") Say(BedroomReset.Run());
+                        else Say("bedroom reset: the slot forgets the bedroom's lights and star lamp; dark room, lamp asleep, the monsters back whole");
                         break;
                     default: Say("unknown: " + cmd + " (help)"); break;
                 }

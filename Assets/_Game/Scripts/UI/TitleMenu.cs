@@ -22,6 +22,9 @@ namespace ShiftJam
     /// Back too on the others, in the glyphs of the hands used last. The menu that draws itself puts the same icons on
     /// its buttons where the words leave room beside them (a button whose words fill it gets none) and has no footer
     /// (its last row and its hint line leave no room for one). Off: IconSet > Icons On, Footer On.
+    /// THE TITLE BUILDS ITSELF (D-0230): on the model with its letters, the first time the title opens in a launch the
+    /// letters fly in cube by cube first (TitleBuildIn, with Artificer); meanwhile the slabs, the hint and the buttons
+    /// wait, and they come up as before once it stands (any key or click skips to that). Off: BuildFx > Title On.
     /// </summary>
     public sealed class TitleMenu : MonoBehaviour
     {
@@ -88,6 +91,8 @@ namespace ShiftJam
             if (FindFirstObjectByType<EventSystem>() == null) { var es = new GameObject("EventSystem"); es.AddComponent<EventSystem>(); es.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>(); }
             Build();
             Open();
+            // D-0230: while the title builds itself the menu waits (no slabs, hint or buttons); FirstPage brings it up.
+            if (_buildIn != null) { _root.SetActive(false); if (_driver != null) _driver.enabled = false; }
         }
 
         private void Open()
@@ -266,6 +271,7 @@ namespace ShiftJam
             }
         }
         private MenuDriver _driver;
+        private TitleBuildIn _buildIn;      // the title building itself (D-0230); null once it stands, or when it does not play
         private MenuOptions _menuOptions;   // Options as a page of the model (D-0204); null = the old panel
         private MenuParties _menuParties;   // the party list as a page of the model (D-0204); null = the old panel
         private TMP_InputField _nameField; private TMP_Text _nameLabel;
@@ -319,6 +325,19 @@ namespace ShiftJam
                 _driver.Darts.Reloaded += () => { UiAudio.Play(UiAudio.Kind.Select); OnPartyStatus(); };   // the hint names the ammo loaded (D-0201)
             }
             OnPartyStatus();   // the hint for the hands the model has
+            // D-0230: the title builds itself first (TitleBuildIn: once a launch unless BuildFx says every time), and the
+            // first page comes up when its letters stand. Without the letters, or with it off, the page comes up now.
+            _buildIn = letters ? TitleBuildIn.Begin(_model, FirstPage) : null;
+            if (_buildIn == null) ToPage("Main");
+        }
+
+        /// <summary>The title has built itself (D-0230): the menu comes up with its first page, as it does without the build.</summary>
+        private void FirstPage()
+        {
+            _buildIn = null;
+            if (!IsOpen || _model == null) return;
+            _root.SetActive(true);
+            if (_driver != null) _driver.enabled = true;
             ToPage("Main");
         }
 

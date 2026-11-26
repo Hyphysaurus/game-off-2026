@@ -4214,3 +4214,66 @@
     checkout needs them baked again, like the packs themselves. A re-run of CourseBuilder's playroom pass spawns these
     toys fresh from the pack and drops the shapes: bake again (Grabbit: Balance, the balls Performance; old collider off).
   - **NOT PLAYED.**
+- **D-0228 (25 Nov 2026, 17:2x) The monsters under the bed: readable, alive and beatable.** His "the enemy monsters are
+  hard to read, they have no behavior, and we have no way of defeating them so far" (his 15:58 play: his slot had the star
+  lamp on, and D-0222 froze them in starlight with hits turned away). Built by a builder from the D-0228 brief, landed
+  with its maker.
+  - Light: only the wall switch's lights (RoomLights) freeze them into toys, and a hit tips a frozen one over (it lies
+    4 s, then rights itself). The star lamp makes them sleepy: awake and visible, slower (x0.55), spotting at half range.
+  - Readable: 1.8 times bigger in the cave (1.7 to 2.1 tall beside the 2-tall toy); a soft glow in the dark (violet
+    calm, red hunting, green dizzy; gone when lit or down); eyes change colour with it; on spotting the toy a "!" pops
+    (`MonsterMark`) with its sense animation and a squeak.
+  - Alive: they wander within 3 of their spot, chase a toy-sized player seen within 20 (10 sleepy) on a leash of 14,
+    and rear back 0.6 s before the bump (a tell to dodge). The bump pushes (no damage), 3 s cooldown, at most 2 bumps in
+    4 s from all of them. The way from the cave's mouth to the flashlight is kept 2.5 clear either side. A beam: a
+    flinch and a run, and after 1 s of beam dizzy for 3 s.
+  - Beatable: health 30 (dart 15, punch 10, kick 20; x10 while dizzy): two darts, or one hit while dizzy. Down for the
+    rest of the visit (a reload brings them back). All four down: the new gold star "Monsters under the bed" (placeholder
+    words on ObjectiveSet; 11 stars now).
+  - Play-log lines (spotted, bumped, dizzy, down, all down, tipped) in `Monsters/MonsterPlayLog.cs`; 6 new GameEvents.
+  - The console's `bedroom reset`: the slot forgets `bedroom:lights` and `bedroom:stars` (`SaveGame.Forget`, the one
+    change in Core), the room goes dark, the lamp sleeps, the monsters stand whole.
+  - The claw prizes are kept as D-0223 made them.
+  - Maker report (17:1x): 8 kinds updated in place with every state name found (the Party pair has no sense state: the
+    alert stands in); the four cave spots have 8.6 or more of headroom; the way in is clear.
+  - Unsure (the builder's): the wind-up holds the whole Animator about 0.5 s (a tell, or does it read as a freeze?); a
+    tipped monster keeps an upright capsule (a dart can hit the air above a lying slime); the glow is a square stretched
+    to the body (tune Halo Strength / Reach / Spread).
+  - Off: MonsterSettings > On, Halo On, Stay Down. **NOT PLAYED.**
+- **D-0230 (25 Nov 2026, 17:2x) Artificer: the title builds itself, the toy rebuilds itself after a fall, a found letter
+  bursts.** His "i really want to explore the artificer" (my pick he took: start with the title). Built by a builder from
+  the D-0230 brief. Every cut happens at run time: nothing made from a licensed model is saved.
+  - Title: the S-H-I-F-T letters fly in as pieces over 2.5 s, with the title music's fade-in, then the menu comes up
+    (`TitleMenu` waits for `TitleBuildIn`). Any key, click or pad button skips. Once a launch (back at the title it stands
+    built); BuildFx > Title Every Time repeats it.
+  - The pieces: 1,258 for the letters' 761 pixel spots. The letter meshes are pixel faces plus merged side strips, not a
+    cube per pixel (checked 17:1x), so the pieces may fly in as flat tiles and thin strips rather than cubes. His eyes
+    decide; the fix would be for the effect to build its own cube per pixel.
+  - A reset (the fall rule, the kill height, a hazard): a still copy of the body bursts where it fell, the shift warp
+    sweeps the screen as the camera goes to the checkpoint, the pieces fly back, the toy stands, then control returns:
+    about 2.3 s, against the old 0.4 s black cut. The kid too (BuildFx > Rebuild Kid). Knocked out online, seated in a
+    car, or in first person: the old black cut. `Respawn` adds `RebuildOnReset` at run time (no scene or prefab edit).
+    Online, only this PC sees it.
+  - A found Flat Zone letter bursts into its pieces (`LetterBurst`, from `FlatLetter.Take`).
+  - The game's code now uses Artificer's types: a clone without the git-ignored `Assets/Artificer/` does not compile
+    (as already with Text Animator and Modular 3D Text).
+  - Off: BuildFx > Title On, Rebuild On, Rebuild Kid, Letter Burst On; Move Cover picks Cut, ShiftWarp or BlackDip.
+    **NOT PLAYED.**
+- **D-0234 (25 Nov 2026, 17:2x) The body no longer stays invisible after first person.** His "character became invisible
+  at some point" (his 16:39 play: 6:19 the gun reloaded, 6:26 a shift to the kid in the narrow skirting run, 6:30 first
+  person, 6:34 back to third person). With the camera pushed into the body, `BodyFade` draws it as a shadow only and
+  brings it back over a moment once the camera is out. First person hides the body, and the gun's view body
+  (`ViewBody`) draws it again under the eye, remembering how each part was drawn. It remembered on the first frame,
+  before the fade had brought the body back, so it remembered "shadow only" and put that back when first person ended;
+  nothing turned it back. Now first person switches `BodyFade` off before anything else (switched off, it shows the body
+  fully at once) and on again as it leaves, as it does the camera. The car seat does the same: it hides the driver the
+  same way (not seen, the same clash). **NOT PLAYED.**
+- **D-0235 (25 Nov 2026, 17:2x) First person reaches what third person reaches.** His "i also cant interact with as many
+  of the objects as normal" (in first person; at 6:30 to 6:35 he left first person at the exit switch and pressed it
+  from third person). First person's E took only what a 0.1-wide probe down the middle of the view met first: a wall,
+  the floor or a switch's backplate blocked what was behind, and anything a little off the dot was missed. Third person
+  takes the nearest usable thing in a capsule in front of the feet. Now first person keeps the aimed probe first (what
+  you point at wins) and, with nothing usable under the dot, uses third person's own search from where you stand
+  (`Interactor.FindInReach`, split out of `Interactor.Update`; third person unchanged), through first person's own rules
+  (no vehicle or kid's carry while parked). The hint under the dot and the press use the same choice; a words-only hint
+  (a talking toy) no longer shows "E". The search no longer makes a new array for every thing it touches. **NOT PLAYED.**

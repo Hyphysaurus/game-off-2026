@@ -84,7 +84,8 @@ flashlight.
 - **Monsters:** Dungeon Mason (RPG Monster Duo, RPG Monster Couple, RPG Monster Partners and Party Monster Duo, the free
   Polyart packs). **Claw machine:** ithappy, Claw Machine Free.
 - **Tools:** Feel (More Mountains), Shapes (Freya Holmér), Linework Lite (Alexander Ameye), DOTween (Demigiant),
-  Fraggo (Unluck Software: it cut the breakable props into their pieces), In-game Debug Console and Dynamic Panels
+  Grabbit 2 (Jungle: the playroom toys' collision shapes), Artificer ✍ (its publisher, from its store page: the title
+  building itself and the toy rebuilding after a fall), Fraggo (Unluck Software: it cut the breakable props into their pieces), In-game Debug Console and Dynamic Panels
   (yasirkula), Unity's Netcode for GameObjects and Multiplayer Services (online play), TextMesh Pro, Unity Splines.
 - ✍ Check before publishing: Curved World (Amazing Assets) if the bent-world look uses it, Stylized Water 3, MudBun.
   They are installed; the v16 build log alone does not show whether their content is used.

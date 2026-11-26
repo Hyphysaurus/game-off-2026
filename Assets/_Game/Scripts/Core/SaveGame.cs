@@ -70,5 +70,16 @@ namespace ShiftJam
             string s = PlayerPrefs.GetString(SeenKey(slot), ""); PlayerPrefs.SetString(SeenKey(slot), s.Length == 0 ? id : s + "|" + id); PlayerPrefs.Save();
             Changed?.Invoke();
         }
+        /// <summary>Takes one moment off this slot's seen list, so it plays again (D-0228: the console's "bedroom reset");
+        /// raises <see cref="Changed"/> when it was there. The rest of the slot is untouched.</summary>
+        public static void Forget(int slot, string id)
+        {
+            if (string.IsNullOrEmpty(id) || !Seen(slot, id)) return;
+            var kept = new System.Text.StringBuilder();
+            foreach (string s in PlayerPrefs.GetString(SeenKey(slot), "").Split('|'))
+                if (s.Length > 0 && s != id) kept.Append(kept.Length > 0 ? "|" : "").Append(s);
+            PlayerPrefs.SetString(SeenKey(slot), kept.ToString()); PlayerPrefs.Save();
+            Changed?.Invoke();
+        }
     }
 }

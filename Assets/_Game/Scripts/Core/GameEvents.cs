@@ -86,6 +86,18 @@ namespace ShiftJam
         /// <summary>A room reveal's own music began (true) or is over (false: its fade-out ended, or the reveal was switched
         /// off or destroyed mid-way). Every true is followed by one false. The scene's music dips under it (D-0211).</summary>
         public static event Action<RoomReveal, bool> RevealSwell;
+        /// <summary>A monster under the bed spotted this PC's toy (its "!" popped; D-0228).</summary>
+        public static event Action<DarkMonster> MonsterSpotted;
+        /// <summary>A monster's bump landed on this PC's toy: a push, never a hurt (D-0228).</summary>
+        public static event Action<DarkMonster> MonsterBumped;
+        /// <summary>A monster went dizzy after a second in a beam: one hit knocks it down now (D-0228).</summary>
+        public static event Action<DarkMonster> MonsterDizzy;
+        /// <summary>A monster was knocked down (it stays down for the visit; D-0228).</summary>
+        public static event Action<DarkMonster> MonsterDown;
+        /// <summary>Every monster under the bed is down in this visit; the int is how many there are (D-0228).</summary>
+        public static event Action<int> MonstersAllDown;
+        /// <summary>A monster frozen in the wall switch's light was hit and tipped over like a toy (D-0228).</summary>
+        public static event Action<DarkMonster> MonsterTipped;
 
         internal static void RaiseShiftStarted(Shifter who, ShiftSize size) => ShiftStarted?.Invoke(who, size);
         internal static void RaiseShifted(Shifter who, ShiftSize size) => Shifted?.Invoke(who, size);
@@ -122,5 +134,11 @@ namespace ShiftJam
         internal static void RaiseRopeChanged(RopeRider rider, bool on) => RopeChanged?.Invoke(rider, on);
         internal static void RaisePropBroke(Breakable prop) => PropBroke?.Invoke(prop);
         internal static void RaiseRevealSwell(RoomReveal reveal, bool on) => RevealSwell?.Invoke(reveal, on);
+        internal static void RaiseMonsterSpotted(DarkMonster monster) => MonsterSpotted?.Invoke(monster);
+        internal static void RaiseMonsterBumped(DarkMonster monster) => MonsterBumped?.Invoke(monster);
+        internal static void RaiseMonsterDizzy(DarkMonster monster) => MonsterDizzy?.Invoke(monster);
+        internal static void RaiseMonsterDown(DarkMonster monster) => MonsterDown?.Invoke(monster);
+        internal static void RaiseMonstersAllDown(int count) => MonstersAllDown?.Invoke(count);
+        internal static void RaiseMonsterTipped(DarkMonster monster) => MonsterTipped?.Invoke(monster);
     }
 }

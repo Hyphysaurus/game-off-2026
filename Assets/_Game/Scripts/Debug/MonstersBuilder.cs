@@ -10,23 +10,30 @@ using UnityEngine.SceneManagement;
 namespace ShiftJam
 {
     /// <summary>
-    /// The monsters under the bed (D-0222) and the claw machine's prizes (D-0223), placed into the OPEN Greybox; it never
-    /// opens or saves a scene.
-    /// 1. Resources/MonsterSettings (made if missing; an existing asset keeps its numbers, a missing kind is added, empty
-    ///    sounds are filled with the Playroom's Toy_Squeak_Single_v1 and Ball_Bounce_v1).
-    /// 2. A prefab VARIANT of each pack monster in use under Prefabs/Monsters (the git-ignored Dungeon Mason prefab is the
+    /// The monsters under the bed (D-0222, made readable, alive and beatable in D-0228) and the claw machine's prizes
+    /// (D-0223), placed into the OPEN Greybox; it never opens or saves a scene.
+    /// 1. Resources/MonsterSettings (made if missing; an existing asset keeps its numbers, apart from the one D-0228 pass
+    ///    that raises the leash to 14 and the sight to 20 and gives each kind its sense and dizzy states; a missing kind is
+    ///    added; empty sounds are filled with the Playroom's Toy_Squeak_Single_v1 and Ball_Bounce_v1).
+    /// 2. The eye materials (calm, hunting, dizzy: URP Unlit) and the glow materials (the shift orb's glow shader, crackles
+    ///    off) under Art/Monsters, their colours written from the settings each run, and set on the settings.
+    /// 3. A prefab VARIANT of each pack monster in use under Prefabs/Monsters (the git-ignored Dungeon Mason prefab is the
     ///    base and is only referenced, never copied): a CharacterController sized to its baked body, a Damageable, the
-    ///    DarkMonster and its eye glints (small unlit spheres on the body's front straight ahead of its eye bones, riding
-    ///    those bones). A second run rewrites them.
-    /// 3. The cave's monsters under Room/Bedroom/BedMonsters: the cave under the bed measured by raycasts (the bed frame's
-    ///    real underside over a grid), the way from the cave's mouth (where the line from the toy box to the bed's
-    ///    flashlight goes under the bed) to BedFlashlight, and each spot from MonsterSettings > Cave Spots checked: free floor,
-    ///    room overhead, its leash out of the way and clear of the flashlight.
-    /// 4. The prizes under Room/Bedroom/ClawPrizes (NOT under ClawMachine, so Land Start Room Toys can re-make the machine
-    ///    without taking them): the glass case found again from the machine's glass material, its prize floor by raycasts
-    ///    (the chute's hole left out), each prize scaled to read as a plush and kept wholly inside the glass.
-    /// Menu: Shift Jam / House / Land Bedroom Monsters (D-0222, D-0223). A second run replaces what the first placed. The
-    /// scene is marked changed and not saved (Ctrl+S keeps it).
+    ///    DarkMonster, its eye glints (small unlit spheres on the body's front straight ahead of its eye bones, riding those
+    ///    bones) and its glow square (switched off in the prefab). A variant that exists is UPDATED IN PLACE (its own parts
+    ///    re-made, its components kept), so every placed copy keeps its own settings (the prizes' Stay Put).
+    /// 4. The cave's monsters under Room/Bedroom/BedMonsters, replaced each run: the cave under the bed measured by raycasts,
+    ///    the way from the cave's mouth to BedFlashlight, each spot from MonsterSettings > Cave Spots checked (free floor,
+    ///    room overhead for its body at Cave Scale, its wander area out of the way and clear of the flashlight), placed at
+    ///    Cave Scale.
+    /// 5. The prizes under Room/Bedroom/ClawPrizes: placed only when there are none (a first run); once placed they are
+    ///    KEPT as they are (D-0229's claw game may take one out), only reported.
+    /// 6. The gold star "Monsters under the bed" (MonsterSettings > Star Id) on Resources/ObjectiveSet: added once (his
+    ///    title and room never overwritten; its rule's objects are the cave monsters placed now), and an ObjectiveHook under
+    ///    "ObjectiveHooks (D-0220)" that each cave monster's Damageable On Died calls with its own number (four different
+    ///    parts in one visit), named as Build Objectives names it, so a later run of that maker keeps the same wiring.
+    /// Menu: Shift Jam / House / Land Bedroom Monsters (D-0222, D-0223, D-0228). The scene is marked changed and not saved
+    /// (Ctrl+S keeps it).
     /// </summary>
     public static class MonstersBuilder
     {
@@ -36,11 +43,19 @@ namespace ShiftJam
         const string SettingsPath = SettingsFolder + "/" + MonsterSettings.ResourceName + ".asset";
         const string PrefabFolder = "Assets/_Game/Prefabs/Monsters";
         const string GlowFolder = "Assets/_Game/Art/Monsters";
-        const string GlowPath = GlowFolder + "/MonsterEyeGlow.mat";
+        const string EyeCalmPath = GlowFolder + "/MonsterEyeGlow.mat";
+        const string EyeHuntPath = GlowFolder + "/MonsterEyeHunt.mat";
+        const string EyeDizzyPath = GlowFolder + "/MonsterEyeDizzy.mat";
+        const string HaloCalmPath = GlowFolder + "/MonsterHaloCalm.mat";
+        const string HaloHuntPath = GlowFolder + "/MonsterHaloHunt.mat";
+        const string HaloDizzyPath = GlowFolder + "/MonsterHaloDizzy.mat";
+        const string AuraShader = "ShiftJam/ShiftOrbAura";
         const string SqueakPath = "Assets/_Imports/ithappy/Playroom/Playroom_Sound_FX/Toys/Toy_Squeak_Single_v1.wav";
         const string BumpPath = "Assets/_Imports/ithappy/Playroom/Playroom_Sound_FX/Toys/Ball_Bounce_v1.wav";
         const string CaveHolder = "BedMonsters";
         const string PrizeHolder = "ClawPrizes";
+        const string GlintName = "EyeGlint";
+        const string HaloName = "MonsterHalo";
 
         // The cave.
         static readonly Vector3 ToyStartFallback = new Vector3(0f, 0f, -20f);   // the toy's start in the toy box (no Room/ToyBox found)
@@ -60,6 +75,9 @@ namespace ShiftJam
         const int PrizeTries = 3;
         const int PrizesAtLeast = 6;
 
+        // The star's wiring (as ObjectivesBuilder writes it).
+        const int ModeInt = 3, RuntimeOnly = 2;   // PersistentListenerMode.Int, UnityEventCallState.RuntimeOnly
+
         static readonly StringBuilder Log = new StringBuilder();
 
         /// <summary>What the maker made of one kind: its prefab variant and its body measured at scale 1 (root space).</summary>
@@ -72,7 +90,13 @@ namespace ShiftJam
             public float Wide => Mathf.Max(body.size.x, body.size.z);
         }
 
-        [MenuItem("Shift Jam/House/Land Bedroom Monsters (D-0222, D-0223)")]
+        /// <summary>The materials the variants and the settings wear.</summary>
+        sealed class Looks
+        {
+            public Material eyeCalm, eyeHunt, eyeDizzy, haloCalm, haloHunt, haloDizzy;
+        }
+
+        [MenuItem("Shift Jam/House/Land Bedroom Monsters (D-0222, D-0223, D-0228)")]
         public static void LandMenu()
         {
             string report = Land();
@@ -80,10 +104,10 @@ namespace ShiftJam
         }
 
         /// <summary>
-        /// Makes the settings, the prefab variants, the cave's monsters and the claw machine's prizes in the OPEN Greybox and
-        /// marks it changed; it does not save it. A second run replaces BedMonsters and ClawPrizes and rewrites the prefab
-        /// variants (MonsterSettings keeps its numbers). Returns the report, one fact a line; a report that starts
-        /// "[Bedroom Monsters] NOT " means nothing was changed.
+        /// Makes or updates the settings, the materials, the prefab variants, the cave's monsters, the prizes (only when
+        /// there are none) and the gold star in the OPEN Greybox and marks it changed; it does not save it. A second run
+        /// replaces BedMonsters, updates the variants in place and keeps ClawPrizes. Returns the report, one fact a line;
+        /// a report that starts "[Bedroom Monsters] NOT " means nothing was changed.
         /// </summary>
         public static string Land()
         {
@@ -100,14 +124,13 @@ namespace ShiftJam
 
             Log.Clear();
             bool again = bedroom.Find(CaveHolder) != null || bedroom.Find(PrizeHolder) != null;
-            Log.AppendLine($"{Tag} Land Bedroom Monsters (D-0222 the monsters under the bed, D-0223 the claw machine's prizes): {(again ? "SECOND run: BedMonsters and ClawPrizes are replaced and the prefab variants rewritten (MonsterSettings keeps its numbers)" : "first run")}. Greybox is MARKED CHANGED and NOT SAVED: Ctrl+S keeps it.");
+            Log.AppendLine($"{Tag} Land Bedroom Monsters (D-0222 the monsters under the bed, D-0223 the claw machine's prizes, D-0228 readable, alive and beatable): {(again ? "SECOND run: BedMonsters is replaced, the prefab variants are updated in place, ClawPrizes is KEPT as it is" : "first run")}. Greybox is MARKED CHANGED and NOT SAVED: Ctrl+S keeps it.");
 
-            // What a first run placed goes first: its prefabs are rewritten below.
+            // The cave's monsters go first (they are placed again below); the prizes stay.
             Remove(bedroom, CaveHolder);
-            Remove(bedroom, PrizeHolder);
 
             MonsterSettings s = Settings();
-            Material glow = GlowMaterial(unlit, s);
+            Looks looks = Materials(unlit, s);
 
             var made = new Dictionary<string, Made>();
             var wanted = new HashSet<string>();
@@ -117,7 +140,7 @@ namespace ShiftJam
             foreach (MonsterSettings.Kind kind in s.kinds)
             {
                 if (kind == null || !wanted.Contains(kind.name) || made.ContainsKey(kind.name)) continue;
-                Made m = MakeVariant(kind, s, glow);
+                Made m = Variant(kind, s, looks);
                 if (m != null) made[kind.name] = m;
             }
             foreach (string w in wanted) if (!s.Has(w)) Log.AppendLine($"KIND '{w}': named in Cave Spots or Prizes but NOT in MonsterSettings > Kinds: skipped.");
@@ -125,14 +148,18 @@ namespace ShiftJam
 
             RoomLights lights = bedroom.GetComponentInChildren<RoomLights>(true);
             StarLamp lamp = bedroom.GetComponentInChildren<StarLamp>(true);
-            Log.AppendLine($"THE ROOM'S LIGHTS: wall switch {(lights != null ? Path(lights.transform) + " (RoomLights, saved '" + lights.Key + "')" : "NO RoomLights under Room/Bedroom: that rule is off")}; star lamp {(lamp != null ? Path(lamp.transform) + " (StarLamp, saved '" + lamp.Key + "')" : "NO StarLamp under Room/Bedroom: that rule is off")}. Either one lit = every monster and prize is a frozen toy.");
+            Log.AppendLine($"THE ROOM'S LIGHTS: wall switch {(lights != null ? Path(lights.transform) + " (RoomLights, saved '" + lights.Key + "'): on = every monster and prize is a FROZEN toy (a hit tips a cave monster over)" : "NO RoomLights under Room/Bedroom: they never freeze")}; star lamp {(lamp != null ? Path(lamp.transform) + " (StarLamp, saved '" + lamp.Key + "'): awake (switch off) = the cave's monsters are SLEEPY (speeds x" + s.sleepySpeed + ", sight x" + s.sleepySight + "), the prizes idle" : "NO StarLamp under Room/Bedroom: never sleepy")}.");
 
             Physics.SyncTransforms();
-            LandCave(bedroom, s, made, lights, lamp);
-            LandPrizes(bedroom, s, made, lights, lamp);
+            List<DarkMonster> cave = LandCave(bedroom, s, made, lights, lamp);
+            Transform prizes = bedroom.Find(PrizeHolder);
+            if (prizes != null) ReportPrizes(prizes);
+            else LandPrizes(bedroom, s, made, lights, lamp);
+            Star(scene, s, cave);
 
             EditorSceneManager.MarkSceneDirty(scene);
-            Log.AppendLine("Greybox MARKED CHANGED, not saved. Online: nothing networked; each PC's monsters react to that PC's own player (MonsterSettings > Online off keeps them still toys online). Off switch: MonsterSettings > On.");
+            Log.AppendLine("Greybox MARKED CHANGED, not saved. Online: nothing networked; each PC's monsters react to that PC's own player (MonsterSettings > Online off keeps them still toys online). Off switches: MonsterSettings > On (all still toys), Halo On (no glow), Stay Down (off: they get up after Down Seconds); untick the star's hook to drop the star's wiring.");
+            Log.AppendLine("Test without leaving Play: the console's 'bedroom reset' (` then type it): the active slot forgets the bedroom's lights and star lamp, the monsters stand whole at their spots.");
             return Log.ToString();
         }
 
@@ -153,75 +180,156 @@ namespace ShiftJam
             var added = new List<string>();
             foreach (var d in MonsterSettings.DefaultKinds()) if (!s.Has(d.name)) { kinds.Add(d); added.Add(d.name); }
             s.kinds = kinds.ToArray();
+            string pass = Pass(s);
             var squeak = AssetDatabase.LoadAssetAtPath<AudioClip>(SqueakPath);
             var bump = AssetDatabase.LoadAssetAtPath<AudioClip>(BumpPath);
             if (s.squeak.clip == null) s.squeak.clip = squeak;
+            if (s.spotSqueak.clip == null) s.spotSqueak.clip = squeak;
+            if (s.downSqueak.clip == null) s.downSqueak.clip = squeak;
             if (s.bump.clip == null) s.bump.clip = bump;
             EditorUtility.SetDirty(s);
             AssetDatabase.SaveAssetIfDirty(s);
-            Log.AppendLine($"SETTINGS: {SettingsPath} {(fresh ? "MADE with its defaults" : "FOUND: its numbers kept")}{(added.Count > 0 && !fresh ? "; kinds added: " + string.Join(", ", added) : "")}. {s.kinds.Length} kinds. Sight {s.sight}, leash {s.leash}, creep {s.creepSpeed} / run {s.runSpeed} a second, bump push {s.bumpPush} + lift {s.bumpLift} (the toy's units a second; no damage), at most {s.bumpsAtMost} bumps in {s.bumpWindow} s, cooldown {s.bumpCooldown} s, flee {s.fleeDistance}, back home {s.returnAfter} s after the light leaves, health {s.health}, down {s.downSeconds} s.");
-            Log.AppendLine($"SOUNDS: squeak (the flinch) {Clip(s.squeak.clip, SqueakPath)} at {s.squeak.volume}; bump {Clip(s.bump.clip, BumpPath)} at {s.bump.volume}; knocked down: the soldiers' thud (Resources/WeaponAmmo, through KnockDown). Heard from the monster: full within {s.soundNear}, silent past {s.soundFar}.");
+            Log.AppendLine($"SETTINGS: {SettingsPath} {(fresh ? "MADE with its defaults" : "FOUND: its numbers kept")}{(added.Count > 0 && !fresh ? "; kinds added: " + string.Join(", ", added) : "")}. {s.kinds.Length} kinds. {pass}");
+            Log.AppendLine($"NUMBERS (toy units; the toy is 2 tall and walks 7): Cave Scale x{s.caveScale}. Sight {s.sight} (sleepy x{s.sleepySight} = {s.sight * s.sleepySight:0.#}; kept track of within x{s.keepTrack} once after the toy), lose it after {s.loseAfter} s. Wander within {s.wanderRadius} of its spot, a walk every {s.wanderPauseMin}..{s.wanderPauseMax} s. Spotting: stares {s.senseSeconds} s with a \"{s.markText}\" ({s.markSize} of its height, {s.markPopSeconds} s pop to x{s.markOvershoot}, held {s.markHoldSeconds} s), no second one within {s.spotAgainAfter} s. Leash {s.leash}; speeds walk {s.creepSpeed}, chase {s.chaseSpeed}, run {s.runSpeed}, back {s.backSpeed} (sleepy x{s.sleepySpeed}). The bump: wind-up {s.windupSeconds} s (held from {s.windupPoseAt} s into its attack clip), push {s.strikeSeconds} s after the swing (gap {s.bumpGap}, missed past x{s.bumpMissShare} of the reach), away {s.bumpPush} + up {s.bumpLift} (no damage), cooldown {s.bumpCooldown} s, all monsters at most {s.bumpsAtMost} bumps in {s.bumpWindow} s. The beam: flinch {s.flinchSeconds} s, flee {s.fleeDistance}, home {s.returnAfter} s after; DIZZY after {s.dizzyAfter} s of beam (forgotten after {s.beamForget} s without), for {s.dizzySeconds} s, hits x{s.dizzyHitScale}. Health {s.health} (dart 15, punch 10, kick 20), Stay Down {(s.stayDown ? "ON (down for the visit)" : "off (up after " + s.downSeconds + " s)")}. Frozen tip: {s.tipAngle} degrees over {s.tipSeconds} s, lies {s.tipLie} s, rights itself in {s.tipRightSeconds} s. Way kept {s.laneHalfWidth} either side; flashlight kept {s.flashlightClear} clear of every body.");
+            Log.AppendLine($"SOUNDS: squeak (the beam's flinch) {Clip(s.squeak.clip, SqueakPath)} at {s.squeak.volume}; spotting {Clip(s.spotSqueak.clip, SqueakPath)} at {s.spotSqueak.volume}, pitch {s.spotPitch}; knocked down {Clip(s.downSqueak.clip, SqueakPath)} at {s.downSqueak.volume}, pitch {s.downPitch}, with the soldiers' burst and thud (Resources/WeaponAmmo, through KnockDown); bump and tip {Clip(s.bump.clip, BumpPath)} at {s.bump.volume}. Heard from the monster: full within {s.soundNear}, silent past {s.soundFar}.");
             return s;
+        }
+
+        /// <summary>The D-0228 pass, once per asset (Pass below 228): the leash and the sight raised to this file's defaults,
+        /// each kind given its sense and dizzy states (its old hide state was the dizzy clip: it cowers in its alert now).</summary>
+        static string Pass(MonsterSettings s)
+        {
+            if (s.pass >= MonsterSettings.CurrentPass) return $"Pass {s.pass}: up to date, nothing raised.";
+            var d = ScriptableObject.CreateInstance<MonsterSettings>();
+            var said = new StringBuilder($"D-0228 PASS (Pass {s.pass} -> {MonsterSettings.CurrentPass}): leash {s.leash} -> {d.leash}, sight {s.sight} -> {d.sight}");
+            s.leash = d.leash; s.sight = d.sight;
+            Object.DestroyImmediate(d);
+            MonsterSettings.Kind[] defaults = MonsterSettings.DefaultKinds();
+            foreach (MonsterSettings.Kind k in s.kinds)
+            {
+                if (k == null) continue;
+                MonsterSettings.Kind def = null;
+                foreach (var x in defaults) if (x.name == k.name) { def = x; break; }
+                if (string.IsNullOrEmpty(k.sense)) k.sense = def != null ? def.sense : "";
+                if (string.IsNullOrEmpty(k.dizzy)) k.dizzy = def != null ? def.dizzy : k.hide;
+                if (k.hide == k.dizzy) k.hide = k.alert;
+                said.Append($"; {k.name}: sense '{k.sense}', dizzy '{k.dizzy}', hide '{k.hide}'");
+            }
+            s.pass = MonsterSettings.CurrentPass;
+            return said.Append('.').ToString();
         }
 
         static string Clip(AudioClip clip, string expected) => clip != null ? $"{clip.name} ({clip.length:F2} s)" : $"NONE (no {expected}: silent)";
 
-        static Material GlowMaterial(Shader unlit, MonsterSettings s)
+        /// <summary>The eye and glow materials, made or found, their colours written from the settings, and set on them.</summary>
+        static Looks Materials(Shader unlit, MonsterSettings s)
         {
-            var m = AssetDatabase.LoadAssetAtPath<Material>(GlowPath);
-            bool fresh = m == null;
-            if (fresh)
+            EnsureFolder(GlowFolder);
+            var looks = new Looks
             {
-                EnsureFolder(GlowFolder);
-                m = new Material(unlit) { name = "MonsterEyeGlow" };
-                AssetDatabase.CreateAsset(m, GlowPath);
+                eyeCalm = Eye(EyeCalmPath, unlit, s.glint),
+                eyeHunt = Eye(EyeHuntPath, unlit, s.glintHunt),
+                eyeDizzy = Eye(EyeDizzyPath, unlit, s.glintDizzy),
+            };
+            Shader aura = Shader.Find(AuraShader);
+            if (aura != null)
+            {
+                looks.haloCalm = Halo(HaloCalmPath, aura, s.haloCalmColour, s);
+                looks.haloHunt = Halo(HaloHuntPath, aura, s.haloHuntColour, s);
+                looks.haloDizzy = Halo(HaloDizzyPath, aura, s.haloDizzyColour, s);
+            }
+            s.eyeCalm = looks.eyeCalm; s.eyeHunt = looks.eyeHunt; s.eyeDizzy = looks.eyeDizzy;
+            s.haloCalm = looks.haloCalm; s.haloHunt = looks.haloHunt; s.haloDizzy = looks.haloDizzy;
+            EditorUtility.SetDirty(s);
+            AssetDatabase.SaveAssetIfDirty(s);
+            Log.AppendLine($"EYES: {EyeCalmPath} (calm {s.glint}), {EyeHuntPath} (after the toy {s.glintHunt}), {EyeDizzyPath} (dizzy {s.glintDizzy}): URP Unlit, over 1 glows under bloom, not dimmed by a Dark Zone; set on MonsterSettings > Eye Calm / Hunt / Dizzy.");
+            Log.AppendLine(aura != null
+                ? $"GLOW: {HaloCalmPath}, {HaloHuntPath}, {HaloDizzyPath} ({AuraShader}: the shift orb's soft additive glow, crackles off; calm {s.haloCalmColour}, after the toy {s.haloHuntColour}, dizzy {s.haloDizzyColour}; brightness {s.haloStrength}, falloff {s.haloReach}, the square {s.haloSpread} times the body); Halo On {(s.haloOn ? "ticked" : "UNTICKED: no glow")}."
+                : $"GLOW: NO '{AuraShader}' shader (did it fail to compile?): no glow materials, the monsters have no glow (the eyes still show).");
+            return looks;
+        }
+
+        static Material Eye(string path, Shader unlit, Color colour)
+        {
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m == null)
+            {
+                m = new Material(unlit) { name = System.IO.Path.GetFileNameWithoutExtension(path) };
+                AssetDatabase.CreateAsset(m, path);
             }
             else if (m.shader != unlit) m.shader = unlit;
-            m.SetColor("_BaseColor", s.glint);
+            m.SetColor("_BaseColor", colour);
             EditorUtility.SetDirty(m);
             AssetDatabase.SaveAssetIfDirty(m);
-            Log.AppendLine($"EYES: {GlowPath} {(fresh ? "MADE" : "found")} (URP Unlit, colour {s.glint}: over 1 glows under bloom; not lit by anything, so a Dark Zone does not dim it).");
+            return m;
+        }
+
+        static Material Halo(string path, Shader aura, Color colour, MonsterSettings s)
+        {
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m == null)
+            {
+                m = new Material(aura) { name = System.IO.Path.GetFileNameWithoutExtension(path) };
+                AssetDatabase.CreateAsset(m, path);
+            }
+            else if (m.shader != aura) m.shader = aura;
+            m.SetColor("_BaseColor", colour);
+            m.SetColor("_FarColor", colour * 0.6f);
+            m.SetFloat("_OrbEdge", Mathf.Clamp(1f / Mathf.Max(1f, s.haloSpread), 0.1f, 0.9f));   // the bright ring at the body's own edge
+            m.SetFloat("_GlowStrength", s.haloStrength);
+            m.SetFloat("_GlowReach", s.haloReach);
+            m.SetFloat("_Escapes", 0f);
+            m.SetFloat("_EscapeBright", 0f);
+            EditorUtility.SetDirty(m);
+            AssetDatabase.SaveAssetIfDirty(m);
             return m;
         }
 
         // ------------------------------------------------------------------------------------------------ the prefab variants
 
-        /// <summary>One kind's prefab variant: the pack prefab as its base, our collider, health, monster and eyes on top.</summary>
-        static Made MakeVariant(MonsterSettings.Kind kind, MonsterSettings s, Material glow)
+        /// <summary>One kind's prefab variant: made from the pack prefab the first time, updated in place after that (its
+        /// components kept, so every placed copy keeps its own settings), our collider, health, monster, eyes and glow on top.</summary>
+        static Made Variant(MonsterSettings.Kind kind, MonsterSettings s, Looks looks)
         {
             var pack = AssetDatabase.LoadAssetAtPath<GameObject>(kind.packPrefab);
             if (pack == null) { Log.AppendLine($"KIND {kind.name}: NO {kind.packPrefab} (the Dungeon Mason packs are git-ignored: import them on this PC). Not made; its spots and prizes are skipped."); return null; }
             string path = $"{PrefabFolder}/{kind.name}Monster.prefab";
+            bool inPlace = AssetDatabase.LoadAssetAtPath<GameObject>(path) != null;
             var temps = new List<Object>();
             var shells = new List<Collider>();
-            var inst = (GameObject)PrefabUtility.InstantiatePrefab(pack, SceneManager.GetActiveScene());
+            GameObject root = inPlace ? PrefabUtility.LoadPrefabContents(path) : (GameObject)PrefabUtility.InstantiatePrefab(pack, SceneManager.GetActiveScene());
             try
             {
-                inst.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-                inst.transform.localScale = Vector3.one;
+                if (!inPlace) { root.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity); root.transform.localScale = Vector3.one; }
+                int removed = RemoveOurParts(root.transform);
                 Physics.SyncTransforms();
-                Bounds body = Body(inst.transform, temps, shells);
+                Bounds body = Body(root.transform, temps, shells);
                 float tall = Mathf.Max(0.05f, body.size.y);
                 float radius = Mathf.Clamp(0.5f * Mathf.Min(body.size.x, body.size.z), 0.05f, 0.5f * tall);
 
-                var cc = inst.AddComponent<CharacterController>();
+                var cc = root.GetComponent<CharacterController>();
+                if (cc == null) cc = root.AddComponent<CharacterController>();
                 cc.height = tall; cc.radius = radius; cc.center = body.center;
                 cc.skinWidth = Mathf.Max(0.01f, 0.08f * radius);
                 cc.stepOffset = 0.25f * tall; cc.slopeLimit = 45f; cc.minMoveDistance = 0f;
 
-                var health = inst.AddComponent<Damageable>();
+                var health = root.GetComponent<Damageable>();
+                if (health == null) health = root.AddComponent<Damageable>();
                 var hso = new SerializedObject(health);
                 hso.FindProperty("maxHealth").floatValue = s.health;
                 hso.FindProperty("takeKnockback").boolValue = false;   // nothing of ours takes a shove: no body to push
                 hso.ApplyModifiedPropertiesWithoutUndo();
 
-                List<Renderer> eyes = Eyes(inst.transform, kind, body, glow, shells, out string eyeLine);
-                Animator animator = inst.GetComponentInChildren<Animator>(true);
+                List<Renderer> eyes = Eyes(root.transform, kind, body, looks.eyeCalm, shells, out string eyeLine);
+                Renderer glow = looks.haloCalm != null ? GlowSquare(root.transform, body, s, looks.haloCalm) : null;
+                Animator animator = root.GetComponentInChildren<Animator>(true);
 
-                var monster = inst.AddComponent<DarkMonster>();
+                var monster = root.GetComponent<DarkMonster>();
+                if (monster == null) monster = root.AddComponent<DarkMonster>();
                 var mso = new SerializedObject(monster);
                 mso.FindProperty("kind").stringValue = kind.name;
                 mso.FindProperty("animator").objectReferenceValue = animator;
+                mso.FindProperty("halo").objectReferenceValue = glow;
                 var list = mso.FindProperty("glints");
                 list.arraySize = eyes.Count;
                 for (int i = 0; i < eyes.Count; i++) list.GetArrayElementAtIndex(i).objectReferenceValue = eyes[i];
@@ -231,16 +339,30 @@ namespace ShiftJam
                 foreach (Object t in temps) if (t != null) Object.DestroyImmediate(t);
                 temps.Clear();
 
-                GameObject saved = PrefabUtility.SaveAsPrefabAsset(inst, path, out bool ok);
+                GameObject saved = PrefabUtility.SaveAsPrefabAsset(root, path, out bool ok);
                 if (!ok || saved == null) { Log.AppendLine($"KIND {kind.name}: COULD NOT SAVE {path}. Its spots and prizes are skipped."); return null; }
-                Log.AppendLine($"KIND {kind.name}: {path} ({PrefabUtility.GetPrefabAssetType(saved)} of {kind.packPrefab}): body {body.size.x:F2} x {body.size.y:F2} x {body.size.z:F2} at scale 1 (a toy is about 2 tall); CharacterController height {tall:F2}, radius {radius:F2}, centre {body.center}; Damageable {s.health} (MonsterSettings > Health sets it at run time); {eyeLine}; Animator {(animator != null && animator.runtimeAnimatorController != null ? animator.runtimeAnimatorController.name : "NONE")}: {states}.");
+                Log.AppendLine($"KIND {kind.name}: {path} ({PrefabUtility.GetPrefabAssetType(saved)} of {kind.packPrefab}; {(inPlace ? "UPDATED IN PLACE, " + removed + " old part" + (removed == 1 ? "" : "s") + " of ours re-made" : "MADE")}): body {body.size.x:F2} x {body.size.y:F2} x {body.size.z:F2} at scale 1 (a toy is about 2 tall; in the cave x{s.caveScale} = {body.size.y * s.caveScale:F2} tall); CharacterController height {tall:F2}, radius {radius:F2}, centre {body.center}; Damageable {s.health}; {eyeLine}; glow square {(glow != null ? $"{s.haloSpread * Mathf.Max(body.size.x, body.size.z):F2} x {s.haloSpread * tall:F2} (off in the prefab)" : "NONE (no glow material)")}; Animator {(animator != null && animator.runtimeAnimatorController != null ? animator.runtimeAnimatorController.name : "NONE")}: {states}.");
                 return new Made { prefab = saved, body = body, radius = radius };
             }
             finally
             {
                 foreach (Object t in temps) if (t != null) Object.DestroyImmediate(t);
-                if (inst != null) Object.DestroyImmediate(inst);
+                if (root != null)
+                {
+                    if (inPlace) PrefabUtility.UnloadPrefabContents(root);
+                    else Object.DestroyImmediate(root);
+                }
             }
+        }
+
+        /// <summary>Our own parts on a variant (the eye glints and the glow square), removed so they are made again. Returns how many.</summary>
+        static int RemoveOurParts(Transform root)
+        {
+            var ours = new List<GameObject>();
+            foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+                if (t != root && (t.name == GlintName || t.name == HaloName)) ours.Add(t.gameObject);
+            foreach (GameObject go in ours) if (go != null) Object.DestroyImmediate(go);
+            return ours.Count;
         }
 
         /// <summary>The body's exact box in the root's own space (the skinned meshes baked as they stand, plus any plain
@@ -262,7 +384,7 @@ namespace ShiftJam
             foreach (var mf in root.GetComponentsInChildren<MeshFilter>(false))
             {
                 var mr = mf.GetComponent<MeshRenderer>();
-                if (mf.sharedMesh == null || mr == null || !mr.enabled) continue;
+                if (mf.sharedMesh == null || mr == null || !mr.enabled || mf.name == GlintName || mf.name == HaloName) continue;
                 Take(mf.sharedMesh, mf.transform.localToWorldMatrix, root, ref box, ref any);
                 shells.Add(Shell(mf.sharedMesh, mf.transform.position, mf.transform.rotation, mf.transform.lossyScale, temps));
             }
@@ -350,9 +472,9 @@ namespace ShiftJam
         static Renderer Glint(Transform parent, Vector3 centre, float radius, Material glow)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            go.name = "EyeGlint";
+            go.name = GlintName;
             Object.DestroyImmediate(go.GetComponent<Collider>());
-            go.transform.SetParent(parent, false);
+            Adopt(go, parent);
             go.transform.position = centre;
             go.transform.rotation = parent.rotation;
             Vector3 ls = parent.lossyScale;
@@ -367,7 +489,38 @@ namespace ShiftJam
             return r;
         }
 
-        /// <summary>Which of the kind's state names the controller has (a missing one falls back to the idle at run time).</summary>
+        /// <summary>The glow square: a quad on the root at the body's middle, Halo Spread times its width and height, wearing
+        /// the calm glow; switched OFF here (the monster turns it on while awake and places it behind itself each frame).</summary>
+        static Renderer GlowSquare(Transform root, Bounds body, MonsterSettings s, Material glow)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            go.name = HaloName;
+            Object.DestroyImmediate(go.GetComponent<Collider>());
+            Adopt(go, root);
+            go.transform.localPosition = body.center;
+            go.transform.localRotation = Quaternion.identity;
+            Vector3 ls = root.lossyScale;
+            float wide = s.haloSpread * Mathf.Max(body.size.x, body.size.z), tall = s.haloSpread * body.size.y;
+            go.transform.localScale = new Vector3(wide / Mathf.Max(1e-4f, Mathf.Abs(ls.x)), tall / Mathf.Max(1e-4f, Mathf.Abs(ls.y)), 1f);
+            var r = go.GetComponent<MeshRenderer>();
+            r.sharedMaterial = glow;
+            r.shadowCastingMode = ShadowCastingMode.Off;
+            r.receiveShadows = false;
+            r.lightProbeUsage = LightProbeUsage.Off;
+            r.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            r.enabled = false;
+            return r;
+        }
+
+        /// <summary>Puts a new object under <paramref name="parent"/> (into the parent's scene first: a variant opened for
+        /// editing lives in its own preview scene).</summary>
+        static void Adopt(GameObject go, Transform parent)
+        {
+            if (go.scene != parent.gameObject.scene) SceneManager.MoveGameObjectToScene(go, parent.gameObject.scene);
+            go.transform.SetParent(parent, false);
+        }
+
+        /// <summary>Which of the kind's state names the controller has (a missing one falls back at run time).</summary>
         static string States(Animator animator, MonsterSettings.Kind kind)
         {
             RuntimeAnimatorController rac = animator != null ? animator.runtimeAnimatorController : null;
@@ -377,9 +530,15 @@ namespace ShiftJam
             var names = new HashSet<string>();
             Collect(ctrl.layers[0].stateMachine, names);
             var missing = new List<string>();
-            foreach (string n in new[] { kind.idle, kind.alert, kind.walk, kind.run, kind.back, kind.attack, kind.hit, kind.hide, kind.die, kind.rest })
-                if (!string.IsNullOrEmpty(n) && !names.Contains(n) && !missing.Contains(n)) missing.Add(n);
-            return missing.Count == 0 ? "all 10 state names found" : $"state names NOT in it (they fall back to the idle): {string.Join(", ", missing)}";
+            string[] all = { kind.idle, kind.alert, kind.walk, kind.run, kind.back, kind.attack, kind.hit, kind.hide, kind.die, kind.rest, kind.sense, kind.dizzy };
+            int named = 0;
+            foreach (string n in all)
+            {
+                if (string.IsNullOrEmpty(n)) continue;
+                named++;
+                if (!names.Contains(n) && !missing.Contains(n)) missing.Add(n);
+            }
+            return missing.Count == 0 ? $"all {named} state names found{(string.IsNullOrEmpty(kind.sense) ? " (no sense state: the alert stands in)" : "")}" : $"state names NOT in it (they fall back: sense to the alert, dizzy to the hide, the rest to the idle): {string.Join(", ", missing)}";
         }
 
         static void Collect(UnityEditor.Animations.AnimatorStateMachine machine, HashSet<string> names)
@@ -389,10 +548,12 @@ namespace ShiftJam
             foreach (var sub in machine.stateMachines) Collect(sub.stateMachine, names);
         }
 
-        // ------------------------------------------------------------------------------------------------ the cave (D-0222)
+        // ------------------------------------------------------------------------------------------------ the cave (D-0222, D-0228)
 
-        static void LandCave(Transform bedroom, MonsterSettings s, Dictionary<string, Made> made, RoomLights lights, StarLamp lamp)
+        /// <summary>Measures the cave and places the cave's monsters at Cave Scale. Returns them in spot order.</summary>
+        static List<DarkMonster> LandCave(Transform bedroom, MonsterSettings s, Dictionary<string, Made> made, RoomLights lights, StarLamp lamp)
         {
+            var monsters = new List<DarkMonster>();
             Transform bed = bedroom.Find("Bed");
             Transform torchT = bedroom.Find("UnderBed/BedFlashlight");
             if (torchT == null)
@@ -401,7 +562,7 @@ namespace ShiftJam
                 Flashlight f = under != null ? under.GetComponentInChildren<Flashlight>(true) : null;
                 if (f != null) torchT = f.transform;
             }
-            if (bed == null || torchT == null) { Log.AppendLine($"CAVE MONSTERS NOT placed: no {(bed == null ? "Room/Bedroom/Bed" : "Room/Bedroom/UnderBed/BedFlashlight")} to measure the cave by."); return; }
+            if (bed == null || torchT == null) { Log.AppendLine($"CAVE MONSTERS NOT placed: no {(bed == null ? "Room/Bedroom/Bed" : "Room/Bedroom/UnderBed/BedFlashlight")} to measure the cave by."); return monsters; }
             Bounds bb = WorldBounds(bed.gameObject);
             Vector3 torch = torchT.position;
             float floorY = Floor(new Vector3(bb.center.x, 0f, bb.center.z), torch.y + 3f, bed, out bool floorFound);
@@ -422,7 +583,7 @@ namespace ShiftJam
                     if (!anyCave) { caveMin = caveMax = p; anyCave = true; }
                     else { caveMin = Vector2.Min(caveMin, p); caveMax = Vector2.Max(caveMax, p); }
                 }
-            if (!anyCave) { Log.AppendLine($"CAVE MONSTERS NOT placed: no room under the bed found (rays up from the floor at y {floorY:F2} over the bed's footprint met the frame lower than {CaveLeastRoom})."); return; }
+            if (!anyCave) { Log.AppendLine($"CAVE MONSTERS NOT placed: no room under the bed found (rays up from the floor at y {floorY:F2} over the bed's footprint met the frame lower than {CaveLeastRoom})."); return monsters; }
             room.Sort();
             float least = room[0], most = room[room.Count - 1], middle = room[room.Count / 2];
             Log.AppendLine($"CAVE CLEARANCE (measured: {room.Count} rays up from the floor at y {floorY:F2}{(floorFound ? "" : " (NO floor hit: y 0 assumed)")}, every {CaveGridStep} over the bed's footprint x {bb.min.x:F1}..{bb.max.x:F1}, z {bb.min.z:F1}..{bb.max.z:F1}, that met the bed frame {CaveLeastRoom} or more up): least {least:F2}, middle {middle:F2}, most {most:F2} (D-0155 said 8.6 to 9.8; the dark zone's box is 8.5 tall). Cave floor x {caveMin.x:F1}..{caveMax.x:F1}, z {caveMin.y:F1}..{caveMax.y:F1}.{(other != null ? " Something other than the bed is overhead in places: " + other + "." : "")}");
@@ -444,18 +605,20 @@ namespace ShiftJam
             Vector3 back = new Vector3(cave.center.x, floorY, cave.center.z) + Level(new Vector3(cave.center.x, floorY, cave.center.z) - mouth).normalized * 1000f;
             back.x = Mathf.Clamp(back.x, cave.min.x + CaveBackInset, cave.max.x - CaveBackInset);
             back.z = Mathf.Clamp(back.z, cave.min.z + CaveBackInset, cave.max.z - CaveBackInset);
-            Log.AppendLine($"THE WAY IN: from {(toyBox != null ? "Room/ToyBox" : "the toy's start (no Room/ToyBox)")} at {Level(start)} to BedFlashlight at {torch}: the cave's mouth at {mouth}{(fromInside ? " (the start is already under the bed)" : "")}, {wayLength:F1} to the flashlight; a toy's capsule along it: {wayClear}. Kept open: {s.laneHalfWidth} either side of that line (no monster stands in it, nor creeps or backs into it). The cave's back (where they run from a beam): {back}. The box they keep inside: x {cave.min.x:F1}..{cave.max.x:F1}, z {cave.min.z:F1}..{cave.max.z:F1}.");
+            Log.AppendLine($"THE WAY IN: from {(toyBox != null ? "Room/ToyBox" : "the toy's start (no Room/ToyBox)")} at {Level(start)} to BedFlashlight at {torch}: the cave's mouth at {mouth}{(fromInside ? " (the start is already under the bed)" : "")}, {wayLength:F1} to the flashlight; a toy's capsule along it: {wayClear}. Kept open: {s.laneHalfWidth} either side of that line (no monster stands, waits, wanders or hides in it; a chase may cross it), and no body within {s.flashlightClear} of the flashlight. The cave's back (where they run from a beam): {back}. The box they keep inside: x {cave.min.x:F1}..{cave.max.x:F1}, z {cave.min.z:F1}..{cave.max.z:F1} ({cave.size.x:F0} x {cave.size.z:F0}).");
 
             var holder = new GameObject(CaveHolder).transform;
             holder.SetParent(bedroom, false);
             holder.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
             var placed = new List<(Vector3 at, float radius)>();
+            float size = Mathf.Max(0.1f, s.caveScale);
             int index = 0;
             foreach (MonsterSettings.CaveSpot spot in s.caveSpots ?? new MonsterSettings.CaveSpot[0])
             {
                 index++;
                 if (!made.TryGetValue(spot.kind ?? "", out Made m)) { Log.AppendLine($"CAVE SPOT {index} ({spot.kind}): NOT placed (no prefab for that kind)."); continue; }
-                float least2 = s.laneHalfWidth + s.leash + m.radius + 0.5f;
+                float radius = m.radius * size, tall = m.Tall * size;
+                float least2 = s.laneHalfWidth + s.wanderRadius + radius + 0.5f;
                 float apart = Mathf.Max(spot.apart, least2);
                 string why = null; Vector3 at = Vector3.zero; float roomOver = 0f; bool ok = false;
                 var tried = new List<string>();
@@ -464,19 +627,20 @@ namespace ShiftJam
                     for (int push = 0; push < 3 && !ok; push++)
                     {
                         at = mouth + dir * (spot.along * wayLength) + left * (side * (apart + push * SpotPush));
-                        why = SpotProblem(at, m, s, cave, aim, placed, bed, floorY, out roomOver, out float spotFloor);
+                        why = SpotProblem(at, radius, tall, s, cave, aim, placed, bed, floorY, out roomOver, out float spotFloor);
                         if (why == null) { ok = true; at.y = spotFloor; }
                         else tried.Add($"({at.x:F1}, {at.z:F1}): {why}");
                     }
-                if (!ok) { Log.AppendLine($"CAVE SPOT {index} ({spot.kind}, along {spot.along}, side {spot.side}, apart {spot.apart}): NOT placed: " + string.Join("; ", tried) + ". Change its numbers in MonsterSettings > Cave Spots and run again."); continue; }
+                if (!ok) { Log.AppendLine($"CAVE SPOT {index} ({spot.kind}, along {spot.along}, side {spot.side}, apart {spot.apart}): NOT placed: " + string.Join("; ", tried) + ". Change its numbers in MonsterSettings > Cave Spots (or Cave Scale) and run again."); continue; }
 
                 var go = (GameObject)PrefabUtility.InstantiatePrefab(m.prefab, holder);
                 go.name = $"{spot.kind}_{index}";
                 Vector3 onWay = Closest(mouth, aim, at);
                 Vector3 look = Level(onWay - at);
-                go.transform.SetPositionAndRotation(new Vector3(at.x, at.y - m.body.min.y + 0.01f, at.z), look.sqrMagnitude > 1e-4f ? Quaternion.LookRotation(look, Vector3.up) : Quaternion.identity);
-                go.transform.localScale = Vector3.one;
-                var so = new SerializedObject(go.GetComponent<DarkMonster>());
+                go.transform.localScale = Vector3.one * size;
+                go.transform.SetPositionAndRotation(new Vector3(at.x, at.y - m.body.min.y * size + 0.01f, at.z), look.sqrMagnitude > 1e-4f ? Quaternion.LookRotation(look, Vector3.up) : Quaternion.identity);
+                var monster = go.GetComponent<DarkMonster>();
+                var so = new SerializedObject(monster);
                 so.FindProperty("mode").enumValueIndex = (int)DarkMonster.Mode.Roam;
                 so.FindProperty("roomLights").objectReferenceValue = lights;
                 so.FindProperty("starLamp").objectReferenceValue = lamp;
@@ -486,37 +650,39 @@ namespace ShiftJam
                 so.FindProperty("laneTo").vector3Value = aim;
                 so.FindProperty("laneHalfWidth").floatValue = s.laneHalfWidth;
                 so.ApplyModifiedPropertiesWithoutUndo();
-                placed.Add((at, m.radius));
+                placed.Add((at, radius));
+                monsters.Add(monster);
                 float toWay = Level(at - onWay).magnitude;
-                Log.AppendLine($"CAVE SPOT {index}: {go.name} at ({at.x:F1}, {at.y:F2}, {at.z:F1}){(tried.Count > 0 ? " (tried first: " + string.Join("; ", tried) + ")" : "")}: {Level(at - aim).magnitude:F1} from BedFlashlight, {Level(at - mouth).magnitude:F1} from the cave's mouth, {toWay:F1} from the way's middle line (its leash edge {toWay - s.leash - m.radius:F1} from it, the kept way {s.laneHalfWidth}), {roomOver:F2} of room overhead for a {m.Tall:F2}-tall body; facing the way.");
+                Log.AppendLine($"CAVE SPOT {index}: {go.name} at ({at.x:F1}, {at.y:F2}, {at.z:F1}), scale {size} ({tall:F2} tall, radius {radius:F2}){(tried.Count > 0 ? " (tried first: " + string.Join("; ", tried) + ")" : "")}: {Level(at - aim).magnitude:F1} from BedFlashlight, {Level(at - mouth).magnitude:F1} from the cave's mouth, {toWay:F1} from the way's middle line (its wander area's edge {toWay - s.wanderRadius - radius:F1} from it, the kept way {s.laneHalfWidth}; its leash {s.leash} reaches across it), {roomOver:F2} of room overhead; facing the way.");
             }
-            Log.AppendLine($"CAVE MONSTERS: {placed.Count} under Room/Bedroom/{CaveHolder} (its own object: a re-run of Land Bedroom Light Beats, which remakes UnderBed, leaves them). Each sees a toy {s.sight} away (in sight), creeps no more than {s.leash} from its spot; the flashlight is at least {s.flashlightClear} clear of every leash edge, so the toy can always walk up and take it.");
+            Log.AppendLine($"CAVE MONSTERS: {placed.Count} under Room/Bedroom/{CaveHolder} (its own object: a re-run of Land Bedroom Light Beats, which remakes UnderBed, leaves them). Each notices a toy {s.sight} away in sight ({s.sight * s.sleepySight:0.#} sleepy), chases up to {s.leash} from its spot, wanders within {s.wanderRadius}, never within {s.flashlightClear} of the flashlight.");
             if (placed.Count < 3) Log.AppendLine($"CAVE WARNING: only {placed.Count} placed (3 to 5 wanted): see the spot lines above.");
+            return monsters;
         }
 
-        /// <summary>Why a monster may not stand at <paramref name="at"/> (null when it may): too near the cave's edge, the
-        /// way or the flashlight, another monster, no room overhead, no floor, or something solid there.</summary>
-        static string SpotProblem(Vector3 at, Made m, MonsterSettings s, Bounds cave, Vector3 torch, List<(Vector3 at, float radius)> placed, Transform bed, float floorY, out float roomOver, out float spotFloor)
+        /// <summary>Why a monster may not stand at <paramref name="at"/> (null when it may): its wander area out of the cave's
+        /// box or too near the flashlight, too near another monster, no room overhead, no floor, or something solid there.</summary>
+        static string SpotProblem(Vector3 at, float radius, float tall, MonsterSettings s, Bounds cave, Vector3 torch, List<(Vector3 at, float radius)> placed, Transform bed, float floorY, out float roomOver, out float spotFloor)
         {
             roomOver = 0f; spotFloor = floorY;
-            float edge = s.leash + m.radius;
+            float edge = s.wanderRadius + radius;
             if (at.x < cave.min.x + edge || at.x > cave.max.x - edge || at.z < cave.min.z + edge || at.z > cave.max.z - edge)
-                return $"its leash would reach out from under the bed (keep {edge:F1} in from the cave's box)";
-            float needTorch = s.leash + m.radius + s.bumpGap + ToyRadius + s.flashlightClear;
+                return $"its wander area would reach out from under the bed (keep {edge:F1} in from the cave's box)";
+            float needTorch = s.wanderRadius + radius + s.flashlightClear + ToyRadius;
             float toTorch = Level(at - torch).magnitude;
             if (toTorch < needTorch) return $"{toTorch:F1} from the flashlight (wants {needTorch:F1})";
             foreach (var (other, r) in placed)
             {
-                float gap = Level(at - other).magnitude - r - m.radius;
+                float gap = Level(at - other).magnitude - r - radius;
                 if (gap < SpotsApart) return $"{gap:F1} from another monster";
             }
             spotFloor = Floor(at, floorY + 3f, bed, out bool found);
             if (!found || Mathf.Abs(spotFloor - floorY) > 0.5f) return found ? $"its floor is at y {spotFloor:F2}, not the cave's {floorY:F2}" : "no floor under it";
             Clearance(new Vector3(at.x, spotFloor, at.z), bed, out roomOver, out string over);
-            if (roomOver < m.Tall + HeadRoom) return $"{roomOver:F2} of room overhead for {m.Tall:F2}{(over != null ? " (under " + over + ")" : "")}";
-            Vector3 low = new Vector3(at.x, spotFloor + m.radius + 0.05f, at.z);
-            Vector3 high = new Vector3(at.x, spotFloor + Mathf.Max(m.radius + 0.06f, m.Tall - m.radius), at.z);
-            foreach (Collider c in Physics.OverlapCapsule(low, high, m.radius, ~0, QueryTriggerInteraction.Ignore))
+            if (roomOver < tall + HeadRoom) return $"{roomOver:F2} of room overhead for {tall:F2}{(over != null ? " (under " + over + ")" : "")}";
+            Vector3 low = new Vector3(at.x, spotFloor + radius + 0.05f, at.z);
+            Vector3 high = new Vector3(at.x, spotFloor + Mathf.Max(radius + 0.06f, tall - radius), at.z);
+            foreach (Collider c in Physics.OverlapCapsule(low, high, radius, ~0, QueryTriggerInteraction.Ignore))
                 if (c != null) return $"{c.name} stands there";
             return null;
         }
@@ -602,7 +768,113 @@ namespace ShiftJam
             return q;
         }
 
+        // ------------------------------------------------------------------------------------------------ the gold star (D-0228)
+
+        /// <summary>The star on Resources/ObjectiveSet (added once, his words kept; its rule's objects are the monsters placed
+        /// now) and its hook, wired to each cave monster's On Died with that monster's number.</summary>
+        static void Star(Scene scene, MonsterSettings s, List<DarkMonster> monsters)
+        {
+            if (string.IsNullOrEmpty(s.starId)) { Log.AppendLine("STAR: MonsterSettings > Star Id is empty: no star, nothing wired."); return; }
+            var set = AssetDatabase.LoadAssetAtPath<ObjectiveSet>(ObjectivesBuilder.AssetPath);
+            if (set == null) { Log.AppendLine($"STAR NOT added: no {ObjectivesBuilder.AssetPath} (run Shift Jam > Objectives > Build Objectives first, then this again)."); return; }
+            if (monsters.Count == 0) { Log.AppendLine("STAR NOT wired: no cave monster was placed."); return; }
+
+            var paths = new string[monsters.Count];
+            for (int i = 0; i < monsters.Count; i++) paths[i] = Path(monsters[i].transform);
+
+            var stars = new List<ObjectiveStar>(set.stars ?? new ObjectiveStar[0]);
+            ObjectiveStar star = stars.Find(x => x != null && x.id == s.starId);
+            bool fresh = star == null;
+            if (fresh)
+            {
+                star = new ObjectiveStar { id = s.starId, title = s.starTitle, room = s.starRoom, doneWhen = new ObjectiveRule[0] };
+                int at = stars.FindLastIndex(x => x != null && x.room == s.starRoom);
+                stars.Insert(at >= 0 ? at + 1 : stars.Count, star);
+                set.stars = stars.ToArray();
+            }
+            var rules = new List<ObjectiveRule>(star.doneWhen ?? new ObjectiveRule[0]);
+            int ruleIndex = rules.FindIndex(r => r != null && r.when == ObjectiveEvent.KnockedDown);
+            if (ruleIndex < 0) { rules.Add(new ObjectiveRule()); ruleIndex = rules.Count - 1; }
+            ObjectiveRule rule = rules[ruleIndex];
+            rule.when = ObjectiveEvent.KnockedDown; rule.scene = ObjectiveSet.House; rule.needed = 0; rule.objects = paths;
+            star.doneWhen = rules.ToArray();
+            EditorUtility.SetDirty(set);
+            AssetDatabase.SaveAssetIfDirty(set);
+            Log.AppendLine($"STAR '{star.id}': \"{star.title}\" ({star.room}) {(fresh ? "ADDED to " + ObjectivesBuilder.AssetPath + " (placeholder title: his to rewrite there)" : "FOUND: his title and room kept")}; star {stars.IndexOf(star) + 1} of {set.stars.Length}. Rule {ruleIndex + 1}: KnockedDown in {ObjectiveSet.House}, every one of {paths.Length}: {string.Join(", ", paths)}. A star refills the shift charge (Objectives.AwardStar), as the others.");
+
+            // The hook, named as Build Objectives names it ("Star <id> #<rule> KnockedDown"), so that maker finds the same one.
+            GameObject holder = null;
+            foreach (GameObject r in scene.GetRootGameObjects()) if (r.name == ObjectivesBuilder.HooksName) { holder = r; break; }
+            bool madeHolder = holder == null;
+            if (madeHolder)
+            {
+                holder = new GameObject(ObjectivesBuilder.HooksName);
+                SceneManager.MoveGameObjectToScene(holder, scene);
+            }
+            string hookName = $"{ObjectiveHook.Kind.Star} {star.id} #{ruleIndex + 1} {ObjectiveEvent.KnockedDown}";
+            Transform child = holder.transform.Find(hookName);
+            bool madeHook = child == null;
+            if (madeHook)
+            {
+                child = new GameObject(hookName).transform;
+                child.SetParent(holder.transform, false);
+            }
+            ObjectiveHook hook = child.GetComponent<ObjectiveHook>();
+            if (hook == null) hook = child.gameObject.AddComponent<ObjectiveHook>();
+            hook.Setup(star.id, ObjectiveHook.Kind.Star, paths.Length);
+            EditorUtility.SetDirty(hook);
+
+            int wired = 0;
+            for (int i = 0; i < monsters.Count; i++)
+            {
+                var health = monsters[i].GetComponent<Damageable>();
+                var so = new SerializedObject(health);
+                SerializedProperty calls = so.FindProperty("onDied.m_PersistentCalls.m_Calls");
+                if (calls == null) { Log.AppendLine($"  NOT WIRED: {paths[i]} has no On Died event on its Damageable."); continue; }
+                for (int c = calls.arraySize - 1; c >= 0; c--)
+                {
+                    SerializedProperty old = calls.GetArrayElementAtIndex(c);
+                    Object target = old.FindPropertyRelative("m_Target").objectReferenceValue;
+                    string typeName = old.FindPropertyRelative("m_TargetAssemblyTypeName").stringValue ?? "";
+                    if (target is ObjectiveHook || (target == null && typeName.StartsWith(typeof(ObjectiveHook).FullName))) calls.DeleteArrayElementAtIndex(c);
+                }
+                calls.arraySize++;
+                SerializedProperty call = calls.GetArrayElementAtIndex(calls.arraySize - 1);
+                call.FindPropertyRelative("m_Target").objectReferenceValue = hook;
+                call.FindPropertyRelative("m_TargetAssemblyTypeName").stringValue = typeof(ObjectiveHook).AssemblyQualifiedName;
+                call.FindPropertyRelative("m_MethodName").stringValue = nameof(ObjectiveHook.FirePart);
+                call.FindPropertyRelative("m_Mode").intValue = ModeInt;
+                call.FindPropertyRelative("m_CallState").intValue = RuntimeOnly;
+                SerializedProperty args = call.FindPropertyRelative("m_Arguments");
+                args.FindPropertyRelative("m_ObjectArgument").objectReferenceValue = null;
+                args.FindPropertyRelative("m_ObjectArgumentAssemblyTypeName").stringValue = "";
+                args.FindPropertyRelative("m_IntArgument").intValue = i;
+                args.FindPropertyRelative("m_FloatArgument").floatValue = 0f;
+                args.FindPropertyRelative("m_StringArgument").stringValue = "";
+                args.FindPropertyRelative("m_BoolArgument").boolValue = false;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                if (PrefabUtility.IsPartOfPrefabInstance(health)) PrefabUtility.RecordPrefabInstancePropertyModifications(health);
+                wired++;
+            }
+            Log.AppendLine($"STAR HOOK: {Path(child)} ({(madeHook ? "MADE" : "found, reused")}{(madeHolder ? "; its holder was made too" : "")}): Needed {paths.Length} different parts in one visit; {wired} On Died listeners wired (each monster's Damageable -> FirePart(its number)). A later Build Objectives run finds the same hook and wiring.");
+        }
+
         // ------------------------------------------------------------------------------------------------ the prizes (D-0223)
+
+        /// <summary>The prizes already in the case: kept as they are (D-0229's claw game may take one out), reported.</summary>
+        static void ReportPrizes(Transform holder)
+        {
+            var lines = new List<string>();
+            int stayPut = 0, all = 0;
+            foreach (DarkMonster m in holder.GetComponentsInChildren<DarkMonster>(true))
+            {
+                all++;
+                if (m.Role == DarkMonster.Mode.StayPut) stayPut++;
+                lines.Add($"{m.name} ({m.Role}, scale {m.transform.lossyScale.y:F2}{(m.isActiveAndEnabled ? "" : ", switched off")})");
+            }
+            Log.AppendLine($"PRIZES: KEPT as they are under Room/Bedroom/{PrizeHolder} (not moved, not re-made: D-0229's claw game may take one out): {all} found, {stayPut} Stay Put{(all > 0 ? ": " + string.Join(", ", lines) : "")}. Their prefab variants were updated in place, so each keeps its own settings; a prize never shows the glow, never moves and takes no hits; it idles in the dark and the starlight and is frozen in the wall switch's light.");
+            if (stayPut < all) Log.AppendLine("PRIZE WARNING: a prize is not Stay Put: it would roam inside the case. Set its DarkMonster's Mode to Stay Put.");
+        }
 
         static void LandPrizes(Transform bedroom, MonsterSettings s, Dictionary<string, Made> made, RoomLights lights, StarLamp lamp)
         {
@@ -683,8 +955,8 @@ namespace ShiftJam
                 shrink *= PrizeShrink;
             }
             foreach (string l in lines) Log.AppendLine(l);
-            Log.AppendLine($"PRIZES: {count} under Room/Bedroom/{PrizeHolder} (its own object, not under ClawMachine: a re-run of Land Start Room Toys leaves them; this maker finds the case again each run){(used < 0.999f ? $"; made {used:F2} of Prize Tall to fit" : "")}. Stay Put: idling{(s.prizeGlint ? " with their eye glint" : "")} in the dark, frozen once the room is lit. Every prize's box is wholly inside the glass, {margin * unit:F2} in from it, and touches nothing but the floor.");
-            if (count < PrizesAtLeast) Log.AppendLine($"PRIZE WARNING: only {count} fit (6 to 8 wanted): lower MonsterSettings > Prize Tall / Prize Wide and run again.");
+            Log.AppendLine($"PRIZES (first run: none were there): {count} under Room/Bedroom/{PrizeHolder} (its own object, not under ClawMachine: a re-run of Land Start Room Toys leaves them; later runs of this maker KEEP them){(used < 0.999f ? $"; made {used:F2} of Prize Tall to fit" : "")}. Stay Put: idling{(s.prizeGlint ? " with their eye glint" : "")} in the dark and the starlight, frozen in the wall switch's light. Every prize's box is wholly inside the glass, {margin * unit:F2} in from it, and touches nothing but the floor.");
+            if (count < PrizesAtLeast) Log.AppendLine($"PRIZE WARNING: only {count} fit (6 to 8 wanted): lower MonsterSettings > Prize Tall / Prize Wide, delete Room/Bedroom/{PrizeHolder} and run again.");
         }
 
         /// <summary>One go at the prizes at <paramref name="shrink"/> of their size: each kind on the first floor point where it

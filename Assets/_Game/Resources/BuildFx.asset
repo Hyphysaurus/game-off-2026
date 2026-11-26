@@ -1,0 +1,117 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 886d3c924110079409a4ea6faaf7aa7c, type: 3}
+  m_Name: BuildFx
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.BuildFxSettings
+  titleOn: 1
+  titleEveryTime: 0
+  courseSounds: {fileID: 11400000, guid: 76adf2ec0aa95fc4cacd41d6510afd2e, type: 2}
+  followMusic: 1
+  titleSeconds: 2.5
+  titleDelay: 0.15
+  titlePieceSeconds: {x: 0.45, y: 0.8}
+  titleOrder: 1
+  titleOrderPoint: {x: 0, y: -0.35}
+  titleOrderPath:
+  - {x: -0.9, y: 0.1}
+  - {x: 0, y: -0.1}
+  - {x: 0.9, y: 0.1}
+  titleFlight: 0
+  titleFlightPoint: {x: 0, y: -0.75}
+  titleFlightToward: 0.25
+  titleSpread: 0.3
+  titleCurveStart: 0.5
+  titleCurveEnd: 0.05
+  titleAround: {x: 0.5, y: 1.2}
+  titleSpin: {x: 360, y: 360, z: 180}
+  titleStartScale: 0.2
+  titleLanding:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 2.6
+      outSlope: 2.6
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  rebuildOn: 1
+  rebuildKid: 1
+  rebuildPieces: 1
+  apartSeconds: 0.08
+  apartPieceSeconds: {x: 0.6, y: 0.95}
+  apartSpeed: {x: 2, y: 4.5}
+  apartFrom: {x: 0, y: -0.25, z: 0}
+  apartSpin: {x: 540, y: 540, z: 540}
+  apartGravity: 7
+  apartBounce: 0.35
+  apartBounceOn:
+    serializedVersion: 2
+    m_Bits: 4294967291
+  apartShrinkFrom: 0.6
+  apartHold: 0.12
+  moveCover: 1
+  moveSeconds: 0.45
+  gatherSeconds: 0.55
+  gatherPieceSeconds: {x: 0.35, y: 0.6}
+  gatherOrder: 0
+  gatherFrom: {x: 0, y: 0.5, z: 0}
+  gatherSpread: {x: 1, y: 0.6, z: 1}
+  gatherDistance: {x: 0.8, y: 1.6}
+  gatherSpin: {x: 360, y: 360, z: 360}
+  gatherStartScale: 0.3
+  gatherLanding:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 2.2
+      outSlope: 2.2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  letterBurstOn: 1
+  letterBurstSeconds: 0.06
+  letterCubeSeconds: {x: 0.5, y: 0.9}
+  letterSpeed: {x: 0.8, y: 2.2}
+  letterSpin: {x: 720, y: 720, z: 720}
+  letterGravity: 3
+  letterBounce: 0.4
+  letterShrinkFrom: 0.55

@@ -153,6 +153,18 @@ MonoBehaviour:
       - Room/Bedroom/NightLamp
       scene: Greybox
       needed: 1
+  - id: monsters
+    title: Monsters under the bed
+    room: Bedroom
+    doneWhen:
+    - when: 11
+      objects:
+      - Room/Bedroom/BedMonsters/Slime_1
+      - Room/Bedroom/BedMonsters/TurtleShell_2
+      - Room/Bedroom/BedMonsters/Slime_3
+      - Room/Bedroom/BedMonsters/BlueSlime_4
+      scene: Greybox
+      needed: 0
   - id: skittles
     title: Skittle strike
     room: Hallway

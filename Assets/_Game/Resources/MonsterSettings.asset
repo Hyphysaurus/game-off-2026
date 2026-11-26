@@ -14,20 +14,43 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.MonsterSettings
   on: 1
   online: 1
-  sight: 14
+  pass: 228
+  sleepySpeed: 0.55
+  sleepySight: 0.5
+  sleepyEyes: 0.6
+  caveScale: 1.8
+  sight: 20
+  keepTrack: 1.5
   loseAfter: 2
   kidReach: 50
   lookEvery: 0.2
   lightEvery: 0.1
-  leash: 5
+  wanderRadius: 3
+  wanderPauseMin: 1.5
+  wanderPauseMax: 4
+  wanderSeconds: 4
+  senseSeconds: 0.7
+  spotAgainAfter: 5
+  markText: '!'
+  markColour: {r: 1, g: 0.3529412, b: 0.23529412, a: 1}
+  markSize: 0.5
+  markGap: 0.15
+  markPopSeconds: 0.22
+  markOvershoot: 1.35
+  markHoldSeconds: 1.1
+  markOutSeconds: 0.18
+  leash: 14
   creepSpeed: 2.2
+  chaseSpeed: 4.5
   runSpeed: 6
   backSpeed: 2.5
   turnSpeed: 300
   gravity: 25
   stuckSeconds: 3
   bumpGap: 0.5
-  bumpWindup: 0.3
+  windupPoseAt: 0.12
+  windupSeconds: 0.6
+  strikeSeconds: 0.15
   bumpFollow: 0.3
   bumpPush: 8
   bumpLift: 3.5
@@ -43,21 +66,55 @@ MonoBehaviour:
   fleeSeconds: 4
   returnAfter: 3
   squeakEvery: 1.5
+  dizzyAfter: 1
+  beamForget: 0.5
+  dizzySeconds: 3
+  dizzyHitScale: 10
   health: 30
   hitSafeSeconds: 0.1
   hurtSeconds: 0.5
+  stayDown: 1
   downSeconds: 5
   freezeSeconds: 0.25
+  tipAngle: 80
+  tipSeconds: 0.3
+  tipLie: 4
+  tipRightSeconds: 0.35
   glint: {r: 1.6, g: 1.25, b: 0.3, a: 1}
+  glintHunt: {r: 2.2, g: 0.35, b: 0.2, a: 1}
+  glintDizzy: {r: 0.7, g: 1.7, b: 0.45, a: 1}
+  eyeCalm: {fileID: 2100000, guid: ee8cf8e8404bf7f4d8fa6db11451fd79, type: 2}
+  eyeHunt: {fileID: 2100000, guid: 5beb5e74253b84840a9684a59c0352c9, type: 2}
+  eyeDizzy: {fileID: 2100000, guid: dc7df45657e67e0498ffb5e295bc06a6, type: 2}
   glintBreath: 0.4
   glintDepth: 0.35
   blinkEvery: 3.5
   blinkSeconds: 0.12
   prizeGlint: 1
+  haloOn: 1
+  haloCalmColour: {r: 0.45, g: 0.3, b: 1, a: 1}
+  haloHuntColour: {r: 1, g: 0.25, b: 0.15, a: 1}
+  haloDizzyColour: {r: 0.45, g: 1, b: 0.35, a: 1}
+  haloCalm: {fileID: 2100000, guid: dd785299062bd8d4eaded9b176867f25, type: 2}
+  haloHunt: {fileID: 2100000, guid: 8be1819c71834c344a86930388923a81, type: 2}
+  haloDizzy: {fileID: 2100000, guid: 38d65ea6e24ba6a4580902f09d969fe3, type: 2}
+  haloStrength: 0.45
+  haloReach: 2.5
+  haloSpread: 3
   squeak:
     clip: {fileID: 8300000, guid: e979a016e23ccb440b206242974a5d1e, type: 3}
     volume: 0.55
     pitchSpread: 0.15
+  spotSqueak:
+    clip: {fileID: 8300000, guid: e979a016e23ccb440b206242974a5d1e, type: 3}
+    volume: 0.6
+    pitchSpread: 0.1
+  spotPitch: 1.35
+  downSqueak:
+    clip: {fileID: 8300000, guid: e979a016e23ccb440b206242974a5d1e, type: 3}
+    volume: 0.7
+    pitchSpread: 0.05
+  downPitch: 0.75
   bump:
     clip: {fileID: 8300000, guid: ad75df6220de31542bd531cd86e47e20, type: 3}
     volume: 0.55
@@ -96,6 +153,9 @@ MonoBehaviour:
   prizeWide: 0.3
   prizeMargin: 0.04
   prizeTurn: 25
+  starId: monsters
+  starTitle: Monsters under the bed
+  starRoom: Bedroom
   kinds:
   - name: Slime
     packPrefab: Assets/_Imports/DungeonMason/RPG Monster DUO PBR Polyart/Prefabs/PolyartDefault/SlimePolyart.prefab
@@ -106,9 +166,11 @@ MonoBehaviour:
     back: WalkBWD
     attack: Attack01
     hit: GetHit
-    hide: Dizzy
+    hide: IdleBattle
     die: Die
     rest: IdleNormal
+    sense: SenseSomethingST
+    dizzy: Dizzy
     restAt: 0
     eyeBones:
     - EyeBall
@@ -124,9 +186,11 @@ MonoBehaviour:
     back: WalkBWD
     attack: Attack01
     hit: GetHit
-    hide: Dizzy
+    hide: IdleBattle
     die: Die
     rest: IdleNormal
+    sense: SenseSomethingST
+    dizzy: Dizzy
     restAt: 0
     eyeBones:
     - Eyeball
@@ -142,9 +206,11 @@ MonoBehaviour:
     back: BlueSlime_WalkBWD
     attack: BlueSlime_Attack01
     hit: BlueSlime_GetHit
-    hide: BlueSlime_Dizzy
+    hide: BlueSlime_IdleBattle
     die: BlueSlime_Die
     rest: BlueSlime_IdleNormal
+    sense: BlueSlime_SenseSomethingStart
+    dizzy: BlueSlime_Dizzy
     restAt: 0
     eyeBones:
     - Head
@@ -160,9 +226,11 @@ MonoBehaviour:
     back: StarFish_MoveBWD
     attack: StarFish_Attack01
     hit: StarFish_GetHit
-    hide: StarFish_Dizzy
+    hide: StarFish_IdleBattle
     die: StarFish_Die
     rest: StarFish_IdleNormal
+    sense: StarFish_SenseSomethingStart
+    dizzy: StarFish_Dizzy
     restAt: 0
     eyeBones:
     - Eye01_L
@@ -179,9 +247,11 @@ MonoBehaviour:
     back: WalkBWD
     attack: Attack01
     hit: GetHit
-    hide: Dizzy
+    hide: IdleBattle
     die: Die
     rest: IdleNormal
+    sense: SenseSomethingST
+    dizzy: Dizzy
     restAt: 0
     eyeBones:
     - EyeBallCTRL
@@ -197,9 +267,11 @@ MonoBehaviour:
     back: WalkBWD
     attack: Attack01
     hit: GetHit
-    hide: Dizzy
+    hide: IdleBattle
     die: Die
     rest: IdleChest
+    sense: SenseSomethingST
+    dizzy: Dizzy
     restAt: 0
     eyeBones:
     - EyeBallCTRL
@@ -215,9 +287,11 @@ MonoBehaviour:
     back: Run01BWD
     attack: Attack01
     hit: GetHit
-    hide: Dizzy
+    hide: Idle03
     die: Die01
     rest: Idle03
+    sense: 
+    dizzy: Dizzy
     restAt: 0
     eyeBones:
     - head
@@ -233,9 +307,11 @@ MonoBehaviour:
     back: Run01BWD
     attack: Attack01
     hit: GetHit
-    hide: Dizzy
+    hide: Idle03
     die: Die01
     rest: Idle03
+    sense: 
+    dizzy: Dizzy
     restAt: 0
     eyeBones:
     - head

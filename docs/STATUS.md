@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 17:3x — GRABBIT PART 2 (D-0236) LANDED, Greybox saved. NOT PLAYED. WAVE 2 BUILDING.
+- **HIS TEST:**
+  - Under the bed with the flashlight: lost toys in the far half (alphabet blocks, toppled chess pieces, a gamepad, a
+    car, a log train). Hide behind a block: a monster loses sight of you.
+  - The claw machine: the prizes lie tumbled at angles on the case floor, none floating or through the glass.
+- **Faults to watch:** a toy floating or sunk into the floor; a monster stuck on a block; the train's wheels turning.
+- **Building now (wave 2, his "proceed" with the one-run-a-window rule knowingly overridden):** the playable claw
+  machine (D-0229) and Magica Cloth curtains and flags (D-0233).
+
 ## 25 Nov 2026 17:2x — FIRST-PERSON FIXES (D-0234 invisible body, D-0235 reach), MONSTERS REWORK (D-0228), ARTIFICER (D-0230) LANDED, Greybox saved. NOT PLAYED.
 - **HIS TEST, first person:**
   - As the kid in a tight spot with a gun out, go into first person and back: the body shows.

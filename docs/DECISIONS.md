@@ -4277,3 +4277,20 @@
   (`Interactor.FindInReach`, split out of `Interactor.Update`; third person unchanged), through first person's own rules
   (no vehicle or kid's carry while parked). The hint under the dot and the press use the same choice; a words-only hint
   (a talking toy) no longer shows "E". The search no longer makes a new array for every thing it touches. **NOT PLAYED.**
+- **D-0236 (25 Nov 2026, 17:3x) Grabbit part 2: lost toys under the bed, the claw prizes tumbled.** His "go grabbit" (both
+  parts; held until the monsters' maker had run, D-0228).
+  - Under the bed: 12 of the Playroom kit's own toys in `Room/Bedroom/BedClutter` (their own group: a re-run of the
+    bedroom makers leaves them). Four alphabet blocks (5 tall: cover, since a solid collider blocks the monsters'
+    sight), a knight, a rook and a king lying where they fell, a standing pawn, the gamepad, a toy car, a building piece
+    and the log train (its wheel spinners off: the pack's RotationScript turns them forever). Three groups in the
+    cave's far half, 18 or more from every monster spot, clear of the way to the flashlight, the two pickups and the
+    monsters' runs to the back. Dropped with Grabbit's physics (settled in 108 steps; nothing left behind on them;
+    static, as the pack has them).
+  - The claw prizes: Grabbit could not heap them. Their only collider is a CharacterController, an upright capsule that
+    never tips or stacks, so its runs never settled and left them floating 1.5 to 6.6 up. They were put back exactly,
+    then tumbled by measurement: each turned up to 31 degrees, tilted 7 to 28, nudged under 1, and set down until the
+    lowest point of its skinned body touches the case floor (33.16); kept 0.35 inside the glass and 0.3 from each other.
+    Stay Put monsters never move in play, so the poses hold. A tumbled spread, not a stacked heap.
+  - Also in the save: URP's own light data on four lights (two Glow, EmberLight, LandingLight), added by the editor when
+    the scene was drawn.
+  - **NOT PLAYED.**

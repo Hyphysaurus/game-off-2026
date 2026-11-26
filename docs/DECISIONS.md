@@ -4495,5 +4495,7 @@
   LightGlow switches emission on at start (Keep Emission On). The star lamp's sweep (his call): StarLamp > Sweep Through
   Furniture (on) lets a swept spot stun any cave monster in its cone and reach; with nothing allowed between it reached
   none (the bedside table and the bed's frame). Land Bedroom Gate re-run (third run, nothing duplicated), Greybox saved,
-  roots as before. **NOT PLAYED.**
+  roots as before. Found while landing: the maker's own run still saves DartGunGlint.mat without _EMISSION (cause not
+  found: GlintMaterial switches it on and saves, and a plain switch-on and save afterwards keeps it); Keep Emission On
+  covers it in play, and the material is committed with it on. **NOT PLAYED.**
 

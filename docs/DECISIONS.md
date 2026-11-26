@@ -4447,3 +4447,13 @@
   - Open: the old D-0228 rule can still award the monsters star early (four down in one visit, punches too); the little
     door's hint still says "Shut. A switch opens it."; Gap, Pit and Dab have no lines for the two new steps. The soldiers
     are unchanged. **NOT PLAYED.**
+- **D-0242 (26 Nov 2026, 01:2x) A footage recorder, for his demo reel.** His "when finished, can you film that remotion
+  demo reel to share?". Ported from Nectar Rush's (D-0120): `Debug/FootageRecorder.cs` (Shift Jam > Footage > Preview
+  Shots / Film Shots), `FX/FootageRig.cs`, `FX/FootageClip.cs`, and the shot list `docs/footage/greybox.json` (11 shots,
+  61 s filmed: the box opening, the spark, the light onto the core, the growth and the burst, the snatch, under the bed
+  with the beam and a dart, props bursting, the claw machine, the garden flythrough, the gate kicked open and building
+  back). A take runs in Play at a fixed 30 fps with the HUD hidden and the editor muted, writes JPG frames and one mp4 per
+  shot under `Builds/Footage/` (git-ignored), and keeps his saves safe: all seven save keys are copied first and put
+  back after (also after a crash, at the next editor load). The claw machine cannot be played by script (it reads only
+  his own input), so it gets an orbit. Preview checked (24 stills): the framing holds; the props shot has something dark
+  in its left third.

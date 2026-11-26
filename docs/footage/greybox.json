@@ -1,0 +1,167 @@
+{
+  "title": "Shift Jam demo reel: Greybox (D-0242)",
+  "scene": "Assets/_Game/Scenes/Greybox.unity",
+  "fps": 30,
+  "width": 1920,
+  "height": 1080,
+  "fov": 50,
+  "near": 0.05,
+  "warmup": 1.0,
+  "overlays": ["ToastHud", "Opening"],
+  "shots": [
+    {
+      "name": "The toy box opens",
+      "notes": "New Game's opening from above, over the box's left wall (Room/ToyBox: walls x -14.5..14.5, z -32.5..-7.5, 28 tall; only the front and back walls have flaps, and open they stand 12 over their walls). The toy lies at its spawn (Player 0, 1.5, -12). Films opening time 0.8 to 3.8 s: the flaps open from 1.3, the light comes in from 1.3 to 2.9, the spark appears at 3.0 (OpeningSettings).",
+      "move": "line",
+      "seconds": 3.0,
+      "before": 0.8,
+      "from": { "at": { "x": -31.0, "y": 66.0, "z": -8.0 }, "look": { "x": 1.0, "y": 2.0, "z": -16.0 } },
+      "to": { "at": { "x": -25.0, "y": 57.0, "z": -10.0 }, "look": { "x": 1.0, "y": 2.0, "z": -16.0 } },
+      "steps": [
+        { "does": "newGame", "setup": true }
+      ]
+    },
+    {
+      "name": "The spark wakes the toy",
+      "notes": "The game's own camera through the opening (Opening.cs): the low shot as the spark swirls down, the strike at 4.8 s (its white flash is laid in from the Opening overlay), the get-up, the rise behind the toy and the hand-over (about 6.9 s), the wake line typed from about 5.6 to 8.8 s (WakeLine, a speech sticker).",
+      "move": "game",
+      "seconds": 5.5
+    },
+    {
+      "name": "Turning the light onto the core",
+      "notes": "The game's camera. The toy grabs the turntable (Room/ToyBox/Turntable, hub -1, 1, -21, disc 14 across) from its north rim at (-1, 1.2, -12.6), 1 from where it got up, the camera at heading 220 behind it. The turn is worked out as it starts: about 89.5 degrees clockwise brings the giant flashlight's beam (Flashlight_01/Beam at 2.2, 5.1, -16.0, heading 33) onto the core's LightPoint (10, 3.5, -28). The toy walks round with the rim to (7.4, -20.9). The LightTarget fills in 0.6 s and the core wakes; the core is then about 34 degrees off the camera's heading, past CauseCamera's 22, so the camera turns to it and back (2 s). 'Am I in a box?' drops in about 4 s in.",
+      "move": "game",
+      "seconds": 6.5,
+      "steps": [
+        { "does": "place", "setup": true, "at": { "x": -1.0, "y": 1.2, "z": -12.6 }, "yaw": 180, "view": 220, "pitch": 15 },
+        { "does": "use", "after": 0.3, "target": "Room/ToyBox/Turntable" },
+        { "does": "turn", "after": 0.7, "target": "Room/ToyBox/Turntable", "toward": "Room/ToyBox/ShiftCore/LightPoint", "seconds": 2.6 }
+      ]
+    },
+    {
+      "name": "The toy grows and the box bursts",
+      "notes": "From outside the box, north-west, at a kid's scale (the kid is 63 tall). The toy is put by the core (Room/ToyBox/ShiftCore at 10, 3.5, -28) facing it, then uses it (a grow-only core): the box's walls fall outward (BoxBurst) and the toy grows to the kid in 0.6 s. The wake step only wakes the core if the light did not.",
+      "move": "line",
+      "seconds": 3.0,
+      "before": 0.4,
+      "from": { "at": { "x": -62.0, "y": 46.0, "z": 36.0 }, "look": { "x": 9.0, "y": 26.0, "z": -25.0 } },
+      "to": { "at": { "x": -56.0, "y": 48.0, "z": 30.0 }, "look": { "x": 9.0, "y": 30.0, "z": -25.0 } },
+      "steps": [
+        { "does": "place", "setup": true, "at": { "x": 11.2, "y": 1.2, "z": -25.8 }, "yaw": 209 },
+        { "does": "wake", "setup": true, "target": "Room/ToyBox/ShiftCore" },
+        { "does": "use", "after": 0.4, "target": "Room/ToyBox/ShiftCore" }
+      ]
+    },
+    {
+      "name": "A monster snatches the dart gun",
+      "notes": "Low at the bed's west mouth. GunSnatch's measured way (the scene): mouth (70.6, 0, -20), the run from Slime_1 (84.0, -29) to (62.1, -20) beside the gun (SnatchGun 60.6, 0, -20), then back past the mouth toward (127.4, -8.1). It starts 1.0 s after the core is used (0.6 s growth, 0.4 s Start Delay) and runs 0.45 s later at 10 a second: this shot begins 2.6 s after the use, as the monster nears the mouth, and sees it come out, grab the gun ('Hey! My dart gun!'), and drag it back under the bed.",
+      "move": "line",
+      "seconds": 4.5,
+      "from": { "at": { "x": 55.0, "y": 4.0, "z": -33.0 }, "look": { "x": 66.5, "y": 1.2, "z": -20.0 } },
+      "to": { "at": { "x": 57.0, "y": 3.5, "z": -31.0 }, "look": { "x": 66.0, "y": 1.0, "z": -20.0 } }
+    },
+    {
+      "name": "Under the bed: the beam, then a dart",
+      "notes": "The game's camera, over the toy's shoulder. Unfilmed: the kid shrinks in the burst box, takes the dart gun once the snatch has left it on its stand (Room/Bedroom/GunSnatch/BedDartGun, 125.9, 0, -8.4; about 13 s after the core was used), then is put under the bed where the toy-sized flashlight lies (BedFlashlight 108.8, 0.07, -20: the monsters keep 3 away from that spot), picks the flashlight up (off) and the camera turns onto BlueSlime_4 (home 118.4, 0, -11; 12.9 away, inside its sight of 20). Filmed: the light on, a second of beam makes it dizzy (the stun step is the fallback), a dart knocks it out.",
+      "move": "game",
+      "seconds": 6.5,
+      "before": 1.0,
+      "most": 20,
+      "noOverlays": true,
+      "steps": [
+        { "does": "shift", "setup": true, "size": "toy" },
+        { "does": "use", "setup": true, "target": "Room/Bedroom/GunSnatch/BedDartGun" },
+        { "does": "place", "setup": true, "at": { "x": 108.0, "y": 0.3, "z": -18.6 }, "yaw": 54, "pitch": 12 },
+        { "does": "use", "setup": true, "target": "Room/Bedroom/UnderBed/BedFlashlight" },
+        { "does": "light", "setup": true, "target": "Room/Bedroom/UnderBed/BedFlashlight", "on": false },
+        { "does": "look", "setup": true, "target": "Room/Bedroom/BedMonsters/BlueSlime_4", "seconds": 7.5 },
+        { "does": "light", "after": 0.3, "target": "Room/Bedroom/UnderBed/BedFlashlight", "on": true },
+        { "does": "stun", "after": 1.8, "target": "Room/Bedroom/BedMonsters/BlueSlime_4" },
+        { "does": "fire", "after": 2.6 },
+        { "does": "fire", "after": 3.6 }
+      ]
+    },
+    {
+      "name": "Props burst into pieces",
+      "notes": "The playroom's block corner (Room/Course/R4_Playroom, floor y 0), low from the south-west. Six of its eight breakables burst, each at its own spot from the scene (three share the name Color_Cube_03: the step's 'at' picks one). Their pieces lie 4 s and dissolve in 0.8 s (Resources/Breakables). Unfilmed first: the toy's light off and the toy put in the playroom behind this camera (nothing there but a poster on the wall at 285.3, 80, -270): the Dark Zones dim the lamps, the sun and the whole scene's ambient by where the GAME's camera is (DarkZone: Camera.main), and under the bed it is at its darkest.",
+      "move": "line",
+      "seconds": 7.5,
+      "before": 1.0,
+      "noOverlays": true,
+      "from": { "at": { "x": 300.0, "y": 7.0, "z": -244.0 }, "look": { "x": 318.0, "y": 2.5, "z": -226.5 } },
+      "to": { "at": { "x": 304.0, "y": 6.0, "z": -241.0 }, "look": { "x": 318.0, "y": 2.2, "z": -226.5 } },
+      "steps": [
+        { "does": "light", "setup": true, "target": "Room/Bedroom/UnderBed/BedFlashlight", "on": false },
+        { "does": "place", "setup": true, "at": { "x": 296.0, "y": 0.3, "z": -256.0 }, "yaw": 45 },
+        { "does": "hit", "after": 0.5, "target": "Room/Course/R4_Playroom/Color_Cube_03", "at": { "x": 315.21, "y": 0.01, "z": -227.78 }, "from": { "x": 300.0, "y": 5.0, "z": -244.0 } },
+        { "does": "hit", "after": 1.0, "target": "Room/Course/R4_Playroom/Wooden_Pyramid_02", "at": { "x": 320.0, "y": 0.01, "z": -225.0 }, "from": { "x": 300.0, "y": 5.0, "z": -244.0 } },
+        { "does": "hit", "after": 1.5, "target": "Room/Course/R4_Playroom/Color_Cube_01", "at": { "x": 318.05, "y": 0.01, "z": -228.76 }, "from": { "x": 300.0, "y": 5.0, "z": -244.0 } },
+        { "does": "hit", "after": 2.0, "target": "Room/Course/R4_Playroom/Wooden_Cylinder_01", "at": { "x": 310.18, "y": 0.01, "z": -225.92 }, "from": { "x": 300.0, "y": 5.0, "z": -244.0 } },
+        { "does": "hit", "after": 2.5, "target": "Room/Course/R4_Playroom/Color_Cube_03", "at": { "x": 323.02, "y": 0.01, "z": -226.92 }, "from": { "x": 300.0, "y": 5.0, "z": -244.0 } },
+        { "does": "hit", "after": 3.0, "target": "Room/Course/R4_Playroom/Wooden_Cube_01", "at": { "x": 320.06, "y": 0.01, "z": -234.6 }, "from": { "x": 300.0, "y": 5.0, "z": -244.0 } }
+      ]
+    },
+    {
+      "name": "The claw machine",
+      "notes": "A slow orbit across the machine's front (Room/Bedroom/ClawMachine at -96.8, 0, 96.5, facing heading 123.4; its glass from about 30 to 66 up). No round: ClawGame steers and drops only from the player's own keys, or by itself after 20 s. The bedroom's lights are switched on by its save mark (RoomLights, 'bedroom:lights') before the first frame.",
+      "move": "orbit",
+      "seconds": 7.0,
+      "before": 0.5,
+      "noOverlays": true,
+      "around": { "x": -96.8, "y": 40.0, "z": 96.5 },
+      "radius": 110,
+      "height": 12,
+      "fromBearing": 95,
+      "toBearing": 150,
+      "fov": 45,
+      "steps": [
+        { "does": "seen", "setup": true, "id": "bedroom:lights" }
+      ]
+    },
+    {
+      "name": "The garden",
+      "notes": "From just outside the end window (Backyard (D-0239)/Window at 480, 43, 20.5; the sill at 43.2) north over the lawn, the reed maze (z 227 to 276), between the hedge rows (gaps x 443 to 524 at z 252, 451 to 510 at z 340) and over the pond (Pond/Water 480, -0.2, 340.5) to the back wall (z 497.5).",
+      "move": "line",
+      "seconds": 8.0,
+      "noOverlays": true,
+      "fov": 55,
+      "from": { "at": { "x": 480.0, "y": 46.0, "z": 26.0 }, "look": { "x": 480.0, "y": 34.0, "z": 110.0 } },
+      "to": { "at": { "x": 480.0, "y": 40.0, "z": 420.0 }, "look": { "x": 480.0, "y": 30.0, "z": 500.0 } }
+    },
+    {
+      "name": "Kicking the gate open",
+      "notes": "Unfilmed: the toy is put on the lawn (the garden's ground is at y -0.5) and grows to the kid there, facing the Gate Panel (Backyard (D-0239)/Boundaries/Back Wall/Gate/Gate Panel at 480, -0.5, 497.5; 145 wide, 95 tall; health 60). A kick is 20 and lands 31 ahead at 28 up (PlayerMoves: reach 0.495, height 0.44 of 63): three break it. Seen from the south-west.",
+      "move": "line",
+      "seconds": 5.0,
+      "before": 1.0,
+      "noOverlays": true,
+      "from": { "at": { "x": 392.0, "y": 70.0, "z": 392.0 }, "look": { "x": 480.0, "y": 42.0, "z": 490.0 } },
+      "to": { "at": { "x": 400.0, "y": 66.0, "z": 398.0 }, "look": { "x": 480.0, "y": 42.0, "z": 492.0 } },
+      "steps": [
+        { "does": "place", "setup": true, "at": { "x": 480.0, "y": 0.0, "z": 463.0 }, "yaw": 0, "pitch": 10 },
+        { "does": "shift", "setup": true, "size": "kid" },
+        { "does": "place", "setup": true, "at": { "x": 480.0, "y": 0.0, "z": 463.0 }, "yaw": 0, "pitch": 10 },
+        { "does": "draw", "setup": true, "on": false },
+        { "does": "kick", "after": 0.3 },
+        { "does": "kick", "after": 1.0 },
+        { "does": "kick", "after": 1.7 },
+        { "does": "kick", "after": 2.4 }
+      ]
+    },
+    {
+      "name": "The gate builds itself back",
+      "notes": "Not the 30 s wait: the shot waits unfilmed until 29.7 s after the panel broke (its own Come Back After is 30), with the kid put back in the bedroom (it comes back only with nobody within about 130). Its slats fly in one by one, then its rails (BuildBack, about 1.7 s).",
+      "move": "line",
+      "seconds": 4.5,
+      "most": 45,
+      "noOverlays": true,
+      "waitFor": { "broke": "Room/Course/R6_Window/Backyard (D-0239)/Boundaries/Back Wall/Gate/Gate Panel", "plus": 29.7 },
+      "fov": 45,
+      "from": { "at": { "x": 404.0, "y": 58.0, "z": 404.0 }, "look": { "x": 480.0, "y": 46.0, "z": 497.5 } },
+      "to": { "at": { "x": 412.0, "y": 56.0, "z": 410.0 }, "look": { "x": 480.0, "y": 46.0, "z": 497.5 } },
+      "steps": [
+        { "does": "place", "setup": true, "at": { "x": 11.2, "y": 1.2, "z": -25.8 }, "yaw": 209 }
+      ]
+    }
+  ]
+}

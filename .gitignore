@@ -198,6 +198,11 @@ Logs/
 # Grabbit 2's baked collision shapes (D-0232): made from the licensed toy meshes, so they stay out of the public repo
 /Assets/Grabbit Baked Colliders/
 /Assets/Grabbit Baked Colliders.meta
+# SICS Games Toon packs (Asset Store EULA: no redistribution), imported 25 Nov for the backyard (D-0239)
+**/Toon Series/
+**/Toon Series.meta
+**/Toon Suburban Pack/
+**/Toon Suburban Pack.meta
 # Embedded Asset Store packages (no redistribution)
 /Packages/com.febucci.text-animator-unity/
 /Packages/com.heath.lattice/

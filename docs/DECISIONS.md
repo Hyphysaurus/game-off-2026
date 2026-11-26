@@ -4471,3 +4471,15 @@
   vortex writes its own material asset (`Data/ShiftWarp.mat`) during Play, and the gun's glint material lost its
   emission keyword; both restored, both to fix. **NOT PLAYED.**
 
+- **D-0244 (26 Nov 2026, 08:0x) The flashlight's beam stops at walls.** His note on the demo reel: "The flashlight light
+  emission can be seen through the cardboard box." The glowing cone in the air (BeamShaft, D-0140) was a fixed length
+  (157.5 at a kid's size: range 350 x 0.45) and ran on through walls; past the cardboard it was drawn like anything
+  else. Now one ray down the beam's middle each frame (RaycastNonAlloc, no allocation): the cone ends at the first solid
+  thing on it that is as big as the beam is wide there, fading out over 2% of the light's range (at most half the way)
+  in front of it, and the shader (Resources/FX/BeamShaft) draws nothing behind that surface (_CutPoint, _CutNormal,
+  _CutSoft). Smaller things (a core, a toy) it goes round, as before; triggers and the flashlight's own body never stop
+  it. Flashlight gets Shaft Stops (on) and Shaft Soft End (0.02). Checked in edit mode: the toy box's flashlight ends at
+  its cardboard at 9.6 (was 157.5); the bed, hall and wardrobe torches at their walls (27.5, 14.7, 112.3); the wardrobe
+  torch goes round CoreC_Grow. The light itself already stopped at walls: the Windows build uses the PC quality level,
+  whose spot lights cast shadows (the Mobile level's do not). **NOT PLAYED.**
+

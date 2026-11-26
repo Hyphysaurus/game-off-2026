@@ -14,6 +14,9 @@ namespace ShiftJam
     /// lens instead, after everything else has moved this frame, and goes when the light does.
     /// It can also light the bulb (D-0142): a small glowing ball round it (ShiftJam/BulbGlow, Resources/FX/BulbGlow),
     /// placed behind the light in the light's own units, so it goes with the flashlight's size; brighter with Boost.
+    /// It stops at what it meets (D-0244, his note on the demo reel: the glow showed through the cardboard box): one ray
+    /// down the beam's middle each frame, and the cone ends at the first solid thing on it that is as big as the beam is
+    /// wide there (a wall, the floor, the bed), fading out just before it; smaller things (a core, a toy) it goes round.
     /// </summary>
     [DefaultExecutionOrder(10000)]   // after the Carrier puts the torch in the hand
     public sealed class BeamShaft : MonoBehaviour
@@ -22,6 +25,10 @@ namespace ShiftJam
         private static Mesh _cone;
         private static Shader _shader, _bulbShader;
         private static bool _warned;
+        private static readonly RaycastHit[] Hits = new RaycastHit[16];   // shared by every shaft: filled and read within one Cut
+        private static readonly int CutPointId = Shader.PropertyToID("_CutPoint");
+        private static readonly int CutNormalId = Shader.PropertyToID("_CutNormal");
+        private static readonly int CutSoftId = Shader.PropertyToID("_CutSoft");
 
         private Light _light;
         private MeshRenderer _renderer;
@@ -30,14 +37,21 @@ namespace ShiftJam
         private Transform _bulb;                 // the bulb's glow, or null
         private Material _bulbMaterial;
         private float _bulbBack, _bulbRadius, _bulbStrength;
+        private Transform _self;                 // the flashlight's own body: the beam passes it (D-0244)
+        private bool _stops;                     // end the cone at the first solid thing on the beam (D-0244)
+        private float _softShare;                // how far before that thing the cone fades out, as a share of the light's range
+        private bool _cutSet;                    // the material holds a stop now
 
         /// <summary>Brightness multiplier on top of the strength it was made with (a focused flashlight, D-0141).</summary>
         public float Boost { get; set; } = 1f;
 
         /// <summary>Puts a shaft on <paramref name="light"/>: <paramref name="lengthShare"/> of its range long, starting
         /// <paramref name="lensShare"/> of its far width wide at the lens, <paramref name="strength"/> bright (the shader's
-        /// default if 0 or less). Null when the shader is missing.</summary>
-        public static BeamShaft Add(Light light, float lengthShare, float lensShare, float strength)
+        /// default if 0 or less). With <paramref name="stops"/> the cone ends at the first solid thing the beam's middle
+        /// meets, fading out <paramref name="softShare"/> of the light's range before it; <paramref name="self"/> (the
+        /// flashlight's own body) never stops it (D-0244). Null when the shader is missing.</summary>
+        public static BeamShaft Add(Light light, float lengthShare, float lensShare, float strength,
+                                    Transform self = null, bool stops = true, float softShare = 0.02f)
         {
             if (light == null) return null;
             if (_shader == null) _shader = Resources.Load<Shader>("FX/BeamShaft");
@@ -51,6 +65,9 @@ namespace ShiftJam
             SceneManager.MoveGameObjectToScene(go, light.gameObject.scene);
             var shaft = go.AddComponent<BeamShaft>();
             shaft._light = light;
+            shaft._self = self;
+            shaft._stops = stops;
+            shaft._softShare = Mathf.Max(0f, softShare);
             shaft._lengthShare = Mathf.Max(0.01f, lengthShare);
             shaft._lensShare = Mathf.Clamp(lensShare, 0f, 0.9f);
             go.AddComponent<MeshFilter>().sharedMesh = Cone(shaft._lensShare);
@@ -110,6 +127,7 @@ namespace ShiftJam
             float radius = Mathf.Tan(_light.spotAngle * 0.5f * Mathf.Deg2Rad) * length;
             transform.SetPositionAndRotation(_light.transform.position, _light.transform.rotation);
             transform.localScale = new Vector3(radius, radius, length);   // no parent: world units
+            Cut(length, radius);
             if (Boost != _boostWas)
             {
                 _boostWas = Boost;
@@ -126,6 +144,46 @@ namespace ShiftJam
                 _bulbMaterial.SetColor("_BaseColor", new Color(c.r, c.g, c.b, 1f));
             }
             _material.SetColor("_BaseColor", new Color(c.r, c.g, c.b, 1f));
+        }
+
+        /// <summary>Ends the cone at the first solid thing the beam's middle meets (D-0244, his note on the demo reel: the
+        /// flashlight's glow showed through the cardboard box). The cone is a fixed length, so before this it ran on through
+        /// walls and showed on their far side. One ray down the middle, as far as the cone reaches (<paramref name="length"/>,
+        /// <paramref name="radius"/> wide at its end). Triggers and the flashlight's own body do not count (a carried torch's
+        /// colliders are off anyway, and its holder's capsule is behind the lens); nor does a thing smaller than the beam is
+        /// wide where it meets it (a core, a toy on the floor): the beam goes on round it, as it always did. The shader draws
+        /// nothing behind the surface it stops at and fades the cone out over a short way in front of it. The light itself
+        /// already stops there: it casts shadows.</summary>
+        private void Cut(float length, float radius)
+        {
+            bool cut = false;
+            if (_stops && length > 0f)
+            {
+                Transform l = _light.transform;
+                int n = Physics.RaycastNonAlloc(l.position, l.forward, Hits, length, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                int nearest = -1;
+                float best = float.MaxValue;
+                for (int i = 0; i < n; i++)
+                {
+                    Collider c = Hits[i].collider;
+                    if (c == null || (_self != null && c.transform.IsChildOf(_self))) continue;   // its own body
+                    float at = Hits[i].distance;
+                    float beamThere = radius * (_lensShare + (1f - _lensShare) * (at / length));   // the cone's radius at that point
+                    if (c.bounds.extents.magnitude < beamThere) continue;   // smaller than the beam there: it goes round
+                    if (at < best) { best = at; nearest = i; }
+                }
+                if (nearest >= 0)
+                {
+                    RaycastHit h = Hits[nearest];
+                    float soft = Mathf.Max(1e-4f, Mathf.Min(_light.range * _softShare, h.distance * 0.5f));   // never more than half the way
+                    _material.SetVector(CutPointId, h.point);
+                    _material.SetVector(CutNormalId, new Vector4(h.normal.x, h.normal.y, h.normal.z, 1f));
+                    _material.SetFloat(CutSoftId, soft);
+                    cut = true;
+                }
+            }
+            if (!cut && _cutSet) _material.SetVector(CutNormalId, Vector4.zero);   // nothing in the way: the whole cone
+            _cutSet = cut;
         }
 
         private void OnDestroy()

@@ -9,7 +9,8 @@ namespace ShiftJam
     /// a kid can also pick it up (E), aim it by looking, toggle it (Attack) and put it down (Crouch). In the bar it takes
     /// the hand's size (D-0138), so a toy holds a toy-sized one and can pick one up that is its size; its beam goes with
     /// its size: reach in step, brightness with the square (light falls off with the square of the distance), so it lights
-    /// the same patch round the holder at either size. While on, the beam also shows in the air (BeamShaft, D-0140).
+    /// the same patch round the holder at either size. While on, the beam also shows in the air (BeamShaft, D-0140),
+    /// ending at the first solid thing it meets (D-0244).
     /// Aim held with it in hand focuses the beam (D-0141, Alan Wake 2): narrower, brighter, further, the cone in the air
     /// brighter; aiming with it off switches it on for the aim and off again after.
     /// Switching it on wakes its core; off puts the core back to sleep. While on, its beam can wake other
@@ -28,6 +29,8 @@ namespace ShiftJam
         [SerializeField, Range(0.05f, 1f), Tooltip("How long the cone is, as a share of the light's range.")] private float shaftLength = 0.45f;
         [SerializeField, Range(0f, 0.9f), Tooltip("How wide the cone starts at the lens, as a share of its far width.")] private float shaftLens = 0.06f;
         [SerializeField, Range(0f, 2f), Tooltip("How bright the cone is (0 = the shader's own, 0.22).")] private float shaftStrength = 0.22f;
+        [SerializeField, Tooltip("End the cone at the first solid thing the beam's middle meets that is as big as the beam is wide there (a wall, the floor, the bed), so it never shows through a wall (D-0244, his note on the demo reel); smaller things it goes round. Off = the old fixed-length cone.")] private bool shaftStops = true;
+        [SerializeField, Range(0f, 0.1f), Tooltip("How far before that thing the cone fades out, as a share of the light's range (0 = a hard edge).")] private float shaftSoftEnd = 0.02f;
         [Header("The bulb's glow while on (D-0142)")]
         [SerializeField, Min(0f), Tooltip("How bright the bulb glows while on (0 = no glow; over 1 blooms).")] private float bulbGlow = 2.5f;
         [SerializeField, Tooltip("How far behind the Beam light the bulb's middle is, in the flashlight's own units (the Playroom flashlight: 1.25).")] private float bulbBack = 1.25f;
@@ -77,7 +80,7 @@ namespace ShiftJam
         private void EnsureShaft()
         {
             if (_shaft != null || !showShaft || beam == null) return;
-            _shaft = BeamShaft.Add(beam, shaftLength, shaftLens, shaftStrength);
+            _shaft = BeamShaft.Add(beam, shaftLength, shaftLens, shaftStrength, transform, shaftStops, shaftSoftEnd);
             if (_shaft != null && bulbGlow > 0f) _shaft.AddBulb(bulbBack, bulbRadius, bulbGlow);   // the bulb glows while on (D-0142)
             _fitFocus = -1f;   // the new cone takes the focus boost on the next fit
         }

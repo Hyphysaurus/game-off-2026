@@ -17,7 +17,9 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   in the take, toast cards and the snatch's speech sticker showed with no words (blank bars): check in play.
 - **His notes on the reel (26 Nov 06:5x):** the outdoors needs polish (his words: "especially the outdoors").
   The flashlight's glow shows through the cardboard box: the beam's cone (Room/BeamShaft.cs, D-0140) is a fixed
-  length (range 350 x its share) and runs on through walls, drawn outside the box. Fix proposed, not built.
+  length (range 350 x its share) and runs on through walls, drawn outside the box. FIXED: D-0244, landed 08:0x,
+  not played. His test: the opening seen from outside the toy box shows no glow past the cardboard; beams fade out
+  softly at walls; a beam on a core still passes round it. Off switch: Flashlight > Shaft Stops.
 
 ## 26 Nov 2026 00:3x — THE START HUB'S NEW ORDER (D-0241), LANDED, Greybox saved. NOT PLAYED.
 - **HIS TEST (New Game):** the second toast says "Am I in a box?"; turn the light onto the core and grow: a monster

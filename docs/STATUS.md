@@ -2,14 +2,19 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
-## 26 Nov 2026 01:5x — THE PIXEL HUD (D-0243) LANDED; THE DEMO REEL FILMED (D-0242). NOT PLAYED.
+## 26 Nov 2026 01:5x — THE PIXEL HUD (D-0243) LANDED; THE DEMO REEL FILMED AND CUT (D-0242). NOT PLAYED.
 - **HIS TEST:** play: the status panel bottom right (HP and SHIFT cells), pixel slots bottom left, the key-glyph
   footer bottom centre (never over the slots), pixel toasts and speech cards, the objective card, Tab for the sticker
   chart, the claw panel, the menus' words in Pixel Operator. Resources/PixelKit > Pixel On off = the old look back.
 - **Faults to watch:** the old white prompt line still showing; gaps where icons go (Land Menu Icons not run); pixel
   words shimmering on the tilted menu slabs (untick Menu Words); bold words in toasts not bold.
-- **The reel:** 11 shots filmed (Builds/Footage/2026-11-26/greybox-0148, 61 s, contact.jpg), being cut in Remotion.
-- **Bugs found, not fixed:** the shift vortex writes Data/ShiftWarp.mat during Play; DartGunGlint.mat lost _EMISSION.
+- **The reel:** cut, in D:\Videos\Shift Jam\demo-2026-11-26: trailer.mp4 (30 s, 1080p), vertical.mp4 (1080x1920),
+  trailer-discord.mp4 (720p, under 10 MB), itch.gif (under 3 MB). Made in ~/dev/shiftjam-trailer (Remotion: his title
+  art, the ithappy title track at 132 BPM with cuts on the beat, end card "SHIFT / GitHub Game Off 2026"), from the take
+  Builds/Footage/2026-11-26/greybox-0148 (11 shots, 61 s). Left out: the snatch (foggy, the monster a speck) and the
+  grown kid after the shift (the recorder's camera sits too low for him: his head leaves the frame).
+- **Bugs found, not fixed:** the shift vortex writes Data/ShiftWarp.mat during Play; DartGunGlint.mat lost _EMISSION;
+  in the take, toast cards and the snatch's speech sticker showed with no words (blank bars): check in play.
 
 ## 26 Nov 2026 00:3x — THE START HUB'S NEW ORDER (D-0241), LANDED, Greybox saved. NOT PLAYED.
 - **HIS TEST (New Game):** the second toast says "Am I in a box?"; turn the light onto the core and grow: a monster

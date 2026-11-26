@@ -15,6 +15,9 @@ Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end
   grown kid after the shift (the recorder's camera sits too low for him: his head leaves the frame).
 - **Bugs found, not fixed:** the shift vortex writes Data/ShiftWarp.mat during Play; DartGunGlint.mat lost _EMISSION;
   in the take, toast cards and the snatch's speech sticker showed with no words (blank bars): check in play.
+- **His notes on the reel (26 Nov 06:5x):** the outdoors needs polish (his words: "especially the outdoors").
+  The flashlight's glow shows through the cardboard box: the beam's cone (Room/BeamShaft.cs, D-0140) is a fixed
+  length (range 350 x its share) and runs on through walls, drawn outside the box. Fix proposed, not built.
 
 ## 26 Nov 2026 00:3x — THE START HUB'S NEW ORDER (D-0241), LANDED, Greybox saved. NOT PLAYED.
 - **HIS TEST (New Game):** the second toast says "Am I in a box?"; turn the light onto the core and grow: a monster

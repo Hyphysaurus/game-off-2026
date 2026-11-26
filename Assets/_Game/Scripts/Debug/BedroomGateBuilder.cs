@@ -136,6 +136,7 @@ namespace ShiftJam
             Steps(scene, s, gateT, snatchT.Find(PickupName));
             GoalLine(s);
             Lamp(bedroom, s, ms, monsters, toyScale);
+            KeepGlintEmission();   // D-0245: last, after everything else this run touches
 
             EditorSceneManager.MarkSceneDirty(scene);
             Log.AppendLine("Greybox MARKED CHANGED, not saved: Ctrl+S keeps it.");
@@ -941,6 +942,21 @@ namespace ShiftJam
             Log.AppendLine($"LAMP UNDER THE BED (D-0247): moved {Path(lt)} off the bedside table {Fmt(tablePos)} (scale {tableScale.x:F2}, turned {tableTurn.y:F0}) to {Fmt(lt.position)} (scale {lt.localScale.x:F2}: {halfW * 2f:F1} across, {tallNew:F1} tall under {Headroom(new Vector3(best.x, bestY, best.z), bed):F1} of room), its middle {pastEdge:F1} past the bed's edge and {bestNear:F1} from the way in{(gun != null ? $", {Level(best - gun.position).magnitude:F1} from the dart gun" : "")}; its dome sees {bestSees} of {monsters.Count} monster spots; the best of {keptN} free of {tried} cave floor points (ruled out: {reasons}).");
             Log.AppendLine($"  ITS STARS light the bed's underside as they lit the ceiling, all alike ({lightOn:F3} on what they light: the middle of the table's): {lines}. {glowLine}. {settings}.");
             Log.AppendLine($"  BACK ON THE TABLE, if he wants it: untick Lamp Under Bed, then put Room/Bedroom/NightLamp at {Fmt(tablePos)}, turned {tableTurn.y:F0}, scale {tableScale.x:F2}, and set each star's brightness and reach back to what they were (above).");
+        }
+
+        /// <summary>D-0245: the glint material ends a run with its emission on. Something during a run of this maker switches
+        /// it off again (not found: GlintMaterial switches it on and saves it, and a plain switch-on and save afterwards
+        /// holds), so it is switched on and saved again as the run's last step. The gun's LightGlow also switches it on at
+        /// start (Keep Emission On).</summary>
+        static void KeepGlintEmission()
+        {
+            var m = AssetDatabase.LoadAssetAtPath<Material>(GlintMaterialPath);
+            if (m == null) return;
+            bool wasOn = m.IsKeywordEnabled("_EMISSION");
+            m.EnableKeyword("_EMISSION");
+            EditorUtility.SetDirty(m);
+            AssetDatabase.SaveAssetIfDirty(m);
+            Log.AppendLine($"GLINT MATERIAL (D-0245): emission {(wasOn ? "on" : "had been switched OFF during the run")}: switched on and saved last.");
         }
 
         /// <summary>D-0247: the lamp under the bed's own settings: the sweep (and the stun) reaches Lamp Sweep Range, and Sweep

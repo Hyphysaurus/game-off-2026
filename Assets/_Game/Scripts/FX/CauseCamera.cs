@@ -10,7 +10,9 @@ namespace ShiftJam
     /// from where it stands to look at it (and narrows the view to frame it) for about a second while it happens, then
     /// turns back. The player holds still meanwhile. Once per thing per scene load; skipped when the thing is already in
     /// plain view. It only turns, never moves, so it cannot end up inside a wall. Runs after the shoulder camera each
-    /// frame and blends from that camera's own pose. Made by code at start, lives across scenes.
+    /// frame and blends from that camera's own pose. Made by code at start, lives across scenes. In first person too (D-0231,
+    /// his "hitting the switch in first person didnt toggle the cinematic shift towards the small door"): first person
+    /// steers the same camera (FirstPersonLook, order 50), so the turn runs after it just the same.
     /// </summary>
     [DefaultExecutionOrder(1000)]
     public sealed class CauseCamera : MonoBehaviour
@@ -59,7 +61,7 @@ namespace ShiftJam
         private void Show(Component thing)
         {
             if (_busy || !_shown.Add(thing)) return;
-            if (GameMode.Current != GameMode.Mode.Play || PauseMenu.IsOpen || TitleMenu.IsOpen) return;
+            if ((GameMode.Current != GameMode.Mode.Play && GameMode.Current != GameMode.Mode.FirstPerson) || PauseMenu.IsOpen || TitleMenu.IsOpen) return;
             var reveal = FindFirstObjectByType<RoomReveal>();
             if (reveal != null && reveal.Running) return;
             _cam = Camera.main;

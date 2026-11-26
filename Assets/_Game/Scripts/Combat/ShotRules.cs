@@ -9,7 +9,9 @@ namespace ShiftJam
     /// the hit, not the lag. Since D-0176 (his "i want to keep ONE but i love the look of the flying dart") such a shot
     /// is still seen as a dart: it flies from the gun to its mark, fast and straight, sticks there, and the hit counts
     /// as it arrives. The guns are the same either way: the kind is the scene's, not the gun's. Drop one of these into a
-    /// scene and pick the kind; a scene without one fires foam darts.
+    /// scene and pick the kind: it holds there for everyone (the Stadium: Instant, fair online). A scene without one follows
+    /// the player's own choice in Options (D-0227, his "lets set hitscan mode to default, we can leave a toggle in settings
+    /// for players who want to switch it up"): Instant unless they picked foam darts (PlayerOptions.FoamDarts).
     /// </summary>
     public sealed class ShotRules : MonoBehaviour
     {
@@ -23,7 +25,7 @@ namespace ShiftJam
         private static bool _byHandInstant;
 
         /// <summary>True when a shot is decided at the click (and seen flying to its mark).</summary>
-        public static bool Instant => _byHand ? _byHandInstant : _scene != null && _scene.kind == Kind.Instant;
+        public static bool Instant => _byHand ? _byHandInstant : _scene != null ? _scene.kind == Kind.Instant : !PlayerOptions.FoamDarts;
 
         /// <summary>Flips the kind by hand (the debug console, F9) and says what it is now. It holds until a scene with a
         /// rule of its own loads, or the next flip.</summary>

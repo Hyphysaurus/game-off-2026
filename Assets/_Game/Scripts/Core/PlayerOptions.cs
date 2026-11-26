@@ -3,7 +3,7 @@ using UnityEngine;
 namespace ShiftJam
 {
     /// <summary>
-    /// The player's own settings (D-0044): look speed, invert Y, master volume, fullscreen. Kept in PlayerPrefs, apart
+    /// The player's own settings (D-0044): look speed, invert Y, master volume, fullscreen, shots (D-0227). Kept in PlayerPrefs, apart
     /// from the CameraSettings / FirstPersonSettings assets: those hold the designed values, these scale or flip them,
     /// so changing an option never edits a project asset. The cameras read LookScale and InvertY every frame; the volume
     /// is applied before the first scene wakes (except in a smoke run, which keeps itself silent).
@@ -50,6 +50,17 @@ namespace ShiftJam
         {
             get { Load(); return _body; }
             set { Load(); _body = Mathf.Max(0, value); PlayerPrefs.SetInt(BodyKey, _body); PlayerPrefs.Save(); }
+        }
+
+        private const string FoamDartsKey = "opt.foamDarts";
+
+        /// <summary>Shots (D-0227): off, the default, is instant shots (decided at the click on what is under the dot, seen
+        /// flying there as a dart); on is foam darts that fly, drop and stick. A scene with a rule of its own (the Stadium's
+        /// ShotRules) keeps it for everyone, whatever this says.</summary>
+        public static bool FoamDarts
+        {
+            get => PlayerPrefs.GetInt(FoamDartsKey, 0) == 1;
+            set { PlayerPrefs.SetInt(FoamDartsKey, value ? 1 : 0); PlayerPrefs.Save(); }
         }
 
         /// <summary>Unity remembers the window mode itself between runs; this only switches it.</summary>

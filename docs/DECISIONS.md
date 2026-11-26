@@ -4184,3 +4184,15 @@
     ("MOVE | SELECT | BACK") on the title, the pause menu and the chart page, with the glyphs of the device used last.
   - Maker: Shift Jam > UI > Land Menu Icons (D-0226). Off: IconSet > Icons On / Footer On. Unsure: a Switch pad gets the
     Xbox glyphs; the model's own hint line still repeats "Enter / A chooses". **NOT PLAYED.**
+- **D-0227 (25 Nov 2026, 16:3x) Instant shots by default, foam darts a choice in Options.** His "lets set hitscan mode to
+  default, we can leave a toggle in settings for players who want ot switch it up". `ShotRules.Instant`: the debug flip
+  (F9) first, then a scene's own rule (the Stadium stays Instant for everyone, fair online), else the player's choice:
+  `PlayerOptions.FoamDarts` (PlayerPrefs `opt.foamDarts`, off = Instant). Options gains a **Shots** row (Instant / Foam
+  darts) on the model menu (the Options rows now 0.14 apart: Look 0.30 ... Graphics -0.26, Shots -0.40, Body -0.54, Back
+  -0.68 unchanged; set in `TitleMenuModel.prefab` and the code's default rows) and in the old panel (rows 0.08 apart).
+  Toy soldiers still fire their slow darts. Instant makes the skittles, the fort and the Tan Splinter easier. **NOT PLAYED.**
+- **D-0231 (25 Nov 2026, 16:3x) The camera shows what a switch did in first person too.** His "hitting the switch in first
+  person didnt toggle the cinematic shift towards the small door opening" (his 15:58 play, 1:18: the kid pressed the
+  shelf switch in first person). `CauseCamera` only ran in `GameMode.Play`; first person is its own mode. It now runs in
+  FirstPerson as well: first person steers the same camera (`FirstPersonLook`, order 50) and `CauseCamera` turns it after
+  that (order 1000), with the player's input held as before. **NOT PLAYED.**

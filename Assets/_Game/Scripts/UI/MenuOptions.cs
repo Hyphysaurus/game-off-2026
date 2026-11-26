@@ -7,7 +7,7 @@ namespace ShiftJam
     /// "Options" (Made Controls on the model's prefab: copies of its own slabs). Look speed, volume and the body are
     /// VALUES: left and right step them (the MenuDriver), a click or the choosing dart on a slab's left half steps it
     /// down and on its right half up, the second line shows the value and a bar on the face shows how far it is. Invert
-    /// Y, fullscreen and graphics are TOGGLES: choosing one flips it, and while it is on its frame shows the "active"
+    /// Y, fullscreen, graphics and shots (D-0227: Instant or Foam darts) are TOGGLES: choosing one flips it, and while it is on its frame shows the "active"
     /// colour. Every change is saved into PlayerOptions at once, as the panel does. Back is the owner's (it knows where
     /// Options was opened from). Made by whoever owns the model (the title, the pause menu); with its slabs missing it
     /// is not made, and the owner opens the old panel.
@@ -16,8 +16,8 @@ namespace ShiftJam
     {
         public const string Page = "Options";
         public const string Look = "Opt_Look", Invert = "Opt_Invert", Volume = "Opt_Volume", Fullscreen = "Opt_Fullscreen",
-            Graphics = "Opt_Graphics", Body = "Opt_Body", Back = "Opt_Back";
-        private static readonly string[] Mine = { Look, Invert, Volume, Fullscreen, Graphics, Body, Back };
+            Graphics = "Opt_Graphics", Shots = "Opt_Shots", Body = "Opt_Body", Back = "Opt_Back";
+        private static readonly string[] Mine = { Look, Invert, Volume, Fullscreen, Graphics, Shots, Body, Back };
 
         /// <summary>What this page adds to the hint line.</summary>
         public const string HintMore = "left / right or a click on a side changes a value";
@@ -61,6 +61,7 @@ namespace ShiftJam
                 case Invert: PlayerOptions.InvertY = !PlayerOptions.InvertY; break;
                 case Fullscreen: _fullscreenWanted = !_fullscreenWanted; PlayerOptions.Fullscreen = _fullscreenWanted; break;
                 case Graphics: PlayerOptions.HighGraphics = !PlayerOptions.HighGraphics; break;   // D-0119
+                case Shots: PlayerOptions.FoamDarts = !PlayerOptions.FoamDarts; break;   // D-0227
                 case Look: case Volume: case Body: Step(control, 1); return;
                 default: return;
             }
@@ -99,6 +100,8 @@ namespace ShiftJam
             _model.SetActive(Fullscreen, _fullscreenWanted);
             _model.SetWords(Graphics, "Graphics", (PlayerOptions.HighGraphics ? "High" : "Low") + editorOnly);
             _model.SetActive(Graphics, PlayerOptions.HighGraphics);
+            _model.SetWords(Shots, "Shots", PlayerOptions.FoamDarts ? "Foam darts" : "Instant");
+            _model.SetActive(Shots, !PlayerOptions.FoamDarts);
             // The body: a list to step through where there is more than one (after the player port's builder has run).
             int count = PlayerBody.Count;
             if (count > 1)

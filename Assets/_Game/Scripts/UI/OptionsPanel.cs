@@ -16,7 +16,7 @@ namespace ShiftJam
     public sealed class OptionsPanel : MonoBehaviour
     {
         private GameObject _root;
-        private TMP_Text _look, _invert, _volume, _fullscreen, _body, _graphics;
+        private TMP_Text _look, _invert, _volume, _fullscreen, _body, _graphics, _shots;
         private Button _first;
         private Action _onClose;
         private bool _fullscreenWanted;
@@ -69,6 +69,7 @@ namespace ShiftJam
             _volume.text = $"{Mathf.RoundToInt(PlayerOptions.Volume * 100f)}%";
             _fullscreen.text = (_fullscreenWanted ? "On" : "Off") + (Application.isEditor ? " <size=60%><alpha=#88>(built game only)" : "");
             _graphics.text = (PlayerOptions.HighGraphics ? "High" : "Low") + (Application.isEditor ? " <size=60%><alpha=#88>(built game only)" : "");
+            _shots.text = PlayerOptions.FoamDarts ? "Foam darts" : "Instant";   // D-0227
             if (_body != null)
             {
                 // The body is swapped when a scene loads: say so while the picked one is not the one on screen.
@@ -89,21 +90,22 @@ namespace ShiftJam
             MenuKit.Rect("Dim", _root.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero).gameObject.AddComponent<Image>().color = new Color(0.03f, 0.03f, 0.06f, 0.8f);
             MenuKit.Text("Title", _root.transform, "<b>OPTIONS</b>", 64, new Vector2(0.5f, 0.78f), new Vector2(900, 90));
 
-            float y = 0.66f;
+            float y = 0.68f;   // D-0227: rows 0.08 apart, room for Shots above Back and the hint
             _first = Stepper("Mouse sensitivity", y, out _look,
                 () => { PlayerOptions.LookScale -= PlayerOptions.LookStep; Refresh(); },
-                () => { PlayerOptions.LookScale += PlayerOptions.LookStep; Refresh(); }); y -= 0.09f;
-            Toggle("Invert Y", y, out _invert, () => { PlayerOptions.InvertY = !PlayerOptions.InvertY; Refresh(); }); y -= 0.09f;
+                () => { PlayerOptions.LookScale += PlayerOptions.LookStep; Refresh(); }); y -= 0.08f;
+            Toggle("Invert Y", y, out _invert, () => { PlayerOptions.InvertY = !PlayerOptions.InvertY; Refresh(); }); y -= 0.08f;
             Stepper("Volume", y, out _volume,
                 () => { PlayerOptions.Volume -= PlayerOptions.VolumeStep; Refresh(); },
-                () => { PlayerOptions.Volume += PlayerOptions.VolumeStep; Refresh(); }); y -= 0.09f;
+                () => { PlayerOptions.Volume += PlayerOptions.VolumeStep; Refresh(); }); y -= 0.08f;
             // Screen.fullScreen changes at the end of the frame, so the label shows the asked-for state.
-            Toggle("Fullscreen", y, out _fullscreen, () => { _fullscreenWanted = !_fullscreenWanted; PlayerOptions.Fullscreen = _fullscreenWanted; Refresh(); }); y -= 0.09f;
-            Toggle("Graphics", y, out _graphics, () => { PlayerOptions.HighGraphics = !PlayerOptions.HighGraphics; Refresh(); }); y -= 0.09f;   // D-0119
+            Toggle("Fullscreen", y, out _fullscreen, () => { _fullscreenWanted = !_fullscreenWanted; PlayerOptions.Fullscreen = _fullscreenWanted; Refresh(); }); y -= 0.08f;
+            Toggle("Graphics", y, out _graphics, () => { PlayerOptions.HighGraphics = !PlayerOptions.HighGraphics; Refresh(); }); y -= 0.08f;   // D-0119
+            Toggle("Shots", y, out _shots, () => { PlayerOptions.FoamDarts = !PlayerOptions.FoamDarts; Refresh(); }); y -= 0.08f;   // D-0227
             // Only where there is more than one body to pick (after the player port's builder has run).
             if (PlayerBody.Count > 1)
             {
-                Toggle("Body", y, out _body, () => { PlayerOptions.Body = (PlayerOptions.Body + 1) % PlayerBody.Count; Refresh(); }); y -= 0.09f;
+                Toggle("Body", y, out _body, () => { PlayerOptions.Body = (PlayerOptions.Body + 1) % PlayerBody.Count; Refresh(); }); y -= 0.08f;
             }
             y -= 0.03f;
             UiSound.On(MenuKit.Button(_root.transform, "Back", new Vector2(0.5f, y), 0f, 380f, 40f, Close)).Press = UiAudio.Kind.None;   // Close plays Back itself (Esc too)

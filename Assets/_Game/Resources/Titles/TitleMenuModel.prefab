@@ -132,23 +132,27 @@ MonoBehaviour:
   - control: Opt_Invert
     sameAs: Btn_NewGame
     page: Options
-    at: {x: 0, y: 0.14}
+    at: {x: 0, y: 0.16}
   - control: Opt_Volume
     sameAs: Btn_NewGame
     page: Options
-    at: {x: 0, y: -0.02}
+    at: {x: 0, y: 0.02}
   - control: Opt_Fullscreen
     sameAs: Btn_NewGame
     page: Options
-    at: {x: 0, y: -0.18}
+    at: {x: 0, y: -0.12}
   - control: Opt_Graphics
     sameAs: Btn_NewGame
     page: Options
-    at: {x: 0, y: -0.34}
+    at: {x: 0, y: -0.26}
+  - control: Opt_Shots
+    sameAs: Btn_NewGame
+    page: Options
+    at: {x: 0, y: -0.4}
   - control: Opt_Body
     sameAs: Btn_NewGame
     page: Options
-    at: {x: 0, y: -0.5}
+    at: {x: 0, y: -0.54}
   - control: Opt_Back
     sameAs: Btn_SavesBack
     page: Options

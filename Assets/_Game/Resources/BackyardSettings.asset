@@ -1,0 +1,255 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f10618531fe6f3d44a875d531bdc5eef, type: 3}
+  m_Name: BackyardSettings
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.BackyardSettings
+  grass:
+    prefabs:
+    - {fileID: 3655551049407802788, guid: cf3b57bac7b7e1d47bd3dccf22ac1503, type: 3}
+    - {fileID: 2269334185045902855, guid: 329c3ddb4c976104ea791aaf8391ee18, type: 3}
+    - {fileID: 1500549427991191881, guid: 5e2607191da61b84c93b0f836e66428f, type: 3}
+    - {fileID: 5511746775163736245, guid: 35e8999c8a5075844970fd3b8cc85130, type: 3}
+    scaleMin: 1
+    scaleMax: 1
+    count: 0
+    spacing: 2.4
+  flowers:
+    prefabs:
+    - {fileID: 8280901694868928824, guid: 443292f156162be4f916d17a366babec, type: 3}
+    - {fileID: 6326200387136015183, guid: cd5543212a9dd084884b0f4b05485bac, type: 3}
+    - {fileID: 440224610753537003, guid: 179d3bfebf670b54399144f107d37a94, type: 3}
+    - {fileID: 1065848376123769254, guid: b0d1cebf3aad54c4687593a5e575518f, type: 3}
+    - {fileID: 1652072990110640227, guid: 9d094dddebe87844a80c05b22610d351, type: 3}
+    - {fileID: 2489476776295623430, guid: 2c15b1a95eef6394986219e2ca09aa71, type: 3}
+    - {fileID: 5981586302091741397, guid: e54357fca8e6ec442b040fb12c2da120, type: 3}
+    - {fileID: 7664170730877252289, guid: f20c0cd26e10cd646a15fe3e389343e5, type: 3}
+    - {fileID: 3385293883237682374, guid: 5fea0b580f7f71c409ea295a9b8ab19b, type: 3}
+    - {fileID: 7224812390758565487, guid: ae68da086d1652c41b55d125f9381b77, type: 3}
+    - {fileID: 3058524053371603356, guid: e70f8aad3bf9c9c49bff2a36e3f210b4, type: 3}
+    - {fileID: 7659101101940238839, guid: dd1246c02e67e7c41a7ecdf15ed4a7bc, type: 3}
+    scaleMin: 30
+    scaleMax: 45
+    count: 26
+    spacing: 0
+  hedges:
+    prefabs:
+    - {fileID: 4314816103159060867, guid: 2c3ecaa2ab328d846aa2c0309b0eaa1e, type: 3}
+    - {fileID: 3178646645539806780, guid: be4ee9221f426a9438c141a38ed55fae, type: 3}
+    - {fileID: 2558151804211239615, guid: 9e294abf89e82b14ba54bf4988bdf628, type: 3}
+    - {fileID: 3595911696303325208, guid: 0fab2f503e6c74b478840d9701aa7b8f, type: 3}
+    - {fileID: 6994829639289989235, guid: 8fb5e138e6e5e3543b09a863df13597d, type: 3}
+    - {fileID: 7145277025539218321, guid: 67cea65c1777e5d4aa69bb6a1d56c0f8, type: 3}
+    scaleMin: 11
+    scaleMax: 13
+    count: 0
+    spacing: 22
+  rocks:
+    prefabs:
+    - {fileID: 4893796000748656967, guid: 9618a6ddb77f88c43a57a30e7615249e, type: 3}
+    - {fileID: 7764396593911530355, guid: 7d91936586d28a04e941ed3dc7cac83c, type: 3}
+    - {fileID: 6774259280301822178, guid: fadc3e28286fafe4bbdaa454339e5ce8, type: 3}
+    scaleMin: 14
+    scaleMax: 22
+    count: 14
+    spacing: 0
+  boundary:
+    prefabs:
+    - {fileID: 3997551067732342486, guid: 7fd72bbf703cbe14f8a2dec8f798dec0, type: 3}
+    - {fileID: 3781635906257098360, guid: c9350855d305e564bafcd64af31c4c68, type: 3}
+    - {fileID: 9099430309881799145, guid: ce12ead2a7101f943b952414a9cb9f8e, type: 3}
+    scaleMin: 1
+    scaleMax: 1
+    count: 0
+    spacing: 44
+  boundaryHeight: {x: 95, y: 140}
+  backdrop:
+    prefabs:
+    - {fileID: 3997551067732342486, guid: 7fd72bbf703cbe14f8a2dec8f798dec0, type: 3}
+    - {fileID: 9099430309881799145, guid: ce12ead2a7101f943b952414a9cb9f8e, type: 3}
+    - {fileID: 3781635906257098360, guid: c9350855d305e564bafcd64af31c4c68, type: 3}
+    - {fileID: 7665143291057209745, guid: c5d47d656169f264a8c470c164175281, type: 3}
+    - {fileID: 6660723129872871700, guid: 98b984cd8eaf1ef4d8625a892ba0830b, type: 3}
+    scaleMin: 1
+    scaleMax: 1
+    count: 14
+    spacing: 70
+  backdropHeight: {x: 110, y: 170}
+  backWall:
+    prefabs:
+    - {fileID: 2518767354975209961, guid: 22db9a09eb6e5a24cbb9490f63139b59, type: 3}
+    - {fileID: 1906900819499612161, guid: 588224399e619ad4d97eb7f2cd4e1466, type: 3}
+    scaleMin: 50
+    scaleMax: 50
+    count: 0
+    spacing: 0
+  gate:
+    prefabs:
+    - {fileID: 955278832350012072, guid: 921641f975a38944d9772c85e9876895, type: 3}
+    scaleMin: 50
+    scaleMax: 50
+    count: 0
+    spacing: 0
+  gatePanel:
+    prefabs:
+    - {fileID: 1906900819499612161, guid: 588224399e619ad4d97eb7f2cd4e1466, type: 3}
+    scaleMin: 50
+    scaleMax: 50
+    count: 0
+    spacing: 0
+  waterPlants:
+    prefabs:
+    - {fileID: 5544167653726566277, guid: 04178f13440d59f4291cd775d9f89af3, type: 3}
+    - {fileID: 9178554788321210693, guid: 9a3b5ee473e06844a9b2315614e67f0c, type: 3}
+    - {fileID: 2243648969857011887, guid: d02fe887b155bfd4cb47f18a8971b236, type: 3}
+    - {fileID: 444940677071110315, guid: a4cb9bc0627ab334bb46abf754f91671, type: 3}
+    scaleMin: 9
+    scaleMax: 13
+    count: 6
+    spacing: 0
+  crossing:
+    prefabs:
+    - {fileID: 5920265879048009136, guid: 17c25ad83c3a4cb499e99015b84b9058, type: 3}
+    scaleMin: 1
+    scaleMax: 1
+    count: 5
+    spacing: 0
+  pathStones:
+    prefabs:
+    - {fileID: 1354219005008626548, guid: 9d5f11a01abba1343bf2df24fab358f8, type: 3}
+    - {fileID: 7735943558084952488, guid: 7b6ed12e71405eb499c00a708180f8f7, type: 3}
+    scaleMin: 22
+    scaleMax: 26
+    count: 0
+    spacing: 46
+  props:
+    prefabs:
+    - {fileID: 6156786742928570343, guid: 340e249373873f3459dce44bb53da499, type: 3}
+    - {fileID: 6337033709304816816, guid: 19c7c6402d644874ca3bc00d855df54d, type: 3}
+    - {fileID: 1503040765178696641, guid: b4acadb5e60038a4887af203d3e60f16, type: 3}
+    - {fileID: 2377187982569918886, guid: 0e683deca8680434c99498caf67d1dc0, type: 3}
+    - {fileID: 5246125768960281284, guid: 0b7812755385bfa47a8b412fd5206a2c, type: 3}
+    scaleMin: 50
+    scaleMax: 50
+    count: 5
+    spacing: 0
+  accents:
+    prefabs:
+    - {fileID: 8444263385139240363, guid: 04445935109e3e04eb9e138988d0fe81, type: 3}
+    - {fileID: 6432463675806082723, guid: 9fa47f34da839484cbdf17f19e9e534e, type: 3}
+    - {fileID: 7130703241744842039, guid: 4f328aba7c8864147825e6159b219a0e, type: 3}
+    - {fileID: 964914817118082271, guid: f009d141d21983b4f883eb186492ef53, type: 3}
+    - {fileID: 6444909447170655421, guid: c1fb13bfaa4879344af2a62fcf3feda8, type: 3}
+    - {fileID: 4409957843958411538, guid: e6e3482fd6d94eb4595dca5cb21eb1f7, type: 3}
+    scaleMin: 16
+    scaleMax: 24
+    count: 22
+    spacing: 0
+  lostToy:
+    prefabs:
+    - {fileID: 1431910609956948734, guid: e4c48b1b393a9c949be8662e6925ef70, type: 3}
+    scaleMin: 0.12
+    scaleMax: 0.12
+    count: 0
+    spacing: 0
+  windowRamp:
+    prefabs:
+    - {fileID: 6295474699293400426, guid: 1a869fbd1d4bd1e4996b83c8ddbce87e, type: 3}
+    scaleMin: 1
+    scaleMax: 1
+    count: 0
+    spacing: 0
+  water: {fileID: 2100000, guid: 24221507736b08148bbc93bd9af42841, type: 2}
+  soil: {fileID: 2100000, guid: 9d1e7aba2776c36429292de2c57963fd, type: 2}
+  lawnOn: 1
+  lawn: {fileID: 2100000, guid: dd09be3bb4a86b549925fc8e2a7f2f57, type: 2}
+  lawnTile: 60
+  lawnWas: {fileID: 2100000, guid: 4329bb83fcb28ae4d8bfdc1035c247be, type: 2}
+  swapMaterials: 1
+  materialSwaps:
+  - from: {fileID: 2100000, guid: 3a2b9314a175d694ebdee90b98c5563b, type: 2}
+    to: {fileID: 2100000, guid: 8af0b0b37e96d394bb4dde1596c62cc5, type: 2}
+  - from: {fileID: 2100000, guid: 52c56075ed300b446907aab525360b9a, type: 2}
+    to: {fileID: 2100000, guid: 3603315c42b686848825b44216fdf20f, type: 2}
+  - from: {fileID: 2100000, guid: 2517d9ac1c815e447915e010558d1e0a, type: 2}
+    to: {fileID: 2100000, guid: 592b73c879568ef448639232196e385b, type: 2}
+  - from: {fileID: 2100000, guid: e062f49115d1e114e9fb59fad3ab3499, type: 2}
+    to: {fileID: 2100000, guid: d44a6f4d17e12ed43933e10c69f86fa3, type: 2}
+  - from: {fileID: 2100000, guid: 2feaf636304b1cb4bbbedb9f67ad6b03, type: 2}
+    to: {fileID: 2100000, guid: ea08c99f256da1c4ba1041f8be594627, type: 2}
+  swapSmoothness: 0.07
+  yardWidth: 400
+  yardDepth: 470
+  landingDepth: 200
+  glideLaneWidth: 120
+  pathWidth: 30
+  grassHeight: 8
+  grassHeightJitter: 0.15
+  mazeColumns: 7
+  mazeRows: 6
+  mazePathWidth: 5
+  mazeWallThickness: 3
+  mazeSeed: 239
+  pondGap: 48
+  pondDiameter: 34
+  waterLift: 0.3
+  crossingOverhang: 4
+  crossingSink: 0.5
+  stoneTop: 0.8
+  stoneWidth: 3
+  flowerbedPlace: {x: -105, y: 55}
+  flowerbedSize: {x: 70, y: 40}
+  lostToyClearing: 6
+  lostToyHop: 2.5
+  lostToyHopSeconds: 0.6
+  lostToyFound:
+    clip: {fileID: 8300000, guid: a090290ea146d0848b33161f845621c2, type: 3}
+    volume: 0.7
+    pitchSpread: 0.08
+  gatePanelHeight: 95
+  endDepth: 24
+  endAnySize: 1
+  corePlace: {x: 55, y: 40}
+  capHeight: 400
+  openOnSill: 1
+  glassFadeSeconds: 1.2
+  windowOpens:
+    clip: {fileID: 8300000, guid: f72205343ba913a4584a1c457fdc2c66, type: 3}
+    volume: 0.6
+    pitchSpread: 0.05
+  sparePlane: 1
+  rampSlope: 28
+  landingClaimFrom: 45
+  tuneSun: 1
+  sunColour: {r: 1, g: 0.78, b: 0.52, a: 1}
+  sunIntensity: 76000
+  sunRange: 900
+  sunFromYard: {x: 280, y: 150, z: 0}
+  flattenBend: 1
+  roundBend: 0.8
+  insideTreesOff: 1
+  seed: 2390
+  goal: Get to the end of the garden
+  openingGoalLine: I need to get to the end of the garden.
+  stepOutWindow: Out the window
+  fenceStepId: back-fence
+  stepThroughFence: Through the back fence
+  sillStarTitle: Out in the garden
+  lostStarId: lost-toy
+  lostStarTitle: Lost in the garden
+  room: Garden
+  zoneId: garden
+  zoneTitle: Garden
+  arrivalTitle: THE GARDEN
+  arrivalLine: Find a way through the back wall
+  arrivalColour: {r: 0.58431375, g: 0.8352941, b: 0.69803923, a: 1}
+  corePlaceWords: by the back wall
+  endCardTitle: You made it to the end of the garden.

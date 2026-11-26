@@ -13,7 +13,8 @@ namespace ShiftJam
     /// matchboxes, the hallway's cover box) gets a Breakable and a Damageable sized to it, and each distinct mesh among
     /// them is cut once with Fraggo (as the car wrecks are, CarWreckBuilder) into pieces kept in
     /// _Imports/Generated/Breakables (made from the licensed pack: out of git) and listed in Resources/Breakables. Nothing
-    /// anyone walks on is on the list. Idempotent; tuning on the asset is kept.
+    /// anyone walks on is on the list. Idempotent; tuning on the asset is kept. Its Settings and SavePieces are shared with
+    /// the backyard gate panel's maker (D-0240, GateBuilder), which cuts the panel the same way.
     /// Menu: Shift Jam / Breakables / Build Breakables. Batch: -executeMethod ShiftJam.BreakableBuilder.Build
     /// </summary>
     public static class BreakableBuilder
@@ -43,16 +44,7 @@ namespace ShiftJam
             var course = GameObject.Find("Room/Course");
             if (course == null) { Debug.LogError("BREAKABLES no Room/Course in " + Scene); return; }
 
-            var s = AssetDatabase.LoadAssetAtPath<BreakSettings>(Asset);
-            if (s == null) { s = ScriptableObject.CreateInstance<BreakSettings>(); AssetDatabase.CreateAsset(s, Asset); }
-            if (s.dissolve == null) s.dissolve = AssetDatabase.LoadAssetAtPath<Material>(DissolveMat);
-            if (s.inside == null) s.inside = InsideMaterial();
-            if (s.breakSounds == null || s.breakSounds.Length == 0)
-                s.breakSounds = AssetDatabase.FindAssets("Impact_Dull_ t:AudioClip", new[] { "Assets/_Imports/CasePortman" })
-                    .Select(g => AssetDatabase.LoadAssetAtPath<AudioClip>(AssetDatabase.GUIDToAssetPath(g))).Where(c => c != null).ToArray();
-
-            if (!AssetDatabase.IsValidFolder(Generated)) AssetDatabase.CreateFolder("Assets/_Imports", "Generated");
-            if (!AssetDatabase.IsValidFolder(Folder)) AssetDatabase.CreateFolder(Generated, "Breakables");
+            var s = Settings();
 
             // the props, and their meshes
             var props = new List<GameObject>();
@@ -77,11 +69,7 @@ namespace ShiftJam
                 int cells = Mathf.Clamp(Mathf.RoundToInt(Mathf.Max(size.x, size.y, size.z) * 1.3f), 4, 9);
                 var cut = CarWreckBuilder.CutBody(fraggo, mesh, cells, out float area);
                 if (cut == null) { Debug.LogWarning($"BREAKABLES Fraggo made no pieces of {mesh.name}: it will dissolve whole"); cuts[mesh.name] = null; failed++; continue; }
-                string file = mesh.name; foreach (char ch in System.IO.Path.GetInvalidFileNameChars()) file = file.Replace(ch, '_');
-                string path = $"{Folder}/{file}.asset";
-                if (AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) AssetDatabase.DeleteAsset(path);
-                AssetDatabase.CreateAsset(cut.pieces[0], path);
-                for (int i = 1; i < cut.pieces.Length; i++) AssetDatabase.AddObjectToAsset(cut.pieces[i], path);
+                SavePieces(cut);
                 cuts[mesh.name] = cut; made++;
             }
             s.cuts = cuts.Values.Where(c => c != null).ToArray();
@@ -108,6 +96,39 @@ namespace ShiftJam
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             Debug.Log($"D-0101 BREAKABLES: {marked} props breakable, {made} meshes cut now ({s.cuts.Length} in all), {failed} dissolve whole");
+        }
+
+        /// <summary>Resources/Breakables, made when missing; an empty dissolve, inside material or sound list is filled (and
+        /// the asset marked to save). Also used by the gate panel's maker (D-0240, GateBuilder).</summary>
+        internal static BreakSettings Settings()
+        {
+            var s = AssetDatabase.LoadAssetAtPath<BreakSettings>(Asset);
+            if (s == null) { s = ScriptableObject.CreateInstance<BreakSettings>(); AssetDatabase.CreateAsset(s, Asset); }
+            bool filled = false;
+            if (s.dissolve == null) { s.dissolve = AssetDatabase.LoadAssetAtPath<Material>(DissolveMat); filled = true; }
+            if (s.inside == null) { s.inside = InsideMaterial(); filled = true; }
+            if (s.breakSounds == null || s.breakSounds.Length == 0)
+            {
+                s.breakSounds = AssetDatabase.FindAssets("Impact_Dull_ t:AudioClip", new[] { "Assets/_Imports/CasePortman" })
+                    .Select(g => AssetDatabase.LoadAssetAtPath<AudioClip>(AssetDatabase.GUIDToAssetPath(g))).Where(c => c != null).ToArray();
+                filled = true;
+            }
+            if (filled) EditorUtility.SetDirty(s);
+            return s;
+        }
+
+        /// <summary>Saves a cut's piece meshes as one asset named after the cut mesh in _Imports/Generated/Breakables (made
+        /// from a licensed pack: out of git), replacing an older one; returns its path. Also used by GateBuilder (D-0240).</summary>
+        internal static string SavePieces(CarDamageFxSettings.Cut cut)
+        {
+            if (!AssetDatabase.IsValidFolder(Generated)) AssetDatabase.CreateFolder("Assets/_Imports", "Generated");
+            if (!AssetDatabase.IsValidFolder(Folder)) AssetDatabase.CreateFolder(Generated, "Breakables");
+            string file = cut.mesh; foreach (char ch in System.IO.Path.GetInvalidFileNameChars()) file = file.Replace(ch, '_');
+            string path = $"{Folder}/{file}.asset";
+            if (AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(cut.pieces[0], path);
+            for (int i = 1; i < cut.pieces.Length; i++) AssetDatabase.AddObjectToAsset(cut.pieces[i], path);
+            return path;
         }
 
         private static Material InsideMaterial()

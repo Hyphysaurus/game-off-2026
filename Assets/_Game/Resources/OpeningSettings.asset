@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53f2250c1df18c84fbd6901cb0f2a142, type: 3}
+  m_Name: OpeningSettings
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.OpeningSettings
+  blackHold: 0.5
+  fadeIn: 1.4
+  lidAt: 1.3
+  lidSeconds: 1.3
+  lidStagger: 0.18
+  lightColor: {r: 1, g: 0.88, b: 0.68, a: 1}
+  lightIntensity: 6
+  lightRamp: 1.6
+  lightAngle: 55
+  lightFadeAfter: 3
+  dustMotes: 60
+  sparkAt: 3
+  sparkFall: 1.8
+  sparkSize: 0.22
+  sparkSwirl: 0.6
+  sparkTurns: 1.25
+  sparkLightColor: {r: 0.35, g: 0.9, b: 1, a: 1}
+  sparkLightIntensity: 3
+  sparkLightRange: 2.5
+  flash: 0.6
+  flashSeconds: 0.5
+  slowScale: 0.3
+  slowSeconds: 0.35
+  shakeDegrees: 1.6
+  shakeSeconds: 0.45
+  lowShot: {x: 0.9, y: 0.3, z: 0.7}
+  lookUp: 0.65
+  riseShot: {x: 0.55, y: 0.95, z: -1.4}
+  handOver: 0.8
+  skipHold: 0.6
+  wakeLine: Geez, things got shifty last night... How did I get here? Am I dreaming?
+  wakeLineWobble: shifty
+  wakeLineWobbleEffect: wave
+  wakeLineDelay: 0.6
+  wakeLineLettersPerSecond: 28
+  wakeLinePause: 0.3
+  wakeLineHold: 4.5
+  wakeLineSound: 7
+  goalLine: I need to get to the end of the garden.
+  goalLineGap: 0.4
+  goalLineHold: 4

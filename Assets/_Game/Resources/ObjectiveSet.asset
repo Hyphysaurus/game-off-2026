@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ObjectiveSet
   m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.ObjectiveSet
   on: 1
-  goal: Back on the window sill
+  goal: Get to the end of the garden
   starToast: Gold star {0} of {1}. Shift charge full.
   counterFormat: '{0} / {1}'
   endCardFormat: '{0} of {1} gold stars'
@@ -129,15 +129,26 @@ MonoBehaviour:
       needed: 1
     room: Wardrobe
   - id: sill
-    text: Get onto the window sill
-    target: 
+    text: Out the window
+    target: Room/Course/R6_Window/Window
     doneWhen:
-    - when: 4
+    - when: 3
       objects:
-      - Room/Course/R6_Window/Goal
+      - Room/Course/R6_Window/Backyard (D-0239)/CP_landing
       scene: Greybox
       needed: 1
     room: Window
+  - id: back-fence
+    text: Through the back fence
+    target: Room/Course/R6_Window/Backyard (D-0239)/Boundaries/Back Wall/Gate/Gate
+      Panel
+    doneWhen:
+    - when: 4
+      objects:
+      - Room/Course/R6_Window/Backyard (D-0239)/Goal
+      scene: Greybox
+      needed: 1
+    room: Garden
   stars:
   - id: light-bedroom
     title: Light up the bedroom
@@ -247,14 +258,18 @@ MonoBehaviour:
       scene: Greybox
       needed: 1
   - id: sill
-    title: Back on the sill
+    title: Out in the garden
     room: Window
     doneWhen:
-    - when: 4
+    - when: 3
       objects:
-      - Room/Course/R6_Window/Goal
+      - Room/Course/R6_Window/Backyard (D-0239)/CP_landing
       scene: Greybox
       needed: 1
+  - id: lost-toy
+    title: Lost in the garden
+    room: Garden
+    doneWhen: []
   arrivalsOn: 1
   arrivalLineSize: 40
   arrivalSettle: 0.6
@@ -287,6 +302,13 @@ MonoBehaviour:
     onGround: 1
     centre: {x: 355, y: -95, z: -135}
     size: {x: 650, y: 130, z: 390}
+  - id: garden
+    title: THE GARDEN
+    line: Find a way through the back wall
+    colour: {r: 0.58431375, g: 0.8352941, b: 0.69803923, a: 1}
+    onGround: 1
+    centre: {x: 480, y: 79.5, z: 262.5}
+    size: {x: 400, y: 160, z: 470}
   refusalsPoint: 1
   emptyPointFormat: No charge. The nearest core is {0}.
   corePlaces:
@@ -310,6 +332,8 @@ MonoBehaviour:
     where: on the wardrobe's top shelf
   - core: CoreD_Window
     where: on the window sill
+  - core: CoreF_Garden
+    where: by the back wall
   growRooms:
   - id: hallway
     words: No room to grow here. The hallway's tall end has room.
@@ -403,6 +427,13 @@ MonoBehaviour:
   - id: window
     title: Window
     room: Window
+    order: 4
+    scene: Greybox
+    wholeScene: 0
+    fromStart: 0
+  - id: garden
+    title: Garden
+    room: Garden
     order: 4
     scene: Greybox
     wholeScene: 0

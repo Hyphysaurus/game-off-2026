@@ -4368,3 +4368,52 @@
   can take it. The grab's reach went from 0.12 to the pack's own 0.17 (the asset too). Numbers and the off switch
   (Aim On) on ClawGameSettings > Aiming. Also in the commit: URP filled in the dizzy eye material's old `_Color` slot to
   match its colour (the maker had set only the new one). **NOT PLAYED.**
+- **D-0239 (25 Nov 2026, 22:0x) The backyard: the goal is the end of the garden.** His "the goal should be to get
+  outside OR to the first floor", then "perhaps the goal is GET TO THE END OF THE GARDEN since i do want a backyard
+  scene in this game too" and "proceed". The kit is his pick: SICS Toon Suburban Pack and Toon Nature Assets ("feasible"
+  low-poly plants, imported and git-ignored 25 Nov) for the garden; "save the blocky ithappy foliage for backdrop or
+  boundary pieces". Built by a staged builder (maker `BackyardBuilder`, everything on `BackyardSettings`), landed in
+  hidden low-priority batch runs (his editor was closed; he had been gaming).
+  - The way out: the end window's glass fades (`WindowOpening`) when the sill's checkpoint is claimed; a wooden step and
+    a ruler ramp take the toy into the frame; a spare paper plane lies on the ledge (the route does not always pass the
+    desk's). The old sill Goal is off (kept).
+  - The kid cannot use the window: its opening is 38 x 50.7 and the kid is 63 tall (52.5 crouched). He is in the
+    garden only by growing at the new core by the back wall (CoreF_Garden, a copy of core D).
+  - The garden (400 x 470 out from the house wall): a landing lawn, a reed maze 7 x 6 at toy size (hedge rows close the
+    yard round it), a pond with a fallen log (a toy in the water goes back to CP_pond), a flowerbed with a lost teddy
+    (new star "lost-toy"), and the slatted back wall with one box per slat, so the toy slips through anywhere and the
+    kid never; its arch holds one separate "Gate Panel" (D-0240). The goal is a strip just past the wall, either size
+    by setting (End Any Size on; Required Size stays Toy underneath). Checkpoints CP_sill, CP_landing, CP_pond,
+    CP_fence; Sticker Chart zone and arrival card "Garden".
+  - The edges: rows of blocky ithappy trees and bushes (95 to 140 tall; the kid jumps 70) with invisible CarGuard seals
+    just outside them up to 400; blocky backdrop past the end. 13 of the 24 old GardenTrees stood inside the play
+    area: off (kept).
+  - The look: the SICS packs' own toon shaders drew every piece invisible at one garden spot in this renderer (Forward+)
+    and flat cel-shaded elsewhere, so each placed pack piece wears a URP Lit copy (`Art/Garden/Materials`; leaves
+    alpha-clipped and two-sided; smoothness 0.07 like the kid). The lawn is TNA_Grass on URP Lit. GardenSun retuned
+    warm and low in the east; it was at (480, 200, 275), colour (1, 0.93, 0.78), intensity 60000, range 900.
+  - WorldBend's rest curvature 0.8 -> 0 (Flatten Bend): D-0102's little planet seen from the sill (his pick) is flat
+    for now, because the new pieces do not bend and would float over the curved lawn. Proposed, his call: bend the
+    garden pieces too and unroll the little planet as the toy steps out.
+  - Words (placeholders; the old ones are in the maker's report): goal "Get to the end of the garden"; step 'sill' "Out
+    the window" (done on CP_landing); new step "Through the back fence"; star 'sill' "Out in the garden"; new star "Lost
+    in the garden"; goal line "I need to get to the end of the garden."; end card title "You made it to the end of the
+    garden." (it was CourseBuilder's placeholder).
+  - Fixed while landing: WindowOpening's "Open On Sill" off switch never ran (a script that turns itself off in Awake
+    never gets Start); the last hedge bush stood in the maze's way out (now measured to end at the maze's wall); a bench
+    stood in the glide's lane (props now measured clear of it); the URP Lit copies came out white in the batch run (the
+    pack's shader answers HasProperty false headless: the copies now read the pack material's saved values) and a
+    stored copy was never refreshed (now refreshed each run, unless he picked another material by hand).
+  - The maker's report warns the yard is partly outside the Ground: only the seals' ends, which reach 8 back into the
+    house wall; the walkable yard starts at z 27.5 and the Ground at 25. **NOT PLAYED.**
+- **D-0240 (25 Nov 2026, 22:0x) The gate breaks and builds itself back.** His "we can create a breakable section in the
+  fence using fraggo and artificer", then "ok lets start setting it up": the toy slips through, the kid smashes through.
+  The Gate Panel (D-0239) gets the D-0101 treatment: Fraggo cut it once into 10 pieces (git-ignored
+  `_Imports/Generated/Breakables`, listed in Resources/Breakables), a Damageable of 60 (6 punches, 3 kicks or 4 darts
+  that hit a slat), and it comes back after 30 s (its own number; every other prop 20) once nobody stands within about
+  130. New `FX/BuildBack.cs`: a prop comes back by building itself in with Artificer (the gate's 12 slats and 2 rails
+  fly in, Radial, about 1.7 s) instead of dissolving; any Breakable can take it, only the gate has it. `Breakable` now
+  turns back on only what hiding turned off (the panel keeps its pack box off, or after a return the toy could never
+  slip through again). Maker `GateBuilder`, run after Land Backyard. Online, the host runs it like the other 21
+  breakables in Greybox. The maker's "the kid does NOT pass" line is its sweep reaching the end seal 36 behind the wall;
+  a kid stepping into the gap is already in the goal strip. **NOT PLAYED.**

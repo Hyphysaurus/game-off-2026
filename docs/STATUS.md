@@ -2,6 +2,23 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 22:0x — THE BACKYARD (D-0239) AND THE BREAKABLE GATE (D-0240), LANDED HEADLESS, Greybox saved. NOT PLAYED.
+- **HIS TEST:**
+  - As the toy, reach the end window's sill: the glass fades. Walk out onto the ledge, take the spare paper plane and
+    glide down to the lawn.
+  - The reed maze at toy size, the pond's log, the flowerbed's lost teddy (a gold star), then slip between the back
+    wall's slats into the strip past it: the end card and the balloons.
+  - Grow at the core by the back wall, then punch or kick the gate in the arch as the kid: it bursts into pieces; walk
+    through. Step well away and wait 30 s: its slats fly back in.
+- **Faults to watch:** the glass not fading, or invisible glass; the toy stuck on the step or the ramp; a reset on
+  landing; a way round the maze; a reset while on the log; an invisible slab at the back wall; the kid getting over or
+  through the wall before he breaks the gate; white or pink pieces; black squares round leaves; the gate building
+  itself back round a player.
+- **Open, his call:** the little-planet view from the sill (flat for now; bend the garden and unroll it as you step
+  out?); the lawn reads mustard-yellow under the new warm sun; the kid cannot fit through the window (kept: he grows at
+  the garden's core); SICS pieces placed by hand keep the pack's broken shaders until a swap menu exists.
+- Landing: four hidden low-priority batch runs (about 2.5 min each); the maker's fixes are listed in D-0239.
+
 ## 25 Nov 2026 20:0x — THE BEDROOM WINDOW IN A REAL OPENING (D-0237), AIMING THE CLAW (D-0238). NOT PLAYED.
 - **HIS TEST:**
   - The bedroom: the window sits in the north wall with the outdoors behind its glass, the blind hanging over it.

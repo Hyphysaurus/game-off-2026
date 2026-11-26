@@ -8,6 +8,9 @@ first, then juice, then the page. Nothing here is a deadline pressure, it is the
   first floor". Earlier: "i think our end goal will be not the window but the backyard".
   Today's ending (DESIGN.md) is the toy back on the sill at dawn, looking at the garden it will never see again; the
   backyard was parked as post-jam (NORTH STAR below). A backyard goal turns the ending into an escape.
+  **BUILT 25 Nov 22:0x (his "GET TO THE END OF THE GARDEN" + "proceed"): the backyard D-0239 and the breakable gate
+  D-0240, landed headless. NOT PLAYED.** Still open: his little-planet view from the sill (flattened for now), the
+  lawn's colour, the kid's way out of the window (too small for him).
 - **The Colour Corner and the Raceway joined without hallway sections.** His "figure out how to get the color corner
   and the raceway into a seamless transition mode between sections instead of a hallway per se" and "we can use
   rooms, but the house should start to feel more of a unified location". Today both are separate scenes loaded

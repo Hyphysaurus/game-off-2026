@@ -126,6 +126,10 @@ Cost: `Collectible.cs` (trigger, optional size gate, chime, count) + a counter i
 placement pass after.
 
 ### 4. The ending, made of what exists
+> **25 Nov 2026: the goal moved.** His "perhaps the goal is GET TO THE END OF THE GARDEN": the sill is now the way
+> out (the window opens), and the game ends past the garden's back wall (D-0239, the breakable gate D-0240). The
+> paragraph below is the old sill ending, kept as written.
+
 R6 as designed, plus: on the last shrink the camera pulls back through the glass over three seconds, the
 RoomLight warms and a sun comes in from the window (dawn), the end card fades up over the garden with the
 piece count, and the last image is his SHIFT / Outgrown lettering. Cost: a camera rail + a light lerp in

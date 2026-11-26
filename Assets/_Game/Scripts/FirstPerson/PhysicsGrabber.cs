@@ -12,7 +12,8 @@ namespace ShiftJam
     /// carried things (a carried prop, the flashlight) are left to on-foot play, as they seat or fill the parked player's
     /// hands. On the player itself (D-0194, D-0195) the player is not parked: E on a vehicle leaves first person and
     /// gets in, a kid may pick the flashlight up, E lets go of a heavy thing that is held (a turntable), and nothing
-    /// is grabbed or used mid-move, as in third person. Also draws the crosshair and the E hint.
+    /// is grabbed or used mid-move, as in third person. With nothing E works on under the dot, E uses what third person
+    /// would use from where you stand (D-0235). Also draws the crosshair and the E hint, from the same choice as E's.
     /// </summary>
     public sealed class PhysicsGrabber : MonoBehaviour
     {
@@ -73,17 +74,85 @@ namespace ShiftJam
                 if (moves != null && !moves.Free) return;
                 if (Grabbable.Release(_body.Owner.gameObject)) { _busyFrame = Time.frameCount; return; }
             }
-            if (!Look(out RaycastHit hit)) return;
-            var col = hit.collider;
-            var pickup = col.GetComponentInParent<WeaponPickup>();
-            if (pickup != null && pickup.Available && _holder != null && pickup.Give(_holder)) return;
-            var rb = col.attachedRigidbody;
-            if (rb != null && !rb.isKinematic && CanLift(rb, out _)) { Grab(rb, hit.point); return; }
-            var use = Usable(col);
-            if (use == null) return;
-            // A vehicle seats the player and has its own camera: first person is left first, then E is the on-foot E.
-            if (use is CarSeat || use is ToyCar) GameMode.Set(GameMode.Mode.Play);
-            use.Interact(_interactor);
+            Choice c = Choose();
+            switch (c.act)
+            {
+                case Act.Take: c.pickup.Give(_holder); return;
+                case Act.Lift: Grab(c.body, c.point); return;
+                case Act.Use:
+                    // A vehicle seats the player and has its own camera: first person is left first, then E is the on-foot E.
+                    if (c.use is CarSeat || c.use is ToyCar) GameMode.Set(GameMode.Mode.Play);
+                    c.use.Interact(_interactor);
+                    return;
+            }
+        }
+
+        /// <summary>What E does now (D-0235). One choice draws the hint and answers the press, so they never differ.</summary>
+        private enum Act { None, Take, Lift, Use }
+
+        private struct Choice
+        {
+            public Act act;
+            public WeaponPickup pickup;   // Take
+            public Rigidbody body;        // Lift
+            public Vector3 point;         // Lift: where the dot met it
+            public IInteractable use;     // Use: a switch, a core, a door; a hint's words when nothing E works on is near
+            public string why;            // the prop under the dot cannot be lifted ("Too heavy", "Too big"), shown when nothing is chosen
+        }
+
+        /// <summary>
+        /// First what the dot is on, so a thing you point at wins: a weapon to take, a prop to lift, something to use. With
+        /// nothing E works on under the dot, what third person would use from where you stand (the Interactor's own search,
+        /// D-0235): a small switch low on the skirting board, a core by your feet. His 25 Nov play: first person reached
+        /// fewer things than third person, because only the thin probe down the middle of the view counted. Words-only
+        /// hints come last, as in third person (D-0185).
+        /// </summary>
+        private Choice Choose()
+        {
+            var c = new Choice();
+            IInteractable hint = null;
+            if (Look(out RaycastHit hit))
+            {
+                var col = hit.collider;
+                var pickup = col.GetComponentInParent<WeaponPickup>();
+                if (pickup != null && pickup.Available && _holder != null) { c.act = Act.Take; c.pickup = pickup; return c; }
+                var rb = col.attachedRigidbody;
+                if (rb != null && !rb.isKinematic && CanLift(rb, out c.why)) { c.act = Act.Lift; c.body = rb; c.point = hit.point; return c; }
+                var aimed = Usable(col.GetComponentInParent<IInteractable>());
+                if (aimed != null && !(aimed is IHintOnly)) { c.act = Act.Use; c.use = aimed; return c; }
+                hint = aimed;
+            }
+            var near = _interactor != null ? Usable(_interactor.FindInReach()) : null;
+            if (near is WeaponPickup nearPickup)
+            {
+                if (nearPickup.Available && _holder != null) { c.act = Act.Take; c.pickup = nearPickup; return c; }
+            }
+            else if (near != null && !(near is IHintOnly)) { c.act = Act.Use; c.use = near; return c; }
+            else if (hint == null) hint = near;
+            if (hint != null) { c.act = Act.Use; c.use = hint; }
+            return c;
+        }
+
+        private Act _hintAct;
+        private object _hintOf;
+        private string _hintWords, _hintText;
+
+        /// <summary>The words under the dot for a choice: built again only when the choice or its words change, not every frame.</summary>
+        private string HintFor(Choice c)
+        {
+            object of = null; string words = null;
+            switch (c.act)
+            {
+                case Act.None: return c.why;
+                case Act.Take: of = c.pickup; words = c.pickup.Weapon.DisplayName; break;
+                case Act.Use: of = c.use; words = c.use.PromptFor(_interactor); break;
+            }
+            if (_hintText == null || c.act != _hintAct || !ReferenceEquals(of, _hintOf) || !ReferenceEquals(words, _hintWords))
+            {
+                _hintAct = c.act; _hintOf = of; _hintWords = words;
+                _hintText = c.act == Act.Lift ? "E  Pick up" : c.act == Act.Take ? "E  Take " + words : c.use is IHintOnly ? words : "E  " + words;
+            }
+            return _hintText;
         }
 
         private void OnAttack()
@@ -114,11 +183,9 @@ namespace ShiftJam
         /// <summary>An IInteractable that makes sense in first person: not a vehicle (they seat the parked player), and not
         /// the kid's carry (a Carried prop, a flashlight picked up by a kid): those go into the parked player's hands, which
         /// never follow while parked, so the thing would hang in mid-air and the weapon would be put away.</summary>
-        private IInteractable Usable(Collider col)
+        private IInteractable Usable(IInteractable thing)
         {
-            if (_interactor == null) return null;
-            var thing = col.GetComponentInParent<IInteractable>();
-            if (thing == null || thing is Carried) return null;   // a carried prop is lifted by these hands (the spring), not carried in the arms
+            if (_interactor == null || thing == null || thing is Carried) return null;   // a carried prop is lifted by these hands (the spring), not carried in the arms
             // Parked (the old body): no vehicle and no kid's flashlight. On the player itself both are the player's own (D-0195).
             if (!Riding && (thing is CarSeat || thing is ToyCar)) return null;
             if (!Riding && thing is Flashlight && _shifter != null && _shifter.Size == ShiftSize.Kid) return null;   // a toy's E still switches it
@@ -181,15 +248,7 @@ namespace ShiftJam
                 _hint = "Click  Throw     E  Drop     Wheel / hold R  Turn";
                 return;
             }
-            if (!Look(out RaycastHit hit)) return;
-            var col = hit.collider;
-            var pickup = col.GetComponentInParent<WeaponPickup>();
-            if (pickup != null && pickup.Available && _holder != null) { _hint = "E  Take " + pickup.Weapon.DisplayName; return; }
-            var rb = col.attachedRigidbody;
-            string why = null;
-            if (rb != null && !rb.isKinematic) { if (CanLift(rb, out why)) { _hint = "E  Pick up"; return; } }
-            var use = Usable(col);
-            _hint = use != null ? "E  " + use.PromptFor(_interactor) : why;
+            _hint = HintFor(Choose());
         }
 
         private void FixedUpdate()

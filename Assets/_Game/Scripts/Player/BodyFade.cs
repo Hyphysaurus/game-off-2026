@@ -9,7 +9,8 @@ namespace ShiftJam
     /// to the back of the head). The camera says when (ShoulderCamera.InsideBody, which has the slack that stops a
     /// flicker at the limit); this fades the body and the weapon in its hand out over CameraSettings.bodyFadeSeconds,
     /// leaves only their shadows once gone, and brings them back the same way. A prop carried in the arms is not part of
-    /// the player and stays drawn. First person and the car seat hide the body their own way and are left alone.
+    /// the player and stays drawn. First person and the car seat hide the body their own way and switch this off
+    /// meanwhile (D-0234): switched off, it shows the body fully at once, so they only ever hide, and put back, the real body.
     /// </summary>
     public sealed class BodyFade : MonoBehaviour
     {

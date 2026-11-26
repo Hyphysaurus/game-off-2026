@@ -4,8 +4,8 @@ using UnityEngine;
 namespace ShiftJam
 {
     /// <summary>
-    /// "Drive" with E. Seats the player in an ArcadeCar: the motor, capsule, interactor, carrier and weapons are switched
-    /// off and the player rides parked in the seat (hidden unless showDriver), the move stick drives, Jump is the
+    /// "Drive" with E. Seats the player in an ArcadeCar: the motor, capsule, interactor, carrier, weapons and body fade are
+    /// switched off and the player rides parked in the seat (hidden unless showDriver), the move stick drives, Jump is the
     /// handbrake, and the shoulder camera chases the car. E again gets out: going fast, the car brakes first and lets you
     /// out once slow; the exit spot is checked (ground under it, room to stand) on either side, behind, in front, then the
     /// last safe ground. A wreck throws the driver out at once, with a moment of protection.
@@ -100,6 +100,9 @@ namespace ShiftJam
 
             _parked.Clear();
             Park(_motor); Park(who); Park(carrier); Park(who.GetComponent<WeaponHolder>());
+            // D-0234: the body fade too, before the driver is hidden. Off, it shows the body fully at once, so the seat never
+            // hides (and later shows) a half-faded body, and the fade cannot draw the hidden driver back while seated.
+            Park(who.GetComponent<BodyFade>());
             if (_cc != null) _cc.enabled = false;
             _driver.SetParent(transform, true);
             _driver.localPosition = seat;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ShiftJam
@@ -20,6 +21,7 @@ namespace ShiftJam
         // 24 filled up beside the desk (its keyboard is 20 keys) and core B went unseen (D-0081); on the desk top a kid's search
         // holds 72 and core B came 67th, past 64 (walk check 20 Nov, D-0093)
         private readonly Collider[] _hits = new Collider[128];
+        private readonly List<IInteractable> _parts = new List<IInteractable>();   // one thing's parts, reused (no new array a hit)
 
         public Shifter Shifter => shifter;
         public IInteractable Target { get; private set; }
@@ -47,6 +49,21 @@ namespace ShiftJam
 
         private void Update()
         {
+            IInteractable best = FindInReach();
+            if (!ReferenceEquals(best, Target))
+            {
+                Target = best;
+                TargetChanged?.Invoke(best);
+            }
+        }
+
+        /// <summary>
+        /// What E would use from where the player stands: the nearest thing in reach in front of the feet with something to
+        /// say, or a hint (words, no key) when nothing E works on is in reach; null when nothing is. Third person asks every
+        /// frame; first person asks when nothing usable is under its dot (D-0235), so it reaches whatever third person does.
+        /// </summary>
+        public IInteractable FindInReach()
+        {
             float scale = shifter != null ? shifter.Scale : 1f;
             float radius = reach * scale * 0.5f;
             Vector3 centre = transform.position + Vector3.up * (height * scale) + transform.forward * radius;
@@ -70,7 +87,8 @@ namespace ShiftJam
                 if (grab != null && grab.HeldTransform != null && _hits[i].transform.IsChildOf(grab.HeldTransform)) continue;
                 // The first part on it with something to say (a toy finds a giant flashlight's Grab past its silent pick-up, D-0156).
                 IInteractable candidate = null;
-                foreach (var part in _hits[i].GetComponentsInParent<IInteractable>())
+                _hits[i].GetComponentsInParent(false, _parts);
+                foreach (var part in _parts)
                     if (!string.IsNullOrEmpty(part.PromptFor(this))) { candidate = part; break; }
                 if (candidate == null) continue;   // nothing to say = not a target
                 var hit = _hits[i];
@@ -80,12 +98,7 @@ namespace ShiftJam
                 else if (distance < bestDistance) { bestDistance = distance; best = candidate; }
             }
             if (best == null) best = bestHint;
-
-            if (!ReferenceEquals(best, Target))
-            {
-                Target = best;
-                TargetChanged?.Invoke(best);
-            }
+            return best;
         }
 
         /// <summary>The player's third-person grab, or null.</summary>

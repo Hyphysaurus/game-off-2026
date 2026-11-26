@@ -8,7 +8,8 @@ namespace ShiftJam
     /// Owns GameMode.FirstPerson. V toggles it anywhere on foot, Escape goes back to Play. Aim (right mouse) with a
     /// weapon drawn narrows the view. Entering builds (once) a Half-Life-2-style body
     /// where the player stands, at the player's size, looking where the shoulder camera looked; the third-person player is
-    /// parked (motor, capsule, interactor, carrier and camera off, renderers hidden) and follows the body invisibly, so
+    /// parked (motor, capsule, interactor, carrier, camera and body fade off, renderers hidden) and follows the body
+    /// invisibly, so
     /// whatever asks "where is the player" still gets the right answer. Leaving puts the player where the body stands.
     /// Since D-0194 that separate body moves only while FirstPersonSettings > Ride Player is OFF. With it on (as it
     /// ships) first person is a view on the player itself: the player's own motor and capsule stay on and move as in
@@ -35,6 +36,7 @@ namespace ShiftJam
         private WeaponHolder _holder;
         private Damageable _health;
         private PlayerMoves _moves;
+        private BodyFade _fade;   // parked first while first person hides the body (D-0234)
         private GameObject _rig;
         private FirstPersonBody _body;
         private FirstPersonLook _look;
@@ -59,6 +61,7 @@ namespace ShiftJam
             _holder = GetComponent<WeaponHolder>();
             _health = GetComponent<Damageable>();
             _moves = GetComponent<PlayerMoves>();
+            _fade = GetComponent<BodyFade>();
         }
 
         private void OnEnable()
@@ -186,6 +189,11 @@ namespace ShiftJam
             _body.Ride(_riding);
             _riding = _body.Riding;
             _parked.Clear();
+            // D-0234: the body fade goes off first. Switched off, it shows the body fully at once (its materials and shadows
+            // back), so what is hidden below, and what the gun's view body later puts back "as it was", is the real body,
+            // never the fade's shadow-only one. His 25 Nov play: first person with a gun out while the camera was pushed
+            // into the kid, and the body stayed invisible in third person afterwards.
+            Park(_fade);
             if (!_riding) Park(_motor);
             Park(_interactor); Park(shoulderCamera);
             if (!_riding && _cc.enabled) { _cc.enabled = false; }

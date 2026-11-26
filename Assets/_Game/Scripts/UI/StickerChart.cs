@@ -23,6 +23,12 @@ namespace ShiftJam
     /// parts are made once and only filled and placed when it opens or something changes while it is open: nothing is
     /// made or allocated per frame. Words: Resources/ObjectiveSet. OFF SWITCH: ObjectiveSet > Chart On.
     /// The heading carries the IconSet's sticker-chart icon on its left (D-0226; none without it).
+    /// THE PIXEL LOOK (D-0243, PixelKit > Pixel On), his mockup's chart: a pink-framed pixel panel; the heading in big pink
+    /// pixel capitals after the sticker-chart icon, the gold star and the total at the right; each zone's name in cream
+    /// capitals (quiet purple until visited) with its gold count and star; the zone the player is in framed in cyan; a
+    /// step's tick box lilac with a cyan tick, the current step cyan and bold with a cyan arrow, a done one quiet; a star
+    /// earned the gold pixel star with its name in gold, one not yet the dim star; the back line as key glyphs ("[Esc] [B]
+    /// BACK"). The same rows, columns, fitting and timings as before.
     /// </summary>
     public sealed class StickerChart : MonoBehaviour
     {
@@ -37,6 +43,14 @@ namespace ShiftJam
         private const float TotalIcon = 32f, CountIcon = 20f, BandPad = 8f, HintGap = 12f;
         private const float PeekDim = 0.25f, PageDim = 0.6f, DoneFade = 0.5f, UnheldFade = 0.6f;
         private const int Sorting = 57;   // over the pause menu's (55), under the key sheet and the toasts (60)
+        // The sizes the rows are laid out with: the constants above, or the pixel look's (D-0243, set in Build).
+        private float _pad = Pad, _titleHigh = TitleHigh, _titleGap = TitleGap, _zoneHigh = ZoneHigh, _stepHigh = StepHigh, _chipHigh = ChipHigh;
+        private float _arrowWide = Arrow, _stepBox = StepBox, _chipIcon = ChipIcon, _countIcon = CountIcon, _totalIconSize = TotalIcon;
+        // The pixel look (D-0243): on, its back line's key row, the gap the pixel heading leaves after its icon.
+        private bool _pixel;
+        private PixelKit.KeyRow _backRow;
+        private const float PixPad = 28f, PixTitleHigh = 48f, PixTitleGap = 16f, PixZoneHigh = 28f, PixStepHigh = 24f, PixChipHigh = 24f;
+        private const float PixArrow = 8f, PixStepBox = 16f, PixChipIcon = 16f, PixCountIcon = 16f, PixTotalIcon = 32f, PixIconGap = 14f;
         private static readonly Color Ink = new Color32(0x1f, 0x1b, 0x2e, 0xff);
         private static readonly Color Card = new Color32(0xff, 0xf7, 0xe0, 0xff);        // the "got it" toast's cream
         private static readonly Color Label = new Color32(0x92, 0x40, 0x0e, 0xff);       // the "got it" toast's label brown
@@ -62,6 +76,7 @@ namespace ShiftJam
             public Image backImage, faceImage;
             public TextMeshProUGUI text;
             public float wide;
+            public Image pixel;   // the pixel look's star icon (D-0243)
         }
 
         /// <summary>A zone's row: its band, its name and count, its steps and stars.</summary>
@@ -220,7 +235,11 @@ namespace ShiftJam
             PlaceTotalIcon();
             string unknown = string.IsNullOrEmpty(set.unknownWord) ? "???" : set.unknownWord;
             int current = Objectives.CurrentZone, step = Objectives.CurrentStepIndex;
-            float columnWide = (Wide - Pad * 2f - ColumnGap) * 0.5f;
+            float columnWide = (Wide - _pad * 2f - ColumnGap) * 0.5f;
+            // The words' colours: the sticker cards' ink, label brown and gold, or the pixel look's (D-0243).
+            Color named = _pixel ? PixelKit.Cream : Ink, unnamed = _pixel ? PixelKit.QuietText : new Color(Ink.r, Ink.g, Ink.b, UnheldFade);
+            Color nowStep = _pixel ? PixelKit.Cyan : Label, doneStep = _pixel ? PixelKit.QuietText : new Color(Ink.r, Ink.g, Ink.b, DoneFade);
+            Color gotStar = _pixel ? PixelKit.Gold : Ink, seenStar = _pixel ? PixelKit.Lilac : new Color(Ink.r, Ink.g, Ink.b, UnheldFade);
 
             foreach (ZoneView zv in _zones)
             {
@@ -228,17 +247,18 @@ namespace ShiftJam
                 bool visited = Objectives.ZoneVisited(zv.zone);
                 string shown = zone != null ? (string.IsNullOrWhiteSpace(zone.title) ? zone.room : zone.title) : "";
                 zv.name.text = visited || !set.hideUnvisitedNames ? shown : unknown;
-                zv.name.color = visited ? Ink : new Color(Ink.r, Ink.g, Ink.b, UnheldFade);
+                zv.name.color = visited ? named : unnamed;
                 int held = Objectives.ZoneStarCount(zv.zone, out int total);
                 zv.count.text = Objectives.Format(set.counterFormat, held, total);
                 zv.countIcon.gameObject.SetActive(total > 0);
                 zv.count.gameObject.SetActive(total > 0);
                 float countWide = zv.count.GetPreferredValues(zv.count.text, columnWide * 0.25f, 0f).x;
-                zv.countIcon.anchoredPosition = new Vector2(-countWide - 6f - CountIcon * 0.5f, -ZoneHigh * 0.5f);
+                zv.countIcon.anchoredPosition = new Vector2(-countWide - 6f - _countIcon * 0.5f, -_zoneHigh * 0.5f);
+                if (_pixel) zv.countIcon.anchoredPosition = new Vector2(Mathf.Round(zv.countIcon.anchoredPosition.x), zv.countIcon.anchoredPosition.y);
                 zv.band.gameObject.SetActive(zv.zone == current);
 
                 zv.showSteps = visited && zv.steps.Length > 0;
-                float y = ZoneHigh + ItemGap;
+                float y = _zoneHigh + ItemGap;
                 foreach (StepView sv in zv.steps)
                 {
                     sv.rt.gameObject.SetActive(zv.showSteps);
@@ -249,10 +269,10 @@ namespace ShiftJam
                     sv.arrow.enabled = now;
                     sv.text.text = s != null ? s.text : "";
                     sv.text.fontStyle = now ? FontStyles.Bold : FontStyles.Normal;
-                    sv.text.color = now ? Label : done ? new Color(Ink.r, Ink.g, Ink.b, DoneFade) : Ink;
-                    float wordsWide = columnWide - Indent - Arrow - ArrowGap - StepBox - StepBoxGap;
+                    sv.text.color = now ? nowStep : done ? doneStep : named;
+                    float wordsWide = columnWide - Indent - _arrowWide - ArrowGap - _stepBox - StepBoxGap;
                     Vector2 size = sv.text.GetPreferredValues(sv.text.text, wordsWide, 0f);
-                    sv.high = Mathf.Max(StepHigh, size.y);
+                    sv.high = Mathf.Max(_stepHigh, _pixel ? Mathf.Ceil(size.y) : size.y);
                     sv.words.sizeDelta = new Vector2(wordsWide, sv.high);
                     sv.rt.anchoredPosition = new Vector2(Indent, -y);
                     sv.rt.sizeDelta = new Vector2(columnWide - Indent, sv.high);
@@ -267,23 +287,24 @@ namespace ShiftJam
                     ObjectiveStar star = Objectives.StarAt(st.star);
                     bool got = Objectives.StarHeldAt(st.star);
                     st.text.text = got || visited ? (star != null ? star.title : "") : unknown;
-                    st.text.color = got ? Ink : new Color(Ink.r, Ink.g, Ink.b, UnheldFade);
+                    st.text.color = got ? gotStar : _pixel && visited ? seenStar : unnamed;
                     st.text.fontStyle = got ? FontStyles.Bold : FontStyles.Normal;
                     Paint(st, got);
-                    float wordsWide = Mathf.Min(st.text.GetPreferredValues(st.text.text, 2000f, 0f).x + 2f, columnWide - Indent - ChipIcon - ChipGap);
-                    st.wide = ChipIcon + ChipGap + wordsWide;
-                    st.words.sizeDelta = new Vector2(wordsWide, ChipHigh);
-                    if (any && x + st.wide > columnWide) { x = Indent; lineTop += ChipHigh; }
+                    float wordsWide = Mathf.Min(st.text.GetPreferredValues(st.text.text, 2000f, 0f).x + 2f, columnWide - Indent - _chipIcon - ChipGap);
+                    if (_pixel) wordsWide = Mathf.Ceil(wordsWide);
+                    st.wide = _chipIcon + ChipGap + wordsWide;
+                    st.words.sizeDelta = new Vector2(wordsWide, _chipHigh);
+                    if (any && x + st.wide > columnWide) { x = Indent; lineTop += _chipHigh; }
                     st.rt.anchoredPosition = new Vector2(x, -lineTop);
-                    st.rt.sizeDelta = new Vector2(st.wide, ChipHigh);
+                    st.rt.sizeDelta = new Vector2(st.wide, _chipHigh);
                     x += st.wide + ChipSpacing;
                     any = true;
                 }
-                if (any) y = lineTop + ChipHigh;
+                if (any) y = lineTop + _chipHigh;
                 else y -= ItemGap;
                 zv.high = y;
                 zv.rt.sizeDelta = new Vector2(columnWide, zv.high);
-                zv.band.sizeDelta = new Vector2(columnWide + BandPad * 2f, ZoneHigh);
+                zv.band.sizeDelta = new Vector2(columnWide + BandPad * 2f, _zoneHigh);
             }
 
             // Two columns, in order: the split that leaves the taller column shortest.
@@ -308,22 +329,32 @@ namespace ShiftJam
                 height = Mathf.Max(height, colY - ZoneGap);
             }
 
-            // The back line on the page.
+            // The back line on the page (the pixel look: its keys as glyphs, in the middle).
             bool hint = _page && !string.IsNullOrWhiteSpace(set.chartBackHint);
             _hintRt.gameObject.SetActive(hint);
             float hintHigh = 0f;
             if (hint)
             {
-                _hint.text = set.chartBackHint;
-                hintHigh = _hint.GetPreferredValues(_hint.text, Wide - Pad * 2f, 0f).y;
-                _hintRt.sizeDelta = new Vector2(Wide - Pad * 2f, hintHigh);
+                if (_pixel)
+                {
+                    _backRow.Colon(set.chartBackHint);
+                    hintHigh = PixelKit.Glyph;
+                    _backRow.Root.anchoredPosition = new Vector2(-Mathf.Round(_backRow.Width * 0.5f), 0f);
+                }
+                else
+                {
+                    _hint.text = set.chartBackHint;
+                    hintHigh = _hint.GetPreferredValues(_hint.text, Wide - _pad * 2f, 0f).y;
+                }
+                _hintRt.sizeDelta = new Vector2(Wide - _pad * 2f, hintHigh);
             }
 
-            float top = Pad + TitleHigh + TitleGap;
-            _content.anchoredPosition = new Vector2(Pad, -top);
-            _content.sizeDelta = new Vector2(Wide - Pad * 2f, height);
-            float panelHigh = top + height + (hint ? HintGap + hintHigh : 0f) + Pad;
-            if (hint) _hintRt.anchoredPosition = new Vector2(Pad, -(top + height + HintGap));
+            float top = _pad + _titleHigh + _titleGap;
+            _content.anchoredPosition = new Vector2(_pad, -top);
+            _content.sizeDelta = new Vector2(Wide - _pad * 2f, height);
+            float panelHigh = top + height + (hint ? HintGap + hintHigh : 0f) + _pad;
+            if (_pixel) panelHigh = Mathf.Round(panelHigh);
+            if (hint) _hintRt.anchoredPosition = new Vector2(_pad, -(top + height + HintGap));
             _panel.sizeDelta = new Vector2(Wide, panelHigh);
 
             // Made smaller when the screen is too narrow (4:3 and narrower) or too short for it.
@@ -338,6 +369,7 @@ namespace ShiftJam
         /// star with a cream face inside it (an empty star's outline).</summary>
         private static void Paint(StarView st, bool got)
         {
+            if (st.pixel != null) { PixelKit.SetIcon(st.pixel, got ? IconSet.Star : IconSet.StarLocked, 1); return; }   // the pixel stars (D-0243)
             st.faceImage.color = got ? Gold : Card;
             st.back.anchoredPosition = got ? new Vector2(0f, -2f) : Vector2.zero;
             st.back.sizeDelta = got ? new Vector2(6f, 6f) : new Vector2(4f, 4f);
@@ -359,33 +391,54 @@ namespace ShiftJam
             _canvasRt = (RectTransform)canvasGo.transform;
             _group = canvasGo.AddComponent<CanvasGroup>(); _group.blocksRaycasts = false; _group.interactable = false; _group.alpha = 0f;
             _canvas.enabled = false;
+            _pixel = PixelKit.On;
+            if (_pixel)
+            {
+                _pad = PixPad; _titleHigh = PixTitleHigh; _titleGap = PixTitleGap; _zoneHigh = PixZoneHigh; _stepHigh = PixStepHigh; _chipHigh = PixChipHigh;
+                _arrowWide = PixArrow; _stepBox = PixStepBox; _chipIcon = PixChipIcon; _countIcon = PixCountIcon; _totalIconSize = PixTotalIcon;
+            }
 
-            Vector2 topLeft = new Vector2(0f, 1f), middle = new Vector2(0.5f, 0.5f), topRight = new Vector2(1f, 1f);
+            Vector2 topLeft = new Vector2(0f, 1f), middle = new Vector2(0.5f, 0.5f), topRight = new Vector2(1f, 1f), left = new Vector2(0f, 0.5f);
             _dim = BuildUiKit.Rect("Dim", canvasGo.transform, Vector2.zero, Vector2.one, middle, Vector2.zero, Vector2.zero).gameObject.AddComponent<Image>();
             _dim.color = new Color(0.03f, 0.03f, 0.06f, PeekDim); _dim.raycastTarget = false;
 
             _panel = BuildUiKit.Rect("Chart", canvasGo.transform, middle, middle, middle, Vector2.zero, new Vector2(Wide, 600f));
-            HudShapes.RoundedImage(BuildUiKit.Rect("Shadow", _panel, Vector2.zero, Vector2.one, middle, new Vector2(0f, -Shadow), Vector2.zero), Ink, Round);
-            HudShapes.RoundedImage(BuildUiKit.Rect("Outline", _panel, Vector2.zero, Vector2.one, middle, Vector2.zero, Vector2.zero), Ink, Round);
-            HudShapes.RoundedImage(BuildUiKit.Rect("Fill", _panel, Vector2.zero, Vector2.one, middle, Vector2.zero, new Vector2(-Outline * 2f, -Outline * 2f)), Card, Round - Outline);
+            if (_pixel) PixelKit.Panel(BuildUiKit.Rect("Frame", _panel, Vector2.zero, Vector2.one, middle, Vector2.zero, Vector2.zero), PixelKit.Frame.Normal);
+            else
+            {
+                HudShapes.RoundedImage(BuildUiKit.Rect("Shadow", _panel, Vector2.zero, Vector2.one, middle, new Vector2(0f, -Shadow), Vector2.zero), Ink, Round);
+                HudShapes.RoundedImage(BuildUiKit.Rect("Outline", _panel, Vector2.zero, Vector2.one, middle, Vector2.zero, Vector2.zero), Ink, Round);
+                HudShapes.RoundedImage(BuildUiKit.Rect("Fill", _panel, Vector2.zero, Vector2.one, middle, Vector2.zero, new Vector2(-Outline * 2f, -Outline * 2f)), Card, Round - Outline);
+            }
 
             // The heading (left) and all the stars held (right).
-            var titleRt = BuildUiKit.Rect("Title", _panel, topLeft, topLeft, topLeft, new Vector2(Pad, -Pad), new Vector2(Wide * 0.6f, TitleHigh));
-            _title = Text(titleRt, TitleLetters, Label, FontStyles.Bold | FontStyles.UpperCase);
+            var titleRt = BuildUiKit.Rect("Title", _panel, topLeft, topLeft, topLeft, new Vector2(_pad, -_pad), new Vector2(Wide * 0.6f, _titleHigh));
+            _title = Text(titleRt, TitleLetters, _pixel ? PixelKit.Pink : Label, FontStyles.Bold | FontStyles.UpperCase);
             _title.alignment = TextAlignmentOptions.MidlineLeft;
-            _title.characterSpacing = 6f;
-            MenuIcons.BeforeHeading(titleRt, IconSet.StickerChart);   // D-0226: the heading's icon; the words move right of it
-            var totalRt = BuildUiKit.Rect("Total", _panel, topRight, topRight, topRight, new Vector2(-Pad, -Pad), new Vector2(Wide * 0.3f, TitleHigh));
-            _total = Text(totalRt, TotalLetters, Ink, FontStyles.Bold);
+            _title.characterSpacing = _pixel ? 0f : 6f;
+            if (_pixel)
+            {
+                // The pixel heading's icon: the sticker-chart icon, 3 screen pixels to its pixel (48 high), the words after it.
+                var iconRt = BuildUiKit.Rect("Icon", _panel, topLeft, topLeft, left, new Vector2(_pad, -_pad - _titleHigh * 0.5f), Vector2.zero);
+                Image icon = PixelKit.Icon(iconRt, IconSet.StickerChart, 3);
+                if (icon.enabled) titleRt.anchoredPosition += new Vector2(iconRt.sizeDelta.x + PixIconGap, 0f);
+            }
+            else MenuIcons.BeforeHeading(titleRt, IconSet.StickerChart);   // D-0226: the heading's icon; the words move right of it
+            var totalRt = BuildUiKit.Rect("Total", _panel, topRight, topRight, topRight, new Vector2(-_pad, -_pad), new Vector2(Wide * 0.3f, _titleHigh));
+            _total = Text(totalRt, TotalLetters, _pixel ? PixelKit.Gold : Ink, FontStyles.Bold);
             _total.alignment = TextAlignmentOptions.MidlineRight;
-            _totalIcon = BuildUiKit.Rect("Star", _panel, topRight, topRight, middle, Vector2.zero, new Vector2(TotalIcon, TotalIcon));
+            _totalIcon = BuildUiKit.Rect("Star", _panel, topRight, topRight, middle, Vector2.zero, new Vector2(_totalIconSize, _totalIconSize));
             MakeStar(_totalIcon, true);
 
-            _content = BuildUiKit.Rect("Rows", _panel, topLeft, topLeft, topLeft, new Vector2(Pad, -(Pad + TitleHigh + TitleGap)), new Vector2(Wide - Pad * 2f, 100f));
+            _content = BuildUiKit.Rect("Rows", _panel, topLeft, topLeft, topLeft, new Vector2(_pad, -(_pad + _titleHigh + _titleGap)), new Vector2(Wide - _pad * 2f, 100f));
 
-            _hintRt = BuildUiKit.Rect("Hint", _panel, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(Wide - Pad * 2f, 24f));
-            _hint = Text(_hintRt, HintLetters, new Color(Label.r, Label.g, Label.b, 0.8f), FontStyles.Bold);
-            _hint.alignment = TextAlignmentOptions.Center;
+            _hintRt = BuildUiKit.Rect("Hint", _panel, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(Wide - _pad * 2f, 24f));
+            if (_pixel) _backRow = new PixelKit.KeyRow(_hintRt, "Keys", PixelKit.Body, PixelKit.Cream);
+            else
+            {
+                _hint = Text(_hintRt, HintLetters, new Color(Label.r, Label.g, Label.b, 0.8f), FontStyles.Bold);
+                _hint.alignment = TextAlignmentOptions.Center;
+            }
             _hintRt.gameObject.SetActive(false);
         }
 
@@ -396,22 +449,23 @@ namespace ShiftJam
             _built = true;
             IReadOnlyList<int> order = Objectives.ZoneOrder;
             _zones = new ZoneView[order.Count];
-            float columnWide = (Wide - Pad * 2f - ColumnGap) * 0.5f;
+            float columnWide = (Wide - _pad * 2f - ColumnGap) * 0.5f;
             Vector2 topLeft = new Vector2(0f, 1f), left = new Vector2(0f, 0.5f), middle = new Vector2(0.5f, 0.5f), topRight = new Vector2(1f, 1f);
             for (int o = 0; o < order.Count; o++)
             {
                 int z = order[o];
                 var zv = new ZoneView { zone = z };
-                zv.rt = BuildUiKit.Rect("Zone " + (Objectives.ZoneAt(z) != null ? Objectives.ZoneAt(z).id : z.ToString()), _content, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(columnWide, ZoneHigh));
-                zv.band = BuildUiKit.Rect("Here", zv.rt, topLeft, topLeft, topLeft, new Vector2(-BandPad, 0f), new Vector2(columnWide + BandPad * 2f, ZoneHigh));
-                HudShapes.RoundedImage(zv.band, Band, 12f);
-                var nameRt = BuildUiKit.Rect("Name", zv.rt, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(columnWide * 0.7f, ZoneHigh));
-                zv.name = Text(nameRt, ZoneLetters, Ink, FontStyles.Bold);
+                zv.rt = BuildUiKit.Rect("Zone " + (Objectives.ZoneAt(z) != null ? Objectives.ZoneAt(z).id : z.ToString()), _content, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(columnWide, _zoneHigh));
+                zv.band = BuildUiKit.Rect("Here", zv.rt, topLeft, topLeft, topLeft, new Vector2(-BandPad, 0f), new Vector2(columnWide + BandPad * 2f, _zoneHigh));
+                if (_pixel) PixelKit.Panel(zv.band, PixelKit.Frame.Highlight);   // the zone the player is in: framed in cyan (D-0243)
+                else HudShapes.RoundedImage(zv.band, Band, 12f);
+                var nameRt = BuildUiKit.Rect("Name", zv.rt, topLeft, topLeft, topLeft, new Vector2(_pixel ? 8f : 0f, 0f), new Vector2(columnWide * 0.7f, _zoneHigh));
+                zv.name = Text(nameRt, ZoneLetters, Ink, FontStyles.Bold | (_pixel ? FontStyles.UpperCase : FontStyles.Normal));
                 zv.name.alignment = TextAlignmentOptions.MidlineLeft;
-                var countRt = BuildUiKit.Rect("Count", zv.rt, topRight, topRight, topRight, Vector2.zero, new Vector2(columnWide * 0.25f, ZoneHigh));
-                zv.count = Text(countRt, ZoneCountLetters, Label, FontStyles.Bold);
+                var countRt = BuildUiKit.Rect("Count", zv.rt, topRight, topRight, topRight, new Vector2(_pixel ? -8f : 0f, 0f), new Vector2(columnWide * 0.25f, _zoneHigh));
+                zv.count = Text(countRt, ZoneCountLetters, _pixel ? PixelKit.Gold : Label, FontStyles.Bold);
                 zv.count.alignment = TextAlignmentOptions.MidlineRight;
-                zv.countIcon = BuildUiKit.Rect("Star", zv.rt, topRight, topRight, middle, Vector2.zero, new Vector2(CountIcon, CountIcon));
+                zv.countIcon = BuildUiKit.Rect("Star", zv.rt, topRight, topRight, middle, Vector2.zero, new Vector2(_countIcon, _countIcon));
                 MakeStar(zv.countIcon, true);
 
                 IReadOnlyList<int> steps = Objectives.ZoneSteps(z);
@@ -419,15 +473,26 @@ namespace ShiftJam
                 for (int i = 0; i < steps.Count; i++)
                 {
                     var sv = new StepView { step = steps[i] };
-                    sv.rt = BuildUiKit.Rect("Step " + steps[i], zv.rt, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(columnWide - Indent, StepHigh));
-                    var arrowRt = BuildUiKit.Rect("Arrow", sv.rt, new Vector2(0f, 1f), new Vector2(0f, 1f), left, new Vector2(0f, -StepHigh * 0.5f), new Vector2(Arrow, Arrow));
-                    sv.arrow = arrowRt.gameObject.AddComponent<Image>(); sv.arrow.sprite = ArrowSprite; sv.arrow.color = Label; sv.arrow.raycastTarget = false;
-                    var box = BuildUiKit.Rect("Box", sv.rt, new Vector2(0f, 1f), new Vector2(0f, 1f), left, new Vector2(Arrow + ArrowGap, -StepHigh * 0.5f), new Vector2(StepBox, StepBox));
-                    HudShapes.RoundedImage(box, Ink, 6f);
-                    HudShapes.RoundedImage(BuildUiKit.Rect("Fill", box, Vector2.zero, Vector2.one, middle, Vector2.zero, new Vector2(-5f, -5f)), BoxFill, 4f);
-                    sv.tick = BuildUiKit.Rect("Tick", box, middle, middle, middle, new Vector2(1f, 1f), new Vector2(StepBox + 6f, StepBox + 6f)).gameObject.AddComponent<Image>();
-                    sv.tick.sprite = HudShapes.Check; sv.tick.color = Ink; sv.tick.raycastTarget = false;
-                    sv.words = BuildUiKit.Rect("Words", sv.rt, topLeft, topLeft, topLeft, new Vector2(Arrow + ArrowGap + StepBox + StepBoxGap, 0f), new Vector2(200f, StepHigh));
+                    sv.rt = BuildUiKit.Rect("Step " + steps[i], zv.rt, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(columnWide - Indent, _stepHigh));
+                    var arrowRt = BuildUiKit.Rect("Arrow", sv.rt, new Vector2(0f, 1f), new Vector2(0f, 1f), left, new Vector2(0f, -_stepHigh * 0.5f), _pixel ? new Vector2(PixArrow, 14f) : new Vector2(Arrow, Arrow));
+                    sv.arrow = arrowRt.gameObject.AddComponent<Image>(); sv.arrow.raycastTarget = false;
+                    sv.arrow.sprite = _pixel ? PixelKit.Arrow : ArrowSprite; sv.arrow.color = _pixel ? PixelKit.Cyan : Label;
+                    var box = BuildUiKit.Rect("Box", sv.rt, new Vector2(0f, 1f), new Vector2(0f, 1f), left, new Vector2(_arrowWide + ArrowGap, -_stepHigh * 0.5f), new Vector2(_stepBox, _stepBox));
+                    if (_pixel)
+                    {
+                        // The pixel tick box (D-0243): a lilac square, a cyan tick over it when done.
+                        PixelKit.Panel(box, PixelKit.Frame.Box).color = PixelKit.Lilac;
+                        sv.tick = BuildUiKit.Rect("Tick", box, middle, middle, middle, new Vector2(3f, 2f), new Vector2(24f, 18f)).gameObject.AddComponent<Image>();
+                        sv.tick.sprite = PixelKit.Tick; sv.tick.color = PixelKit.Cyan; sv.tick.raycastTarget = false;
+                    }
+                    else
+                    {
+                        HudShapes.RoundedImage(box, Ink, 6f);
+                        HudShapes.RoundedImage(BuildUiKit.Rect("Fill", box, Vector2.zero, Vector2.one, middle, Vector2.zero, new Vector2(-5f, -5f)), BoxFill, 4f);
+                        sv.tick = BuildUiKit.Rect("Tick", box, middle, middle, middle, new Vector2(1f, 1f), new Vector2(StepBox + 6f, StepBox + 6f)).gameObject.AddComponent<Image>();
+                        sv.tick.sprite = HudShapes.Check; sv.tick.color = Ink; sv.tick.raycastTarget = false;
+                    }
+                    sv.words = BuildUiKit.Rect("Words", sv.rt, topLeft, topLeft, topLeft, new Vector2(_arrowWide + ArrowGap + _stepBox + StepBoxGap, 0f), new Vector2(200f, _stepHigh));
                     sv.text = Text(sv.words, StepLetters, Ink, FontStyles.Normal);
                     sv.text.alignment = TextAlignmentOptions.MidlineLeft;
                     sv.text.textWrappingMode = TextWrappingModes.Normal;
@@ -439,13 +504,22 @@ namespace ShiftJam
                 for (int i = 0; i < stars.Count; i++)
                 {
                     var st = new StarView { star = stars[i] };
-                    st.rt = BuildUiKit.Rect("Star " + stars[i], zv.rt, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(200f, ChipHigh));
-                    var icon = BuildUiKit.Rect("Icon", st.rt, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), middle, new Vector2(ChipIcon * 0.5f, 0f), new Vector2(ChipIcon, ChipIcon));
-                    st.back = BuildUiKit.Rect("Back", icon, Vector2.zero, Vector2.one, middle, Vector2.zero, Vector2.zero);
-                    st.backImage = st.back.gameObject.AddComponent<Image>(); st.backImage.sprite = ObjectiveHud.StarSprite; st.backImage.color = Ink; st.backImage.raycastTarget = false;
-                    st.face = BuildUiKit.Rect("Face", icon, Vector2.zero, Vector2.one, middle, Vector2.zero, Vector2.zero);
-                    st.faceImage = st.face.gameObject.AddComponent<Image>(); st.faceImage.sprite = ObjectiveHud.StarSprite; st.faceImage.raycastTarget = false;
-                    st.words = BuildUiKit.Rect("Words", st.rt, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), left, new Vector2(ChipIcon + ChipGap, 0f), new Vector2(160f, ChipHigh));
+                    st.rt = BuildUiKit.Rect("Star " + stars[i], zv.rt, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(200f, _chipHigh));
+                    var icon = BuildUiKit.Rect("Icon", st.rt, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), middle, new Vector2(_chipIcon * 0.5f, 0f), new Vector2(_chipIcon, _chipIcon));
+                    if (_pixel)
+                    {
+                        // The pixel star (D-0243): the gold star or the dim one, one screen pixel to its pixel (Paint picks).
+                        var picture = BuildUiKit.Rect("Picture", icon, middle, middle, middle, Vector2.zero, Vector2.zero);
+                        st.pixel = PixelKit.Icon(picture, IconSet.StarLocked, 1);
+                    }
+                    else
+                    {
+                        st.back = BuildUiKit.Rect("Back", icon, Vector2.zero, Vector2.one, middle, Vector2.zero, Vector2.zero);
+                        st.backImage = st.back.gameObject.AddComponent<Image>(); st.backImage.sprite = ObjectiveHud.StarSprite; st.backImage.color = Ink; st.backImage.raycastTarget = false;
+                        st.face = BuildUiKit.Rect("Face", icon, Vector2.zero, Vector2.one, middle, Vector2.zero, Vector2.zero);
+                        st.faceImage = st.face.gameObject.AddComponent<Image>(); st.faceImage.sprite = ObjectiveHud.StarSprite; st.faceImage.raycastTarget = false;
+                    }
+                    st.words = BuildUiKit.Rect("Words", st.rt, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), left, new Vector2(_chipIcon + ChipGap, 0f), new Vector2(160f, _chipHigh));
                     st.text = Text(st.words, StarLetters, Ink, FontStyles.Normal);
                     st.text.alignment = TextAlignmentOptions.MidlineLeft;
                     zv.stars[i] = st;
@@ -458,13 +532,21 @@ namespace ShiftJam
         private void PlaceTotalIcon()
         {
             float wide = _total.GetPreferredValues(_total.text, Wide * 0.3f, 0f).x;
-            _totalIcon.anchoredPosition = new Vector2(-Pad - wide - 8f - TotalIcon * 0.5f, -Pad - TitleHigh * 0.5f);
+            var at = new Vector2(-_pad - wide - 8f - _totalIconSize * 0.5f, -_pad - _titleHigh * 0.5f);
+            _totalIcon.anchoredPosition = _pixel ? new Vector2(Mathf.Round(at.x), Mathf.Round(at.y)) : at;
         }
 
-        /// <summary>A star of the HUD's drawing in <paramref name="rt"/>: a gold face on a dark back.</summary>
-        private static void MakeStar(RectTransform rt, bool gold)
+        /// <summary>A star of the HUD's drawing in <paramref name="rt"/>: a gold face on a dark back. The pixel look (D-0243):
+        /// the gold pixel star, as many screen pixels to its pixel as fit <paramref name="rt"/>.</summary>
+        private void MakeStar(RectTransform rt, bool gold)
         {
             Vector2 middle = new Vector2(0.5f, 0.5f);
+            if (_pixel)
+            {
+                var picture = BuildUiKit.Rect("Picture", rt, middle, middle, middle, Vector2.zero, Vector2.zero);
+                PixelKit.Icon(picture, gold ? IconSet.Star : IconSet.StarLocked, Mathf.Max(1, Mathf.FloorToInt(rt.sizeDelta.y / 16f)));
+                return;
+            }
             var back = BuildUiKit.Rect("Back", rt, Vector2.zero, Vector2.one, middle, new Vector2(0f, -2f), new Vector2(6f, 6f)).gameObject.AddComponent<Image>();
             back.sprite = ObjectiveHud.StarSprite; back.color = Ink; back.raycastTarget = false;
             var face = BuildUiKit.Rect("Face", rt, Vector2.zero, Vector2.one, middle, new Vector2(0f, 1f), Vector2.zero).gameObject.AddComponent<Image>();
@@ -474,7 +556,14 @@ namespace ShiftJam
         private TextMeshProUGUI Text(RectTransform rt, float size, Color colour, FontStyles style)
         {
             var t = rt.gameObject.AddComponent<TextMeshProUGUI>();
-            if (_font != null) t.font = _font;
+            if (_pixel)
+            {
+                // The pixel font (D-0243) at its sharp sizes: the heading 32, the total 24, the rest 16. Bold comes from its
+                // bold face (the regular asset's bold weight).
+                t.font = PixelKit.Regular;
+                size = size >= 33f ? PixelKit.Huge : size >= 28f ? PixelKit.Big : PixelKit.Body;
+            }
+            else if (_font != null) t.font = _font;
             t.fontSize = size; t.fontStyle = style; t.color = colour; t.raycastTarget = false;
             t.alignment = TextAlignmentOptions.TopLeft;
             t.textWrappingMode = TextWrappingModes.NoWrap;

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abe7841f24d4cd14aa337c48b0983ce6, type: 3}
+  m_Name: PixelKit
+  m_EditorClassIdentifier: Assembly-CSharp::ShiftJam.PixelKit
+  pixelOn: 1
+  font: {fileID: 11400000, guid: 9e4d46dee1a88824f8b0ea17f24c83da, type: 2}
+  boldFont: {fileID: 11400000, guid: 22353e5edcf82d840afb0cdc221dcc34, type: 2}
+  goalLine: 1
+  barCells: 10
+  healthLabel: HP
+  shiftLabel: SHIFT
+  menuWords: 1

@@ -7,7 +7,8 @@ using UnityEngine;
 namespace ShiftJam
 {
     /// <summary>
-    /// Lands the menu icons and the button-prompt glyphs (D-0226). Menu: Shift Jam > UI > Land Menu Icons (D-0226).
+    /// Lands the menu icons and the button-prompt glyphs (D-0226), and the pixel HUD's icons and key glyphs (D-0243, the
+    /// same folders, the same asset: the HUD ids and Keys are filled the same way). Menu: Shift Jam > UI > Land Menu Icons (D-0226).
     /// (1) Sets every PNG in Art/UI/Icons (his pixel icons: Point filter) and Art/UI/Prompts (the Kenney glyphs: Bilinear,
     /// they are smooth drawings shown at half their size) to: Sprite, no compression, no mipmaps, alpha is transparency,
     /// clamped. (2) Makes Resources/IconSet, or refreshes it: an id the defaults have and the asset lacks is added; an
@@ -39,6 +40,33 @@ namespace ShiftJam
             (IconSet.Playground, "icon_playground.png", "title: main page, Playground"),
             (IconSet.QuickPlay, "icon_quick-play.png", "title: Online page, Quick Play"),
             (IconSet.Volume, "icon_volume.png", "nowhere yet (kept for the Options page's Volume)"),
+            // The pixel HUD's (D-0243), shown only while PixelKit > Pixel On is ticked.
+            (IconSet.Heart, "icon_heart.png", "HUD: the status panel's health row"),
+            (IconSet.Shift, "icon_shift.png", "HUD: the status panel's shift row; a core toast"),
+            (IconSet.Torch, "icon_torch.png", "nowhere yet (kept for the flashlight)"),
+            (IconSet.Gun, "icon_gun.png", "HUD: the ammo panel, left of the count"),
+            (IconSet.BatteryHigh, "icon_battery-high.png", "nowhere yet (the flashlight has no battery to show)"),
+            (IconSet.BatteryLow, "icon_battery-low.png", "nowhere yet (the flashlight has no battery to show)"),
+            (IconSet.Star, "icon_star.png", "HUD: a reward toast; the Sticker Chart's stars earned and its total"),
+            (IconSet.StarLocked, "icon_star-locked.png", "HUD: the Sticker Chart's stars not earned yet"),
+            (IconSet.Ghost, "icon_ghost.png", "nowhere yet (a warning toast has a pink \"!\" badge)"),
+            (IconSet.Lock, "icon_lock.png", "HUD: a refused toast"),
+            (IconSet.Bulb, "icon_bulb.png", "nowhere yet"),
+            (IconSet.Hand, "icon_hand.png", "nowhere yet"),
+            (IconSet.Trophy, "icon_trophy.png", "HUD: the claw machine panel's heading"),
+            (IconSet.Box, "icon_box.png", "nowhere yet"),
+            (IconSet.Door, "icon_door.png", "nowhere yet"),
+            (IconSet.Sticker, "icon_sticker.png", "HUD: the objective card's star count"),
+        };
+
+        /// <summary>The key glyphs the HUD's prompts show (D-0243): the names the game's words use, the file in Art/UI/Prompts.</summary>
+        private static readonly (string names, string file)[] KeyDefaults =
+        {
+            ("e", "prompt_key_e.png"), ("f", "prompt_key_f.png"), ("r", "prompt_key_r.png"), ("x", "prompt_key_x.png"),
+            ("c", "prompt_key_c.png"), ("q", "prompt_key_q.png"), ("g", "prompt_key_g.png"), ("tab", "prompt_key_tab.png"),
+            ("esc,escape", "prompt_key_esc.png"), ("space,spacebar", "prompt_key_space.png"), ("shift", "prompt_key_shift.png"),
+            ("enter,return", "prompt_key_enter.png"), ("lmb,click,left click", "prompt_key_lmb.png"), ("rmb,right click", "prompt_key_rmb.png"),
+            ("wheel,scroll", "prompt_key_wheel.png"),
         };
 
         [MenuItem("Shift Jam/UI/Land Menu Icons (D-0226)")]
@@ -90,6 +118,19 @@ namespace ShiftJam
             Glyph(ref set.playstation.move, "prompt_ps_move.png", "playstation move", filled, body);
             Glyph(ref set.playstation.select, "prompt_ps_select.png", "playstation select", filled, body);
             Glyph(ref set.playstation.back, "prompt_ps_back.png", "playstation back", filled, body);
+            // The HUD's key glyphs (D-0243): a key the asset lacks is added; an empty glyph is filled; one he set is kept.
+            var keys = new List<IconSet.Key>(set.keys ?? new IconSet.Key[0]);
+            foreach ((string names, string file) in KeyDefaults)
+            {
+                int at = keys.FindIndex(k => k.names == names);
+                if (at < 0) { keys.Add(new IconSet.Key { names = names }); at = keys.Count - 1; filled.Add("key " + names + " (added)"); }
+                if (keys[at].sprite != null) continue;
+                Sprite s = LoadSprite(PromptsFolder + "/" + file);
+                if (s == null) { body.AppendLine($"  MISSING FILE: {PromptsFolder}/{file} (key '{names}' shows as a key cap)"); continue; }
+                keys[at] = new IconSet.Key { names = names, sprite = s };
+                filled.Add("key " + names);
+            }
+            set.keys = keys.ToArray();
             EditorUtility.SetDirty(set);
             AssetDatabase.SaveAssets();
 
@@ -109,6 +150,7 @@ namespace ShiftJam
             Line(log, "xbox", set.xbox);
             Line(log, "playstation", set.playstation);
             log.AppendLine($"FOOTER words: \"{set.moveWords}\" / \"{set.selectWords}\" / \"{set.backWords}\"{(set.capitals ? " (in capitals)" : "")}, glyphs {set.glyphSize:0} px, {set.belowHint:0} px under the hint line on the model menus.");
+            foreach (IconSet.Key key in set.keys) log.AppendLine($"KEY '{key.names}': {Name(key.sprite)}");
             return log.ToString().TrimEnd();
         }
 

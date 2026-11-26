@@ -25,6 +25,12 @@ namespace ShiftJam
     /// HUDs; nothing is made or changed per frame unless something moves.
     /// Words and timings: Resources/ObjectiveSet. OFF SWITCHES: untick On there (no card at all); tick Card Always On (the
     /// D-0220 card, always shown).
+    /// THE PIXEL LOOK (D-0243, PixelKit > Pixel On), his mockup's card in the top left corner: a pink-framed pixel panel;
+    /// its heading the zone's name in pink capitals with the sticker icon and the zone's star count in gold at the right
+    /// (outside every zone: the goal, and all the stars); a lilac line with the big goal under it (PixelKit > Goal Line);
+    /// the step beside a lilac tick box, its words up to a colon in bold cream capitals and the rest under them in lilac
+    /// ("Open the little door: the switch on the shelf"); under a rule, the chart line as a key glyph and its words
+    /// ("[Tab] STICKER CHART"). The same news, ticks, slides, pops and pulses as before.
     /// </summary>
     public sealed class ObjectiveHud : MonoBehaviour
     {
@@ -60,6 +66,15 @@ namespace ShiftJam
         private bool _wasOpening;
         private string _shownHint = "";
         private float _hintAt;   // the next time the chart line looks at the device used last, while the card shows
+        // The pixel look (D-0243): the corner, the step's words' x, the heading's zone name, the step's lilac second line,
+        // the chart line's key row and the rule over it, the words of the heading and the step shown.
+        private const float PixPadX = 22f, PixPadTop = 18f, PixPadBottom = 16f, PixGap = 10f, PixMinWide = 320f, PixMaxWide = 560f;
+        private const float PixBox = 16f, PixBoxGap = 12f, PixIcon = 32f, PixIconGap = 8f, PixRuleGap = 8f, PixLineGap = 4f;
+        private bool _pixel;
+        private float _left = Left, _top = Top, _stepX = Box + BoxGap;
+        private TextMeshProUGUI _zone, _stepRest;
+        private PixelKit.KeyRow _hintRow;
+        private string _zoneWords = "";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics() => _instance = null;
@@ -229,8 +244,15 @@ namespace ShiftJam
             Request(Objectives.Set.tickSeconds + Objectives.Set.slideSeconds);   // the tick and the slide, then Show Seconds
             _phase = Phase.Tick; _phaseAt = Time.unscaledTime; _pending = now;
             _tick.enabled = true;
-            _step.alpha = 0.55f;
+            StepAlpha(0.55f);
             Counter();
+        }
+
+        /// <summary>The step's words' see-through (both lines in the pixel look).</summary>
+        private void StepAlpha(float alpha)
+        {
+            _step.alpha = alpha;
+            if (_stepRest != null) _stepRest.alpha = alpha;
         }
 
         /// <summary>Shows the state as it is, with no tick or slide.</summary>
@@ -253,6 +275,15 @@ namespace ShiftJam
             if (count == _shownCount && total == _shownTotal && zone == _shownZone) return;
             _shownCount = count; _shownTotal = total; _shownZone = zone;
             ObjectiveSet set = Objectives.Set;
+            if (_pixel)
+            {
+                // The pixel heading: the zone's name over its count (his mockup splits the star line in two).
+                ChartZone here = zone >= 0 ? Objectives.ZoneAt(zone) : null;
+                _zoneWords = here != null ? (string.IsNullOrWhiteSpace(here.title) ? here.room : here.title) : "";
+                _count.text = Objectives.Format(set.counterFormat, count, total);
+                Layout();
+                return;
+            }
             if (zone < 0) _count.text = Objectives.Format(set.counterFormat, count, total);
             else
             {
@@ -271,7 +302,7 @@ namespace ShiftJam
                 _tick.enabled = false;
                 _shown = _pending; _pending = null;
                 Layout();
-                if (_shown != null) { _phase = Phase.Slide; _phaseAt = now; _step.alpha = 0f; }
+                if (_shown != null) { _phase = Phase.Slide; _phaseAt = now; StepAlpha(0f); }
                 else _phase = Phase.Still;
             }
 
@@ -295,17 +326,19 @@ namespace ShiftJam
                 FlatLetter.Mask(zone, out int present, out _);
                 if (present != 0) _flatUntil = now + Mathf.Max(0f, zone.Settings.stripSeconds);
             }
-            float top = now < _flatUntil ? Top + FlatStrip : Top;
+            float top = now < _flatUntil ? _top + FlatStrip : _top;
             float y = _y < 0f ? top : Mathf.Lerp(_y, top, 1f - Mathf.Exp(-12f * dt));
             if (Mathf.Abs(y - top) < 0.05f) y = top;
-            if (y != _y) { _y = y; _card.anchoredPosition = new Vector2(Left, -y); }
+            if (_pixel) y = Mathf.Round(y);   // whole pixels: the frame stays sharp while it slides
+            if (y != _y) { _y = y; _card.anchoredPosition = new Vector2(_left, -y); }
 
             if (_phase == Phase.Slide)
             {
                 float t = Mathf.Clamp01((now - _phaseAt) / Mathf.Max(0.01f, set.slideSeconds));
                 float ease = 1f - (1f - t) * (1f - t);
-                _stepRt.anchoredPosition = new Vector2(Box + BoxGap + (1f - ease) * SlideFrom, 0f);
-                _step.alpha = t;
+                float slide = (1f - ease) * SlideFrom;
+                _stepRt.anchoredPosition = new Vector2(_stepX + (_pixel ? Mathf.Round(slide) : slide), 0f);
+                StepAlpha(t);
                 if (t >= 1f) _phase = Phase.Still;
             }
 
@@ -331,6 +364,7 @@ namespace ShiftJam
         private void Layout()
         {
             if (_card == null) return;
+            if (_pixel) { LayoutPixel(); return; }
             bool steps = _stepsHere && _shown != null;
             _goalRt.gameObject.SetActive(steps);
             _stepRow.gameObject.SetActive(steps);
@@ -383,6 +417,7 @@ namespace ShiftJam
             var scaler = canvasGo.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f); scaler.matchWidthOrHeight = BuildUiKit.HudMatch;   // by screen height (D-0133)
             _group = canvasGo.AddComponent<CanvasGroup>(); _group.blocksRaycasts = false; _group.interactable = false; _group.alpha = 0f;
+            if (PixelKit.On) { BuildPixel(canvasGo.transform); return; }
 
             Vector2 topLeft = new Vector2(0f, 1f), middle = new Vector2(0.5f, 0.5f);
             _card = BuildUiKit.Rect("Objectives", canvasGo.transform, topLeft, topLeft, topLeft, new Vector2(Left, -Top), new Vector2(MinWide, 100f));
@@ -421,6 +456,135 @@ namespace ShiftJam
             _hintRt = BuildUiKit.Rect("ChartHint", _card, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(MaxWide - Pad * 2f, 20f));
             _hint = Text(_hintRt, font, HintLetters, new Color(Label.r, Label.g, Label.b, HintFade), FontStyles.Bold, false);
             _hintRt.gameObject.SetActive(false);
+        }
+
+        /// <summary>The pixel card (D-0243): the panel, the heading (zone name, sticker icon, count), the goal line, the step
+        /// (tick box, its two lines), the rule and the chart line. Placed and sized by <see cref="LayoutPixel"/>.</summary>
+        private void BuildPixel(Transform canvas)
+        {
+            _pixel = true;
+            _left = PixelKit.Edge; _top = PixelKit.Edge; _stepX = PixBox + PixBoxGap;
+            Vector2 topLeft = new Vector2(0f, 1f), topRight = new Vector2(1f, 1f), left = new Vector2(0f, 0.5f), right = new Vector2(1f, 0.5f), middle = new Vector2(0.5f, 0.5f);
+            _card = BuildUiKit.Rect("Objectives", canvas, topLeft, topLeft, topLeft, new Vector2(_left, -_top), new Vector2(PixMinWide, 100f));
+            PixelKit.Panel(_card, PixelKit.Frame.Normal);
+
+            // The heading: the zone's name at the left; the sticker icon and the count at the right (the icon pops).
+            _starRow = BuildUiKit.Rect("Heading", _card, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(PixMaxWide - PixPadX * 2f, PixIcon));
+            var zoneRt = BuildUiKit.Rect("Zone", _starRow, left, left, left, Vector2.zero, new Vector2(300f, PixIcon));
+            _zone = PixelKit.Text(zoneRt, PixelKit.Body, PixelKit.Pink, true, TextAlignmentOptions.MidlineLeft, true);
+            var countRt = BuildUiKit.Rect("Count", _starRow, right, right, right, Vector2.zero, new Vector2(120f, PixIcon));
+            _count = PixelKit.Text(countRt, PixelKit.Body, PixelKit.Gold, true, TextAlignmentOptions.MidlineRight);
+            _starIcon = BuildUiKit.Rect("Sticker", _starRow, right, right, middle, Vector2.zero, new Vector2(PixIcon, PixIcon));
+            var iconPic = BuildUiKit.Rect("Picture", _starIcon, middle, middle, middle, Vector2.zero, Vector2.zero);
+            PixelKit.Icon(iconPic, IconSet.Sticker, 2);
+
+            // The goal line: lilac, under the heading.
+            _goalRt = BuildUiKit.Rect("Goal", _card, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(PixMaxWide - PixPadX * 2f, 24f));
+            _goal = PixelKit.Text(_goalRt, PixelKit.Body, PixelKit.Lilac, false, TextAlignmentOptions.TopLeft);
+            _goal.textWrappingMode = TextWrappingModes.Normal;
+
+            // The step: the lilac tick box (the tick over it, cyan), the words up to a colon bold and in capitals, the rest under.
+            _stepRow = BuildUiKit.Rect("Step", _card, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(PixMaxWide - PixPadX * 2f, PixBox));
+            var box = BuildUiKit.Rect("Box", _stepRow, topLeft, topLeft, topLeft, new Vector2(0f, 0f), new Vector2(PixBox, PixBox));
+            PixelKit.Panel(box, PixelKit.Frame.Box).color = PixelKit.Lilac;
+            var tickRt = BuildUiKit.Rect("Tick", box, middle, middle, middle, new Vector2(3f, 2f), new Vector2(24f, 18f));
+            _tick = tickRt.gameObject.AddComponent<Image>();
+            _tick.sprite = PixelKit.Tick; _tick.color = PixelKit.Cyan; _tick.raycastTarget = false; _tick.enabled = false;
+            _stepRt = BuildUiKit.Rect("Words", _stepRow, topLeft, topLeft, topLeft, new Vector2(_stepX, 0f), new Vector2(200f, PixBox));
+            _step = PixelKit.Text(BuildUiKit.Rect("Main", _stepRt, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(200f, PixBox)), PixelKit.Body, PixelKit.Cream, true, TextAlignmentOptions.TopLeft, true);
+            _step.textWrappingMode = TextWrappingModes.Normal;
+            _stepRest = PixelKit.Text(BuildUiKit.Rect("Rest", _stepRt, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(200f, PixBox)), PixelKit.Body, PixelKit.Lilac, false, TextAlignmentOptions.TopLeft);
+            _stepRest.textWrappingMode = TextWrappingModes.Normal;
+
+            // The chart line under a deep purple rule: the key's glyph and its words.
+            _hintRt = BuildUiKit.Rect("ChartHint", _card, topLeft, topLeft, topLeft, Vector2.zero, new Vector2(PixMaxWide - PixPadX * 2f, PixelKit.Glyph + PixRuleGap + 2f));
+            var rule = BuildUiKit.Rect("Rule", _hintRt, topLeft, topRight, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(0f, 2f));
+            PixelKit.Block(rule, PixelKit.Deep);
+            _hintRow = new PixelKit.KeyRow(_hintRt, "Keys", PixelKit.Body, PixelKit.Lilac, PixelKit.Glyph, 8f, 12f, 16f, false);
+            RectTransform keys = _hintRow.Root;
+            keys.anchorMin = keys.anchorMax = new Vector2(0f, 0f);
+            keys.anchoredPosition = new Vector2(0f, PixelKit.Glyph * 0.5f);
+            _hintRt.gameObject.SetActive(false);
+        }
+
+        /// <summary>Sizes the pixel card round what it shows (on a change only): the heading, the goal line in the house, the
+        /// step and its tick box in the house, the chart line.</summary>
+        private void LayoutPixel()
+        {
+            bool steps = _stepsHere && _shown != null;
+            float maxText = PixMaxWide - PixPadX * 2f, inner = 0f, y = PixPadTop;
+
+            // The heading: the zone's name (outside every zone in the house: the goal) and the count with its icon.
+            string heading = _zoneWords.Length > 0 ? _zoneWords : steps ? Objectives.Goal : "";
+            _zone.text = heading;
+            float countWide = PixelKit.Wide(_count, _count.text);
+            ((RectTransform)_count.transform).sizeDelta = new Vector2(countWide, PixIcon);
+            _starIcon.anchoredPosition = new Vector2(-countWide - PixIconGap - PixIcon * 0.5f, 0f);
+            float right = countWide + PixIconGap + PixIcon;
+            float zoneWide = heading.Length > 0 ? Mathf.Min(PixelKit.Wide(_zone, heading), maxText - right - PixIconGap) : 0f;
+            ((RectTransform)_zone.transform).sizeDelta = new Vector2(Mathf.Max(0f, zoneWide), PixIcon);
+            inner = zoneWide + (zoneWide > 0f ? PixIconGap * 2f : 0f) + right;
+            _starRow.anchoredPosition = new Vector2(PixPadX, -y); _starRow.sizeDelta = new Vector2(maxText, PixIcon);
+            y += PixIcon;
+
+            // The goal line, in the house and in a zone (outside every zone the heading carries it already).
+            bool goal = steps && PixelKit.GoalLine && _zoneWords.Length > 0 && !string.IsNullOrWhiteSpace(Objectives.Goal);
+            _goalRt.gameObject.SetActive(goal);
+            if (goal)
+            {
+                _goal.text = Objectives.Goal;
+                Vector2 size = _goal.GetPreferredValues(_goal.text, maxText, 0f);
+                inner = Mathf.Max(inner, Mathf.Min(Mathf.Ceil(size.x), maxText));
+                y += PixLineGap;
+                _goalRt.anchoredPosition = new Vector2(PixPadX, -y); _goalRt.sizeDelta = new Vector2(maxText, Mathf.Ceil(size.y));
+                y += Mathf.Ceil(size.y);
+            }
+
+            // The step: the words up to its first colon, then the rest (its first letter a capital) under them.
+            _stepRow.gameObject.SetActive(steps);
+            if (steps)
+            {
+                y += PixGap;
+                string text = _shown.text ?? "";
+                int cut = text.IndexOf(": ", System.StringComparison.Ordinal);
+                string main = cut > 0 ? text.Substring(0, cut) : text;
+                string rest = cut > 0 ? text.Substring(cut + 2).Trim() : "";
+                if (rest.Length > 0) rest = char.ToUpperInvariant(rest[0]) + rest.Substring(1);
+                float wordsMax = maxText - _stepX;
+                _step.text = main;
+                Vector2 mainSize = _step.GetPreferredValues(main, wordsMax, 0f);
+                Vector2 restSize = Vector2.zero;
+                _stepRest.text = rest;
+                _stepRest.gameObject.SetActive(rest.Length > 0);
+                if (rest.Length > 0) restSize = _stepRest.GetPreferredValues(rest, wordsMax, 0f);
+                float wordsWide = Mathf.Ceil(Mathf.Min(Mathf.Max(mainSize.x, restSize.x) + 2f, wordsMax));
+                float mainHigh = Mathf.Ceil(mainSize.y), restHigh = rest.Length > 0 ? Mathf.Ceil(restSize.y) : 0f;
+                var mainRt = (RectTransform)_step.transform;
+                mainRt.anchoredPosition = Vector2.zero; mainRt.sizeDelta = new Vector2(wordsWide, mainHigh);
+                var restRt = (RectTransform)_stepRest.transform;
+                restRt.anchoredPosition = new Vector2(0f, -(mainHigh + PixLineGap)); restRt.sizeDelta = new Vector2(wordsWide, restHigh);
+                float high = Mathf.Max(PixBox, mainHigh + (rest.Length > 0 ? PixLineGap + restHigh : 0f));
+                _stepRow.anchoredPosition = new Vector2(PixPadX, -y); _stepRow.sizeDelta = new Vector2(maxText, high);
+                _stepRt.sizeDelta = new Vector2(wordsWide, high);
+                if (_phase != Phase.Slide) { _stepRt.anchoredPosition = new Vector2(_stepX, 0f); StepAlpha(1f); }
+                inner = Mathf.Max(inner, _stepX + wordsWide);
+                y += high;
+            }
+
+            // The chart line (D-0224) under its rule.
+            bool hint = !string.IsNullOrWhiteSpace(_shownHint);
+            _hintRt.gameObject.SetActive(hint);
+            if (hint)
+            {
+                _hintRow.Colon(_shownHint);
+                y += PixGap;
+                float high = 2f + PixRuleGap + PixelKit.Glyph;
+                _hintRt.anchoredPosition = new Vector2(PixPadX, -y); _hintRt.sizeDelta = new Vector2(maxText, high);
+                inner = Mathf.Max(inner, Mathf.Min(_hintRow.Width, maxText));
+                y += high;
+            }
+            y += PixPadBottom;
+            _card.sizeDelta = new Vector2(Mathf.Round(Mathf.Clamp(inner + PixPadX * 2f, PixMinWide, PixMaxWide)), Mathf.Round(y));
         }
 
         private static TextMeshProUGUI Text(RectTransform rt, TMP_FontAsset font, float size, Color colour, FontStyles style, bool wrap)

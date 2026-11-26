@@ -11,6 +11,8 @@ What it does, per icon in ICONS below:
   4. trims it to what is drawn and writes icon_<id>.png at 1x (at most 16 + 2 pixels of outline high) into
      <out>/Icons, and a big copy of every icon into the contact sheet (the game scales the 1x file by whole pixels).
 The Kenney prompt glyphs (CC0) are copied as they are (Kenney's own style, 64 x 64) into <out>/Prompts.
+The pixel HUD's icons and key glyphs (D-0243) are made the same way: the heart, shift, star... rows of ICONS and the
+prompt_key_* rows of PROMPTS (Land Menu Icons puts them on Resources/IconSet).
 
 To make another icon: add a line to ICONS (an id, the at-icons name, its colour) and run this again; then run the
 Unity menu Shift Jam > UI > Land Menu Icons (D-0226) and put the icon's id on a menu.
@@ -42,6 +44,7 @@ COLOURS = {
     "gold": ((0xf5, 0xc8, 0x4c), (0xff, 0xe4, 0xb5)),
     "pale": ((0xff, 0xf0, 0xfc), (0xff, 0xff, 0xff)),
     "purple": ((0xb2, 0x4d, 0xff), (0xff, 0x93, 0xd8)),
+    "dim": ((0x49, 0x23, 0x93), (0x6d, 0x3b, 0xab)),      # his menu's deep purple: a locked or empty thing (D-0243)
 }
 
 # id -> list of parts: (at-icons name, colour, grid size in pixels, x, y). A part is drawn on a grid of that many
@@ -62,6 +65,23 @@ ICONS = {
     "playground":    [("cube", "pink", 16, 0, 0)],
     "quick-play":    [("lightning_bolt", "gold", 16, 0, 0)],
     "volume":        [("speaker", "cyan", 16, 0, 0)],
+    # The pixel HUD's icons (D-0243), the same grid, palette and outline.
+    "heart":         [("heart", "pink", 16, 0, 0)],
+    "shift":         [("lightning_in_circle", "cyan", 16, 0, 0)],
+    "torch":         [("torch", "gold", 16, 0, 0)],
+    "gun":           [("gun", "cyan", 16, 0, 0)],
+    "battery-high":  [("battery_high", "cyan", 16, 0, 0)],
+    "battery-low":   [("battery_low", "pink", 16, 0, 0)],
+    "star":          [("star", "gold", 16, 0, 0)],
+    "star-locked":   [("star", "dim", 16, 0, 0)],
+    "ghost":         [("ghost", "purple", 16, 0, 0)],
+    "lock":          [("lock", "pale", 16, 0, 0)],
+    "bulb":          [("lightbulb", "gold", 16, 0, 0)],
+    "hand":          [("hand", "pale", 16, 0, 0)],
+    "trophy":        [("trophy", "gold", 16, 0, 0)],
+    "box":           [("box", "pink", 16, 0, 0)],
+    "door":          [("door", "pink", 16, 0, 0)],
+    "sticker":       [("sticker", "gold", 16, 0, 0)],
 }
 
 # The prompt glyphs: file name in the project -> the Kenney file (Default = 64 x 64).
@@ -75,6 +95,22 @@ PROMPTS = {
     "prompt_ps_move.png": "PlayStation Series/Default/playstation_dpad.png",
     "prompt_ps_select.png": "PlayStation Series/Default/playstation_button_color_cross.png",
     "prompt_ps_back.png": "PlayStation Series/Default/playstation_button_color_circle.png",
+    # The pixel HUD's key prompts (D-0243): the keys the game's prompt words name.
+    "prompt_key_e.png": "Keyboard & Mouse/Default/keyboard_e.png",
+    "prompt_key_f.png": "Keyboard & Mouse/Default/keyboard_f.png",
+    "prompt_key_r.png": "Keyboard & Mouse/Default/keyboard_r.png",
+    "prompt_key_x.png": "Keyboard & Mouse/Default/keyboard_x.png",
+    "prompt_key_c.png": "Keyboard & Mouse/Default/keyboard_c.png",
+    "prompt_key_q.png": "Keyboard & Mouse/Default/keyboard_q.png",
+    "prompt_key_g.png": "Keyboard & Mouse/Default/keyboard_g.png",
+    "prompt_key_tab.png": "Keyboard & Mouse/Default/keyboard_tab.png",
+    "prompt_key_esc.png": "Keyboard & Mouse/Default/keyboard_escape.png",
+    "prompt_key_space.png": "Keyboard & Mouse/Default/keyboard_space.png",
+    "prompt_key_shift.png": "Keyboard & Mouse/Default/keyboard_shift.png",
+    "prompt_key_enter.png": "Keyboard & Mouse/Default/keyboard_enter.png",
+    "prompt_key_lmb.png": "Keyboard & Mouse/Default/mouse_left.png",
+    "prompt_key_rmb.png": "Keyboard & Mouse/Default/mouse_right.png",
+    "prompt_key_wheel.png": "Keyboard & Mouse/Default/mouse_scroll.png",
 }
 
 SUPER = 8  # the SVG is drawn this many times larger, then each block's coverage decides its pixel
@@ -187,7 +223,8 @@ def sheet(icons, prompts, path):
     items = list(icons.items())
     cols = 5
     rows = (len(items) + cols - 1) // cols
-    prow = 1
+    per_row = 9                                       # prompt glyphs a row
+    prow = max(1, (len(prompts) + per_row - 1) // per_row)
     W = cols * cell_w
     H = rows * cell_h + 30 + prow * 100 + 20
     img = Image.new("RGBA", (W, H), (0x1c, 0x10, 0x2e, 255))
@@ -202,8 +239,9 @@ def sheet(icons, prompts, path):
     d.text((10, y0 - 22), "prompts (Kenney Input Prompts 1.5, CC0), shown at 48 px", fill=(0xf5, 0xc8, 0x4c, 255))
     for i, (key, p) in enumerate(prompts.items()):
         small = p.resize((48, 48), Image.LANCZOS)
-        img.alpha_composite(small, (10 + i * 92, y0))
-        d.text((10 + i * 92, y0 + 54), key.replace(".png", "").replace("prompt_", ""), fill=(0xff, 0xf0, 0xfc, 255))
+        x, y = 10 + (i % per_row) * 92, y0 + (i // per_row) * 100
+        img.alpha_composite(small, (x, y))
+        d.text((x, y + 54), key.replace(".png", "").replace("prompt_", ""), fill=(0xff, 0xf0, 0xfc, 255))
     img.save(path)
 
 

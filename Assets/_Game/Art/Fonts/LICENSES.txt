@@ -12,3 +12,10 @@ font. Nothing else from ModularUI is in the project; the rest of that package st
 
 Resources/HUD/keyboard_shift.png  Kenney Input Prompts 1.5 (www.kenney.nl), Creative Commons Zero (CC0 1.0, public
                                   domain). May sit in the public repo.
+
+PixelOperator8.ttf, PixelOperator8-Bold.ttf  Pixel Operator by Jayvee Enaguas (HarvettFox96),
+                     https://www.dafont.com/pixel-operator.font, Creative Commons Zero (CC0, public domain). Taken from
+                     the Brackeys Platformer Assets pack (all CC0); that pack's licence and credits are copied as they are
+                     in "PixelOperator8 LICENSE & CREDITS.txt". The pixel HUD's font (D-0243): Make HUD Fonts turns them
+                     into Resources/HUD/Pixel Operator 8.asset and Pixel Operator 8 Bold.asset (bitmap, point sampled).
+                     May sit in the public repo.

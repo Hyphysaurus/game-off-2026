@@ -2,6 +2,15 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 26 Nov 2026 01:5x — THE PIXEL HUD (D-0243) LANDED; THE DEMO REEL FILMED (D-0242). NOT PLAYED.
+- **HIS TEST:** play: the status panel bottom right (HP and SHIFT cells), pixel slots bottom left, the key-glyph
+  footer bottom centre (never over the slots), pixel toasts and speech cards, the objective card, Tab for the sticker
+  chart, the claw panel, the menus' words in Pixel Operator. Resources/PixelKit > Pixel On off = the old look back.
+- **Faults to watch:** the old white prompt line still showing; gaps where icons go (Land Menu Icons not run); pixel
+  words shimmering on the tilted menu slabs (untick Menu Words); bold words in toasts not bold.
+- **The reel:** 11 shots filmed (Builds/Footage/2026-11-26/greybox-0148, 61 s, contact.jpg), being cut in Remotion.
+- **Bugs found, not fixed:** the shift vortex writes Data/ShiftWarp.mat during Play; DartGunGlint.mat lost _EMISSION.
+
 ## 26 Nov 2026 00:3x — THE START HUB'S NEW ORDER (D-0241), LANDED, Greybox saved. NOT PLAYED.
 - **HIS TEST (New Game):** the second toast says "Am I in a box?"; turn the light onto the core and grow: a monster
   runs out and drags the dart gun under the bed. Shrink, go under the bed as the toy, take the gun (it glints in your

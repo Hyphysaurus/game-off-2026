@@ -13,6 +13,10 @@ namespace ShiftJam
     /// keyboard, an Xbox-style pad and a PlayStation pad; its words are here too. Read from Resources/IconSet (made and
     /// filled by Shift Jam > UI > Land Menu Icons (D-0226), which never overwrites a sprite he has set). Without the asset,
     /// or with Icons On / Footer On unticked, the menus look as they did before.
+    /// The pixel HUD's icons (D-0243: heart, shift, torch, gun, battery-high, battery-low, star, star-locked, ghost, lock,
+    /// bulb, hand, trophy, box, door, sticker) are in the same Icons list, drawn the same way; the HUD asks for them with
+    /// <see cref="Hud"/>, which the menus' Icons On does not switch off (PixelKit > Pixel On does). The key prompts' Kenney
+    /// key glyphs (E, X, Tab, Esc, the mouse buttons...) are in Keys, found by the key's name with <see cref="KeyGlyph"/>.
     /// </summary>
     [CreateAssetMenu(menuName = "Shift Jam/Icon Set", fileName = "IconSet")]
     public sealed class IconSet : ScriptableObject
@@ -23,6 +27,10 @@ namespace ShiftJam
         public const string Workshop = "workshop", Raceway = "raceway", Colours = "colours", Online = "online", Parties = "parties";
         public const string Options = "options", Quit = "quit", Resume = "resume", Title = "title", LeaveParty = "leave-party";
         public const string StickerChart = "sticker-chart", Playground = "playground", QuickPlay = "quick-play", Volume = "volume";
+        // The ids the pixel HUD asks for (D-0243).
+        public const string Heart = "heart", Shift = "shift", Torch = "torch", Gun = "gun", BatteryHigh = "battery-high", BatteryLow = "battery-low";
+        public const string Star = "star", StarLocked = "star-locked", Ghost = "ghost", Lock = "lock", Bulb = "bulb", Hand = "hand";
+        public const string Trophy = "trophy", Box = "box", Door = "door", Sticker = "sticker";
 
         /// <summary>The hands the footer shows glyphs for.</summary>
         public enum Device { Keyboard, Xbox, PlayStation }
@@ -42,6 +50,14 @@ namespace ShiftJam
             [Tooltip("Beside Move: the arrows, the D-pad.")] public Sprite move;
             [Tooltip("Beside Select: Enter, the south button (A / cross).")] public Sprite select;
             [Tooltip("Beside Back: Esc, the east button (B / circle).")] public Sprite back;
+        }
+
+        /// <summary>One key's glyph for the HUD's key prompts (D-0243), and the names the game's words call that key by.</summary>
+        [Serializable]
+        public struct Key
+        {
+            [Tooltip("The names this key goes by in the game's prompt words, any case, between commas (\"lmb,click\"). A prompt's key with no glyph here shows as a cream key cap with its name.")] public string names;
+            [Tooltip("Its glyph: a Kenney Input Prompts key (Art/UI/Prompts, imported as a Sprite; Land Menu Icons sets that up). Empty = the key cap.")] public Sprite sprite;
         }
 
         [Header("Menu icons")]
@@ -73,6 +89,9 @@ namespace ShiftJam
         [Tooltip("On the model menus: the hint line moves up this much while the footer is under it, canvas pixels (0 = it stays on Anchor_Hint).")] public float hintLift = 14f;
         [Tooltip("Where the footer sits on the old pause menu (the one that draws itself) and over the Sticker Chart page: its middle this far up from the screen's bottom, canvas pixels at 1080 high.")] public float fromBottom = 22f;
 
+        [Header("The pixel HUD's key glyphs (D-0243)")]
+        [Tooltip("Every key the HUD's prompts can show as a glyph, by the names the game's words use (E, X, Tab, Esc, LMB...). Swap a glyph by dragging another sprite in; empty one to show that key as a cream key cap.")] public Key[] keys = new Key[0];
+
         private static IconSet _loaded;
         private static bool _looked;
 
@@ -91,6 +110,40 @@ namespace ShiftJam
         {
             if (!iconsOn || string.IsNullOrEmpty(id) || icons == null) return null;
             for (int i = 0; i < icons.Length; i++) if (string.Equals(icons[i].id, id, StringComparison.Ordinal)) return icons[i].sprite;
+            return null;
+        }
+
+        /// <summary>The HUD's icon of this id (D-0243), or null (none set, or no such id). The menus' Icons On does not hide
+        /// these: the pixel HUD has its own switch (PixelKit > Pixel On).</summary>
+        public Sprite Hud(string id)
+        {
+            if (string.IsNullOrEmpty(id) || icons == null) return null;
+            for (int i = 0; i < icons.Length; i++) if (string.Equals(icons[i].id, id, StringComparison.Ordinal)) return icons[i].sprite;
+            return null;
+        }
+
+        /// <summary>The glyph of the key the game's words call <paramref name="key"/> ("E", "Tab", "LMB"; any case), or null.
+        /// Reads Keys' comma lists in place: nothing is made.</summary>
+        public Sprite KeyGlyph(string key)
+        {
+            if (string.IsNullOrEmpty(key) || keys == null) return null;
+            for (int i = 0; i < keys.Length; i++)
+            {
+                string names = keys[i].names;
+                if (keys[i].sprite == null || string.IsNullOrEmpty(names)) continue;
+                int start = 0;
+                while (start <= names.Length)
+                {
+                    int comma = names.IndexOf(',', start);
+                    int end = comma < 0 ? names.Length : comma;
+                    int a = start, b = end;
+                    while (a < b && names[a] == ' ') a++;
+                    while (b > a && names[b - 1] == ' ') b--;
+                    if (b - a == key.Length && string.Compare(names, a, key, 0, key.Length, StringComparison.OrdinalIgnoreCase) == 0) return keys[i].sprite;
+                    if (comma < 0) break;
+                    start = comma + 1;
+                }
+            }
             return null;
         }
 

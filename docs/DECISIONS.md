@@ -4457,3 +4457,17 @@
   back after (also after a crash, at the next editor load). The claw machine cannot be played by script (it reads only
   his own input), so it gets an orbit. Preview checked (24 stills): the framing holds; the props shot has something dark
   in its left third.
+- **D-0243 (26 Nov 2026, 01:5x) The pixel HUD and in-game panels.** His "proceed on the pixel hud build" after the
+  mockup canvas ("SHIFT pixel HUD and menus", his "follow your recommended options"). One kit, `UI/PixelKit.cs`, with
+  its settings `Resources/PixelKit` (Pixel On switches the whole look back off): his mockup's palette, stepped-corner
+  pixel frames drawn in code (Point, 9-sliced), cells for bars, key-glyph prompts, and the font Pixel Operator 8 (CC0,
+  from his Asset Library; bitmap TMP assets at 8 px made by Make HUD Fonts). Restyled: health + shift charge as one
+  status panel (heart and shift icons, HP / SHIFT labels: the "unlabelled battery" in his screenshot was the shift
+  charge; the flashlight has no battery), the hotbar as pixel slots with the held thing's name, the ammo panel, the
+  E-prompt as a key-glyph footer that keeps clear of the slots, toasts by kind and the speech cards, the objective card,
+  the sticker chart, the claw panel, and the menus' slab words and footer in the pixel font. 16 HUD icons (at-icons, MIT)
+  and 15 key glyphs (Kenney, CC0) through D-0226's `make_menu_icons.py`. Not built: battery cells (no battery), the
+  mockup's world tag on the turntable, the chart's card grid (it keeps its zones). Found while landing: the shift's
+  vortex writes its own material asset (`Data/ShiftWarp.mat`) during Play, and the gun's glint material lost its
+  emission keyword; both restored, both to fix. **NOT PLAYED.**
+

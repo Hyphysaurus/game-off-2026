@@ -22,6 +22,13 @@ namespace ShiftJam
     /// real time (Text Animator shows each letter, each one growing in), one word wobbling, then held while it is read.
     /// It goes to the top of the stack, is never pushed out early by other toasts, and waits (does not run on) while the
     /// pause menu is open.
+    /// THE PIXEL LOOK (D-0243, PixelKit > Pixel On), his mockup's: each toast is a pixel panel, its frame by kind (a tip
+    /// cyan with a cyan "?" badge, a "got it" gold with the gold star, a refusal pink with the lock, a warning pink with a
+    /// pink "!" badge, a core purple with the shift icon), its label (or title) in capitals in the frame's colour over the
+    /// line (lilac under a title, cream under a label); bold words are cyan key caps. The speech sticker is cream with a cyan
+    /// frame and a stepped tail under its middle, its words in dark purple (big when the line fits on one line, else body
+    /// size), the wobble word purple and bold; an older line of the toy's goes quiet (dim frame, no tail). The big card is
+    /// the moment's colour in an ink pixel frame. Nothing tilts (pixels stay square); the drops, shakes and bumps are kept.
     /// </summary>
     public sealed class ToastHud : MonoBehaviour
     {
@@ -38,6 +45,14 @@ namespace ShiftJam
         // half of it below the card) and where along the bottom edge the tail sits (share of the card's width from the left).
         private const float SayLetters = 28f, SayPadX = 24f, SayTail = 26f, SayTailAt = 0.3f, SayTilt = -1f;
         private static readonly Color Ink = new Color32(0x1f, 0x1b, 0x2e, 0xff);
+        // The pixel look (D-0243), his mockup's numbers: padding inside the frame (frame 4 + 16 sides, 4 + 12 top and
+        // bottom), the icon's gap to the words, the gap under the label, the widest words, the x-count's room, the badge's
+        // side; the speech card's padding (4 + 22 sides) and the tail's height; an older line's see-through; the big card's
+        // words and padding.
+        private const float PixPadX = 20f, PixPadY = 16f, PixIconGap = 16f, PixLabelGap = 6f, PixMaxText = 560f, PixCount = 40f, PixBadge = 36f;
+        private const float PixSayPadX = 26f, PixTail = 14f, PixQuietAlpha = 0.72f, PixCardPadX = 48f, PixCardPadY = 20f;
+        private static readonly Color SayInk = new Color32(0x24, 0x11, 0x3D, 0xff);   // his mockup's words on cream
+        private bool _pixel;
 
         private struct Look { public Color fill, badge, label; public string name; public UiAudio.Kind sound; public float seconds; }
 
@@ -70,6 +85,10 @@ namespace ShiftJam
             public float[] letterAt;
             public int shown;
             public bool typed;
+            // The pixel look's speech card (D-0243): its frame and tail, and whether it has gone quiet (an older line).
+            public Image frame;
+            public RectTransform tail;
+            public bool quiet;
         }
 
         /// <summary>A line the toy will say once its wait is over (SayStyle.delay).</summary>
@@ -123,9 +142,9 @@ namespace ShiftJam
                     return;
                 }
             if (_cards.Count >= MaxShown) LeaveEarly(now);
-            var card = Make(text, kind, title, look);
+            var card = _pixel ? MakePixel(text, kind, title, look) : Make(text, kind, title, look);
             card.born = now; card.until = now + Life(look, text);
-            card.tilt = (_made++ % 2 == 0 ? -1.4f : 1f);
+            card.tilt = _pixel ? 0f : (_made++ % 2 == 0 ? -1.4f : 1f);
             card.y = -1f;   // placed on its first frame (Update), then the drop-in comes from the offset
             _cards.Add(card);
             UiAudio.Play(look.sound);
@@ -156,12 +175,12 @@ namespace ShiftJam
             for (int i = _cards.Count - 1; i >= 0; i--)
                 if (_cards[i].kind == ToastKind.Say && _cards[i].text == text) { Destroy(_cards[i].rt.gameObject); _cards.RemoveAt(i); }
             if (_cards.Count >= MaxShown) LeaveEarly(now);
-            var card = MakeSpeech(text, title, LookOf(ToastKind.Say), style);
+            var card = _pixel ? MakeSpeechPixel(text, title, style) : MakeSpeech(text, title, LookOf(ToastKind.Say), style);
             card.born = now;
             card.typeFrom = now + InSeconds * 0.5f;   // the letters start as the card lands
             float typing = card.letterAt.Length > 0 ? card.letterAt[card.letterAt.Length - 1] : 0f;
             card.until = card.typeFrom + typing + Mathf.Max(0f, style.holdSeconds) + OutSeconds;
-            card.tilt = SayTilt;
+            card.tilt = _pixel ? 0f : SayTilt;
             card.y = -1f;
             _cards.Insert(0, card);   // the toy's words sit at the top: other toasts stack under them
             UiAudio.Play(style.sound);
@@ -182,23 +201,37 @@ namespace ShiftJam
                 MakeSay(w.text, w.style, w.title);
             }
             float y = Top;
+            bool newestSay = true;   // the pixel look: only the toy's newest line keeps its cyan frame and tail
             for (int i = 0; i < _cards.Count; i++)
             {
                 var c = _cards[i];
                 if (paused && c.kind == ToastKind.Say) { c.born += dt; c.until += dt; c.typeFrom += dt; }
                 if (now >= c.until) { Destroy(c.rt.gameObject); _cards.RemoveAt(i); i--; continue; }
                 if (c.kind == ToastKind.Say) Type(c, now);
+                if (c.kind == ToastKind.Say && c.frame != null)
+                {
+                    bool quiet = !newestSay;
+                    newestSay = false;
+                    if (quiet != c.quiet)
+                    {
+                        c.quiet = quiet;
+                        PixelKit.Restyle(c.frame, quiet ? PixelKit.Frame.SpeechQuiet : PixelKit.Frame.Speech);
+                        if (c.tail != null) c.tail.gameObject.SetActive(!quiet);
+                    }
+                }
                 c.y = c.y < 0f ? y : Mathf.Lerp(c.y, y, 1f - Mathf.Exp(-14f * dt));   // slides up when one above leaves
                 float tIn = Mathf.Clamp01((now - c.born) / InSeconds);
                 float drop = (1f - EaseOutBack(tIn)) * (c.height + c.below + Top);
                 float shake = c.kind == ToastKind.Refused && now - c.born < 0.4f ? Mathf.Sin((now - c.born) * 60f) * 10f * (1f - (now - c.born) / 0.4f) : 0f;
                 float tOut = Mathf.Clamp01((c.until - now) / OutSeconds);
-                c.group.alpha = Mathf.Min(tIn * 2f, 1f) * tOut;
+                c.group.alpha = Mathf.Min(tIn * 2f, 1f) * tOut * (c.quiet ? PixQuietAlpha : 1f);
                 float bump = c.bumped >= 0f ? 1f + 0.12f * Mathf.Clamp01(1f - (now - c.bumped) / 0.25f) : 1f;
-                c.rt.anchoredPosition = new Vector2(shake, -(c.y - drop) + (1f - tOut) * 20f);
+                Vector2 at = new Vector2(shake, -(c.y - drop) + (1f - tOut) * 20f);
+                if (_pixel) at = new Vector2(Mathf.Round(at.x), Mathf.Round(at.y));   // whole pixels: the frames stay sharp
+                c.rt.anchoredPosition = at;
                 c.rt.localScale = Vector3.one * bump;
                 c.rt.localRotation = Quaternion.Euler(0f, 0f, c.tilt);
-                y += c.height + c.below + Gap + Shadow;
+                y += c.height + c.below + Gap + (_pixel ? 0f : Shadow);
             }
             if (_big != null) ShowBig(now);
         }
@@ -209,6 +242,7 @@ namespace ShiftJam
         {
             if (string.IsNullOrEmpty(text)) return;
             if (_big != null) { Destroy(_big.rt.gameObject); _big = null; }
+            if (_pixel) { AddCardPixel(text, fill); return; }
 
             // Measure the plain words first (the bounce tags are not letters): the card fits them.
             var probe = Label(_root, "Probe", text, CardLetters, Ink, true);
@@ -234,6 +268,28 @@ namespace ShiftJam
             _big = new BigCard { rt = rt, group = group, born = now, until = now + CardIn + CardHold + CardOut };
             rt.localScale = Vector3.one * CardFrom;
             rt.localRotation = Quaternion.Euler(0f, 0f, CardTilt);
+        }
+
+        /// <summary>The pixel big card (D-0243): the moment's colour in an ink pixel frame, the words in big bold pixel letters
+        /// (96: twelve screen pixels to a font pixel), not tilted.</summary>
+        private void AddCardPixel(string text, Color fill)
+        {
+            var probeRt = Rect("Probe", _root, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero);
+            var probe = PixelKit.Text(probeRt, (int)CardLetters, Ink, true, TextAlignmentOptions.Center);
+            Vector2 size = probe.GetPreferredValues(text, CardWidest, 0f);
+            Destroy(probeRt.gameObject);
+            float w = Mathf.Ceil(Mathf.Min(size.x, CardWidest)) + PixCardPadX * 2f, h = Mathf.Ceil(size.y) + PixCardPadY * 2f;
+
+            var rt = Rect("BigCard", _root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, CardRise), new Vector2(w, h));
+            var group = rt.gameObject.AddComponent<CanvasGroup>(); group.alpha = 0f;
+            PixelKit.Panel(Rect("Frame", rt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero), PixelKit.Ink, fill);
+            var wordsRt = Rect("Words", rt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            var words = PixelKit.Text(wordsRt, (int)CardLetters, Ink, true, TextAlignmentOptions.Center);
+            TextFx.Set(TextFx.On(words), words, TextFx.Bounced(text));
+
+            float now = Time.unscaledTime;
+            _big = new BigCard { rt = rt, group = group, born = now, until = now + CardIn + CardHold + CardOut };
+            rt.localScale = Vector3.one * CardFrom;
         }
 
         /// <summary>The big card's life: it pops in from small (overshooting a little), holds, then swells and fades.</summary>
@@ -277,7 +333,140 @@ namespace ShiftJam
             var scaler = canvasGo.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = BuildUiKit.HudMatch;
             _group = canvasGo.AddComponent<CanvasGroup>(); _group.blocksRaycasts = false; _group.interactable = false;
             _root = (RectTransform)canvasGo.transform;
+            _pixel = PixelKit.On;
         }
+
+        // ---------- the pixel look (D-0243) ----------
+
+        /// <summary>A toast's pixel card: the frame of its kind, its icon or badge at the left, the label (or title) in
+        /// capitals in the frame's colour over the line, the x-count's room at the right. Sized to its words.</summary>
+        private Card MakePixel(string text, ToastKind kind, string title, Look look)
+        {
+            var card = new Card { text = text, title = title, kind = kind };
+            string label = string.IsNullOrEmpty(title) ? look.name : title;
+            bool titled = !string.IsNullOrEmpty(title);
+            string body = PixelKeyCaps(text);
+            PixelKit.Frame frame; Color edge; string icon = null; string badge = null;
+            switch (kind)
+            {
+                case ToastKind.Got: frame = PixelKit.Frame.Reward; edge = PixelKit.Gold; icon = IconSet.Star; break;
+                case ToastKind.Refused: frame = PixelKit.Frame.Normal; edge = PixelKit.Pink; icon = IconSet.Lock; break;
+                case ToastKind.Warning: frame = PixelKit.Frame.Normal; edge = PixelKit.Pink; badge = "!"; break;
+                case ToastKind.Core: frame = PixelKit.Frame.Core; edge = PixelKit.Purple; icon = IconSet.Shift; break;
+                default: frame = PixelKit.Frame.Selected; edge = PixelKit.Cyan; badge = "?"; break;
+            }
+            Color words = titled ? PixelKit.Lilac : PixelKit.Cream;
+
+            var rt = Rect("Toast", _root, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(100f, 100f));
+            card.rt = rt;
+            card.group = rt.gameObject.AddComponent<CanvasGroup>(); card.group.alpha = 0f;
+            PixelKit.Panel(Rect("Frame", rt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero), frame);
+
+            // The left: the kind's icon (the star 3 screen pixels to its pixel, the others 2) or a badge with a letter.
+            Vector2 left = new Vector2(0f, 0.5f);
+            Vector2 iconSize = Vector2.zero;
+            if (icon != null)
+            {
+                var iconRt = Rect("Icon", rt, left, left, left, new Vector2(PixPadX, 0f), Vector2.zero);
+                Image img = PixelKit.Icon(iconRt, icon, kind == ToastKind.Got ? 3 : 2);
+                if (img.enabled) iconSize = iconRt.sizeDelta;
+                else badge = kind == ToastKind.Refused ? "x" : "*";   // no icon landed (Land Menu Icons not run): a badge stands in
+            }
+            if (badge != null)
+            {
+                var badgeRt = Rect("Badge", rt, left, left, left, new Vector2(PixPadX, 0f), new Vector2(PixBadge, PixBadge));
+                PixelKit.Panel(badgeRt, PixelKit.Frame.Solid).color = edge;
+                var glyph = PixelKit.Text(Rect("Glyph", badgeRt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero), PixelKit.Big, PixelKit.Fill, true, TextAlignmentOptions.Center);
+                glyph.text = badge;
+                iconSize = new Vector2(PixBadge, PixBadge);
+            }
+
+            // Measure the words the way they will be drawn: the card fits them, up to PixMaxText.
+            var textBox = Rect("Words", rt, left, left, left, new Vector2(PixPadX + iconSize.x + PixIconGap, 0f), new Vector2(PixMaxText, 10f));
+            var head = PixelKit.Text(Rect("Label", textBox, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero), PixelKit.Body, edge, true, TextAlignmentOptions.TopLeft, true);
+            head.textWrappingMode = TextWrappingModes.Normal;
+            head.text = label;
+            Vector2 labelSize = string.IsNullOrEmpty(label) ? Vector2.zero : head.GetPreferredValues(label, PixMaxText, 0f);
+            TextMeshProUGUI line = null;
+            Vector2 bodySize = Vector2.zero;
+            if (!string.IsNullOrEmpty(text))
+            {
+                line = PixelKit.Text(Rect("Line", textBox, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero), PixelKit.Body, words, false, TextAlignmentOptions.TopLeft);
+                line.textWrappingMode = TextWrappingModes.Normal;
+                line.text = body;
+                bodySize = line.GetPreferredValues(body, PixMaxText, 0f);
+            }
+            float textW = Mathf.Ceil(Mathf.Min(Mathf.Max(labelSize.x, bodySize.x) + 2f, PixMaxText));
+            float labelH = Mathf.Ceil(labelSize.y), bodyH = Mathf.Ceil(bodySize.y);
+            float textH = labelH + (line != null ? (labelH > 0f ? PixLabelGap : 0f) + bodyH : 0f);
+            Pin(head.rectTransform, 0f, labelH);
+            if (line != null) Pin(line.rectTransform, labelH > 0f ? labelH + PixLabelGap : 0f, bodyH);
+            textBox.sizeDelta = new Vector2(textW, textH);
+
+            float w = PixPadX + iconSize.x + PixIconGap + textW + PixPadX + PixCount;
+            float h = Mathf.Max(iconSize.y, textH) + PixPadY * 2f;
+            rt.sizeDelta = new Vector2(Mathf.Round(w), Mathf.Round(h));
+            card.height = rt.sizeDelta.y;
+
+            card.count = PixelKit.Text(Rect("Count", rt, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-PixPadX, 0f), new Vector2(48f, 32f)), PixelKit.Body, edge, true, TextAlignmentOptions.MidlineRight);
+            return card;
+        }
+
+        /// <summary>The pixel speech card: cream with a cyan frame, a stepped tail under its middle, an optional small name,
+        /// and the words laid out whole from the start (hidden, then shown letter by letter). The words are big (24, bold)
+        /// when the line fits on one line, else body size (16) and wrapped.</summary>
+        private Card MakeSpeechPixel(string text, string title, SayStyle style)
+        {
+            var card = new Card { text = text, title = title, kind = ToastKind.Say };
+            bool named = !string.IsNullOrEmpty(title);
+            card.letterAt = LetterTimes(Plain(text), style);
+
+            var rt = Rect("Speech", _root, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(100f, 100f));
+            card.rt = rt;
+            card.group = rt.gameObject.AddComponent<CanvasGroup>(); card.group.alpha = 0f;
+            card.frame = PixelKit.Panel(Rect("Frame", rt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero), PixelKit.Frame.Speech);
+            card.tail = Rect("Tail", rt, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(24f, PixTail));
+            var tail = card.tail.gameObject.AddComponent<Image>();
+            tail.sprite = PixelKit.Tail; tail.color = PixelKit.Cyan; tail.raycastTarget = false;
+            card.below = PixTail;
+
+            var textBox = Rect("Words", rt, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(PixSayPadX, 0f), new Vector2(PixMaxText, 10f));
+            float top = 0f, nameH = 0f, nameW = 0f;
+            if (named)
+            {
+                var head = PixelKit.Text(Rect("Label", textBox, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero), PixelKit.Body, PixelKit.Purple, true, TextAlignmentOptions.TopLeft, true);
+                head.text = title;
+                Vector2 nameSize = head.GetPreferredValues(title, PixMaxText, 0f);
+                nameH = Mathf.Ceil(nameSize.y); nameW = nameSize.x;
+                Pin(head.rectTransform, 0f, nameH);
+                top = nameH + PixLabelGap;
+            }
+            var line = PixelKit.Text(Rect("Line", textBox, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero), PixelKit.Big, SayInk, true, TextAlignmentOptions.TopLeft);
+            // Big and bold when it fits on one line (his mockup's "Am I in a box?"), else body size and wrapped.
+            Vector2 bodySize = line.GetPreferredValues(text);
+            if (bodySize.x > PixMaxText)
+            {
+                line.font = PixelKit.Regular;
+                line.fontSize = PixelKit.Body;
+                line.textWrappingMode = TextWrappingModes.Normal;
+                bodySize = line.GetPreferredValues(text, PixMaxText, 0f);
+            }
+            float textW = Mathf.Ceil(Mathf.Min(Mathf.Max(bodySize.x, nameW) + 2f, PixMaxText));
+            float bodyH = Mathf.Ceil(bodySize.y);
+            Pin(line.rectTransform, top, bodyH);
+            textBox.sizeDelta = new Vector2(textW, top + bodyH);
+            rt.sizeDelta = new Vector2(Mathf.Round(PixSayPadX * 2f + textW), Mathf.Round(top + bodyH + PixPadY * 2f));
+            card.height = rt.sizeDelta.y;
+
+            card.anim = TextFx.On(line);
+            if (card.anim != null) card.anim.SetText(Spoken(text, style, true), true);   // laid out whole, every letter hidden
+            else line.text = text;
+            return card;
+        }
+
+        /// <summary>Bold words (the keys in "&lt;b&gt;F&lt;/b&gt; shift") as cyan key caps on the dark card.</summary>
+        private static string PixelKeyCaps(string text) =>
+            string.IsNullOrEmpty(text) ? "" : text.Replace("<b>", "<mark=#73F1FF33 padding=\"4,4,1,1\"><color=#73F1FF><b>").Replace("</b>", "</b></color></mark>");
 
         private Card Make(string text, ToastKind kind, string title, Look look)
         {
@@ -398,20 +587,23 @@ namespace ShiftJam
             line.fontWeight = FontWeight.SemiBold;
             Pin(line.rectTransform, top, bodySize.y);
             card.anim = TextFx.On(line);
-            if (card.anim != null) card.anim.SetText(Spoken(text, style), true);   // laid out whole, every letter hidden
+            if (card.anim != null) card.anim.SetText(Spoken(text, style, false), true);   // laid out whole, every letter hidden
             else line.text = text;
             return card;
         }
 
         /// <summary>The line as Text Animator reads it: every letter grows in as it shows, and the style's wobble word
-        /// (its first match, any case) wears the wobble effect's tag.</summary>
-        private static string Spoken(string text, SayStyle style)
+        /// (its first match, any case) wears the wobble effect's tag; in the pixel look (<paramref name="pixel"/>) it is
+        /// also purple and bold, as in his mockup.</summary>
+        private static string Spoken(string text, SayStyle style, bool pixel)
         {
             string word = style.wobbleWord != null ? style.wobbleWord.Trim() : "";
             string tag = style.wobbleTag != null ? style.wobbleTag.Trim().Trim('<', '>', '/').Trim() : "";
             int at = word.Length > 0 && tag.Length > 0 ? text.IndexOf(word, StringComparison.OrdinalIgnoreCase) : -1;
             if (at < 0) return TextFx.Popped(text);
-            return TextFx.Popped(text.Substring(0, at) + "<" + tag + ">" + text.Substring(at, word.Length) + "</" + tag + ">" + text.Substring(at + word.Length));
+            string wobbled = text.Substring(at, word.Length);
+            if (pixel) wobbled = "<color=#B24DFF><b>" + wobbled + "</b></color>";
+            return TextFx.Popped(text.Substring(0, at) + "<" + tag + ">" + wobbled + "</" + tag + ">" + text.Substring(at + word.Length));
         }
 
         /// <summary>When each letter of <paramref name="plain"/> shows, in seconds from the start: one every

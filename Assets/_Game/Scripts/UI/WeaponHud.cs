@@ -20,6 +20,10 @@ namespace ShiftJam
     /// In a Flat Zone's side view (D-0216) the screen-centre dot means nothing (the aim is the cursor or the pad's stick,
     /// not the middle of the view): a small reticle, four short strokes round the aim point, sits there instead while a
     /// blaster is out or a tool is in hand, and the hit marker flashes round it. Its numbers are in Resources/FlatView.
+    /// THE PIXEL LOOK (D-0243, PixelKit > Pixel On): the read-out is a pixel panel in the bottom RIGHT corner, just over the
+    /// status panel (the hotbar has the bottom left now): the gun icon and the count in big pixel letters (cream; pink when
+    /// the magazine is low, gold while reloading), the name line under it in lilac, the grenade line over it. The
+    /// crosshair, the hit marker and the reticle are as before. WeaponAmmo's sizes, colours and Corner are the old look's.
     /// </summary>
     public sealed class WeaponHud : MonoBehaviour
     {
@@ -48,6 +52,10 @@ namespace ShiftJam
         private RectTransform[] _strokes;       // its strokes, dark behind and white in front, by pairs
         private Vector3 _reticleFit;            // the size, thickness and gap it was last laid out for
         private bool _markerMoved;              // the hit marker is at the reticle, not the middle of the screen
+        // The pixel look (D-0243): its lines' letters, the gap over the status panel, where the box sits now.
+        private const float PixelPad = 20f, PixelLineGap = 8f, OverStatus = 10f;
+        private bool _pixel;
+        private float _boxY = -1f;
 
         /// <summary>What the count shows now ("12 / 48", "RELOADING").</summary>
         public string CountText => _count.text;
@@ -122,6 +130,19 @@ namespace ShiftJam
         /// <summary>One more line above the ones already there (a grenade count); the caller writes its text.</summary>
         public TextMeshProUGUI AddLine(string name, float size, bool numbers)
         {
+            if (_pixel)
+            {
+                // The pixel font's sharp sizes: the numbers big (32), any other line body size (16).
+                int letters = numbers ? PixelKit.Huge : PixelKit.Body;
+                float high = letters + PixelLineGap;
+                var line = BuildUiKit.Rect(name, _box, Vector2.zero, new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, _top), new Vector2(0f, high));
+                line.offsetMin = new Vector2(PixelPad, line.offsetMin.y);
+                line.offsetMax = new Vector2(-PixelPad, line.offsetMax.y);
+                var words = PixelKit.Text(line, letters, numbers ? PixelKit.Cream : PixelKit.Lilac, numbers, TextAlignmentOptions.MidlineLeft);
+                _top += high;
+                _box.sizeDelta = new Vector2(PixelKit.StatusWidth, _top + PixelKit.StatusPadY - PixelLineGap * 0.5f);
+                return words;
+            }
             var rt = BuildUiKit.Rect(name, _box, Vector2.zero, Vector2.zero, Vector2.zero, new Vector2(Pad, _top), new Vector2(Width - Pad * 2f, size * 1.15f));
             var text = BuildUiKit.Label(rt, "", size, TextAlignmentOptions.BottomLeft);
             TMP_FontAsset font = numbers ? _numbers : _labels;
@@ -147,7 +168,8 @@ namespace ShiftJam
             if (_grenades == null || _thrower == null) return;
             GrenadeSettings g = _thrower.Settings;
             _grenades.text = string.Format(g.countText, _thrower.Carried);
-            _grenades.color = _thrower.Carried > 0 ? g.countColour : g.emptyColour;
+            if (_pixel) _grenades.color = _thrower.Carried > 0 ? PixelKit.Cream : PixelKit.QuietText;
+            else _grenades.color = _thrower.Carried > 0 ? g.countColour : g.emptyColour;
         }
 
         /// <summary>Flashes the hit marker: bigger, longer and in the other colour for the hit that finished something.</summary>
@@ -176,6 +198,12 @@ namespace ShiftJam
             bool reticle = side && free && (show || (_carrier != null && _carrier.ToolUp)) && _holder.SideAim.ScreenPoint(out aimAt);
             _group.alpha = show || lightAim || reticle ? 1f : 0f;
             if (_box.gameObject.activeSelf != show) _box.gameObject.SetActive(show);   // the ammo read-out is the gun's
+            if (_pixel && show)
+            {
+                // Just over the status panel (D-0243), wherever it is now (the corner's edge when there is none).
+                float y = PixelKit.StatusTop > 0f ? PixelKit.StatusTop + OverStatus : PixelKit.Edge;
+                if (y != _boxY) { _boxY = y; _box.anchoredPosition = new Vector2(-PixelKit.Edge, y); }
+            }
             // The dot only while it means something (D-0154, Alan Wake 2): a gun raised (aim held, or a shot on its way) or
             // the light aimed. A gun hanging at the side does not point at it.
             _dot.SetActive(!side && ((show && _holder.Aiming) || lightAim) && !_holder.FirstPerson);
@@ -234,7 +262,8 @@ namespace ShiftJam
             Magazine m = gun.Magazine;
             bool reloading = _holder.Reloading;
             _count.text = reloading ? _s.reloadingText : m.Endless ? "--" : m.Rounds + " / " + m.Reserve;
-            _count.color = !reloading && m.Low(_s.lowShare) ? _s.lowColour : _s.countColour;
+            if (_pixel) _count.color = reloading ? PixelKit.Gold : m.Low(_s.lowShare) ? PixelKit.Pink : PixelKit.Cream;
+            else _count.color = !reloading && m.Low(_s.lowShare) ? _s.lowColour : _s.countColour;
             string ammo = _belt != null ? _belt.CurrentName : "";
             _name.text = string.IsNullOrEmpty(ammo) ? gun.DisplayName : gun.DisplayName + "  |  " + ammo;
         }
@@ -250,13 +279,32 @@ namespace ShiftJam
             scaler.referenceResolution = new Vector2(1920f, 1080f); scaler.matchWidthOrHeight = BuildUiKit.HudMatch;   // by screen height (D-0133)
             _group = canvasGo.AddComponent<CanvasGroup>(); _group.blocksRaycasts = false; _group.interactable = false; _group.alpha = 0f;
 
-            // The read-out, bottom left: the name at the bottom, the count above it, later lines above that.
-            _box = BuildUiKit.Rect("Ammo", canvasGo.transform, Vector2.zero, Vector2.zero, Vector2.zero, _s.corner, new Vector2(Width, 10f));
-            BuildUiKit.Panel(_box, PanelColour).raycastTarget = false;
-            _top = Pad * 0.5f;
-            _name = AddLine("Name", _s.nameSize, false);
-            _count = AddLine("Count", _s.countSize, true);
-            if (_thrower != null) _grenades = AddLine("Grenades", _thrower.Settings.countSize, false);
+            if (PixelKit.On)
+            {
+                // The pixel read-out (D-0243), bottom right over the status panel: the name at the bottom, the count (with
+                // the gun icon at its left) above it, the grenades above that.
+                _pixel = true;
+                _box = BuildUiKit.Rect("Ammo", canvasGo.transform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-PixelKit.Edge, PixelKit.Edge), new Vector2(PixelKit.StatusWidth, 10f));
+                PixelKit.Panel(_box, PixelKit.Frame.Normal);
+                _top = PixelKit.StatusPadY - PixelLineGap * 0.5f;
+                _name = AddLine("Name", _s.nameSize, false);
+                _count = AddLine("Count", _s.countSize, true);
+                var gun = BuildUiKit.Rect("Gun", _count.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), Vector2.zero, Vector2.zero);
+                Image gunIcon = PixelKit.Icon(gun, IconSet.Gun, 2);
+                if (gunIcon.enabled) _count.margin = new Vector4(gun.sizeDelta.x + PixelKit.IconGap, 0f, 0f, 0f);
+                if (_thrower != null) _grenades = AddLine("Grenades", _thrower.Settings.countSize, false);
+                if (_grenades != null) { _grenades.font = PixelKit.Bold; _grenades.color = PixelKit.Cream; }
+            }
+            else
+            {
+                // The read-out, bottom left: the name at the bottom, the count above it, later lines above that.
+                _box = BuildUiKit.Rect("Ammo", canvasGo.transform, Vector2.zero, Vector2.zero, Vector2.zero, _s.corner, new Vector2(Width, 10f));
+                BuildUiKit.Panel(_box, PanelColour).raycastTarget = false;
+                _top = Pad * 0.5f;
+                _name = AddLine("Name", _s.nameSize, false);
+                _count = AddLine("Count", _s.countSize, true);
+                if (_thrower != null) _grenades = AddLine("Grenades", _thrower.Settings.countSize, false);
+            }
 
             // The crosshair: a white dot in a dark square, in the middle of the screen.
             var centre = new Vector2(0.5f, 0.5f);

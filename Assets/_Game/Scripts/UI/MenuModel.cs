@@ -36,6 +36,8 @@ namespace ShiftJam
     /// can show how far a value is with a bar on its face (SetFill). A second model up at once (the pause menu's while
     /// the title's stands hidden in the scene) stands Next Place further along, out of the first one's camera.
     /// Everything moves on real time: a menu holds the game's.
+    /// The words' font: Font below; left empty, the pixel HUD's bold pixel font when PixelKit > Pixel On and Menu Words are
+    /// ticked (D-0243), else TextMesh Pro's own.
     /// </summary>
     public sealed class MenuModel : MonoBehaviour
     {
@@ -683,6 +685,7 @@ namespace ShiftJam
                 go.transform.localScale = new Vector3(1f / Mathf.Max(1e-6f, s.x), 1f / Mathf.Max(1e-6f, s.y), 1f / Mathf.Max(1e-6f, s.z));
                 c.Words = go.AddComponent<TextMeshPro>();
                 if (font != null) c.Words.font = font;
+                else if (PixelKit.MenuWords) c.Words.font = PixelKit.Bold;   // his pixel mockup's words (D-0243; PixelKit > Menu Words)
                 c.Words.alignment = TextAlignmentOptions.Center;
                 c.Words.textWrappingMode = TextWrappingModes.NoWrap;
                 c.Words.richText = true;

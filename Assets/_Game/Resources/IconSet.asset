@@ -42,6 +42,38 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 6e5adbc1dc318894384ccdcdc541daa8, type: 3}
   - id: volume
     sprite: {fileID: 21300000, guid: dcc886d3e013a6147a26df1a96fce3bb, type: 3}
+  - id: heart
+    sprite: {fileID: 21300000, guid: e0f7f935b8a041e4e84f5f3393a634e6, type: 3}
+  - id: shift
+    sprite: {fileID: 21300000, guid: 0d7f053c9fe19c6439deb70e07ae62e1, type: 3}
+  - id: torch
+    sprite: {fileID: 21300000, guid: c1d9df031f714894d8dac3a77a8b04ba, type: 3}
+  - id: gun
+    sprite: {fileID: 21300000, guid: 56650687693357746836a0d7ce6fb758, type: 3}
+  - id: battery-high
+    sprite: {fileID: 21300000, guid: 56a30043521ba5c408c710fad0f63038, type: 3}
+  - id: battery-low
+    sprite: {fileID: 21300000, guid: eca372c459ac8264abe4188929840d99, type: 3}
+  - id: star
+    sprite: {fileID: 21300000, guid: da532a24a61d43145bdbdf38a6a45152, type: 3}
+  - id: star-locked
+    sprite: {fileID: 21300000, guid: e9dbfaa3039db424a9defab160c532e8, type: 3}
+  - id: ghost
+    sprite: {fileID: 21300000, guid: 7cefdd1c2d093bb4c9d0f784c9351de1, type: 3}
+  - id: lock
+    sprite: {fileID: 21300000, guid: 2c1e6a5052a8dbe4682e9ee0149b8fc6, type: 3}
+  - id: bulb
+    sprite: {fileID: 21300000, guid: 54e9f94adb70ff14caadf1a701711883, type: 3}
+  - id: hand
+    sprite: {fileID: 21300000, guid: 192421bad5900f64088d1b2bfdba689b, type: 3}
+  - id: trophy
+    sprite: {fileID: 21300000, guid: 9ee702b2618f550478e30ec17dfa126d, type: 3}
+  - id: box
+    sprite: {fileID: 21300000, guid: 70fe72d6b2c87fc468c5bf9f1fcaf667, type: 3}
+  - id: door
+    sprite: {fileID: 21300000, guid: 99c0f4d32941b454db7771df5871d74e, type: 3}
+  - id: sticker
+    sprite: {fileID: 21300000, guid: 2a1c388d21b3a6743ac9ce9a5cef4b8c, type: 3}
   iconShare: 0.7
   iconPixels: 16
   iconGap: 14
@@ -74,3 +106,34 @@ MonoBehaviour:
   belowHint: 22
   hintLift: 14
   fromBottom: 22
+  keys:
+  - names: e
+    sprite: {fileID: 21300000, guid: 8ada6d363492e974c8fc1094547e080b, type: 3}
+  - names: f
+    sprite: {fileID: 21300000, guid: fc9d312d5c612334584ac04b9a9d52ac, type: 3}
+  - names: r
+    sprite: {fileID: 21300000, guid: 349fcf9ab37184c4bb340998bf4715d2, type: 3}
+  - names: x
+    sprite: {fileID: 21300000, guid: e0ba524da57ab6143b61048491e30407, type: 3}
+  - names: c
+    sprite: {fileID: 21300000, guid: 105ba8433c8e8ce4095930c9cc6192a1, type: 3}
+  - names: q
+    sprite: {fileID: 21300000, guid: 9a8173af90bcd5d4195d2b5be57b7a62, type: 3}
+  - names: g
+    sprite: {fileID: 21300000, guid: 35f278881dc11dc49b6be1713f97a75f, type: 3}
+  - names: tab
+    sprite: {fileID: 21300000, guid: 30f01de432d739749b13359e2ca0ba71, type: 3}
+  - names: esc,escape
+    sprite: {fileID: 21300000, guid: a67edbfcd700a784689f2cddb89cc1b3, type: 3}
+  - names: space,spacebar
+    sprite: {fileID: 21300000, guid: 33ffe2792ea13944e86b141d54128001, type: 3}
+  - names: shift
+    sprite: {fileID: 21300000, guid: 2eea36f61cf46da418d9b4b3c0012e7c, type: 3}
+  - names: enter,return
+    sprite: {fileID: 21300000, guid: b561c3bbd55365a458a8911b966174d5, type: 3}
+  - names: lmb,click,left click
+    sprite: {fileID: 21300000, guid: 129816a1c4ee1ba4db8fd41a768fd95b, type: 3}
+  - names: rmb,right click
+    sprite: {fileID: 21300000, guid: cbf9afd9d53ad964880da9d68c4cafd1, type: 3}
+  - names: wheel,scroll
+    sprite: {fileID: 21300000, guid: 0a992294f62dcea4abe98ff65c88263d, type: 3}

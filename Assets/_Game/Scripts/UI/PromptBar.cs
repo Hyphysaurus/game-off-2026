@@ -16,6 +16,8 @@ namespace ShiftJam
     /// the Sticker Chart page). It lies on its owner's canvas, or on a canvas of its own when it must stay over another
     /// page (the pause menu's, over the chart). Laid out when shown or when the hands change; nothing is made or
     /// allocated per frame. Off: IconSet > Footer On (then Make gives null and the menus show none).
+    /// Its words are in the pixel HUD's bold pixel font when IconSet > Font is empty and PixelKit > Pixel On and Menu Words
+    /// are ticked (D-0243), at the nearest multiple of 8 to Words Size.
     /// </summary>
     public sealed class PromptBar : MonoBehaviour
     {
@@ -108,6 +110,12 @@ namespace ShiftJam
             var t = rt.gameObject.AddComponent<TextMeshProUGUI>();
             if (_set.font != null) t.font = _set.font;
             t.fontSize = _set.wordsSize; t.color = colour; t.raycastTarget = false;
+            if (_set.font == null && PixelKit.MenuWords)
+            {
+                // His pixel mockup's footer (D-0243): the bold pixel font at its nearest sharp size (Words Size 22 -> 24).
+                t.font = PixelKit.Bold;
+                t.fontSize = Mathf.Max(PixelKit.Body, Mathf.Round(_set.wordsSize / 8f) * 8f);
+            }
             t.fontStyle = FontStyles.Bold | (_set.capitals ? FontStyles.UpperCase : FontStyles.Normal);
             t.alignment = TextAlignmentOptions.MidlineLeft;
             t.textWrappingMode = TextWrappingModes.NoWrap;

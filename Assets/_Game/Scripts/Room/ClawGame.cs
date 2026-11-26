@@ -109,6 +109,8 @@ namespace ShiftJam
         private readonly List<Renderer> _found = new List<Renderer>();
         private readonly RaycastHit[] _hits = new RaycastHit[32];
         private readonly Collider[] _near = new Collider[24];
+        private ArcPreview _aim;                                     // where the claw will come down (D-0238); made the first time
+        private readonly List<Vector3> _aimLine = new List<Vector3>(2);
         private bool _ready;
         private string _whyNot = "";
         private Quaternion _hatchRest = Quaternion.identity;
@@ -420,6 +422,7 @@ namespace ShiftJam
             _round = Round.Steer;
             _hud.Show(_s.hudTitle, _s.hudKeys);
             _hud.Seconds(Mathf.CeilToInt(_timeLeft), _s.hudTimeFormat);
+            ShowAim();
         }
 
         // ------------------------------------------------------------------------------------------------ steering
@@ -447,6 +450,7 @@ namespace ShiftJam
             if (kept.y != next.y) _steerVelocity.y = 0f;
             _claw.At = kept;
             _leverAim = stick;
+            ShowAim();
 
             if (keysFree) _timeLeft -= dt;   // the key sheet or the console holding the keys does not eat the clock
             _hud.Seconds(Mathf.Max(0, Mathf.CeilToInt(_timeLeft)), _s.hudTimeFormat);
@@ -455,6 +459,31 @@ namespace ShiftJam
         }
 
         private Vector2 Clamp(Vector2 at) => new Vector2(Mathf.Clamp(at.x, steerArea.x, steerArea.y), Mathf.Clamp(at.y, steerArea.z, steerArea.w));
+
+        /// <summary>Where the claw will come down (D-0238, his "add the claw aiming" after a play of 12 drops for 1 grab, most "too far
+        /// off its middle": depth is hard to judge from the front). A drop line from the claw and a ring as wide as the grab's reach
+        /// on whatever is under it, worked out exactly as the drop works it out (FloorUnderClaw, Under, the overlap), so the ring and
+        /// the drop never disagree: the floor's colour over nothing, Near over a prize too far off its middle, Grab when it can be taken.</summary>
+        private void ShowAim()
+        {
+            if (!_s.aimOn) { HideAim(); return; }
+            if (_aim == null) _aim = ArcPreview.For(machine);   // the throw arc's drawer (Resources/FX/AimArc): one, kept
+            if (_aim == null) return;
+            float unit = machine.lossyScale.y;
+            Vector3 grip = _claw.GripWorld;
+            float open = _s.fingerOpen;
+            float floor = FloorUnderClaw(grip, open);
+            ClawGamePrize target = Under(grip, _claw.TipRadius(open, true) * unit, out float top, out float offset, out float _);
+            float overlap = target != null ? Mathf.Clamp01(1f - offset / Mathf.Max(1e-4f, _s.graspReach * unit)) : 0f;
+            float land = target != null ? Mathf.Max(floor, top) : floor;   // the machine's own height
+            Vector3 local = machine.InverseTransformPoint(grip);
+            Vector3 ringAt = machine.TransformPoint(new Vector3(local.x, land + _s.aimLift, local.z));
+            Color c = target == null ? _s.aimNothing : overlap >= _s.overlapNeeded ? _s.aimGrab : _s.aimNear;
+            _aimLine.Clear(); _aimLine.Add(grip); _aimLine.Add(ringAt);
+            _aim.Show(_aimLine, _s.aimLineWidth * unit, c, _s.aimDashes, ringAt, machine.up, _s.graspReach * unit, c);
+        }
+
+        private void HideAim() { if (_aim != null) _aim.Hide(); }
 
         // ------------------------------------------------------------------------------------------------ the drop
 
@@ -465,6 +494,7 @@ namespace ShiftJam
             if (_round != Round.Steer) return;
             _round = Round.Busy;
             _hud.Hide();
+            HideAim();
             _steerVelocity = Vector2.zero;
             PressButton();
 
@@ -677,6 +707,7 @@ namespace ShiftJam
             if (_round == Round.None) return;
             _round = Round.None;
             _hud.Hide();
+            HideAim();
             KeysOff();
             _steerVelocity = Vector2.zero;
             if (_view != null)

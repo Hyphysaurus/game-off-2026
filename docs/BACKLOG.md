@@ -4,7 +4,8 @@ Order = priority. "His" = editor / feel / art / audio; "mine" = scripts, builder
 first, then juice, then the page. Nothing here is a deadline pressure, it is the order to pick from.
 
 ## HIS IDEAS, 25 Nov 2026 evening (from his 19:20 play; NOT decided, NOT built; jam or post-jam still his call)
-- **The end goal: the backyard, not the window.** His "i think our end goal will be not the window but the backyard".
+- **The end goal: outside, or the first floor.** His later word (19:5x): "the goal should be to get outside OR to the
+  first floor". Earlier: "i think our end goal will be not the window but the backyard".
   Today's ending (DESIGN.md) is the toy back on the sill at dawn, looking at the garden it will never see again; the
   backyard was parked as post-jam (NORTH STAR below). A backyard goal turns the ending into an escape.
 - **The Colour Corner and the Raceway joined without hallway sections.** His "figure out how to get the color corner
@@ -14,7 +15,8 @@ first, then juice, then the page. Nothing here is a deadline pressure, it is the
 - **Monsters with rarities, gacha style.** His "making it a gatcha style game with different rarities for the monsters
   or something like that". No real money, no paid pulls.
 - **The HUD gives information away without its context.** His "it still gives a lot of information away without the
-  context being clear or obvious" (with D-0162's steps 2 and 3 still unbuilt).
+  context being clear or obvious" (with D-0162's steps 2 and 3 still unbuilt). A case in point: after a fall he took
+  his flashlight for broken, because he did not recognise its slot in the HUD inventory.
 - **In-game menus in his pixel menu style** (claw machine, armory, garage), from the 25 Nov UI plan.
 
 

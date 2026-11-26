@@ -4349,3 +4349,22 @@
     even after BuildAndRun has switched auto building off, and calls back "not built" with no error while the real
     build is under way; `ClothDresser.OnBuilt` took that for a failure and tore each cloth down. Now only a "not built"
     that carries an error fails, and the warning prints Magica's own reason. **NOT PLAYED.**
+- **D-0237 (25 Nov 2026, 20:0x) The bedroom window sits in a real opening.** His "a frame but no window" (a screenshot:
+  the new blind high on a blank wall, the sill bar below). The window (Window_01, not placed by any maker) stood 3.7
+  inside the solid north wall, so only its sill showed. The two plain wall pieces behind it (Wall_North_-32.5 and
+  Wall_North_32.5, Wall_01, 65 wide each) gave way to one Wall_03 (the kit's wall with a window hole, 130 wide, the
+  opening x -20.8..20.7, y 45.8..101.8), named Wall_North_Window, in the same place; the window came down 12 and out to
+  sit in the opening as the end window sits in its own (CourseBuilder's R6: pivot 43 up, 4.5 in front of the wall's
+  middle). The old pieces are switched off and renamed "(old, D-0237) ...", not deleted. Nothing lies beyond the wall:
+  the opening shows the outdoors. The goal's sill is the end window's (R6_Window/Sill), so nothing hangs on the bedroom
+  sill's height; the moonlight fill keeps its place. The cloth maker was run again: the bedroom blind now hangs on the
+  window as the end window's does (top 109, the same 2.6 gap behind its brackets). Same fault, not fixed yet: the
+  living room maker sets the 8 downstairs windows 3.73 into solid walls too. **NOT PLAYED.**
+- **D-0238 (25 Nov 2026, 20:0x) Aiming the claw.** His "add the claw aiming" after a play of 12 drops for 1 grab (it
+  slipped), most "too far off its middle": depth is hard to judge from the front view. While steering, a dashed drop
+  line runs from the claw to a ring on whatever is under it, as wide as the grab's reach, drawn by the throw arc's
+  drawer (ArcPreview). The ring is worked out exactly as the drop works it out (FloorUnderClaw, Under, the overlap), so
+  the two never disagree: white over the floor, amber over a prize whose middle is outside the ring, green when a drop
+  can take it. The grab's reach went from 0.12 to the pack's own 0.17 (the asset too). Numbers and the off switch
+  (Aim On) on ClawGameSettings > Aiming. Also in the commit: URP filled in the dizzy eye material's old `_Color` slot to
+  match its colour (the maker had set only the new one). **NOT PLAYED.**

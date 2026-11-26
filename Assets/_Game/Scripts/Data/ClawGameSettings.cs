@@ -82,14 +82,24 @@ namespace ShiftJam
         [Min(0.02f), Tooltip("Seconds the button takes to go in and come back out (the pack: 0.24).")] public float buttonSeconds = 0.24f;
 
         [Header("The grab")]
-        [Min(0.001f), Tooltip("How far from the claw's middle a prize's middle may be and still be held, machine units (the pack: 0.17). The overlap is 1 dead centre and 0 at this distance.")]
-        public float graspReach = 0.12f;
+        [Min(0.001f), Tooltip("How far from the claw's middle a prize's middle may be and still be held, machine units (the pack: 0.17). The overlap is 1 dead centre and 0 at this distance. D-0238: 0.17, the pack's own (was 0.12: his 25 Nov play, 12 drops for 1 grab).")]
+        public float graspReach = 0.17f;
         [Range(0f, 1f), Tooltip("The least overlap for the fingers to take hold at all.")] public float overlapNeeded = 0.3f;
         [Range(0f, 1f), Tooltip("The chance the fingers take hold when the overlap is enough.")] public float grabChance = 0.75f;
         [Range(0f, 1f), Tooltip("At or over this overlap a held prize never slips (a clean grab).")] public float firmOverlap = 0.7f;
         [Range(0f, 1f), Tooltip("The chance a prize held with less than Firm Overlap slips out on the way up (a near miss).")] public float slipChance = 0.5f;
         [Tooltip("Where on the way up a slip happens: a share of the rise, from x to y.")] public Vector2 slipBetween = new Vector2(0.25f, 0.75f);
         [Min(0f), Tooltip("Seconds a slipped prize takes to drop back where it was taken from.")] public float slipFallSeconds = 0.35f;
+
+        [Header("Aiming (D-0238)")]
+        [Tooltip("While steering, show where the claw will come down: a drop line from the claw and a ring on whatever is under it, as wide as the grab's reach.")]
+        public bool aimOn = true;
+        [Tooltip("The ring and the line over the bare floor: nothing to take there.")] public Color aimNothing = new Color(1f, 1f, 1f, 0.55f);
+        [Tooltip("Over a prize whose middle is outside the ring: the fingers would miss it.")] public Color aimNear = new Color(1f, 0.72f, 0.25f, 0.85f);
+        [Tooltip("Over a prize whose middle is inside the ring: a drop here can take it (at Grab Chance).")] public Color aimGrab = new Color(0.35f, 1f, 0.55f, 0.95f);
+        [Min(0f), Tooltip("The drop line's width, machine units (x 28.54 in the room).")] public float aimLineWidth = 0.003f;
+        [Min(0f), Tooltip("Dashes along the drop line, per line width (0 = a solid line).")] public float aimDashes = 0.35f;
+        [Min(0f), Tooltip("How far over the surface the ring floats, machine units, so it never sinks into a prize's top.")] public float aimLift = 0.004f;
 
         [Header("The prize coming out")]
         [Min(0.05f), Tooltip("Seconds a let-go prize takes to fall into the chute's hole.")] public float fallSeconds = 0.35f;

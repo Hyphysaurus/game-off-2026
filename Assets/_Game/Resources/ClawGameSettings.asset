@@ -67,13 +67,20 @@ MonoBehaviour:
   leverEase: 0.05
   buttonDepth: 0.012
   buttonSeconds: 0.24
-  graspReach: 0.12
+  graspReach: 0.17
   overlapNeeded: 0.3
   grabChance: 0.75
   firmOverlap: 0.7
   slipChance: 0.5
   slipBetween: {x: 0.25, y: 0.75}
   slipFallSeconds: 0.35
+  aimOn: 1
+  aimNothing: {r: 1, g: 1, b: 1, a: 0.55}
+  aimNear: {r: 1, g: 0.72, b: 0.25, a: 0.85}
+  aimGrab: {r: 0.35, g: 1, b: 0.55, a: 0.95}
+  aimLineWidth: 0.003
+  aimDashes: 0.35
+  aimLift: 0.004
   fallSeconds: 0.35
   fallTumble: 30
   hatchOpenAngle: -100

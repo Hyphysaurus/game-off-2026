@@ -2,6 +2,16 @@
 
 Truth for what is BUILT vs DESIGNED. Newest entry first. Versions log at the end.
 
+## 25 Nov 2026 20:0x — THE BEDROOM WINDOW IN A REAL OPENING (D-0237), AIMING THE CLAW (D-0238). NOT PLAYED.
+- **HIS TEST:**
+  - The bedroom: the window sits in the north wall with the outdoors behind its glass, the blind hanging over it.
+  - The claw machine: while steering, a dashed line drops from the claw to a ring under it. The ring is white over
+    the floor, amber over a prize too far off its middle, and green when a drop can take it. Grabs should come far
+    more often (the reach went to 0.17).
+- **Faults to watch:** a gap or seam at the window wall's edges; the ring sinking into a prize or floating high; a
+  green ring that misses, or an amber one that grabs (they work from the same numbers, so either is a bug).
+- **Next, his call:** the goal (his "get outside OR to the first floor"), then the rest of BACKLOG's 25 Nov list.
+
 ## 25 Nov 2026 19:5x — FIXES FROM HIS 19:20 PLAY: THE CLOTH BUILDS, THE CLAW COMES DOWN BY THE SIDES. NOT PLAYED.
 - **HIS TEST:** the console shows 12 "[Cloth D-0233] ... built in t s" lines and no "stays still"; the bedroom's blind
   cord and the fort flags move. At the claw machine, a drop near the left or right side comes down.
